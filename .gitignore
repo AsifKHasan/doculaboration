@@ -130,5 +130,5 @@ dmypy.json
 
 # specific to the project
 out/
-conf/config.yml
-conf/credential.json
+config.yml
+credential.json
