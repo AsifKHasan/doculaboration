@@ -14,7 +14,7 @@ files:
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one docx
-  - "replace-with-json-name-without-extension"
+  - "spectrum__written-exam-questions__rmstu__2021-08-07"
 
 docx-related:
   # whether the ToC will be updated in the output docx after generation (requires Windows with Word installed)
