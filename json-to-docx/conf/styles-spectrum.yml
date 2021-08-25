@@ -1,0 +1,654 @@
+document:
+  odd_and_even_pages_header_footer: true
+
+sections:
+    continuous_portrait:
+        break: CONTINUOUS
+        orient: PORTRAIT
+        page_width: 8.27
+        page_height: 11.69
+        left_margin: 0.75
+        right_margin: 0.75
+        top_margin: 0.75
+        bottom_margin: 0.75
+        gutter: 0
+        header_distance: 0.25
+        footer_distance: 0.25
+    continuous_landscape:
+        break: CONTINUOUS
+        orient: LANDSCAPE
+        page_width: 11.69
+        page_height: 8.27
+        left_margin: 0.75
+        right_margin: 0.75
+        top_margin: 0.75
+        bottom_margin: 0.75
+        gutter: 0
+        header_distance: 0.25
+        footer_distance: 0.25
+    newpage_portrait:
+        break: NEW_PAGE
+        orient: PORTRAIT
+        page_width: 8.27
+        page_height: 11.69
+        left_margin: 0.75
+        right_margin: 0.75
+        top_margin: 0.75
+        bottom_margin: 0.75
+        gutter: 0
+        header_distance: 0.25
+        footer_distance: 0.25
+    newpage_landscape:
+        break: NEW_PAGE
+        orient: LANDSCAPE
+        page_width: 11.69
+        page_height: 8.27
+        left_margin: 0.75
+        right_margin: 0.75
+        top_margin: 0.75
+        bottom_margin: 0.75
+        gutter: 0
+        header_distance: 0.25
+        footer_distance: 0.25
+
+paragraph_styles:
+  Calibri-2-Gray8:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 2
+          bold: false
+          italic: false
+          color: '808080'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-2-Gray4-Justify:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 2
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: JUSTIFY
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-9-Gray4:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 9
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-9-Gray8:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 9
+          bold: false
+          italic: false
+          color: '808080'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-10-Gray4:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 10
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-10-Gray4-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 10
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-11-Gray4:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 11
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-11-Gray4-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 11
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-11-Gray4-Italic:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 11
+          bold: false
+          italic: true
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  Calibri-11-Gray4-Bold-Justify:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 11
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: JUSTIFY
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-12-Gray4:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 12
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-12-Gray4-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 12
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-12-Gray4-Justify:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 12
+          bold: false
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: JUSTIFY
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-12-Gray4-Bold-SmallCaps:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 12
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: true
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-14-Gray4-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 14
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-14-Gray4-Bold-Justify:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 14
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: JUSTIFY
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-16-Gray8-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 16
+          bold: true
+          italic: false
+          color: '808080'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-16-Gray8-Bold-SmallCaps:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 16
+          bold: true
+          italic: false
+          color: '808080'
+          all_caps: false
+          small_caps: true
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  Calibri-18-Gray6-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 18
+          bold: true
+          italic: false
+          color: '606060'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 12
+          space_before: 12
+          widow_control:
+  Calibri-20-Gray6-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 20
+          bold: true
+          italic: false
+          color: '606060'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 12
+          space_before: 12
+          widow_control:
+  Calibri-24-Gray6-Bold:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 24
+          bold: true
+          italic: false
+          color: '606060'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 12
+          space_before: 12
+          widow_control:
+  TODO:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 10
+          bold: false
+          italic: false
+          color: 'F00000'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 0
+          space_before: 0
+          widow_control:
+  HEADING1:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 16
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: false
+      pf:
+          alignment: CENTER
+          first_line_indent:
+          keep_together:
+          keep_with_next:
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  HEADING2:
+      base_style: Normal
+      next_paragraph_style: Normal
+      font:
+          name: 'Calibri'
+          size: 12
+          bold: true
+          italic: false
+          color: '404040'
+          all_caps: false
+          small_caps: true
+      pf:
+          alignment: LEFT
+          first_line_indent:
+          keep_together:
+          keep_with_next: true
+          left_indent:
+          line_spacing: 1.0
+          line_spacing_rule:
+          page_break_before:
+          right_indent:
+          space_after: 4
+          space_before: 0
+          widow_control:
+  PAGE-NUMBER1:
+    base_style: Normal
+    next_paragraph_style: Normal
+    font:
+      name: 'Calibri'
+      size: 9
+      bold: false
+      italic: false
+      color: '666666'
+      all_caps: false
+      small_caps: true
+    pf:
+      alignment:
+      first_line_indent:
+      keep_together:
+      keep_with_next: true
+      left_indent:
+      line_spacing: 1.0
+      line_spacing_rule:
+      page_break_before:
+      right_indent:
+      space_after: 4
+      space_before: 0
+      widow_control:

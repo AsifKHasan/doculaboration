@@ -1,0 +1,21 @@
+# copy this file as config.yml and do not commit the copied file
+
+dirs:
+  # all outputs and temporary downloads go here
+  output-dir:            "../../out"
+
+files:
+  # the custom styles for the output docx
+  docx-styles:           "./styles-spectrum.yml"
+  # the docx template based on which the output docx is generated (should definitely be blank with some styles customized as preferred)
+  docx-template:         "./template-spectrum.docx"
+
+jsons:
+  # the json(s) that will be processed to generate output(s). One json outputs one docx
+  - "spectrum__written-exam-questions__rmstu__2021-08-07"
+
+docx-related:
+  # whether the ToC will be updated in the output docx after generation (requires Windows with Word installed)
+  update-toc:           true
+  # whether the pdf will be generated from the output docx after generation (requires Windows with Word installed)
+  generate-pdf:         true

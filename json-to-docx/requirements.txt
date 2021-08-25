@@ -1,0 +1,17 @@
+argparse
+PyYAML
+lxml
+httplib2
+yamllint
+
+pandas
+numpy
+
+oauth2client
+PyDrive
+pygsheets
+
+progress
+tqdm
+termcolor
+colorama

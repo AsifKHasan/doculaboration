@@ -1,0 +1,22 @@
+# copy this file as config.yml and do not commit the copied file
+
+# the name of the worksheet that contains the index (kind of Table of Content)
+index-worksheet:         "-toc"
+
+# if gsheet read times out how many seconds to wait before trying the next read
+gsheet-read-wait-seconds:   30
+
+# if gsheet read times out how many times the read should be tried in total
+gsheet-read-try-count:      20
+
+dirs:
+  # all outputs and temporary downloads go here
+  output-dir:            "../out"
+
+files:
+  # the google credential for accessing the gsheet(s) (this file is not in the repo)
+  google-cred:           "./credential.json"
+
+gsheets:
+  # the gsheet(s) that will processed to generate output(s). One gsheet outputs one docx
+  - "replace-with-gsheet-name"
