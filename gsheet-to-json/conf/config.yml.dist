@@ -11,7 +11,7 @@ gsheet-read-try-count:      20
 
 dirs:
   # all outputs and temporary downloads go here
-  output-dir:            "../out"
+  output-dir:            "../../out"
 
 files:
   # the google credential for accessing the gsheet(s) (this file is not in the repo)

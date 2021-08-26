@@ -11,7 +11,5 @@ oauth2client
 PyDrive
 pygsheets
 
-progress
-tqdm
 termcolor
 colorama

@@ -10,6 +10,7 @@ import yaml
 import datetime
 import argparse
 import pprint
+
 if sys.platform == 'win32':
 	import win32com.client as client
 
@@ -64,15 +65,14 @@ class DocxFromJson(object):
 
 	def run(self):
 		self.set_up()
-		# process gsheets one by one
-		for gsheet in self._CONFIG['gsheets']:
-			self._data = self._gsheethelper.process_gsheet(gsheet)
-
-			self._CONFIG['files']['output-json'] = os.path.abspath('{0}/{1}.json'.format(self._CONFIG['dirs']['output-dir'], gsheet))
-			self.save_json()
+		
+		# process jsons one by one
+		for json in self._CONFIG['jsons']:
+			self._CONFIG['files']['input-json'] = os.path.abspath('{0}/{1}.json'.format(self._CONFIG['dirs']['output-dir'], json))
+			self.load_json()
 
 			# docx-helper
-			self._CONFIG['files']['output-docx'] = os.path.abspath('{0}/{1}.docx'.format(self._CONFIG['dirs']['output-dir'], gsheet))
+			self._CONFIG['files']['output-docx'] = os.path.abspath('{0}/{1}.docx'.format(self._CONFIG['dirs']['output-dir'], json))
 			self._docxhelper = DocxHelper(self._CONFIG['files']['docx-template'], self._CONFIG['files']['docx-styles'], self._CONFIG['files']['output-docx'])
 			self._doc = self._docxhelper.init()
 			self.generate_docx()
@@ -92,9 +92,9 @@ class DocxFromJson(object):
 		self._CONFIG['files']['docx-styles'] = os.path.abspath('{0}/{1}'.format(config_dir, self._CONFIG['files']['docx-styles']))
 		self._CONFIG['files']['docx-template'] = os.path.abspath('{0}/{1}'.format(config_dir, self._CONFIG['files']['docx-template']))
 
-	def save_json(self):
-		with open(self._CONFIG['files']['output-json'], "w") as f:
-			f.write(json.dumps(self._data, sort_keys=False, indent=4))
+	def load_json(self):
+		with open(self._CONFIG['files']['input-json'], "r") as f:
+			self._data = json.load(f)
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))

@@ -1,0 +1,13 @@
+# copy this file as config.yml and do not commit the copied file
+
+dirs:
+  # some stock files (images) that we do not want to download from outside
+  data-dir:              "../data"
+  # all outputs and temporary downloads go here
+  output-dir:            "../../out"
+
+files:
+
+jsons:
+  # the json(s) that will be processed to generate output(s). One json outputs one docx
+  - "replace-with-json-name-without-extension"
