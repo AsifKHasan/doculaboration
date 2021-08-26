@@ -32,7 +32,7 @@ class DocbookFromJson(object):
 			module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
 			module.generate(section, self._doc, self._docbookhelper._sections, self._CONFIG)
 
-		self._doc.save(self._CONFIG['files']['output-docbook'])
+		self._docbookhelper.save()
 
 	def run(self):
 		self.set_up()
@@ -43,7 +43,7 @@ class DocbookFromJson(object):
 
 			# docbook-helper
 			self._CONFIG['files']['output-docbook'] = os.path.abspath('{0}/{1}.xml'.format(self._CONFIG['dirs']['output-dir'], json))
-			self._docbookhelper = DocbookHelper(self._CONFIG['files']['output-docbook'])
+			self._docbookhelper = DocbookHelper(self._CONFIG['files']['docbook-styles'], self._CONFIG['files']['output-docbook'])
 			self._doc = self._docbookhelper.init()
 			self.generate_docbook()
 
@@ -59,8 +59,10 @@ class DocbookFromJson(object):
 		if not os.path.exists(self._CONFIG['dirs']['temp-dir']):
 			os.makedirs(self._CONFIG['dirs']['temp-dir'])
 
-		self._CONFIG['files']['docx-styles'] = os.path.abspath('{0}/{1}'.format(config_dir, self._CONFIG['files']['docx-styles']))
-		self._CONFIG['files']['docx-template'] = os.path.abspath('{0}/{1}'.format(config_dir, self._CONFIG['files']['docx-template']))
+		self._CONFIG['files']['docbook-styles'] = os.path.abspath('{0}/{1}'.format(config_dir, self._CONFIG['files']['docbook-styles']))
+
+		if not 'files' in self._CONFIG:
+			self._CONFIG['files'] = {}
 
 	def load_json(self):
 		with open(self._CONFIG['files']['input-json'], "r") as f:

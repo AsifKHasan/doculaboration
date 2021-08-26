@@ -11,9 +11,6 @@ import pprint
 from helper.logger import *
 from helper.docbook.docbook_util import *
 
-VALIGN = {'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP, 'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER, 'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM}
-HALIGN = {'LEFT': WD_ALIGN_PARAGRAPH.LEFT, 'CENTER': WD_ALIGN_PARAGRAPH.CENTER, 'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT, 'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY}
-
 def render_content_in_cell(doc, cell, cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
     cell.width = Inches(width)
     paragraph = cell.paragraphs[0]

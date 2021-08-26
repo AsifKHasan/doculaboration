@@ -10,3 +10,8 @@ to update all python packages
 ```
 pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 ```
+
+to generate a pdf from a docbook xml
+```
+pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-08-07.pdf spectrum__written-exam-questions__rmstu__2021-08-07.xml
+```
