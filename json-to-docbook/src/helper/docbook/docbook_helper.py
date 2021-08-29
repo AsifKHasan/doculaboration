@@ -26,11 +26,6 @@ class DocbookHelper(object):
         self._doc = etree.Element('article', nsmap=xmlns_uris, version='5.0')
         self._doc.attrib['lang'] = 'en'
 
-        title = etree.SubElement(self._doc, 'title')
-        title.text = 'Sample article'
-        para = etree.SubElement(self._doc, 'para')
-        para.text = 'This is a very short article.'
-
         return self._doc
 
 

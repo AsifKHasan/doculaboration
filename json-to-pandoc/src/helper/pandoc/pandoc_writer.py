@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 
 '''
-various utilities for rendering gsheet cell content into a docx, mostly for Formatter of type Table
+various utilities for rendering json content into a pandoc, mostly for Formatter of type Table
 '''
 
 import json
 import time
 import pprint
 
-from docx.shared import Pt, Cm, Inches, RGBColor, Emu
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
-from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
-from docx.enum.section import WD_SECTION, WD_ORIENT
+from lxml import etree
 
 from helper.logger import *
-from helper.docx.docx_util import *
-
-VALIGN = {'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP, 'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER, 'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM}
-HALIGN = {'LEFT': WD_ALIGN_PARAGRAPH.LEFT, 'CENTER': WD_ALIGN_PARAGRAPH.CENTER, 'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT, 'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY}
+from helper.pandoc.pandoc_util import *
 
 def render_content_in_cell(doc, cell, cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
     cell.width = Inches(width)
@@ -559,42 +553,6 @@ def set_footer(doc, section, footer_first, footer_odd, footer_even, actual_width
 
 
 def add_section(doc, section_data, section_spec, use_existing=False):
-    if section_spec['break'] == 'CONTINUOUS':
-        # if it is the only section, do not add, just get the last (current) section
-        if use_existing:
-            section = doc.sections[-1]
-        else:
-            section = doc.add_section(WD_SECTION.CONTINUOUS)
-    else:
-        # if it is the only section, do not add, just get the last (current) section
-        if use_existing:
-            section = doc.sections[-1]
-        else:
-            section = doc.add_section(WD_SECTION.NEW_PAGE)
-
-    if section_spec['orient'] == 'LANDSCAPE':
-        section.orient = WD_ORIENT.LANDSCAPE
-    else:
-        section.orient = WD_ORIENT.PORTRAIT
-
-    section.page_width = Inches(section_spec['page_width'])
-    section.page_height = Inches(section_spec['page_height'])
-    section.left_margin = Inches(section_spec['left_margin'])
-    section.right_margin = Inches(section_spec['right_margin'])
-    section.top_margin = Inches(section_spec['top_margin'])
-    section.bottom_margin = Inches(section_spec['bottom_margin'])
-    section.header_distance = Inches(section_spec['header_distance'])
-    section.footer_distance = Inches(section_spec['footer_distance'])
-    section.gutter = Inches(section_spec['gutter'])
-    section.different_first_page_header_footer = section_data['different-first-page-header-footer']
-
-    # get the actual width
-    actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
-
-    # set header if it is not set already
-    set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
-
-    # set footer if it is not set already
-    set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+    section = '\n' + '# ' + section_data['heading'].strip() + '\n'
 
     return section
