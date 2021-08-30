@@ -18,5 +18,5 @@ pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-0
 
 to generate pdf from a pandoc markdown
 ```
-pandoc -s -f markdown -t latex -o spectrum__written-exam-questions__rmstu__2021-08-07.pdf spectrum__written-exam-questions__rmstu__2021-08-07.md
+pandoc -s -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf Tasnim.Kabir.Ratul__profile.mkd
 ```

@@ -43,7 +43,7 @@ class PandocFromJson(object):
 			self.load_json()
 
 			# pandoc-helper
-			self._CONFIG['files']['output-pandoc'] = os.path.abspath('{0}/{1}.md'.format(self._CONFIG['dirs']['output-dir'], json))
+			self._CONFIG['files']['output-pandoc'] = os.path.abspath('{0}/{1}.mkd'.format(self._CONFIG['dirs']['output-dir'], json))
 			self._pandochelper = PandocHelper(self._CONFIG['files']['pandoc-styles'], self._CONFIG['files']['output-pandoc'])
 			self._doc = self._pandochelper.init()
 			self.generate_pandoc()

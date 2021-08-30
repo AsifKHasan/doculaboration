@@ -552,7 +552,44 @@ def set_footer(doc, section, footer_first, footer_odd, footer_even, actual_width
         if footer_even is not None: insert_content(footer_even, doc, actual_width, container=even_page_footer, cell=None)
 
 
-def add_section(doc, section_data, section_spec, use_existing=False):
-    section = '\n' + '# ' + section_data['heading'].strip() + '\n'
+def add_section(section_data, section_spec):
+    section = '```{=latex}' + '\n'
+    if section_data['section-break'].startswith('newpage_'):
+        section = section + '\\newpage' + '\n'
+
+    section = section + '\pdfpagewidth ' + '{0}in'.format(section_spec['page_width']) + '\n'
+    section = section + '\pdfpageheight ' + '{0}in'.format(section_spec['page_height']) + '\n'
+    section = section + '\\newgeometry{' + 'top={0}in, bottom={0}in, left={0}in, right={0}in'.format(section_spec['top_margin'], section_spec['bottom_margin'], section_spec['left_margin'], section_spec['right_margin']) + '}\n'
+
+    # section.header_distance = Inches(section_spec['header_distance'])
+    # section.footer_distance = Inches(section_spec['footer_distance'])
+    # section.gutter = Inches(section_spec['gutter'])
+    # section.different_first_page_header_footer = section_data['different-first-page-header-footer']
+
+    section = section + '```' + '\n\n'
+
+
+
+    # get the actual width
+    # actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
+
+    # set header if it is not set already
+    # set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
+
+    # set footer if it is not set already
+    # set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+
+
+    if section_data['no-heading'] == False:
+        if section_data['section'] != '':
+            heading_text = '{0} {1} - {2}'.format('#' * section_data['level'], section_data['section'], section_data['heading'].strip())
+        else:
+            heading_text = '{0} {1}'.format('#' * section_data['level'], section_data['heading'].strip())
+
+        section = section + heading_text + '\n\n'
 
     return section
+
+
+def new_page():
+    return '```{=latex}' + '\n' + '\\newpage' + '\n' + '```' + '\n\n'

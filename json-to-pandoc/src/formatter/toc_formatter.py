@@ -8,3 +8,7 @@ from helper.pandoc.pandoc_util import *
 
 def generate(data, doc, section_specs, context):
     error('formatter [toc] not supported')
+
+    section = ''
+
+    return section
