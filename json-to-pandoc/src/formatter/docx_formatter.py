@@ -4,9 +4,9 @@ import textwrap
 
 from helper.logger import *
 
-def generate(data, doc, section_specs, context):
+def generate(section_data, section_specs, context):
     error('formatter [docx] not supported')
 
-    section = ''
+    section_text = ''
 
-    return section
+    return section_text

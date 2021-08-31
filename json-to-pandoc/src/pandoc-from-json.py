@@ -30,7 +30,7 @@ class PandocFromJson(object):
 			if content_type == 'gsheet': content_type = 'table'
 
 			module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
-			section_doc = module.generate(section, self._doc, self._pandochelper._sections, self._CONFIG)
+			section_doc = module.generate(section, self._pandochelper._sections, self._CONFIG)
 			self._doc = self._doc + section_doc
 
 		self._pandochelper.save(self._doc)

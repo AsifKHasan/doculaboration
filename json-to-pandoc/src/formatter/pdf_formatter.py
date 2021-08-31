@@ -6,9 +6,9 @@ from helper.logger import *
 from helper.pandoc.pandoc_writer import *
 from helper.pandoc.pandoc_util import *
 
-def generate(data, doc, section_specs, context):
+def generate(section_data, section_specs, context):
     error('formatter [pdf] not supported')
 
-    section = ''
+    section_text = ''
 
-    return section
+    return section_text
