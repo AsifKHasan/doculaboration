@@ -13,6 +13,9 @@ from lxml import etree
 from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
+VALIGN = {'TOP': 'TOP', 'MIDDLE': 'MIDDLE', 'BOTTOM': 'BOTTOM'}
+HALIGN = {'LEFT': '\\raggedleft', 'CENTER': '\centering', 'RIGHT': '\\raggedright', 'JUSTIFY': 'JUSTIFY'}
+
 def insert_content(data, container_width, repeat_rows=0):
     content_text = ''
 
@@ -88,16 +91,8 @@ def insert_content(data, container_width, repeat_rows=0):
 
     return content_text
 
+
 def insert_content_as_table(data, start_row, start_col, row_from, row_to, container_width, repeat_rows=0):
-
-
-    s = start_table([1, 1, 2, 3])
-    s = s + table_header()
-    s = s + table_row()
-    s = s + table_row()
-    s = s + end_table()
-    return s
-
     content_text = ''
 
     start_time = int(round(time.time() * 1000))
@@ -120,9 +115,11 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     total_width = sum(x['pixelSize'] for x in column_data)
     column_widths = [ (x['pixelSize'] * container_width / total_width) for x in column_data ]
 
-    # if the table had too many columns, use a style where there is smaller left, right margin
+    # start a longtable with the sepecic column_widths
+    content_text = content_text + start_table(column_widths)
+
+    # TODO: if the table had too many columns, use a style where there is smaller left, right margin
     if len(column_widths) > 10:
-        # table.style = 'PlainTable'
         pass
 
     last_time = current_time
@@ -168,12 +165,22 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     table_row_index = 0
     for data_row_index in range(row_from - (start_row + 1), row_to - (start_row + 0)):
         if 'values' in row_data[data_row_index]:
-            row = table.row_cells(table_row_index)
+            # row = table.row_cells(table_row_index)
             row_values = row_data[data_row_index]['values']
+
+            # start a table row
+            content_text = content_text + start_table_row()
 
             for c in range(0, len(row_values)):
                 # render_content_in_cell () is the main work function for rendering an individual cell (eg., gsheet cell -> docx table cell)
-                content_text = content_text + render_content_in_cell(row[c], row_values[c], column_widths[c], data_row_index, c, start_row, start_col, merge_data, column_widths, table_spacing)
+                content_text = content_text + render_content_in_cell(row_values[c], column_widths[c], data_row_index, c, start_row, start_col, merge_data, column_widths, table_spacing)
+
+            # end a table row
+            content_text = content_text + end_table_row()
+
+            # mark as header row if it is a header row
+            if table_row_index < repeating_row_count:
+                content_text = content_text + mark_as_header_row()
 
             if table_row_index % 100 == 0:
                 current_time = int(round(time.time() * 1000))
@@ -213,11 +220,7 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
         # ending_cell = table.cell(end_row_index, end_column_index)
         # starting_cell.merge(ending_cell)
 
-    # handle repeat_rows
-    for r in range(0, repeating_row_count):
-        # debug('repeating row : {0}'.format(repeating_row_count))
-        # set_repeat_table_header(table.rows[r])
-        pass
+    content_text = content_text + end_table()
 
     current_time = int(round(time.time() * 1000))
     info('  .. cells merged : {0} ms\n'.format(current_time - last_time))
@@ -247,16 +250,16 @@ def insert_content_into_doc(data, start_row, row_from, container_width):
     return content_text
 
 
-def render_content_in_cell(cell, cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
-    cell.width = Inches(width)
-    paragraph = cell.paragraphs[0]
+def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
+    content_text = ''
 
     # paragraph spacing
     if table_spacing == 'no-spacing':
-        pf = paragraph.paragraph_format
-        pf.line_spacing = 1.0
-        pf.space_before = Pt(0)
-        pf.space_after = Pt(0)
+        # pf = paragraph.paragraph_format
+        # pf.line_spacing = 1.0
+        # pf.space_before = Pt(0)
+        # pf.space_after = Pt(0)
+        pass
 
     # handle the notes first
     # if there is a note, see if it is a JSON, it may contain style, page-numering, new-page, keep-with-next directive etc.
@@ -269,27 +272,25 @@ def render_content_in_cell(cell, cell_data, width, r, c, start_row, start_col, m
 
     # process new-page
     if 'new-page' in note_json:
-        # return the cell location so that the page break can be rendered later
-        pf = paragraph.paragraph_format
-        pf.page_break_before = True
+        content_text = content_text + new_page()
 
     # process keep-with-next
     if 'keep-with-next' in note_json:
-        # return the cell location so that the page break can be rendered later
-        pf = paragraph.paragraph_format
-        pf.keep_with_next = True
+        # pf = paragraph.paragraph_format
+        # pf.keep_with_next = True
+        pass
 
     # do some special processing if the cell_data is {}
     if cell_data == {} or 'effectiveFormat' not in cell_data:
-        return
+        return content_text
 
     text_format = cell_data['effectiveFormat']['textFormat']
     effective_format = cell_data['effectiveFormat']
 
     # alignments
-    cell.vertical_alignment = VALIGN[effective_format['verticalAlignment']]
+    vertical_alignment = VALIGN[effective_format['verticalAlignment']]
     if 'horizontalAlignment' in effective_format:
-        paragraph.alignment = HALIGN[effective_format['horizontalAlignment']]
+        horizontal_alignment = HALIGN[effective_format['horizontalAlignment']]
 
     # background color
     bgcolor = cell_data['effectiveFormat']['backgroundColor']
@@ -297,27 +298,27 @@ def render_content_in_cell(cell, cell_data, width, r, c, start_row, start_col, m
         red = int(bgcolor['red'] * 255) if 'red' in bgcolor else 0
         green = int(bgcolor['green'] * 255) if 'green' in bgcolor else 0
         blue = int(bgcolor['blue'] * 255) if 'blue' in bgcolor else 0
-        set_cell_bgcolor(cell, RGBColor(red, green, blue))
+        # set_cell_bgcolor(cell, RGBColor(red, green, blue))
 
     # text-rotation
     if 'textRotation' in effective_format:
         text_rotation = effective_format['textRotation']
-        rotate_text(cell, 'btLr')
+        # rotate_text(cell, 'btLr')
 
     # borders
     if 'borders' in cell_data['effectiveFormat']:
         borders = cell_data['effectiveFormat']['borders']
-        set_cell_border(cell, top=ooxml_border_from_gsheet_border(borders, 'top'), bottom=ooxml_border_from_gsheet_border(borders, 'bottom'), start=ooxml_border_from_gsheet_border(borders, 'left'), end=ooxml_border_from_gsheet_border(borders, 'right'))
+        # set_cell_border(cell, top=ooxml_border_from_gsheet_border(borders, 'top'), bottom=ooxml_border_from_gsheet_border(borders, 'bottom'), start=ooxml_border_from_gsheet_border(borders, 'left'), end=ooxml_border_from_gsheet_border(borders, 'right'))
 
     # cell can be merged, so we need width after merge (in Inches)
     cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
 
-    # images
+    # TODO: images
     if 'userEnteredValue' in cell_data:
         userEnteredValue = cell_data['userEnteredValue']
         if 'image' in userEnteredValue:
             image = userEnteredValue['image']
-            run = paragraph.add_run()
+            # run = paragraph.add_run()
 
             # even now the width may exceed actual cell width, we need to adjust for that
             # determine cell_width based on merge scenario
@@ -331,35 +332,35 @@ def render_content_in_cell(cell, cell_data, width, r, c, start_row, start_col, m
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            run.add_picture(image['path'], height=Inches(image_height), width=Inches(image_width))
+            # run.add_picture(image['path'], height=Inches(image_height), width=Inches(image_width))
 
-    # before rendering cell, see if it embeds another worksheet
+    # TODO: before rendering cell, see if it embeds another worksheet
     if 'contents' in cell_data:
         table = insert_content(cell_data['contents'], doc, cell_width, container=None, cell=cell)
         # polish_table(table)
-        return
+        return content_text
 
     # texts
     if 'formattedValue' not in cell_data:
-        return
+        return content_text
 
     text = cell_data['formattedValue']
 
     # process notes
-    # note specifies style
+    # TODO: note specifies style
     if 'style' in note_json:
-        paragraph.add_run(text)
-        paragraph.style = note_json['style']
-        return
+        # paragraph.add_run(text)
+        # paragraph.style = note_json['style']
+        pass
 
-    # note specifies page numbering
+    # TODO: note specifies page numbering
     if 'page-number' in note_json:
-        append_page_number_with_pages(paragraph)
+        # append_page_number_with_pages(paragraph)
         #append_page_number_only(paragraph)
-        paragraph.style = note_json['page-number']
-        return
+        # paragraph.style = note_json['page-number']
+        pass
 
-    # finally cell content, add runs
+    # TODO: finally cell content, add runs
     if 'textFormatRuns' in cell_data:
         text_runs = cell_data['textFormatRuns']
         # split the text into run-texts
@@ -380,8 +381,9 @@ def render_content_in_cell(cell, cell_data, width, r, c, start_row, start_col, m
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        run = paragraph.add_run(text)
-        set_character_style(run, text_format)
+        content_text = content_text + text_content(text, horizontal_alignment, c)
+
+    return content_text
 
 
 def render_content_in_doc(cell_data):

@@ -172,14 +172,25 @@ def table_header():
     return header
 
 
-def table_row():
-    row = '''\TBstrut
-\centering  1
-& \\raggedright Asif Hasan
-& \\raggedright 0123456
-& \\raggedleft 320,000.00
-\\tabularnewline \hline
-
+def start_table_row():
+    s = '''\TBstrut
 '''
+    return s 
 
-    return row
+
+def end_table_row():
+    s = '''\\tabularnewline \hline
+'''
+    return s 
+    
+
+def mark_as_header_row():
+    s = '''\endhead
+'''
+    return s 
+    
+
+def text_content(text, halign, column_number=0):
+    s = '{0}{1} {2}\n'.format('& ' if column_number else '', halign, text)
+
+    return s
