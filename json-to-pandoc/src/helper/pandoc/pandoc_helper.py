@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Helper to initialize and manipulate pandoc styles, mostly custom styles not present in the templates 
+Helper to initialize and manipulate pandoc styles, mostly custom styles not present in the templates
 '''
 
 import yaml
@@ -20,6 +20,12 @@ geometry:
 - bottom=2.0cm
 header-includes:
 ---
+
+```{=latex}
+\\newcommand\Tstrut{\\rule{0pt}{2.6ex}}                       % "top" strut
+\\newcommand\Bstrut{\\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
+\\newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
+```
 
 '''
 

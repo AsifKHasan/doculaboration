@@ -9,6 +9,6 @@ from helper.pandoc.pandoc_util import *
 def generate(section_data, section_specs, context):
     error('formatter [toc] not supported')
 
-    section_text = 'Table of contents'
+    section_text = 'Table of contents\n\n'
 
     return section_text

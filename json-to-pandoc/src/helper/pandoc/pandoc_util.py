@@ -138,30 +138,48 @@ def set_repeat_table_header(row):
 
 
 def start_table(column_sizes):
-    return '''```{=latex}
-    \setlength\parindent{0pt}
-    \newcommand\Tstrut{\rule{0pt}{2.6ex}}                       % "top" strut
-    \newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
-    \newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
-    \begin{longtable}[l]{|p{1.00cm}|p{5.00cm}|p{3.00cm}|p{3.00cm}|}
-    '''
+    str = '''```{=latex}
+\setlength\parindent{0pt}
+'''
+
+    s = ['p{{{0}in}}'.format(i) for i in column_sizes]
+    table_str = '\\begin{{longtable}}[l]{{|{0}|}}'.format('|'.join(s))
+
+    return str + table_str + '\n'
 
 
 def end_table():
-    return '''\end{longtable}
-    ```
-    '''
+    s = '''\end{longtable}
+```
+
+'''
+
+    return s
 
 
-def start_table_header():
-    header = '''
-    \hline
-    \centering\textbf{\#}
-    & \raggedright\textbf{Name of Employee}
-    & \raggedright\textbf{Saving A/C No}
-    & \raggedleft\textbf{Net Pay in BDT}
-    \TBstrut
-    \tabularnewline \hline
+def table_header():
+    header = '''\hline
+\centering\\textbf{\#}
+& \\raggedright\\textbf{Name of Employee}
+& \\raggedright\\textbf{Saving A/C No}
+& \\raggedleft\\textbf{Net Pay in BDT}
+\TBstrut
+\\tabularnewline \hline
+\endhead
 
-    \endhead
-    '''
+'''
+
+    return header
+
+
+def table_row():
+    row = '''\TBstrut
+\centering  1
+& \\raggedright Asif Hasan
+& \\raggedright 0123456
+& \\raggedleft 320,000.00
+\\tabularnewline \hline
+
+'''
+
+    return row

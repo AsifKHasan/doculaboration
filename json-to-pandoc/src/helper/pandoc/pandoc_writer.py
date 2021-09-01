@@ -89,6 +89,15 @@ def insert_content(data, container_width, repeat_rows=0):
     return content_text
 
 def insert_content_as_table(data, start_row, start_col, row_from, row_to, container_width, repeat_rows=0):
+
+
+    s = start_table([1, 1, 2, 3])
+    s = s + table_header()
+    s = s + table_row()
+    s = s + table_row()
+    s = s + end_table()
+    return s
+
     content_text = ''
 
     start_time = int(round(time.time() * 1000))
