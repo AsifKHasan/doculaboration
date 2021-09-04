@@ -13,12 +13,13 @@ HEADER = '''---
 # documentclass: report
 tables: true
 geometry:
-
-- top=2.0cm
-- left=1.0cm
-- right=1.0cm
-- bottom=2.0cm
+- top=0.75in
+- left=0.75in
+- right=0.75in
+- bottom=0.75in
 header-includes:
+- \\usepackage{graphicx}
+- \\usepackage{array}
 ---
 
 ```{=latex}
