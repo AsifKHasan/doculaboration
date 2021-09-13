@@ -152,6 +152,10 @@ def set_repeat_table_header(row):
     return None
 
 
+def wrap_as_latex(latex):
+    return "```{=latex}\n" + latex + "```\n\n"
+
+
 def start_table(column_sizes):
     str = '''```{=latex}
 \setlength\parindent{0pt}
@@ -213,11 +217,11 @@ def image_content(path, halign, valign, column_widths, column_number, column_spa
 
 
 def new_page():
-    return '```{=latex}' + '\n' + '\\newpage' + '\n' + '```' + '\n\n'
+    return wrap_as_latex('\\newpage')
 
 
 def add_section(section_data, section_spec):
-    section = '```{=latex}' + '\n'
+    section = ''
     if section_data['section-break'].startswith('newpage_'):
         section = section + '\\newpage' + '\n'
 
@@ -230,7 +234,7 @@ def add_section(section_data, section_spec):
     # section.gutter = Inches(section_spec['gutter'])
     # section.different_first_page_header_footer = section_data['different-first-page-header-footer']
 
-    section = section + '```' + '\n\n'
+    section = wrap_as_latex(section)
 
 
 
@@ -246,11 +250,18 @@ def add_section(section_data, section_spec):
 
     if section_data['no-heading'] == False:
         if section_data['section'] != '':
-            heading_text = '{0} {1} - {2}'.format('#' * section_data['level'], section_data['section'], section_data['heading'].strip())
+            heading_text = '{0} {1} - {2}'.format('#' * section_data['level'], section_data['section'], section_data['heading']).strip()
         else:
-            heading_text = '{0} {1}'.format('#' * section_data['level'], section_data['heading'].strip())
+            heading_text = '{0} {1}'.format('#' * section_data['level'], section_data['heading']).strip()
 
-        section = section + heading_text + '\n\n'
+        # headings are styles based on level
+        if section_data['level'] != 0:
+            section = section + heading_text + '\n\n'
+        else: 
+            s = '\\titlestyle{{{0}}}\n'.format(heading_text)
+            s = wrap_as_latex(s)
+
+            section = section + s + '\n'
 
     return section, actual_width
 
@@ -261,3 +272,5 @@ def add_section(section_data, section_spec):
 def tex_escape(text):
     regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(CONV.keys(), key = lambda item: - len(item))))
     return regex.sub(lambda match: CONV[match.group()], text)
+
+

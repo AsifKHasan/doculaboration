@@ -20,12 +20,14 @@ geometry:
 header-includes:
 - \\usepackage{graphicx}
 - \\usepackage{array}
+- \\usepackage{bold-extra}
 ---
 
 ```{=latex}
 \\newcommand\Tstrut{\\rule{0pt}{2.6ex}}                       % "top" strut
 \\newcommand\Bstrut{\\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
 \\newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
+\\newcommand\\titlestyle[1]{{\\vspace{0.2cm}\\begin{center}\Large\\scshape\\textbf #1 \end{center}\\vspace{0.2cm}}}
 ```
 
 '''
