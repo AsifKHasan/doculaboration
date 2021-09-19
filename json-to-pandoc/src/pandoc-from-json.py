@@ -58,7 +58,7 @@ class PandocFromJson(object):
 		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
 		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
 		if not Path.exists(self._CONFIG['dirs']['temp-dir']):
-			Path.makedir(self._CONFIG['dirs']['temp-dir'])
+			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
 
 		self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
 		# print(self._CONFIG['dirs']['temp-dir'])

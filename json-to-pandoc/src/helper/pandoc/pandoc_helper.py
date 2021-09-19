@@ -21,6 +21,8 @@ header-includes:
 - \\usepackage{graphicx}
 - \\usepackage{array}
 - \\usepackage{bold-extra}
+- \\usepackage[T1]{fontenc}
+- \\usepackage{helvet}
 ---
 
 ```{=latex}

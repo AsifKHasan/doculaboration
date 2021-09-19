@@ -40,7 +40,7 @@ class JsonFromGsheet(object):
 		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
 		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
 		if not Path.exists(self._CONFIG['dirs']['temp-dir']):
-			Path.makedir(self._CONFIG['dirs']['temp-dir'])
+			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
 
 		self._CONFIG['files']['google-cred'] = config_dir / self._CONFIG['files']['google-cred']
 

@@ -8,16 +8,8 @@ dirs:
 
 files:
   # the custom styles for the output docx
-  docx-styles:           "./styles-doer.yml"
-  # the docx template based on which the output docx is generated (should definitely be blank with some styles customized as preferred)
-  docx-template:         "./template-doer.docx"
+  pandoc-styles:           "./styles-doer.yml"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one docx
   - "replace-with-json-name-without-extension"
-
-docx-related:
-  # whether the ToC will be updated in the output docx after generation (requires Windows with Word installed)
-  update-toc:           true
-  # whether the pdf will be generated from the output docx after generation (requires Windows with Word installed)
-  generate-pdf:         true

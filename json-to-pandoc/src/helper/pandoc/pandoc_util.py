@@ -4,6 +4,7 @@
 various utilities for formatting a docx
 '''
 
+import sys
 import lxml
 import re
 from copy import deepcopy
@@ -209,7 +210,7 @@ def text_content(text, halign, valign, column_widths, column_number=0, column_sp
 
 def image_content(path, halign, valign, column_widths, column_number, column_span, row_span):
     width = sum(column_widths[column_number:column_number + column_span])
-    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{\includegraphics[width=\\linewidth]{{{4}}}}} }}\n'.format(column_span, valign, width, halign, path)
+    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{\includegraphics[width=\\linewidth]{{{4}}}}} }}\n'.format(column_span, valign, width, halign, os_specific_path(path))
     s = s if column_number == 0 else '&\n' + s
     # s = '\includegraphics[width=\\linewidth]{{{0}}}'.format(path)
 
@@ -274,3 +275,11 @@ def tex_escape(text):
     return regex.sub(lambda match: CONV[match.group()], text)
 
 
+""" :param path: a path string
+    :return: the path that the OS accepts
+"""
+def os_specific_path(path):
+    if sys.platform == 'win32':
+        return path.replace('\\', '/')
+    else:
+        return path
