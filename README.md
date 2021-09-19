@@ -18,5 +18,12 @@ pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-0
 
 to generate pdf from a pandoc markdown
 ```
-pandoc -s --pdf-engine=xelatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf Tasnim.Kabir.Ratul__profile.mkd
+pandoc Tasnim.Kabir.Ratul__profile.mkd metadata.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf 
+
+metadata.yaml
+```
+
+Download and install বাংলা fonts
+```
+wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
 ```

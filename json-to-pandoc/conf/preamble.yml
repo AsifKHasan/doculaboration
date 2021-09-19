@@ -1,0 +1,37 @@
+---
+# documentclass: report
+tables: true
+geometry:
+- top=0.75in
+- left=0.75in
+- right=0.75in
+- bottom=0.75in
+header-includes:
+- \RequirePackage{luatex85}
+- \tracinglostchars=2
+- \usepackage{graphicx}
+- \usepackage{array}
+- \usepackage{bold-extra}
+- \usepackage{fontspec}
+
+- \usepackage{babel}
+- \babelprovide[onchar=fonts ids]{bengali}
+- \babelprovide[import, main]{english}
+- \babelfont[bengali]{rm}{Kalpurush}
+- \babelfont[english]{rm}{Arial}
+
+# - \babelprovide[import,main]{bengali}
+# - \babelprovide[onchar=fonts ids]{english}
+# - \defaultfontfeatures{Scale=MatchLowercase, Ligatures=TeX, Renderer=HarfBuzz}
+- 
+# - \babelfont{rm}[Ligatures=Common,Scale=1.0,Language=Default]{Arial}
+# - \babelfont{sf}[Language=Default]{Arial}
+# - \babelfont{tt}[Language=Default]{Arial}
+- 
+# - \babelfont[bengali]{rm}[Language=Default]{Kalpurush}
+# - \babelfont[bengali]{sf}[Language=Default]{Kalpurush}
+# - \babelfont[bengali]{tt}[Language=Default]{Kalpurush}
+
+# - \babeltags{english=english}
+# - \babeltags{bengali=bengali}
+---
