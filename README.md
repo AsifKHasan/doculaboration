@@ -18,7 +18,7 @@ pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-0
 
 to generate pdf from a pandoc markdown
 ```
-pandoc Tasnim.Kabir.Ratul__profile.mkd metadata.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf 
+pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf 
 
 metadata.yaml
 ```

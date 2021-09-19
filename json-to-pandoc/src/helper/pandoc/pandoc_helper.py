@@ -9,23 +9,7 @@ import yaml
 from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
-HEADER = '''---
-# documentclass: report
-tables: true
-geometry:
-- top=0.75in
-- left=0.75in
-- right=0.75in
-- bottom=0.75in
-header-includes:
-- \\usepackage{graphicx}
-- \\usepackage{array}
-- \\usepackage{bold-extra}
-- \\usepackage[T1]{fontenc}
-- \\usepackage{helvet}
----
-
-```{=latex}
+HEADER = '''```{=latex}
 \\newcommand\Tstrut{\\rule{0pt}{2.6ex}}                       % "top" strut
 \\newcommand\Bstrut{\\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
 \\newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
@@ -56,7 +40,7 @@ class PandocHelper(object):
     ''' save the markdown document string in a file
     '''
     def save(self, doc):
-        with open(self._OUTPUT_PANDOC, "w") as f:
+        with open(self._OUTPUT_PANDOC, "w", encoding="utf-8") as f:
             f.write(doc)
 
 
