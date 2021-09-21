@@ -20,6 +20,6 @@ header-includes:
 - \babelprovide[onchar=fonts ids]{bengali}
 - \babelprovide[import, main]{english}
 - \babelfont[bengali]{rm}{Kalpurush}
-- \babelfont[english]{rm}{Arial}
+- \babelfont[english]{rm}{Latin Modern Roman}
 
 ---
