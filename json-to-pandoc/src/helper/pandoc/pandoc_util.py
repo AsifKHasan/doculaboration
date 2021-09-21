@@ -37,22 +37,19 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-'''
-Table of Contents
+''' Table of Contents
 '''
 def add_toc(doc):
     pass
 
 
-'''
-List of Figures
+''' List of Figures
 '''
 def add_lof(doc):
     pass
 
 
-'''
-List of Tables
+''' List of Tables
 '''
 def add_lot(doc):
     pass
@@ -61,35 +58,57 @@ def add_lot(doc):
 def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
     pass
 
-
+'''
+'''
 def append_page_number_only(paragraph):
     pass
 
 
+'''
+'''
 def append_page_number_with_pages(paragraph, separator=' of '):
     pass
 
 
+'''
+'''
 def rotate_text(cell, direction: str):
     pass
 
 
+'''
+'''
 def set_character_style(run, spec):
     pass
 
 
-def set_cell_bgcolor(cell, color):
-    pass
+'''
+'''
+def cell_bgcolor(color_spec):
+    if color_spec:
+        red = float(color_spec['red']) if 'red' in color_spec else 0
+        green = float(color_spec['green']) if 'green' in color_spec else 0
+        blue = float(color_spec['blue']) if 'blue' in color_spec else 0
+        s = '\cellcolor[rgb]{{{0},{1},{2}}}'.format(red, green, blue)
+    else:
+        s = None
 
+    return s
 
+'''
+'''
 def set_paragraph_bgcolor(paragraph, color):
     pass
 
 
+'''
+'''
 def copy_cell_border(from_cell, to_cell):
     pass
 
 
+'''
+'''
 def set_cell_border(cell, **kwargs):
     """
     Set cell's border
@@ -106,6 +125,8 @@ def set_cell_border(cell, **kwargs):
     pass
 
 
+'''
+'''
 def set_paragraph_border(paragraph, **kwargs):
     """
     Set paragraph's border
@@ -122,6 +143,8 @@ def set_paragraph_border(paragraph, **kwargs):
     pass
 
 
+'''
+'''
 def ooxml_border_from_gsheet_border(borders, key):
     if key in borders:
         border = borders[key]
@@ -139,6 +162,8 @@ def ooxml_border_from_gsheet_border(borders, key):
         return None
 
 
+'''
+'''
 def insert_image(cell, image_spec):
     '''
         image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
@@ -147,16 +172,22 @@ def insert_image(cell, image_spec):
         pass
 
 
+'''
+'''
 def set_repeat_table_header(row):
     ''' set repeat table row on every new page
     '''
     return None
 
 
+'''
+'''
 def wrap_as_latex(latex):
     return "```{=latex}\n" + latex + "```\n\n"
 
 
+'''
+'''
 def start_table(column_sizes):
     str = '''```{=latex}
 \setlength\parindent{0pt}
@@ -169,6 +200,8 @@ def start_table(column_sizes):
     return str + table_str + '\n'
 
 
+'''
+'''
 def end_table():
     s = '''\end{longtable}
 ```
@@ -178,6 +211,8 @@ def end_table():
     return s
 
 
+'''
+'''
 def start_table_row():
     s = '''\TBstrut
 '''
@@ -185,6 +220,8 @@ def start_table_row():
     return ''
 
 
+'''
+'''
 def end_table_row():
     s = '''\TBstrut
 \\tabularnewline
@@ -194,20 +231,35 @@ def end_table_row():
     return s
 
 
+'''
+'''
 def mark_as_header_row():
     s = '''\endhead
 '''
     return s
 
 
-def text_content(text, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
+''' inserts text content into a table cell
+    :param text: text to be inserted
+    bgcolor: cell bacground color
+    halign: horizontal alignment of the text inside the cell
+    valign: vertical alignment of the text inside the cell
+    column_widths: a list of floats describing the column widths of each column in the parent table in inches
+    column_number: column index (0 based) of the cell in the parent table
+    column_span: how many columns the cell will span to the right including the cell column
+    row_span: how many rows the cell will span to the bottom including the cell row
+'''
+def text_content(text, bgcolor, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
+    # cell width is the width of all columns under the column span range
     width = sum(column_widths[column_number:column_number + column_span])
-    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{{4}}} }}\n'.format(column_span, valign, width, halign, tex_escape(text))
+    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{{4}}} {5} }}\n'.format(column_span, valign, width, halign, tex_escape(text), bgcolor)
     s = s if column_number == 0 else '&\n' + s
 
     return s
 
 
+'''
+'''
 def image_content(path, halign, valign, column_widths, column_number, column_span, row_span):
     width = sum(column_widths[column_number:column_number + column_span])
     s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{\includegraphics[width=\\linewidth]{{{4}}}}} }}\n'.format(column_span, valign, width, halign, os_specific_path(path))
@@ -217,10 +269,14 @@ def image_content(path, halign, valign, column_widths, column_number, column_spa
     return s
 
 
+'''
+'''
 def new_page():
     return wrap_as_latex('\\newpage')
 
 
+'''
+'''
 def add_section(section_data, section_spec):
     section = ''
     if section_data['section-break'].startswith('newpage_'):
@@ -258,7 +314,7 @@ def add_section(section_data, section_spec):
         # headings are styles based on level
         if section_data['level'] != 0:
             section = section + heading_text + '\n\n'
-        else: 
+        else:
             s = '\\titlestyle{{{0}}}\n'.format(heading_text)
             s = wrap_as_latex(s)
 
@@ -267,17 +323,17 @@ def add_section(section_data, section_spec):
     return section, actual_width
 
 
-""" :param text: a plain text message
+''' :param text: a plain text message
     :return: the message escaped to appear correctly in LaTeX
-"""
+'''
 def tex_escape(text):
     regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(CONV.keys(), key = lambda item: - len(item))))
     return regex.sub(lambda match: CONV[match.group()], text)
 
 
-""" :param path: a path string
+''' :param path: a path string
     :return: the path that the OS accepts
-"""
+'''
 def os_specific_path(path):
     if sys.platform == 'win32':
         return path.replace('\\', '/')

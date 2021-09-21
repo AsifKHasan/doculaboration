@@ -13,7 +13,7 @@ from lxml import etree
 from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
-VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
+VALIGN = {'TOP': 'p', 'MIDDLE': 'p', 'BOTTOM': 'b'}
 HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
 def insert_content(data, container_width, repeat_rows=0):
@@ -252,8 +252,6 @@ def insert_content_into_doc(data, start_row, row_from, container_width):
 
 def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
     content_text = ''
-    column_span = 1
-    row_span = 1
 
     # paragraph spacing
     if table_spacing == 'no-spacing':
@@ -278,8 +276,6 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
     # process keep-with-next
     if 'keep-with-next' in note_json:
-        # pf = paragraph.paragraph_format
-        # pf.keep_with_next = True
         pass
 
     # do some special processing if the cell_data is {}
@@ -301,12 +297,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
         horizontal_alignment = HALIGN['LEFT']
 
     # background color
-    bgcolor = effective_format['backgroundColor']
-    if bgcolor != {}:
-        red = int(bgcolor['red'] * 255) if 'red' in bgcolor else 0
-        green = int(bgcolor['green'] * 255) if 'green' in bgcolor else 0
-        blue = int(bgcolor['blue'] * 255) if 'blue' in bgcolor else 0
-        # set_cell_bgcolor(cell, RGBColor(red, green, blue))
+    bgcolor = cell_bgcolor(effective_format['backgroundColor'])
 
     # text-rotation
     if 'textRotation' in effective_format:
@@ -320,6 +311,9 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
     # cell can be merged, so we need width after merge (in Inches)
     cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
+
+    # cell can be merged, so we need to know the span lengths
+    column_span, row_span = cell_span(r, c, start_row, start_col, merge_data)
 
     # TODO: images
     if 'userEnteredValue' in cell_data:
@@ -342,7 +336,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
             content_text = content_text + image_content(path=image['path'], halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
             return content_text
- 
+
     # TODO: before rendering cell, see if it embeds another worksheet
     if 'contents' in cell_data:
         table = insert_content(cell_data['contents'], doc, cell_width, container=None, cell=cell)
@@ -359,15 +353,10 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
     # process notes
     # TODO: note specifies style
     if 'style' in note_json:
-        # paragraph.add_run(text)
-        # paragraph.style = note_json['style']
         pass
 
     # TODO: note specifies page numbering
     if 'page-number' in note_json:
-        # append_page_number_with_pages(paragraph)
-        #append_page_number_only(paragraph)
-        # paragraph.style = note_json['page-number']
         pass
 
     # TODO: finally cell content, add runs
@@ -391,8 +380,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        # content_text = content_text + text_content(text, horizontal_alignment, c)
-        content_text = content_text + text_content(text=text, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+        content_text = content_text + text_content(text=text, bgcolor=bgcolor, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
 
     return content_text
 
@@ -511,6 +499,16 @@ def render_content_in_doc(cell_data):
         pass
 
     return content_text
+
+
+def cell_span(row, col, start_row, start_col, merges):
+    for merge in merges:
+        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
+            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
+            row_span = merge['endRowIndex'] - merge['startRowIndex']
+            return col_span, row_span
+
+    return 1, 1
 
 
 def merged_cell_width(row, col, start_row, start_col, merges, column_widths):

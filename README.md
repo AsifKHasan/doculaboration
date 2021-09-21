@@ -18,7 +18,7 @@ pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-0
 
 to generate pdf from a pandoc markdown
 ```
-pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf 
+pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf
 
 metadata.yaml
 ```
@@ -27,3 +27,13 @@ Download and install বাংলা fonts
 ```
 wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
 ```
+
+
+\arrayrulecolor{red}
+\cline{1-1}
+\arrayrulecolor{green}
+\cline{2-2}
+\arrayrulecolor{blue}
+\cline{3-3}
+\arrayrulecolor{red}
+\cline{4-4}
