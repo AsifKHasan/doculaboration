@@ -28,12 +28,11 @@ Download and install বাংলা fonts
 wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
 ```
 
+!{\color[rgb]{1,0,0}\setlength\arrayrulewidth{1.0pt}\vline}
 
-\arrayrulecolor{red}
-\cline{1-1}
-\arrayrulecolor{green}
-\cline{2-2}
-\arrayrulecolor{blue}
-\cline{3-3}
-\arrayrulecolor{red}
-\cline{4-4}
+\hhline{>{\arrayrulecolor[RGB]{255, 0, 0}}|-|>{\arrayrulecolor[RGB]{255, 0, 0}}-->{\arrayrulecolor[RGB]{0, 255, 0}}|}
+
+\arrayrulecolor{red}\cline{1-1}
+\arrayrulecolor{green}\cline{2-2}
+\arrayrulecolor{blue}\cline{3-3}
+\arrayrulecolor{red}\cline{4-4}

@@ -306,8 +306,10 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
     # borders
     if 'borders' in effective_format:
-        borders = effective_format['borders']
-        # set_cell_border(cell, top=ooxml_border_from_gsheet_border(borders, 'top'), bottom=ooxml_border_from_gsheet_border(borders, 'bottom'), start=ooxml_border_from_gsheet_border(borders, 'left'), end=ooxml_border_from_gsheet_border(borders, 'right'))
+        left_border = latex_border_from_gsheet_border(effective_format['borders'], 'left')
+        right_border = latex_border_from_gsheet_border(effective_format['borders'], 'right')
+    else:
+        left_border, right_border = '', ''
 
     # cell can be merged, so we need width after merge (in Inches)
     cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
@@ -380,7 +382,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        content_text = content_text + text_content(text=text, bgcolor=bgcolor, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+        content_text = content_text + text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
 
     return content_text
 

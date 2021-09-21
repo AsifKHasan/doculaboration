@@ -144,22 +144,29 @@ def set_paragraph_border(paragraph, **kwargs):
 
 
 '''
-'''
-def ooxml_border_from_gsheet_border(borders, key):
-    if key in borders:
-        border = borders[key]
-        red = int(border['color']['red'] * 255) if 'red' in border['color'] else 0
-        green = int(border['color']['green'] * 255) if 'green' in border['color'] else 0
-        blue = int(border['color']['blue'] * 255) if 'blue' in border['color'] else 0
-        color = '{0:02x}{1:02x}{2:02x}'.format(red, green, blue)
-        if 'style' in border:
-            border_style = border['style']
-        else:
-            border_style = 'NONE'
 
-        return {"sz": border['width'] * 8, "val": GSHEET_OXML_BORDER_MAPPING[border_style], "color": color, "space": "0"}
+'''
+def latex_border_from_gsheet_border(borders, side):
+    if side in ['left', 'right']:
+        if side in borders:
+            border = borders[side]
+            red = float(border['color']['red']) if 'red' in border['color'] else 0
+            green = float(border['color']['green']) if 'green' in border['color'] else 0
+            blue = float(border['color']['blue']) if 'blue' in border['color'] else 0
+            width = border['width'] * 0.4
+            # TODO: dotted, dashed, double line etc.
+            if 'style' in border:
+                border_style = border['style']
+            else:
+                border_style = 'NONE'
+
+            return '!{{\\color[rgb]{{{0},{1},{2}}}\\setlength\\arrayrulewidth{{{3}pt}}\\vline}}'.format(red, green, blue, width)
+        else:
+            return ''
+    elif side in ['top', 'bottom']:
+        return ''
     else:
-        return None
+        return ''
 
 
 '''
@@ -242,6 +249,8 @@ def mark_as_header_row():
 ''' inserts text content into a table cell
     :param text: text to be inserted
     bgcolor: cell bacground color
+    left_border:
+    right_border:
     halign: horizontal alignment of the text inside the cell
     valign: vertical alignment of the text inside the cell
     column_widths: a list of floats describing the column widths of each column in the parent table in inches
@@ -249,10 +258,11 @@ def mark_as_header_row():
     column_span: how many columns the cell will span to the right including the cell column
     row_span: how many rows the cell will span to the bottom including the cell row
 '''
-def text_content(text, bgcolor, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
+def text_content(text, bgcolor, left_border, right_border, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
     # cell width is the width of all columns under the column span range
     width = sum(column_widths[column_number:column_number + column_span])
-    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{{4}}} {5} }}\n'.format(column_span, valign, width, halign, tex_escape(text), bgcolor)
+    s = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, width, right_border, halign, tex_escape(text), bgcolor)
+    # s = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, '', valign, width, '', halign, tex_escape(text), bgcolor)
     s = s if column_number == 0 else '&\n' + s
 
     return s
