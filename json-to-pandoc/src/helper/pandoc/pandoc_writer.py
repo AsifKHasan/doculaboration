@@ -503,29 +503,6 @@ def render_content_in_doc(cell_data):
     return content_text
 
 
-def cell_span(row, col, start_row, start_col, merges):
-    for merge in merges:
-        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
-            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
-            row_span = merge['endRowIndex'] - merge['startRowIndex']
-            return col_span, row_span
-
-    return 1, 1
-
-
-def merged_cell_width(row, col, start_row, start_col, merges, column_widths):
-    cell_width = 0
-    for merge in merges:
-        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
-            for c in range(col, merge['endColumnIndex'] - start_col):
-                cell_width = cell_width + column_widths[c]
-
-    if cell_width == 0:
-        return column_widths[col]
-    else:
-        return cell_width
-
-
 def set_header(doc, section, header_first, header_odd, header_even, actual_width, linked_to_previous=False):
     first_page_header = section.first_page_header
     odd_page_header = section.header

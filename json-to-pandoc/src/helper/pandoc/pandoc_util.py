@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-various utilities for formatting a docx
+various utilities for generating a pndoc markdown document (mostly latex)
 '''
 
 import sys
@@ -104,24 +104,6 @@ def set_paragraph_bgcolor(paragraph, color):
 '''
 '''
 def copy_cell_border(from_cell, to_cell):
-    pass
-
-
-'''
-'''
-def set_cell_border(cell, **kwargs):
-    """
-    Set cell's border
-    Usage:
-
-    set_cell_border(
-        cell,
-        top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-        bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-        start={"sz": 24, "val": "dashed", "shadow": "true"},
-        end={"sz": 12, "val": "dashed"},
-    )
-    """
     pass
 
 
@@ -259,10 +241,9 @@ def mark_as_header_row():
     row_span: how many rows the cell will span to the bottom including the cell row
 '''
 def text_content(text, bgcolor, left_border, right_border, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
-    # cell width is the width of all columns under the column span range
+    # width is the width of all columns under the column span range
     width = sum(column_widths[column_number:column_number + column_span])
     s = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, width, right_border, halign, tex_escape(text), bgcolor)
-    # s = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, '', valign, width, '', halign, tex_escape(text), bgcolor)
     s = s if column_number == 0 else '&\n' + s
 
     return s
@@ -308,10 +289,10 @@ def add_section(section_data, section_spec):
     # get the actual width
     actual_width = float(section_spec['page_width']) - float(section_spec['left_margin']) - float(section_spec['right_margin']) - float(section_spec['gutter'])
 
-    # set header if it is not set already
+    # TODO: set header if it is not set already
     # set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
 
-    # set footer if it is not set already
+    # TODO: set footer if it is not set already
     # set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
 
 
@@ -349,3 +330,31 @@ def os_specific_path(path):
         return path.replace('\\', '/')
     else:
         return path
+
+''' :param row:
+    :return:
+'''
+def cell_span(row, col, start_row, start_col, merges):
+    for merge in merges:
+        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
+            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
+            row_span = merge['endRowIndex'] - merge['startRowIndex']
+            return col_span, row_span
+
+    return 1, 1
+
+
+''' :param row:
+    :return: sum of widths of the merged cells in inches
+'''
+def merged_cell_width(row, col, start_row, start_col, merges, column_widths):
+    cell_width = 0
+    for merge in merges:
+        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
+            for c in range(col, merge['endColumnIndex'] - start_col):
+                cell_width = cell_width + column_widths[c]
+
+    if cell_width == 0:
+        return column_widths[col]
+    else:
+        return cell_width
