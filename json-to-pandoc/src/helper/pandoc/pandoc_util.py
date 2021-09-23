@@ -129,24 +129,29 @@ def set_paragraph_border(paragraph, **kwargs):
 
 '''
 def latex_border_from_gsheet_border(borders, side):
-    if side in ['left', 'right']:
-        if side in borders:
-            border = borders[side]
-            red = float(border['color']['red']) if 'red' in border['color'] else 0
-            green = float(border['color']['green']) if 'green' in border['color'] else 0
-            blue = float(border['color']['blue']) if 'blue' in border['color'] else 0
-            width = border['width'] * 0.4
-            # TODO: dotted, dashed, double line etc.
-            if 'style' in border:
-                border_style = border['style']
-            else:
-                border_style = 'NONE'
+    if side in borders:
+        border = borders[side]
+        red = float(border['color']['red']) if 'red' in border['color'] else 0
+        green = float(border['color']['green']) if 'green' in border['color'] else 0
+        blue = float(border['color']['blue']) if 'blue' in border['color'] else 0
+        width = border['width'] * 0.4
+        # TODO: dotted, dashed, double line etc.
+        if 'style' in border:
+            border_style = border['style']
+        else:
+            border_style = 'NONE'
 
-            return '!{{\\color[rgb]{{{0},{1},{2}}}\\setlength\\arrayrulewidth{{{3}pt}}\\vline}}'.format(red, green, blue, width)
+        if side in ['left', 'right']:
+            return '!{{\\vborder{{{0},{1},{2}}}{{{3}pt}}}}'.format(red, green, blue, width)
+
+        elif side in ['top', 'bottom']:
+            return '*1{>{\hborder{1,0,0}{1.0pt}}-}'.format(red, green, blue, width)
+
+            return ''
+
         else:
             return ''
-    elif side in ['top', 'bottom']:
-        return ''
+
     else:
         return ''
 
@@ -212,8 +217,7 @@ def start_table_row():
 '''
 '''
 def end_table_row():
-    s = '''\TBstrut
-\\tabularnewline
+    s = '''\\tabularnewline
 
 '''
 
@@ -233,6 +237,8 @@ def mark_as_header_row():
     bgcolor: cell bacground color
     left_border:
     right_border:
+    top_border:
+    bottom_border:
     halign: horizontal alignment of the text inside the cell
     valign: vertical alignment of the text inside the cell
     column_widths: a list of floats describing the column widths of each column in the parent table in inches
@@ -240,13 +246,16 @@ def mark_as_header_row():
     column_span: how many columns the cell will span to the right including the cell column
     row_span: how many rows the cell will span to the bottom including the cell row
 '''
-def text_content(text, bgcolor, left_border, right_border, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
+def text_content(text, bgcolor, left_border, right_border, top_border, bottom_border, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
     # width is the width of all columns under the column span range
     width = sum(column_widths[column_number:column_number + column_span])
-    s = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, width, right_border, halign, tex_escape(text), bgcolor)
-    s = s if column_number == 0 else '&\n' + s
+    text_latex = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, width, right_border, halign, tex_escape(text), bgcolor)
+    text_latex = text_latex if column_number == 0 else '&\n' + text_latex
 
-    return s
+    top_border_latex = top_border
+    bottom_border_latex = bottom_border
+
+    return text_latex, top_border_latex, bottom_border_latex
 
 
 '''

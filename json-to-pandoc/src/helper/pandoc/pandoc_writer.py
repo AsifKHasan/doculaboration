@@ -165,15 +165,26 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     table_row_index = 0
     for data_row_index in range(row_from - (start_row + 1), row_to - (start_row + 0)):
         if 'values' in row_data[data_row_index]:
-            # row = table.row_cells(table_row_index)
             row_values = row_data[data_row_index]['values']
+
+            # we need two lists for holding the top and bottom borders for cells so that we can put them before the cell content and after the cell content
+            top_borders, bottom_borders = [], []
 
             # start a table row
             content_text = content_text + start_table_row()
 
+            cells_latex = ''
             for c in range(0, len(row_values)):
-                # render_content_in_cell () is the main work function for rendering an individual cell (eg., gsheet cell -> docx table cell)
-                content_text = content_text + render_content_in_cell(row_values[c], column_widths[c], data_row_index, c, start_row, start_col, merge_data, column_widths, table_spacing)
+                cell_latex, top_border_latex, bottom_border_latex = cell_latex_elements(row_values[c], column_widths[c], data_row_index, c, start_row, start_col, merge_data, column_widths, table_spacing)
+                cells_latex = cells_latex + cell_latex
+                top_borders.append(top_border_latex)
+                bottom_borders.append(bottom_border_latex)
+
+            # now we have the borders
+            top_borders_latex = ' '.join(top_borders)
+            bottom_borders_latex = ' '.join(bottom_borders)
+
+            content_text = content_text + top_borders_latex + '\n' + cells_latex + '\n' + bottom_borders_latex + '\n'
 
             # end a table row
             content_text = content_text + end_table_row()
@@ -193,38 +204,7 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     container: info('  .. rendering cell complete for {0} rows : {1} ms\n'.format(total_rows, current_time - start_time))
     last_time = current_time
 
-    # merge cells according to data
-    info('  .. merging cells'.format(current_time - last_time))
-    for m in merge_data:
-        # check if the merge is applicable for this table's rows
-        if m['startRowIndex'] < (row_from - 1) or m['endRowIndex'] > (row_to):
-            continue
-
-        start_row_index = m['startRowIndex'] - (row_from - start_row) - 1
-        end_row_index = m['endRowIndex'] - (row_from - start_row) - 2
-
-        start_column_index = m['startColumnIndex'] - start_col
-        end_column_index = m['endColumnIndex'] - start_col - 1
-        # debug('merging cell ({0}, {1}) with cell ({2}, {3})'.format(start_row_index, start_column_index, end_row_index, end_column_index))
-        # starting_cell = table.cell(start_row_index, start_column_index)
-
-        # all cells within the merge range need to have the same border as the first cell
-        for r in range(start_row_index, end_row_index + 1):
-            for c in range(start_column_index, end_column_index + 1):
-                if (r, c) != (start_row_index, start_column_index):
-                    # to_cell = table.cell(r, c)
-                    # TODO: copy border to all cells
-                    # copy_cell_border(starting_cell, to_cell)
-                    pass
-
-        # ending_cell = table.cell(end_row_index, end_column_index)
-        # starting_cell.merge(ending_cell)
-
     content_text = content_text + end_table()
-
-    current_time = int(round(time.time() * 1000))
-    info('  .. cells merged : {0} ms\n'.format(current_time - last_time))
-    last_time = current_time
 
     info('.. content insertion completed : {0} ms\n'.format(current_time - start_time))
 
@@ -250,8 +230,8 @@ def insert_content_into_doc(data, start_row, row_from, container_width):
     return content_text
 
 
-def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
-    content_text = ''
+def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data, column_widths, table_spacing):
+    cell_latex, top_border_latex, bottom_border_latex = '', '', ''
 
     # paragraph spacing
     if table_spacing == 'no-spacing':
@@ -272,7 +252,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
     # process new-page
     if 'new-page' in note_json:
-        content_text = content_text + new_page()
+        cell_latex = cell_latex + new_page()
 
     # process keep-with-next
     if 'keep-with-next' in note_json:
@@ -280,7 +260,7 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
 
     # do some special processing if the cell_data is {}
     if cell_data == {} or 'effectiveFormat' not in cell_data:
-        return content_text
+        return cell_latex, top_border_latex, bottom_border_latex
 
     text_format = cell_data['effectiveFormat']['textFormat']
     effective_format = cell_data['effectiveFormat']
@@ -308,8 +288,10 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
     if 'borders' in effective_format:
         left_border = latex_border_from_gsheet_border(effective_format['borders'], 'left')
         right_border = latex_border_from_gsheet_border(effective_format['borders'], 'right')
+        top_border = latex_border_from_gsheet_border(effective_format['borders'], 'top')
+        bottom_border = latex_border_from_gsheet_border(effective_format['borders'], 'bottom')
     else:
-        left_border, right_border = '', ''
+        left_border, right_border, top_border, bottom_border = '', '', '', ''
 
     # cell can be merged, so we need width after merge (in Inches)
     cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
@@ -336,14 +318,14 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            content_text = content_text + image_content(path=image['path'], halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
-            return content_text
+            cell_latex = cell_latex + image_content(path=image['path'], halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+            return cell_latex, top_border_latex, bottom_border_latex
 
     # TODO: before rendering cell, see if it embeds another worksheet
     if 'contents' in cell_data:
         table = insert_content(cell_data['contents'], doc, cell_width, container=None, cell=cell)
         # polish_table(table)
-        return content_text
+        return cell_latex, top_border_latex, bottom_border_latex
 
     # texts
     if 'formattedValue' in cell_data:
@@ -382,9 +364,9 @@ def render_content_in_cell(cell_data, width, r, c, start_row, start_col, merge_d
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        content_text = content_text + text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+        cell_latex, top_border_latex, bottom_border_latex = text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
 
-    return content_text
+    return cell_latex, top_border_latex, bottom_border_latex
 
 
 def render_content_in_doc(cell_data):

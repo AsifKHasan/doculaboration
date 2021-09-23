@@ -14,6 +14,10 @@ HEADER = '''```{=latex}
 \\newcommand\Bstrut{\\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
 \\newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
 \\newcommand\\titlestyle[1]{{\\vspace{0.2cm}\\begin{center}\Large\\scshape\\textbf #1 \end{center}\\vspace{0.2cm}}}
+
+\\newcommand\\vborder[2]{\\color[rgb]{#1}\\setlength\\arrayrulewidth{#2}\\vline}
+\\newcommand\\hborder[2]{\\arrayrulecolor[rgb]{#1}\\setlength\\arrayrulewidth{#2}}
+
 \\setlength{\\tabcolsep}{0pt}
 ```
 
