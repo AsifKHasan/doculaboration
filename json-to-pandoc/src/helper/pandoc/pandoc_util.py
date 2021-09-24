@@ -145,15 +145,18 @@ def latex_border_from_gsheet_border(borders, side):
             return '!{{\\vborder{{{0},{1},{2}}}{{{3}pt}}}}'.format(red, green, blue, width)
 
         elif side in ['top', 'bottom']:
-            return '*1{>{\hborder{1,0,0}{1.0pt}}-}'.format(red, green, blue, width)
-
-            return ''
+            return '*{{}}{{>{{\\hborder{{{0},{1},{2}}}{{{3}pt}}}}-}}'.format(red, green, blue, width)
 
         else:
             return ''
 
     else:
-        return ''
+        if side in ['left', 'right']:
+            return ''
+        elif side in ['top', 'bottom']:
+            return '~'
+        else:
+            return ''
 
 
 '''
@@ -218,7 +221,6 @@ def start_table_row():
 '''
 def end_table_row():
     s = '''\\tabularnewline
-
 '''
 
     return s

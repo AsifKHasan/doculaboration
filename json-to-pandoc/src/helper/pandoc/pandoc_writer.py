@@ -181,13 +181,16 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
                 bottom_borders.append(bottom_border_latex)
 
             # now we have the borders
-            top_borders_latex = ' '.join(top_borders)
-            bottom_borders_latex = ' '.join(bottom_borders)
+            top_borders_latex = '\hhline{{ {} }}'.format(' '.join(top_borders))
+            bottom_borders_latex = '\hhline{{ {} }}'.format(' '.join(bottom_borders))
 
-            content_text = content_text + top_borders_latex + '\n' + cells_latex + '\n' + bottom_borders_latex + '\n'
+            content_text = content_text + top_borders_latex + '\n' + cells_latex
 
             # end a table row
             content_text = content_text + end_table_row()
+
+            # only then put the bottom border
+            content_text = content_text + bottom_borders_latex + '\n\n'
 
             # mark as header row if it is a header row
             if table_row_index < repeating_row_count:
@@ -284,20 +287,20 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
         text_rotation = effective_format['textRotation']
         # rotate_text(cell, 'btLr')
 
-    # borders
-    if 'borders' in effective_format:
-        left_border = latex_border_from_gsheet_border(effective_format['borders'], 'left')
-        right_border = latex_border_from_gsheet_border(effective_format['borders'], 'right')
-        top_border = latex_border_from_gsheet_border(effective_format['borders'], 'top')
-        bottom_border = latex_border_from_gsheet_border(effective_format['borders'], 'bottom')
-    else:
-        left_border, right_border, top_border, bottom_border = '', '', '', ''
-
     # cell can be merged, so we need width after merge (in Inches)
     cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
 
     # cell can be merged, so we need to know the span lengths
     column_span, row_span = cell_span(r, c, start_row, start_col, merge_data)
+
+    # borders
+    if 'borders' in effective_format:
+        left_border = latex_border_from_gsheet_border(effective_format['borders'], 'left')
+        right_border = latex_border_from_gsheet_border(effective_format['borders'], 'right')
+        top_border = latex_border_from_gsheet_border(effective_format['borders'], 'top').replace('{}', str(column_span))
+        bottom_border = latex_border_from_gsheet_border(effective_format['borders'], 'bottom').replace('{}', str(column_span))
+    else:
+        left_border, right_border, top_border, bottom_border = '', '', '*{{{}}}{{~}}'.format(column_span), '*{{{}}}{{~}}'.format(column_span)
 
     # TODO: images
     if 'userEnteredValue' in cell_data:
