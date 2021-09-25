@@ -15,6 +15,7 @@ header-includes:
 - \usepackage{babel}
 - \usepackage{xcolor,colortbl}
 - \usepackage{hhline}
+- \usepackage{multirow}
 
 - \tracinglostchars=2
 

@@ -55,6 +55,8 @@ def add_lot(doc):
     pass
 
 
+'''
+'''
 def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
     pass
 
@@ -110,23 +112,10 @@ def copy_cell_border(from_cell, to_cell):
 '''
 '''
 def set_paragraph_border(paragraph, **kwargs):
-    """
-    Set paragraph's border
-    Usage:
-
-    set_paragraph_border(
-        paragraph,
-        top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-        bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-        start={"sz": 24, "val": "dashed", "shadow": "true"},
-        end={"sz": 12, "val": "dashed"},
-    )
-    """
     pass
 
 
 '''
-
 '''
 def latex_border_from_gsheet_border(borders, side):
     if side in borders:
@@ -159,21 +148,16 @@ def latex_border_from_gsheet_border(borders, side):
             return ''
 
 
-'''
+''' image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
 '''
 def insert_image(cell, image_spec):
-    '''
-        image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
-    '''
     if image_spec is not None:
         pass
 
 
-'''
+''' set repeat table row on every new page
 '''
 def set_repeat_table_header(row):
-    ''' set repeat table row on every new page
-    '''
     return None
 
 
@@ -186,10 +170,7 @@ def wrap_as_latex(latex):
 '''
 '''
 def start_table(column_sizes):
-    str = '''```{=latex}
-\setlength\parindent{0pt}
-
-'''
+    str = '''```{=latex}\n\setlength\parindent{0pt}\n\n'''
 
     s = ['p{{{0}in}}'.format(i) for i in column_sizes]
     table_str = '\\begin{{longtable}}[l]{{|{0}|}}\n'.format('|'.join(s))
@@ -200,10 +181,7 @@ def start_table(column_sizes):
 '''
 '''
 def end_table():
-    s = '''\end{longtable}
-```
-
-'''
+    s = '\end{longtable}\n```\n\n'
 
     return s
 
@@ -211,8 +189,7 @@ def end_table():
 '''
 '''
 def start_table_row():
-    s = '''\TBstrut
-'''
+    s = '\TBstrut\n'
 
     return ''
 
@@ -220,8 +197,7 @@ def start_table_row():
 '''
 '''
 def end_table_row():
-    s = '''\\tabularnewline
-'''
+    s = '\\tabularnewline\n'
 
     return s
 
@@ -229,29 +205,27 @@ def end_table_row():
 '''
 '''
 def mark_as_header_row():
-    s = '''\endhead
-'''
+    s = '\endhead\n'
+
     return s
 
 
 ''' inserts text content into a table cell
-    :param text: text to be inserted
-    bgcolor: cell bacground color
-    left_border:
-    right_border:
-    top_border:
-    bottom_border:
-    halign: horizontal alignment of the text inside the cell
-    valign: vertical alignment of the text inside the cell
-    column_widths: a list of floats describing the column widths of each column in the parent table in inches
-    column_number: column index (0 based) of the cell in the parent table
-    column_span: how many columns the cell will span to the right including the cell column
-    row_span: how many rows the cell will span to the bottom including the cell row
+    :param text:            text to be inserted
+    :param bgcolor:         cell bacground color
+    :param left_border:
+    :param right_border:
+    :param top_border:
+    :param bottom_border:
+    :param halign:          horizontal alignment of the text inside the cell
+    :param valign:          vertical alignment of the text inside the cell
+    :param cell_width:      a float describing the cell width in inches
+    :param column_number:   column index (0 based) of the cell in the parent table
+    :param column_span:     how many columns the cell will span to the right including the cell column
+    :param row_span:        how many rows the cell will span to the bottom including the cell row
 '''
-def text_content(text, bgcolor, left_border, right_border, top_border, bottom_border, halign, valign, column_widths, column_number=0, column_span=1, row_span=1):
-    # width is the width of all columns under the column span range
-    width = sum(column_widths[column_number:column_number + column_span])
-    text_latex = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, width, right_border, halign, tex_escape(text), bgcolor)
+def text_content(text, bgcolor, left_border, right_border, top_border, bottom_border, halign, valign, cell_width, column_number=0, column_span=1, row_span=1):
+    text_latex = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{{6}}} {7} }}\n'.format(column_span, left_border, valign, cell_width, right_border, halign, tex_escape(text), bgcolor)
     text_latex = text_latex if column_number == 0 else '&\n' + text_latex
 
     top_border_latex = top_border
@@ -295,8 +269,6 @@ def add_section(section_data, section_spec):
 
     section = wrap_as_latex(section)
 
-
-
     # get the actual width
     actual_width = float(section_spec['page_width']) - float(section_spec['left_margin']) - float(section_spec['right_margin']) - float(section_spec['gutter'])
 
@@ -305,7 +277,6 @@ def add_section(section_data, section_spec):
 
     # TODO: set footer if it is not set already
     # set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
-
 
     if section_data['no-heading'] == False:
         if section_data['section'] != '':
@@ -342,30 +313,20 @@ def os_specific_path(path):
     else:
         return path
 
-''' :param row:
-    :return:
-'''
-def cell_span(row, col, start_row, start_col, merges):
-    for merge in merges:
-        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
-            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
-            row_span = merge['endRowIndex'] - merge['startRowIndex']
-            return col_span, row_span
-
-    return 1, 1
-
 
 ''' :param row:
     :return: sum of widths of the merged cells in inches
 '''
-def merged_cell_width(row, col, start_row, start_col, merges, column_widths):
-    cell_width = 0
+def merged_cell_span(row, col, start_row, start_col, merges, column_widths):
+    cell_width, col_span, row_span = 0, 1, 1
     for merge in merges:
         if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
-            for c in range(col, merge['endColumnIndex'] - start_col):
-                cell_width = cell_width + column_widths[c]
+            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
+            row_span = merge['endRowIndex'] - merge['startRowIndex']
+            for c in range(col, col + col_span):
+                cell_width = cell_width + column_widths[c] + 0.04 * 2
 
     if cell_width == 0:
-        return column_widths[col]
+        return column_widths[col], col_span, row_span
     else:
-        return cell_width
+        return cell_width, col_span, row_span

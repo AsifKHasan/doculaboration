@@ -113,6 +113,8 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     # resize columns as per data
     column_data = data['sheets'][0]['data'][0]['columnMetadata']
     total_width = sum(x['pixelSize'] for x in column_data)
+
+    # column width needs adjustment as \tabcolsep is 0.04in. This means each column has a 0.04 inch on left and right as space which needs to be removed from column width
     column_widths = [ (x['pixelSize'] * container_width / total_width) - (0.04 * 2) for x in column_data ]
 
     # start a longtable with the sepecic column_widths
@@ -287,11 +289,8 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
         text_rotation = effective_format['textRotation']
         # rotate_text(cell, 'btLr')
 
-    # cell can be merged, so we need width after merge (in Inches)
-    cell_width = merged_cell_width(r, c, start_row, start_col, merge_data, column_widths)
-
-    # cell can be merged, so we need to know the span lengths
-    column_span, row_span = cell_span(r, c, start_row, start_col, merge_data)
+    # cell can be merged, so we need width after merge (in Inches) and spans
+    cell_width, column_span, row_span = merged_cell_span(r, c, start_row, start_col, merge_data, column_widths)
 
     # borders
     if 'borders' in effective_format:
@@ -367,7 +366,7 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        cell_latex, top_border_latex, bottom_border_latex = text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+        cell_latex, top_border_latex, bottom_border_latex = text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, cell_width=cell_width, column_number=c, column_span=column_span, row_span=row_span)
 
     return cell_latex, top_border_latex, bottom_border_latex
 
