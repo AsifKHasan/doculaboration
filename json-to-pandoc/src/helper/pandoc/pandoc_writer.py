@@ -13,7 +13,7 @@ from lxml import etree
 from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
-VALIGN = {'TOP': 'p', 'MIDDLE': 'p', 'BOTTOM': 'b'}
+VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
 def insert_content(data, container_width, repeat_rows=0):
@@ -113,7 +113,7 @@ def insert_content_as_table(data, start_row, start_col, row_from, row_to, contai
     # resize columns as per data
     column_data = data['sheets'][0]['data'][0]['columnMetadata']
     total_width = sum(x['pixelSize'] for x in column_data)
-    column_widths = [ (x['pixelSize'] * container_width / total_width) for x in column_data ]
+    column_widths = [ (x['pixelSize'] * container_width / total_width) - (0.04 * 2) for x in column_data ]
 
     # start a longtable with the sepecic column_widths
     content_text = content_text + start_table(column_widths)

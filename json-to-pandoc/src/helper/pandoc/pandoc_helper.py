@@ -10,15 +10,15 @@ from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
 HEADER = '''```{=latex}
-\\newcommand\Tstrut{\\rule{0pt}{2.6ex}}                       % "top" strut
-\\newcommand\Bstrut{\\rule[-0.9ex]{0pt}{0pt}}                 % "bottom" strut
-\\newcommand{\TBstrut}{\Tstrut\Bstrut}                       % top&bottom struts
+\\newcommand\Tstrut[1]{\\rule[2.0ex]{0pt}{#1}}                  % "top" strut
+\\newcommand\Bstrut[1]{\\rule[-0.9ex]{0pt}{#1}}                 % "bottom" strut
 \\newcommand\\titlestyle[1]{{\\vspace{0.2cm}\\begin{center}\Large\\scshape\\textbf #1 \end{center}\\vspace{0.2cm}}}
 
 \\newcommand\\vborder[2]{\\color[rgb]{#1}\\setlength\\arrayrulewidth{#2}\\vline}
 \\newcommand\\hborder[2]{\\arrayrulecolor[rgb]{#1}\\setlength\\arrayrulewidth{#2}}
 
-\\setlength{\\tabcolsep}{0pt}
+\\setlength{\\tabcolsep}{0.05in}
+\\renewcommand{\\arraystretch}{1.2}
 ```
 
 '''
