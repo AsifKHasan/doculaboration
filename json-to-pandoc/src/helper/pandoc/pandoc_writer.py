@@ -306,10 +306,8 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
         userEnteredValue = cell_data['userEnteredValue']
         if 'image' in userEnteredValue:
             image = userEnteredValue['image']
-            # run = paragraph.add_run()
 
             # even now the width may exceed actual cell width, we need to adjust for that
-            # determine cell_width based on merge scenario
             dpi_x = 150 if image['dpi'][0] == 0 else image['dpi'][0]
             dpi_y = 150 if image['dpi'][1] == 0 else image['dpi'][1]
             image_width = image['width'] / dpi_x
@@ -320,7 +318,9 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            cell_latex = cell_latex + image_content(path=image['path'], halign=horizontal_alignment, valign=vertical_alignment, column_widths=column_widths, column_number=c, column_span=column_span, row_span=row_span)
+            # TODO: cell_latex may have prior content, merge
+            cell_latex_fragment, top_border_latex, bottom_border_latex = image_content(path=image['path'], image_width=image_width, image_height=image_height, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, cell_width=cell_width, column_number=c, column_span=column_span, row_span=row_span)
+            cell_latex = cell_latex + cell_latex_fragment
             return cell_latex, top_border_latex, bottom_border_latex
 
     # TODO: before rendering cell, see if it embeds another worksheet
@@ -366,7 +366,9 @@ def cell_latex_elements(cell_data, width, r, c, start_row, start_col, merge_data
             run = paragraph.add_run(run_texts[i])
             set_character_style(run, {**text_format, **format})
     else:
-        cell_latex, top_border_latex, bottom_border_latex = text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, cell_width=cell_width, column_number=c, column_span=column_span, row_span=row_span)
+        # TODO: cell_latex may have prior content, merge
+        cell_latex_fragment, top_border_latex, bottom_border_latex = text_content(text=text, bgcolor=bgcolor, left_border=left_border, right_border=right_border, top_border=top_border, bottom_border=bottom_border, halign=horizontal_alignment, valign=vertical_alignment, cell_width=cell_width, column_number=c, column_span=column_span, row_span=row_span)
+        cell_latex = cell_latex + cell_latex_fragment
 
     return cell_latex, top_border_latex, bottom_border_latex
 

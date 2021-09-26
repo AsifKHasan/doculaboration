@@ -236,19 +236,22 @@ def text_content(text, bgcolor, left_border, right_border, top_border, bottom_bo
 
 '''
 '''
-def image_content(path, halign, valign, column_widths, column_number, column_span, row_span):
-    width = sum(column_widths[column_number:column_number + column_span])
-    s = '\multicolumn{{{0}}} {{ {1}{{{2}in }}}} {{ {3} {{\includegraphics[width=\\linewidth]{{{4}}}}} }}\n'.format(column_span, valign, width, halign, os_specific_path(path))
-    s = s if column_number == 0 else '&\n' + s
-    # s = '\includegraphics[width=\\linewidth]{{{0}}}'.format(path)
+def image_content(path, image_width, image_height, bgcolor, left_border, right_border, top_border, bottom_border, halign, valign, cell_width, column_number=0, column_span=1, row_span=1):
+    print('cell_width', cell_width)
+    print('image_width', image_width)
+    image_latex = '\multicolumn{{{0}}} {{ {1} {2}{{{3}in}} {4} }} {{ {5} {{ \includegraphics[width={6}in]{{ {7} }} }} {8} }}\n'.format(column_span, left_border, valign, cell_width, right_border, halign, image_width, os_specific_path(path), bgcolor)
+    image_latex = image_latex if column_number == 0 else '&\n' + image_latex
 
-    return s
+    top_border_latex = top_border
+    bottom_border_latex = bottom_border
+
+    return image_latex, top_border_latex, bottom_border_latex
 
 
 '''
 '''
 def new_page():
-    return wrap_as_latex('\\newpage')
+    return wrap_as_latex('\\newpage\n')
 
 
 '''

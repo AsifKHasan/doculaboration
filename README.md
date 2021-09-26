@@ -28,7 +28,4 @@ Download and install বাংলা fonts
 wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
 ```
 
-\begin{addmargin}{10pt}{10pt}
-\Tstrut{2pt}
-\vspace{2pt}
-\end{addmargin}
+\multirow{7}{*}
