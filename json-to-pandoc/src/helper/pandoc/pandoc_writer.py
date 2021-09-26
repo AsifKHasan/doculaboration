@@ -16,10 +16,16 @@ from helper.pandoc.pandoc_util import *
 VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
-def insert_content(data, container_width, repeat_rows=0):
-    content_text = ''
+''' given a gsheet sections->contents generates the latex code
+'''
+def section_to_latex(data, container_width, repeat_rows=0):
 
     debug('.. inserting contents')
+
+    start_row, start_col = data['sheets'][0]['data'][0]['startRow'], data['sheets'][0]['data'][0]['startColumn']
+    worksheet_rows = data['sheets'][0]['properties']['gridProperties']['rowCount']
+    worksheet_cols = data['sheets'][0]['properties']['gridProperties']['columnCount']
+    row_data = data['sheets'][0]['data'][0]['rowData']
 
     # we have a concept of in-cell content and out-of-cell content
     # in-cell content means the content will go inside an existing table cell (specified by a 'content' key with value anything but 'out-of-cell' or no 'content' key at all in 'notes')
@@ -30,17 +36,102 @@ def insert_content(data, container_width, repeat_rows=0):
     # if we have such a content, anything prior to this content will go in one table, the out-of-cell content will go into the document and subsequent cells will go into another table after the put-of-cell content
     # we basically need content segmentation/segrefation into parts
 
-    start_row, start_col = data['sheets'][0]['data'][0]['startRow'], data['sheets'][0]['data'][0]['startColumn']
-    worksheet_rows = data['sheets'][0]['properties']['gridProperties']['rowCount']
-    worksheet_cols = data['sheets'][0]['properties']['gridProperties']['columnCount']
 
-    row_data = data['sheets'][0]['data'][0]['rowData']
     out_of_cell_content_rows = []
     # we are looking for out-of-cell content
     for row_num in range(start_row + 1, worksheet_rows + 1):
         # we look only in the first column
         # debug('at row : {0}/{1}'.format(row_num, worksheet_rows))
         row_data_index = row_num - start_row - 1
+        # debug('at row index: {0}'.format(row_data_index))
+
+        # TODO: it may be that the full row is merged and may not have any value
+        if 'values' not in row_data[row_data_index]:
+            continue
+
+        # get the first cell notes
+        first_cell_data = row_data[row_data_index]['values'][0]
+        first_cell_note_json = {}
+        if 'note' in first_cell_data:
+            try:
+                first_cell_note_json = json.loads(first_cell_data['note'])
+            except json.JSONDecodeError:
+                pass
+
+        # see the 'content' tag
+        out_of_cell_content = False
+        if 'content' in first_cell_note_json:
+            if first_cell_note_json['content'] == 'out-of-cell':
+                out_of_cell_content = True
+
+        # if content is out of cell, mark the row
+        if out_of_cell_content:
+            out_of_cell_content_rows.append(row_num)
+
+    # we have found all rows which are to be rendered out-of-cell that is directly into the doc, not inside any existing table cell
+    # now we have to segment the rows into table segments and out-of-cell segments
+    start_at_row = start_row + 1
+    row_segments = []
+    for row_num in out_of_cell_content_rows:
+        if row_num > start_at_row:
+            row_segments.append({'table': (start_at_row, row_num - 1)})
+
+        row_segments.append({'no-table': (row_num, row_num)})
+        start_at_row = row_num + 1
+
+    # there may be trailing rows after the last out-of-cell content row, they will merge into a table
+    if start_at_row <= worksheet_rows:
+        row_segments.append({'table': (start_at_row, worksheet_rows)})
+
+    # we have got the segments, now we render them - if table, we render as table, if no-table, we render into the doc
+    segment_count = 0
+    for row_segment in row_segments:
+        segment_count = segment_count + 1
+        if 'table' in row_segment:
+            # debug('table segment {0}/{1} : spanning rows [{2}:{3}]'.format(segment_count, len(row_segments), row_segment['table'][0], row_segment['table'][1]))
+            content_text = content_text + insert_content_as_table(data=data, start_row=start_row, start_col=start_col, row_from=row_segment['table'][0], row_to=row_segment['table'][1], container_width=container_width, repeat_rows=repeat_rows)
+        elif 'no-table' in row_segment:
+            # debug('no-table segment {0}/{1} : at row [{2}]'.format(segment_count, len(row_segments), row_segment['no-table'][0]))
+            content_text = content_text + insert_content_into_doc(data=data, start_row=start_row, row_from=row_segment['no-table'][0], container_width=container_width)
+        else:
+            warn('something unsual happened - unknown row segment type')
+
+    return content_text
+
+
+''' given a gsheet sections->contents generates the latex code
+'''
+def insert_content(data, container_width, repeat_rows=0):
+    content_text = ''
+
+    debug('.. inserting contents')
+
+    start_row, start_col = data['sheets'][0]['data'][0]['startRow'], data['sheets'][0]['data'][0]['startColumn']
+    worksheet_rows = data['sheets'][0]['properties']['gridProperties']['rowCount']
+    worksheet_cols = data['sheets'][0]['properties']['gridProperties']['columnCount']
+    row_data = data['sheets'][0]['data'][0]['rowData']
+
+    # we have a concept of in-cell content and out-of-cell content
+    # in-cell content means the content will go inside an existing table cell (specified by a 'content' key with value anything but 'out-of-cell' or no 'content' key at all in 'notes')
+    # out-of-cell content means the content will be inserted as a new table directly in the doc (specified by a 'content' key with value 'out-of-cell' in 'notes')
+
+    # when there is an out-of-cell content, we need to put the content inside the document by getting out of any table cell if we are already inside any cell
+    # this means we need to look into the first column of each row and identify if we have an out-of-cell content
+    # if we have such a content, anything prior to this content will go in one table, the out-of-cell content will go into the document and subsequent cells will go into another table after the put-of-cell content
+    # we basically need content segmentation/segrefation into parts
+
+
+    out_of_cell_content_rows = []
+    # we are looking for out-of-cell content
+    for row_num in range(start_row + 1, worksheet_rows + 1):
+        # we look only in the first column
+        # debug('at row : {0}/{1}'.format(row_num, worksheet_rows))
+        row_data_index = row_num - start_row - 1
+        # debug('at row index: {0}'.format(row_data_index))
+
+        # TODO: it may be that the full row is merged and may not have any value
+        if 'values' not in row_data[row_data_index]:
+            continue
 
         # get the first cell notes
         first_cell_data = row_data[row_data_index]['values'][0]
