@@ -1,13 +1,70 @@
 #!/usr/bin/env python3
 
-''' Latex Table object wrapper
+#   ----------------------------------------------------------------------------------------------------------------
+#   gsheet wrappers
+#   ----------------------------------------------------------------------------------------------------------------
+
+''' gsheet Cell object wrapper
 '''
-class LatexTable(object):
+class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_data_list):
+    def __init__(self, value):
+        # TODO
         pass
+
+
+''' gsheet Row object wrapper
+'''
+class Row(object):
+
+    ''' constructor
+    '''
+    def __init__(self, row_data):
+        self._cells = []
+        for value in row_data.get('values', []):
+            self._cells.append(Cell(value))
+
+
+''' gsheet rowMetaData object wrapper
+'''
+class RowMetaData(object):
+
+    ''' constructor
+    '''
+    def __init__(self, row_metadata_dict):
+        self._pixel_size = int(row_metadata_dict['pixelSize'])
+
+
+''' gsheet columnMetaData object wrapper
+'''
+class ColumnMetaData(object):
+
+    ''' constructor
+    '''
+    def __init__(self, column_metadata_dict):
+        self._pixel_size = int(column_metadata_dict['pixelSize'])
+
+
+''' gsheet merge object wrapper
+'''
+class Merge(object):
+
+    ''' constructor
+    '''
+    def __init__(self, gsheet_merge_dict, start_row, start_column):
+        self._start_row = int(gsheet_merge_dict['startRowIndex']) - start_row
+        self._end_row = int(gsheet_merge_dict['endRowIndex']) - start_row
+        self._start_column = int(gsheet_merge_dict['startColumnIndex']) - start_column
+        self._end_column = int(gsheet_merge_dict['endColumnIndex']) - start_column
+
+        self._row_span = self._end_row - self._start_row
+        self._column_span = self._end_column - self._start_column
+
+#   ----------------------------------------------------------------------------------------------------------------
+#   latex wrappers
+#   ----------------------------------------------------------------------------------------------------------------
 
 
 ''' Latex section object wrapper
@@ -68,60 +125,11 @@ class LatexSection(object):
             self._has_content = False
 
 
-''' gsheet Cell object wrapper
+''' Latex Table object wrapper
 '''
-class Cell(object):
+class LatexTable(object):
 
     ''' constructor
     '''
-    def __init__(self, value):
-        # TODO
+    def __init__(self, row_data_list):
         pass
-
-
-''' gsheet Row object wrapper
-'''
-class Row(object):
-
-    ''' constructor
-    '''
-    def __init__(self, row_data):
-        self._cells = []
-        for value in row_data.get('values', []):
-            self._cells.append(Cell(value))
-
-
-''' gsheet rowMetaData object wrapper
-'''
-class RowMetaData(object):
-
-    ''' constructor
-    '''
-    def __init__(self, row_metadata_dict):
-        self._pixel_size = int(row_metadata_dict['pixelSize'])
-
-
-''' gsheet columnMetaData object wrapper
-'''
-class ColumnMetaData(object):
-
-    ''' constructor
-    '''
-    def __init__(self, column_metadata_dict):
-        self._pixel_size = int(column_metadata_dict['pixelSize'])
-
-
-''' gsheet merge object wrapper
-'''
-class Merge(object):
-
-    ''' constructor
-    '''
-    def __init__(self, gsheet_merge_dict, start_row, start_column):
-        self._start_row = int(gsheet_merge_dict['startRowIndex']) - start_row
-        self._end_row = int(gsheet_merge_dict['endRowIndex']) - start_row
-        self._start_column = int(gsheet_merge_dict['startColumnIndex']) - start_column
-        self._end_column = int(gsheet_merge_dict['endColumnIndex']) - start_column
-
-        self._row_span = self._end_row - self._start_row
-        self._column_span = self._end_column - self._start_column
