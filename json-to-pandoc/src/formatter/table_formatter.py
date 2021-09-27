@@ -20,25 +20,20 @@ def generate(section_data, section_specs, context):
 
     # it is a new section
     latex_section = LatexSection(section_data, section_specs[section_data['section-break']])
-    section_text, page_width = add_section(section_data, section_specs[section_data['section-break']])
 
     # process contents
-    if 'contents' in section_data:
-        if section_data['contents']:
-            if 'sheets' in section_data['contents']:
-                # insert_content (in helper/pandoc/pandoc_writer) is our main work function
-                latex_section
-                section_text = section_text + insert_content(section_data['contents'], page_width)
+    # TODO: for now we just get the latex code for the section, we need to wrap this into a latex document object and append to that document
+    section_text = latex_section.to_latex()
 
-            # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
-            elif 'sections' in section_data['contents']:
-                for section in section_data['contents']['sections']:
-                    content_type = section['content-type']
+    # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
+    if 'sections' in section_data['contents']:
+        for section in section_data['contents']['sections']:
+            content_type = section['content-type']
 
-                    # force table formatter for gsheet content
-                    if content_type == 'gsheet': content_type = 'table'
+            # force table formatter for gsheet content
+            if content_type == 'gsheet': content_type = 'table'
 
-                    module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
-                    section_text = section_text + module.generate(section, section_specs, context)
+            module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
+            section_text = section_text + module.generate(section, section_specs, context)
 
     return section_text
