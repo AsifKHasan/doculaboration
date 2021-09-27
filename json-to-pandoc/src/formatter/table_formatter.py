@@ -7,7 +7,7 @@ from helper.logger import *
 from helper.pandoc.pandoc_writer import *
 from helper.pandoc.pandoc_util import *
 
-from helper.latex.latex_section import LatexSection
+from helper.latex.latex_helper import LatexSection
 
 def generate(section_data, section_specs, context):
     if section_data['section'] != '':
