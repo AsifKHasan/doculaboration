@@ -3,16 +3,14 @@
 '''
 import sys
 import json
-import importlib
 import time
 import yaml
 import datetime
 import argparse
-import pprint
 from pathlib import Path
 
 from helper.logger import *
-from helper.pandoc.pandoc_helper import PandocHelper
+from helper.pandoc.pandoc_helper import Pandoc
 from helper.pandoc.pandoc_util import *
 
 class PandocFromJson(object):
@@ -21,19 +19,6 @@ class PandocFromJson(object):
 		self.start_time = int(round(time.time() * 1000))
 		self._config_path = Path(config_path).resolve()
 		self._data = {}
-
-	def generate_pandoc(self):
-		for section in self._data['sections']:
-			content_type = section['content-type']
-
-			# force table formatter for gsheet content
-			if content_type == 'gsheet': content_type = 'table'
-
-			module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
-			section_doc = module.generate(section, self._pandochelper._sections, self._CONFIG)
-			self._doc = self._doc + section_doc
-
-		self._pandochelper.save(self._doc)
 
 	def run(self):
 		self.set_up()
@@ -44,10 +29,8 @@ class PandocFromJson(object):
 
 			# pandoc-helper
 			self._CONFIG['files']['output-pandoc'] = '{0}/{1}.mkd'.format(self._CONFIG['dirs']['output-dir'], json)
-			self._pandochelper = PandocHelper(self._CONFIG['files']['pandoc-styles'], self._CONFIG['files']['output-pandoc'])
-			self._doc = self._pandochelper.init()
-			self.generate_pandoc()
-
+			pandoc = Pandoc()
+			pandoc.generate_pandoc(self._data['sections'], self._CONFIG, self._CONFIG['files']['pandoc-styles'], self._CONFIG['files']['document-header'], self._CONFIG['files']['output-pandoc'])
 			self.tear_down()
 
 	def set_up(self):
@@ -61,9 +44,9 @@ class PandocFromJson(object):
 			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
 
 		self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
-		# print(self._CONFIG['dirs']['temp-dir'])
 
 		self._CONFIG['files']['pandoc-styles'] = config_dir / self._CONFIG['files']['pandoc-styles']
+		self._CONFIG['files']['document-header'] = config_dir / self._CONFIG['files']['document-header']
 
 		if not 'files' in self._CONFIG:
 			self._CONFIG['files'] = {}

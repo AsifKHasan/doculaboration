@@ -1,57 +1,43 @@
 #!/usr/bin/env python3
 
-'''
-Helper to initialize and manipulate pandoc styles, mostly custom styles not present in the templates
+''' Pandoc wrapper objects
 '''
 
 import yaml
+import importlib
 
 from helper.logger import *
-from helper.pandoc.pandoc_util import *
 
-HEADER = '''```{=latex}
-\\newcommand\Tstrut[1]{\\rule[2.0ex]{0pt}{#1}}                  % "top" strut
-\\newcommand\Bstrut[1]{\\rule[-0.9ex]{0pt}{#1}}                 % "bottom" strut
-\\newcommand\\titlestyle[1]{{\\vspace{0.2cm}\\begin{center}\Large\\scshape\\textbf #1 \end{center}\\vspace{0.2cm}}}
-
-\\newcommand\\vborder[2]{\\color[rgb]{#1}\\setlength\\arrayrulewidth{#2}\\vline}
-\\newcommand\\hborder[2]{\\arrayrulecolor[rgb]{#1}\\setlength\\arrayrulewidth{#2}}
-
-\\setlength{\\tabcolsep}{0.05in}
-\\renewcommand{\\arraystretch}{1.2}
-```
-
-'''
-
-class PandocHelper(object):
+class Pandoc(object):
 
     ''' constructor
     '''
-    def __init__(self, style, pandoc_path):
-        self._OUTPUT_PANDOC = pandoc_path
-        self._STYLE_DATA = style
+    def __init__(self):
+        self.document_lines = None
 
 
-    ''' initializer - latex YAML header/preamble
+    ''' generate and save the pandoc
     '''
-    def init(self):
-        self.load_styles()
+    def generate_pandoc(self, section_list, config, style_path, header_path, pandoc_path):
+        # load custom styles for sections, etc.
+        sd = yaml.load(open(style_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+        section_specs = sd['sections']
 
-        self._doc = HEADER
+        # load header and initialize document
+        with open(header_path, "r") as f:
+            self.document_lines = [line.rstrip() for line in f]
 
-        return self._doc
+        for section in section_list:
+            content_type = section['content-type']
 
+            # force table formatter for gsheet content
+            if content_type == 'gsheet':
+                content_type = 'table'
 
-    ''' save the markdown document string in a file
-    '''
-    def save(self, doc):
-        with open(self._OUTPUT_PANDOC, "w", encoding="utf-8") as f:
-            f.write(doc)
+            module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
+            section_lines = module.generate(section, section_specs, config)
+            self.document_lines = self.document_lines + section_lines
 
-
-    ''' custom styles for sections, etc.
-    '''
-    def load_styles(self):
-        sd = yaml.load(open(self._STYLE_DATA, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-
-        self._sections = sd['sections']
+        # save the markdown document string in a file
+        with open(pandoc_path, "w", encoding="utf-8") as f:
+            f.write('\n'.join(self.document_lines))

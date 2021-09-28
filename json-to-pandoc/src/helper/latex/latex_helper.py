@@ -35,6 +35,14 @@ class Cell(object):
             self.note = None
 
 
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        latex = ''
+
+        return latex
+
+
 ''' gsheet Row object wrapper
 '''
 class Row(object):
@@ -46,8 +54,10 @@ class Row(object):
         for value in row_data.get('values', []):
             self.cells.append(Cell(value))
 
+
     def is_empty(self):
         return (len(self.cells) == 0)
+
 
     def get_cell(self, c):
         if c >= 0 and c < len(self.cells):
@@ -55,12 +65,22 @@ class Row(object):
         else:
             return None
 
+
     def is_out_of_table(self):
         if len(self.cells) > 0:
             # the first cell is teh relevant cell only
             return self.cells[0].note.out_of_table
         else:
             return False
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        latex = ''
+
+        return latex
+
 
 ''' gsheet rowMetaData object wrapper
 '''
@@ -114,6 +134,9 @@ class RgbColor(object):
             self.green = 0
             self.blue = 0
 
+
+    ''' generates the latex code
+    '''
     def to_latex(self):
         return f"\cellcolor[rgb]{{{self.red},{self.green},{self.blue}}}"
 
@@ -197,6 +220,13 @@ class Border(object):
             self.width = None
             self.color = None
 
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        latex = ''
+        return latex
+        
 
 ''' gsheet cell value object wrapper
 '''
@@ -318,9 +348,9 @@ class HorizontalAlignment(object):
 #   latex wrappers
 #   ----------------------------------------------------------------------------------------------------------------
 
-''' Latex section object wrapper
+''' Latex section base object
 '''
-class LatexSection(object):
+class LatexSectionBase(object):
 
     ''' constructor
     '''
@@ -399,16 +429,37 @@ class LatexSection(object):
 
         # we need a list to hold the tables and block for the cells
         self.content_list = []
-        self.process()
+
+        # generate the header block
+        header_block = LatexSectionHeader(self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title)
+        self.content_list.append(header_block)
 
 
     ''' processes the cells to generate the proper order of tables and blocks
     '''
     def process(self):
-        # header
-        header_block = LatexSectionHeader(self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title)
-        self.content_list.append(header_block)
+        pass
 
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        return ''
+
+
+''' Latex section object
+'''
+class LatexSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec):
+        super().__init__(section_data, section_spec)
+
+
+    ''' processes the cells to generate the proper order of tables and blocks
+    '''
+    def process(self):
         # we have a concept of in-cell content and out-of-cell content
         # in-cell contents are treated as part of a table, while out-of-cell contents are treated as independent paragraphs, images etc. (blocks)
         next_table_starts_in_row = 0
@@ -439,13 +490,46 @@ class LatexSection(object):
     ''' generates the latex code
     '''
     def to_latex(self):
+        # process first
+        self.process()
+
         latex_lines = []
 
         # iterate to through tables and blocks contents
         for block in self.content_list:
             latex_lines = latex_lines + block.to_latex()
 
-        return '\n'.join(latex_lines)
+        return latex_lines
+
+
+''' Latex section object
+'''
+class LatexToCSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec):
+        super().__init__(section_data, section_spec)
+
+
+    ''' processes the cells to generate the proper order of tables and blocks
+    '''
+    def process(self):
+        pass
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        # process first
+        self.process()
+
+        latex_lines = []
+
+        # iterate to through tables and blocks contents
+        for block in self.content_list:
+            latex_lines = latex_lines + block.to_latex()
+
+        return latex_lines
 
 
 ''' Latex Block object wrapper base class (plain latex, table, header etc.)
