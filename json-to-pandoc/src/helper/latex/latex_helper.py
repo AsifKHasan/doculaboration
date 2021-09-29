@@ -16,9 +16,9 @@ class Cell(object):
     def __init__(self, value):
         self.text_format_runs = []
         if value:
-            self.user_entered_value = CellValue(value.get('userEnteredValue'))
-            self.effective_value = CellValue(value.get('effectiveValue'))
             self.formatted_value = value.get('formattedValue')
+            self.user_entered_value = CellValue(value.get('userEnteredValue'), self.formatted_value)
+            self.effective_value = CellValue(value.get('effectiveValue'))
             self.user_entered_format = CellFormat(value.get('userEnteredFormat'))
             self.effective_format = CellFormat(value.get('effectiveFormat'))
             for text_format_run in value.get('textFormatRuns', []):
@@ -38,8 +38,31 @@ class Cell(object):
     ''' generates the latex code
     '''
     def to_latex(self):
-        latex = ''
+        # cell content
+        # textFormatRuns first
+        if self.text_format_runs:
+            cell_value = self.text_format_runs.to_latex()
 
+        # userEnteredValue next, it can be either image or text
+        elif self.user_entered_value:
+            # if image, userEnteredValue will have an image
+            # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
+            cell_value = self.user_entered_value.to_latex()
+
+        # there is a 3rd possibility, the cell has no values at all, quite an empty cell
+        else:
+            cell_value = f"{{}}"
+
+
+        # cell halign
+        if self.effective_format:
+            halign = self.effective_format.halign.halign
+
+        else:
+            halign = HALIGN.get('LEFT')
+
+        # finally build the cell latex
+        latex = f"{{ {halign} {bgcolor} {cell_value} }}"
         return latex
 
 
@@ -226,7 +249,7 @@ class Border(object):
     def to_latex(self):
         latex = ''
         return latex
-        
+
 
 ''' gsheet cell value object wrapper
 '''
@@ -234,13 +257,43 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, value_dict):
+    def __init__(self, value_dict, formatted_value):
         if value_dict:
-            self.string_value = value_dict.get('stringValue')
+            # self.string_value = value_dict.get('stringValue')
+            self.string_value = formatted_value
             self.image = value_dict.get('image')
         else:
             self.string_value = None
             self.image = None
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        # if image
+        if self.image:
+            # even now the width may exceed actual cell width, we need to adjust for that
+            dpi_x = 150 if image['dpi'][0] == 0 else image['dpi'][0]
+            dpi_y = 150 if image['dpi'][1] == 0 else image['dpi'][1]
+            image_width = image['width'] / dpi_x
+            image_height = image['height'] / dpi_y
+            if image_width > cell_width:
+                adjust_ratio = (cell_width / image_width)
+                # keep a padding of 0.1 inch
+                image_width = cell_width - 0.2
+                image_height = image_height * adjust_ratio
+
+            latex = f'{{ \includegraphics[width={image_width}in]{{ {os_specific_path(path)} }} }}'
+
+        # if text, formattedValue will contain the text
+        else:
+            text = self.string_value
+            if text is None:
+                text = ''
+
+            latex = f"{{{tex_escape(text)}}}"
+
+        return latex
 
 
 ''' gsheet cell format object wrapper
