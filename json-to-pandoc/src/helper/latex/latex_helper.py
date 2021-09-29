@@ -13,14 +13,16 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, value):
+    def __init__(self, row_num, col_num, value, default_format, column_widths, merge_list):
+        self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
         self.text_format_runs = []
+
         if value:
             self.formatted_value = value.get('formattedValue')
             self.user_entered_value = CellValue(value.get('userEnteredValue'), self.formatted_value)
             self.effective_value = CellValue(value.get('effectiveValue'))
             self.user_entered_format = CellFormat(value.get('userEnteredFormat'))
-            self.effective_format = CellFormat(value.get('effectiveFormat'))
+            self.effective_format = CellFormat(value.get('effectiveFormat'), self.default_format)
             for text_format_run in value.get('textFormatRuns', []):
                 self.text_format_runs.append(TextFormatRun(text_format_run))
 
@@ -33,6 +35,10 @@ class Cell(object):
             self.user_entered_format = None
             self.effective_format = None
             self.note = None
+
+        # calculate cell merge details
+
+        # calculate cell width
 
 
     ''' generates the latex code
@@ -57,7 +63,7 @@ class Cell(object):
         # cell halign
         if self.effective_format:
             halign = self.effective_format.halign.halign
-
+            bgcolor = self.effective_format.bgcolor.to_latex()
         else:
             halign = HALIGN.get('LEFT')
 
@@ -72,10 +78,14 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_data):
+    def __init__(self, row_num, row_data, default_format, section_width, column_widths, merge_list):
+        self.row_num, self.section_width, self.column_widths, self.default_format = row_num, section_width, column_widths, default_format
+
         self.cells = []
+        c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(value))
+            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, merge_list))
+            c = c + 1
 
 
     def is_empty(self):
@@ -100,14 +110,21 @@ class Row(object):
     ''' generates the latex code
     '''
     def to_latex(self):
-        latex = ''
+        row_lines = []
 
-        return latex
+        for cell in self.cells:
+            row_lines.append(cell.to_latex())
+            row_lines.append('&')
+
+        # we have an extra & as the last line
+        row_lines.pop()
+
+        return row_lines
 
 
-''' gsheet rowMetaData object wrapper
+''' gsheet rowMetadata object wrapper
 '''
-class RowMetaData(object):
+class RowMetadata(object):
 
     ''' constructor
     '''
@@ -115,9 +132,9 @@ class RowMetaData(object):
         self.pixel_size = int(row_metadata_dict['pixelSize'])
 
 
-''' gsheet columnMetaData object wrapper
+''' gsheet columnMetadata object wrapper
 '''
-class ColumnMetaData(object):
+class ColumnMetadata(object):
 
     ''' constructor
     '''
@@ -257,10 +274,13 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, value_dict, formatted_value):
+    def __init__(self, value_dict, formatted_value=None):
         if value_dict:
-            # self.string_value = value_dict.get('stringValue')
-            self.string_value = formatted_value
+            if formatted_value:
+                self.string_value = formatted_value
+            else:
+                self.string_value = value_dict.get('stringValue')
+
             self.image = value_dict.get('image')
         else:
             self.string_value = None
@@ -269,7 +289,7 @@ class CellValue(object):
 
     ''' generates the latex code
     '''
-    def to_latex(self):
+    def to_latex(self, cell_width):
         # if image
         if self.image:
             # even now the width may exceed actual cell width, we need to adjust for that
@@ -283,7 +303,7 @@ class CellValue(object):
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            latex = f'{{ \includegraphics[width={image_width}in]{{ {os_specific_path(path)} }} }}'
+            latex = f"{{ \includegraphics[width={image_width}in]{{ {os_specific_path(image['path'])} }} }}"
 
         # if text, formattedValue will contain the text
         else:
@@ -302,7 +322,7 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict):
+    def __init__(self, format_dict, default_format=None):
         if format_dict:
             self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
             self.borders = Borders(format_dict.get('borders'))
@@ -310,6 +330,13 @@ class CellFormat(object):
             self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
+        elif default_format:
+            self.bgcolor = default_format.bgcolor
+            self.borders = default_format.borders
+            self.padding = default_format.padding
+            self.halign = default_format.halign
+            self.valign = default_format.valign
+            self.text_format = default_format.text_format
         else:
             self.bgcolor = None
             self.borders = None
@@ -332,6 +359,15 @@ class TextFormatRun(object):
         else:
             self.start_index = None
             self.format = None
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        # TODO: for now returning something fixed
+        latex = f"{{Missing: Custom Formatted Text Here}}"
+
+        return latex
 
 
 ''' gsheet cell notes object wrapper
@@ -432,19 +468,13 @@ class LatexSectionBase(object):
         self.column_metadata_list = []
         self.merge_list = []
 
-        self.default_bgolor = RgbColor()
-        self.default_padding = Padding()
-        self.default_valign = None
         self.default_format = None
 
         if section_contents:
             self.has_content = True
+
             properties = section_contents.get('properties')
-            if properties and 'defaultFormat' in properties:
-                self.default_bgolor = RgbColor(properties['defaultFormat'].get('backgroundColor'))
-                self.default_padding = Padding(properties['defaultFormat'].get('padding'))
-                self.default_valign = VerticalAlignment(properties['defaultFormat'].get('verticalAlignment'))
-                self.default_format = TextFormat(properties['defaultFormat'].get('textFormat'))
+            self.default_format = CellFormat(properties.get('defaultFormat'))
 
             sheets = section_contents.get('sheets')
             if isinstance(sheets, list) and len(sheets) > 0:
@@ -461,21 +491,27 @@ class LatexSectionBase(object):
                     self.start_row = int(data.get('startRow', 0))
                     self.start_column = int(data.get('startColumn', 0))
 
-                    # rowData
-                    for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(row_data))
+                    # rowMetadata
+                    for row_metadata in data.get('rowMetadata', []):
+                        self.row_metadata_list.append(RowMetadata(row_metadata))
 
-                    # rowMetaData
-                    for row_metadata in data.get('rowMetaData', []):
-                        self.row_metadata_list.append(RowMetaData(row_metadata))
-
-                    # columnMetaData
-                    for column_metadata in data.get('columnMetaData', []):
-                        self.column_metadata_list.append(ColumnMetaData(column_metadata))
+                    # columnMetadata
+                    for column_metadata in data.get('columnMetadata', []):
+                        self.column_metadata_list.append(ColumnMetadata(column_metadata))
 
                     # merges
                     for merge in sheets[0].get('merges', []):
                         self.merge_list.append(Merge(merge, self.start_row, self.start_column))
+
+                    # column width needs adjustment as \tabcolsep is COLSEPin. This means each column has a COLSEP inch on left and right as space which needs to be removed from column width
+                    all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list)
+                    self.column_widths = [ (x.pixel_size * self.section_width / all_column_widths_in_pixel) - (COLSEP * 2) for x in self.column_metadata_list ]
+
+                    # rowData
+                    r = 0
+                    for row_data in data.get('rowData', []):
+                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.merge_list))
+                        r = r + 1
 
         else:
             self.has_content = False
@@ -523,7 +559,7 @@ class LatexSection(LatexSectionBase):
             if data_row.is_out_of_table() == True:
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
-                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1)
+                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
                     self.content_list.append(table)
 
                 block = LatexParagraph(data_row, r)
@@ -536,7 +572,7 @@ class LatexSection(LatexSectionBase):
 
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
-            table = LatexTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row)
+            table = LatexTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
             self.content_list.append(table)
 
 
@@ -646,20 +682,27 @@ class LatexTable(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, cell_matrix, start_row, end_row):
-        self.start_row, self.end_row = start_row, end_row
+    def __init__(self, cell_matrix, start_row, end_row, column_widths):
+        self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
 
     ''' generates the latex code
     '''
     def to_latex(self):
+        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
         table_lines = []
+
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
+        table_lines.append(f"\\setlength\\parindent{{0pt}}")
+        table_lines.append(f"\\begin{{longtable}}[l]{{|{table_col_spec}|}}\n")
 
         # TODO: generate the table
+        for row in self.table_cell_matrix:
+            table_lines = table_lines + row.to_latex()
 
+        table_lines.append(f"\n\\end{{longtable}}")
         table_lines.append(end_latex())
         return table_lines
 
