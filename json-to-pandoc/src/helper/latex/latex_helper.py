@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+from helper.pandoc.pandoc_util import *
 from helper.latex.latex_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -13,9 +14,11 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, default_format, column_widths, merge_list):
+    def __init__(self, row_num, col_num, value, default_format, column_widths):
         self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
         self.text_format_runs = []
+        self.cell_width = self.column_widths[self.col_num]
+        self.merge_spec = CellMergeSpec()
 
         if value:
             self.formatted_value = value.get('formattedValue')
@@ -29,6 +32,8 @@ class Cell(object):
             self.note = CellNote(value.get('note'))
 
         else:
+            # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
+            self.merge_spec.multi_col = MultiSpan.InnerCell
             self.user_entered_value = None
             self.effective_value = None
             self.formatted_value = None
@@ -36,24 +41,26 @@ class Cell(object):
             self.effective_format = None
             self.note = None
 
-        # calculate cell merge details
 
-        # calculate cell width
-
-
-    ''' generates the latex code
+    ''' latex code for cell content
     '''
-    def to_latex(self):
-        # cell content
+    def content_latex(self):
         # textFormatRuns first
-        if self.text_format_runs:
-            cell_value = self.text_format_runs.to_latex()
+        if len(self.text_format_runs):
+            run_value_list = []
+            for text_format_run in self.text_format_runs:
+                run_value_list.append(text_format_run.to_latex())
+
+            cell_value = ''.join(run_value_list)
+
+            # TODO: for now we just show the formatted text
+            cell_value = self.user_entered_value.to_latex(self.cell_width)
 
         # userEnteredValue next, it can be either image or text
         elif self.user_entered_value:
             # if image, userEnteredValue will have an image
             # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-            cell_value = self.user_entered_value.to_latex()
+            cell_value = self.user_entered_value.to_latex(self.cell_width)
 
         # there is a 3rd possibility, the cell has no values at all, quite an empty cell
         else:
@@ -66,10 +73,52 @@ class Cell(object):
             bgcolor = self.effective_format.bgcolor.to_latex()
         else:
             halign = HALIGN.get('LEFT')
+            bgcolor = self.default_format.bgcolor.to_latex()
 
-        # finally build the cell latex
-        latex = f"{{ {halign} {bgcolor} {cell_value} }}"
-        return latex
+        # finally build the cell content
+        cell_content = f"{halign} {bgcolor} {cell_value}"
+
+        return cell_content
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self):
+        latex_lines = []
+
+        latex_lines.append(f"% {self.merge_spec.to_string()}")
+
+        # the cell could be an inner or last cell in a multicolumn setting
+        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            # we simply do not generate anything
+            return latex_lines
+
+        # first we go for multicolumn, multirow and column width part
+        if self.effective_format:
+            cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{self.effective_format.valign.valign}{{{self.cell_width}in}}}}"
+
+
+        # next we build the cell content
+        cell_content = self.content_latex()
+
+        # finally we build the whole cell
+        latex_lines.append(f"{cell_col_span} {{{cell_content}}}")
+
+        return latex_lines
+
+
+''' Cell Merge spec wrapper
+'''
+class CellMergeSpec(object):
+    def __init__(self):
+        self.multi_col = MultiSpan.No
+        self.multi_row = MultiSpan.No
+
+        self.col_span = 1
+        self.row_span = 1
+
+    def to_string(self):
+        return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
 
 
 ''' gsheet Row object wrapper
@@ -78,13 +127,13 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, default_format, section_width, column_widths, merge_list):
+    def __init__(self, row_num, row_data, default_format, section_width, column_widths):
         self.row_num, self.section_width, self.column_widths, self.default_format = row_num, section_width, column_widths, default_format
 
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, merge_list))
+            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths))
             c = c + 1
 
 
@@ -106,6 +155,17 @@ class Row(object):
         else:
             return False
 
+    ''' generates the top border
+    '''
+    def top_border(self):
+        return f"\\hhline{{-----}}"
+
+
+    ''' generates the bottom border
+    '''
+    def bottom_border(self):
+        return f"\\hhline{{-----}}"
+
 
     ''' generates the latex code
     '''
@@ -113,11 +173,24 @@ class Row(object):
         row_lines = []
 
         for cell in self.cells:
-            row_lines.append(cell.to_latex())
-            row_lines.append('&')
+            # top border
+            row_lines.append(self.top_border())
+
+            # cells
+            row_line = cell.to_latex()
+            row_lines = row_lines + row_line
+
+            row_line.append(f"\\tabularnewline\n")
+
+            # bottom border
+            row_lines.append(self.bottom_border())
+
+            if len(row_line) > 1:
+                row_lines.append('&')
 
         # we have an extra & as the last line
-        row_lines.pop()
+        if len(row_lines) > 0:
+            row_lines.pop(-1)
 
         return row_lines
 
@@ -151,11 +224,11 @@ class Merge(object):
     def __init__(self, gsheet_merge_dict, start_row, start_column):
         self.start_row = int(gsheet_merge_dict['startRowIndex']) - start_row
         self.end_row = int(gsheet_merge_dict['endRowIndex']) - start_row
-        self.start_column = int(gsheet_merge_dict['startColumnIndex']) - start_column
-        self.end_column = int(gsheet_merge_dict['endColumnIndex']) - start_column
+        self.start_col = int(gsheet_merge_dict['startColumnIndex']) - start_column
+        self.end_col = int(gsheet_merge_dict['endColumnIndex']) - start_column
 
         self.row_span = self.end_row - self.start_row
-        self.column_span = self.end_column - self.start_column
+        self.col_span = self.end_col - self.start_col
 
 
 ''' gsheet color object wrapper
@@ -293,17 +366,17 @@ class CellValue(object):
         # if image
         if self.image:
             # even now the width may exceed actual cell width, we need to adjust for that
-            dpi_x = 150 if image['dpi'][0] == 0 else image['dpi'][0]
-            dpi_y = 150 if image['dpi'][1] == 0 else image['dpi'][1]
-            image_width = image['width'] / dpi_x
-            image_height = image['height'] / dpi_y
+            dpi_x = 150 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
+            dpi_y = 150 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
+            image_width = self.image['width'] / dpi_x
+            image_height = self.image['height'] / dpi_y
             if image_width > cell_width:
                 adjust_ratio = (cell_width / image_width)
                 # keep a padding of 0.1 inch
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            latex = f"{{ \includegraphics[width={image_width}in]{{ {os_specific_path(image['path'])} }} }}"
+            latex = f"{{\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}}}"
 
         # if text, formattedValue will contain the text
         else:
@@ -401,7 +474,7 @@ class CellNote(object):
             if spacing is not None and spacing == 'no-spacing':
                 self.table_spacing = False
 
-            self.header_rows = int(note_dict.get('header-rows', 0))
+            self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.page_number_style = note_dict.get('page-number')
@@ -510,7 +583,7 @@ class LatexSectionBase(object):
                     # rowData
                     r = 0
                     for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.merge_list))
+                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths))
                         r = r + 1
 
         else:
@@ -549,6 +622,25 @@ class LatexSection(LatexSectionBase):
     ''' processes the cells to generate the proper order of tables and blocks
     '''
     def process(self):
+
+        # update the cells' CellMergeSpec
+        for merge in self.merge_list:
+            first_row = merge.start_row
+            first_col = merge.start_col
+            last_row = merge.end_row
+            last_col = merge.end_col
+            cell = self.cell_matrix[first_row].get_cell(first_col)
+            if cell:
+                cell.merge_spec.multi_col = MultiSpan.FirstCell
+                cell.merge_spec.multi_row = MultiSpan.FirstCell
+
+                cell.merge_spec.col_span = merge.col_span
+                cell.merge_spec.row_span = merge.row_span
+
+                for c in range(first_col + 1, last_col):
+                    cell.cell_width = cell.cell_width + self.column_widths[c] + COLSEP * 2
+
+
         # we have a concept of in-cell content and out-of-cell content
         # in-cell contents are treated as part of a table, while out-of-cell contents are treated as independent paragraphs, images etc. (blocks)
         next_table_starts_in_row = 0
@@ -687,10 +779,13 @@ class LatexTable(LatexBlock):
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
 
+        # header row if any
+        self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
+
     ''' generates the latex code
     '''
     def to_latex(self):
-        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = ' '.join([f"p{{{i}in}}" for i in self.column_widths])
         table_lines = []
 
         table_lines.append(begin_latex())
@@ -699,8 +794,15 @@ class LatexTable(LatexBlock):
         table_lines.append(f"\\begin{{longtable}}[l]{{|{table_col_spec}|}}\n")
 
         # TODO: generate the table
+        r = 1
         for row in self.table_cell_matrix:
             table_lines = table_lines + row.to_latex()
+
+            # header row
+            if self.header_row_count == r:
+                table_lines.append(f"\\endhead\n")
+
+            r = r + 1
 
         table_lines.append(f"\n\\end{{longtable}}")
         table_lines.append(end_latex())
@@ -725,6 +827,9 @@ class LatexParagraph(LatexBlock):
         block_lines.append(f"% LatexParagraph: row {self.row_number}")
 
         # TODO: generate the block
+        if len(self.data_row.cells) > 0:
+            row_text = self.data_row.get_cell(0).content_latex()
+            block_lines.append(row_text)
 
         block_lines.append(end_latex())
         return block_lines

@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 
 '''
-various utilities for generating a pndoc markdown document (mostly latex)
+various utilities for generating a pandoc markdown document
 '''
 
 import sys
-import lxml
 import re
 from copy import deepcopy
 
 from helper.logger import *
+
+''' :param path: a path string
+    :return: the path that the OS accepts
+'''
+def os_specific_path(path):
+    if sys.platform == 'win32':
+        return path.replace('\\', '/')
+    else:
+        return path
+
 
 '''
 '''
@@ -82,27 +91,3 @@ def text_content(text, bgcolor, left_border, right_border, top_border, bottom_bo
     bottom_border_latex = bottom_border
 
     return text_latex, top_border_latex, bottom_border_latex
-
-
-'''
-'''
-def new_page():
-    return wrap_as_latex('\\newpage\n')
-
-
-''' :param row:
-    :return: sum of widths of the merged cells in inches
-'''
-def merged_cell_span(row, col, start_row, start_col, merges, column_widths):
-    cell_width, col_span, row_span = 0, 1, 1
-    for merge in merges:
-        if merge['startRowIndex'] == (row + start_row) and merge['startColumnIndex'] == (col + start_col):
-            col_span = merge['endColumnIndex'] - merge['startColumnIndex']
-            row_span = merge['endRowIndex'] - merge['startRowIndex']
-            for c in range(col, col + col_span):
-                cell_width = cell_width + column_widths[c] + 0.04 * 2
-
-    if cell_width == 0:
-        return column_widths[col], col_span, row_span
-    else:
-        return cell_width, col_span, row_span

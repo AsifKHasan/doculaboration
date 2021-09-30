@@ -37,6 +37,13 @@ HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedlef
 COLSEP = 0.05
 
 
+class MultiSpan(object):
+    No = 'No'
+    FirstCell = 'FirstCell'
+    InnerCell = 'InnerCell'
+    LastCell = 'LastCell'
+
+
 '''
 '''
 def begin_latex():

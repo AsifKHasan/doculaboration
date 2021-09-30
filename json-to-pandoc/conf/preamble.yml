@@ -9,6 +9,7 @@ geometry:
 header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{graphicx}
+- \usepackage{grffile}
 - \usepackage{longtable,array}
 - \usepackage{bold-extra}
 - \usepackage{fontspec}
