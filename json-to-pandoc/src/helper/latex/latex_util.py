@@ -21,14 +21,14 @@ CONV = {
     '>': r'\textgreater{}',
 }
 
-GSHEET_OXML_BORDER_MAPPING = {
+GSHEET_LATEX_BORDER_MAPPING = {
     'DOTTED': 'dotted',
     'DASHED': 'dashed',
     'SOLID': 'single',
     'SOLID_MEDIUM': 'thick',
-    'SOLID_THICK': 'triple',
-    'DOUBLE': 'double',
-    'NONE': 'none'
+    'SOLID_THICK': '=',
+    'DOUBLE': '=',
+    'NONE': '~'
 }
 
 VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}

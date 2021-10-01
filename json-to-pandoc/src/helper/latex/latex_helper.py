@@ -42,6 +42,24 @@ class Cell(object):
             self.note = None
 
 
+    ''' latex code for cell borders
+    '''
+    def border_latex(self):
+        if self.effective_format:
+            t, b, l, r = self.effective_format.borders.to_latex()
+        else:
+            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
+            t, b, l, r = None, None, None, None
+
+        t = f"*{{{self.merge_spec.col_span}}}{t}"
+        b = f"*{{{self.merge_spec.col_span}}}{b}"
+
+        # print(f"({self.row_num},{self.col_num}) : top    border {t}")
+        # print(f"({self.row_num},{self.col_num}) : bottom border {b}")
+
+        return t, b, l, r
+
+
     ''' latex code for cell content
     '''
     def content_latex(self):
@@ -107,20 +125,6 @@ class Cell(object):
         return latex_lines
 
 
-''' Cell Merge spec wrapper
-'''
-class CellMergeSpec(object):
-    def __init__(self):
-        self.multi_col = MultiSpan.No
-        self.multi_row = MultiSpan.No
-
-        self.col_span = 1
-        self.row_span = 1
-
-    def to_string(self):
-        return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
-
-
 ''' gsheet Row object wrapper
 '''
 class Row(object):
@@ -155,44 +159,66 @@ class Row(object):
         else:
             return False
 
+
     ''' generates the top border
     '''
-    def top_border(self):
-        return f"\\hhline{{-----}}"
+    def borders(self):
+        top_borders = []
+        bottom_borders = []
+        for cell in self.cells:
+            t, b, l, r = cell.border_latex()
+            top_borders.append(t)
+            bottom_borders.append(b)
 
+        top_border = ' '.join(top_borders)
+        bottom_border = ' '.join(bottom_borders)
 
-    ''' generates the bottom border
-    '''
-    def bottom_border(self):
-        return f"\\hhline{{-----}}"
+        return f"\\hhline{{{top_border}}}", f"\\hhline{{{bottom_border}}}"
 
 
     ''' generates the latex code
     '''
     def to_latex(self):
         row_lines = []
+        # top and bottom borders
+        top_border, bottom_border = self.borders()
+
+        # top border
+        row_lines.append(top_border)
 
         for cell in self.cells:
-            # top border
-            row_lines.append(self.top_border())
-
             # cells
-            row_line = cell.to_latex()
-            row_lines = row_lines + row_line
+            cell_lines = cell.to_latex()
+            row_lines = row_lines + cell_lines
 
-            row_line.append(f"\\tabularnewline\n")
-
-            # bottom border
-            row_lines.append(self.bottom_border())
-
-            if len(row_line) > 1:
+            if len(cell_lines) > 1:
                 row_lines.append('&')
 
         # we have an extra & as the last line
         if len(row_lines) > 0:
             row_lines.pop(-1)
 
+        row_lines.append(f"\\tabularnewline")
+
+        # bottom border
+        row_lines.append(bottom_border)
+        row_lines.append('')
+
         return row_lines
+
+
+''' Cell Merge spec wrapper
+'''
+class CellMergeSpec(object):
+    def __init__(self):
+        self.multi_col = MultiSpan.No
+        self.multi_row = MultiSpan.No
+
+        self.col_span = 1
+        self.row_span = 1
+
+    def to_string(self):
+        return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
 
 
 ''' gsheet rowMetadata object wrapper
@@ -238,14 +264,14 @@ class RgbColor(object):
     ''' constructor
     '''
     def __init__(self, rgb_dict=None):
+        self.red = 0
+        self.green = 0
+        self.blue = 0
+
         if rgb_dict:
             self.red = float(rgb_dict.get('red', 0))
             self.green = float(rgb_dict.get('green', 0))
             self.blue = float(rgb_dict.get('blue', 0))
-        else:
-            self.red = 0
-            self.green = 0
-            self.blue = 0
 
 
     ''' generates the latex code
@@ -316,6 +342,14 @@ class Borders(object):
             self.bottom = None
             self.left = None
 
+    def to_latex(self):
+        t = self.top.to_latex_h() if self.top else '~'
+        b = self.bottom.to_latex_h() if self.bottom else '~'
+        l = self.left.to_latex_v() if self.left else ' '
+        r = self.right.to_latex_v() if self.right else ' '
+
+        return t, b, l, r
+
 
 ''' gsheet cell border object wrapper
 '''
@@ -326,18 +360,43 @@ class Border(object):
     def __init__(self, border_dict=None):
         if border_dict:
             self.style = border_dict.get('style')
-            self.width = int(border_dict.get('width'))
+            self.width = int(border_dict.get('width')) * 0.4
             self.color = RgbColor(border_dict.get('color'))
+
+            if self.style in ['DOTTED', 'DASHED', 'SOLID']:
+                self.style = '-'
+
+            elif self.style in ['DOUBLE']:
+                self.style = '='
+
+            elif self.style in ['SOLID_MEDIUM']:
+                self.width = self.width * 2
+                self.style = '-'
+
+            elif self.style in ['SOLID_THICK']:
+                self.width = self.width * 3
+                self.style = '-'
+
+            elif self.style in ['NONE']:
+                self.style = '~'
+
+            else:
+                self.style = '~'
+
         else:
-            self.style = None
-            self.width = None
-            self.color = None
+            self.style = '~'
+            self.width = 0
+            self.color = RgbColor()
+
+    def to_latex_h(self):
+        latex = f"{{>{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}}}"
+
+        return latex
 
 
-    ''' generates the latex code
-    '''
-    def to_latex(self):
-        latex = ''
+    def to_latex_v(self):
+        latex = f"{{>{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}|}}"
+
         return latex
 
 
@@ -785,7 +844,7 @@ class LatexTable(LatexBlock):
     ''' generates the latex code
     '''
     def to_latex(self):
-        table_col_spec = ' '.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
         table_lines = []
 
         table_lines.append(begin_latex())
@@ -804,7 +863,7 @@ class LatexTable(LatexBlock):
 
             r = r + 1
 
-        table_lines.append(f"\n\\end{{longtable}}")
+        table_lines.append(f"\\end{{longtable}}")
         table_lines.append(end_latex())
         return table_lines
 
