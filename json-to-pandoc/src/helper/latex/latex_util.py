@@ -22,11 +22,11 @@ CONV = {
 }
 
 GSHEET_LATEX_BORDER_MAPPING = {
-    'DOTTED': 'dotted',
-    'DASHED': 'dashed',
-    'SOLID': 'single',
-    'SOLID_MEDIUM': 'thick',
-    'SOLID_THICK': '=',
+    'DOTTED': '-',
+    'DASHED': '-',
+    'SOLID': '-',
+    'SOLID_MEDIUM': '-',
+    'SOLID_THICK': '-',
     'DOUBLE': '=',
     'NONE': '~'
 }

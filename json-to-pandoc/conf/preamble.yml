@@ -17,6 +17,7 @@ header-includes:
 - \usepackage{xcolor,colortbl}
 - \usepackage{hhline}
 - \usepackage{multirow}
+- \usepackage{ulem}
 
 - \tracinglostchars=2
 

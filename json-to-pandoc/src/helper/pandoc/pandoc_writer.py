@@ -13,9 +13,6 @@ from lxml import etree
 from helper.logger import *
 from helper.pandoc.pandoc_util import *
 
-VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
-HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
-
 ''' given a gsheet sections->contents generates the latex code
 '''
 def section_to_latex(data, container_width, repeat_rows=0):

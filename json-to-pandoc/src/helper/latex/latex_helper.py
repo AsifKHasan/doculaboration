@@ -27,7 +27,7 @@ class Cell(object):
             self.user_entered_format = CellFormat(value.get('userEnteredFormat'))
             self.effective_format = CellFormat(value.get('effectiveFormat'), self.default_format)
             for text_format_run in value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(text_format_run))
+                self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
             self.note = CellNote(value.get('note'))
 
@@ -51,8 +51,8 @@ class Cell(object):
             print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
             t, b, l, r = None, None, None, None
 
-        t = f"*{{{self.merge_spec.col_span}}}{t}"
-        b = f"*{{{self.merge_spec.col_span}}}{b}"
+        t = f"*{{{self.merge_spec.col_span}}}{t}".strip()
+        b = f"*{{{self.merge_spec.col_span}}}{b}".strip()
 
         # print(f"({self.row_num},{self.col_num}) : top    border {t}")
         # print(f"({self.row_num},{self.col_num}) : bottom border {b}")
@@ -66,13 +66,13 @@ class Cell(object):
         # textFormatRuns first
         if len(self.text_format_runs):
             run_value_list = []
-            for text_format_run in self.text_format_runs:
-                run_value_list.append(text_format_run.to_latex())
+            processed_idx = len(self.formatted_value)
+            for text_format_run in reversed(self.text_format_runs):
+                text = self.formatted_value[:processed_idx]
+                run_value_list.insert(0, text_format_run.to_latex(text))
+                processed_idx = text_format_run.start_index
 
             cell_value = ''.join(run_value_list)
-
-            # TODO: for now we just show the formatted text
-            cell_value = self.user_entered_value.to_latex(self.cell_width)
 
         # userEnteredValue next, it can be either image or text
         elif self.user_entered_value:
@@ -94,7 +94,7 @@ class Cell(object):
             bgcolor = self.default_format.bgcolor.to_latex()
 
         # finally build the cell content
-        cell_content = f"{halign} {bgcolor} {cell_value}"
+        cell_content = f"{halign} {cell_value} {bgcolor}".strip()
 
         return cell_content
 
@@ -106,6 +106,9 @@ class Cell(object):
 
         latex_lines.append(f"% {self.merge_spec.to_string()}")
 
+        # get the vertical left and right borders
+        _, _, l, r = self.border_latex()
+
         # the cell could be an inner or last cell in a multicolumn setting
         if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
             # we simply do not generate anything
@@ -113,7 +116,7 @@ class Cell(object):
 
         # first we go for multicolumn, multirow and column width part
         if self.effective_format:
-            cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{self.effective_format.valign.valign}{{{self.cell_width}in}}}}"
+            cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l} {self.effective_format.valign.valign}{{{self.cell_width}in}} {r}}}"
 
 
         # next we build the cell content
@@ -160,13 +163,13 @@ class Row(object):
             return False
 
 
-    ''' generates the top border
+    ''' generates the top and bottom borders
     '''
-    def borders(self):
+    def borders_tb(self):
         top_borders = []
         bottom_borders = []
         for cell in self.cells:
-            t, b, l, r = cell.border_latex()
+            t, b, _, _ = cell.border_latex()
             top_borders.append(t)
             bottom_borders.append(b)
 
@@ -181,7 +184,7 @@ class Row(object):
     def to_latex(self):
         row_lines = []
         # top and bottom borders
-        top_border, bottom_border = self.borders()
+        top_border, bottom_border = self.borders_tb()
 
         # top border
         row_lines.append(top_border)
@@ -306,7 +309,8 @@ class TextFormat(object):
     ''' constructor
     '''
     def __init__(self, text_format_dict=None):
-        if text_format_dict:
+        self.source = text_format_dict
+        if self.source:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             self.font_family = text_format_dict.get('fontFamily')
             self.font_size = int(text_format_dict.get('fontSize', 0))
@@ -322,6 +326,15 @@ class TextFormat(object):
             self.is_italic = False
             self.is_strikethrough = False
             self.is_underline = False
+
+
+    def to_latex(self):
+        b = '\\textbf' if self.is_bold else ''
+        i = '\\textit' if self.is_italic else ''
+        s = '\\sout' if self.is_strikethrough else ''
+        u = '\\underline' if self.is_underline else ''
+
+        return f"{b}{i}{s}{u}"
 
 
 ''' gsheet cell borders object wrapper
@@ -345,8 +358,8 @@ class Borders(object):
     def to_latex(self):
         t = self.top.to_latex_h() if self.top else '~'
         b = self.bottom.to_latex_h() if self.bottom else '~'
-        l = self.left.to_latex_v() if self.left else ' '
-        r = self.right.to_latex_v() if self.right else ' '
+        l = self.left.to_latex_v() if self.left else ''
+        r = self.right.to_latex_v() if self.right else ''
 
         return t, b, l, r
 
@@ -395,7 +408,7 @@ class Border(object):
 
 
     def to_latex_v(self):
-        latex = f"{{>{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}|}}"
+        latex = f"!{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
 
         return latex
 
@@ -484,10 +497,12 @@ class TextFormatRun(object):
 
     ''' constructor
     '''
-    def __init__(self, run_dict=None):
+    def __init__(self, run_dict=None, default_format=None):
         if run_dict:
             self.start_index = int(run_dict.get('startIndex', 0))
-            self.format = TextFormat(run_dict.get('format'))
+            format = run_dict.get('format')
+            new_format = {**default_format, **format}
+            self.format = TextFormat(new_format)
         else:
             self.start_index = None
             self.format = None
@@ -495,9 +510,10 @@ class TextFormatRun(object):
 
     ''' generates the latex code
     '''
-    def to_latex(self):
-        # TODO: for now returning something fixed
-        latex = f"{{Missing: Custom Formatted Text Here}}"
+    def to_latex(self, text):
+        format = self.format.to_latex()
+        latex = f"{{{format}{{{tex_escape(text[self.start_index:])}}}}}"
+        print(latex)
 
         return latex
 
