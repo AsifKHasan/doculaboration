@@ -78,7 +78,7 @@ class Cell(object):
         elif self.user_entered_value:
             # if image, userEnteredValue will have an image
             # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-            cell_value = self.user_entered_value.to_latex(self.cell_width)
+            cell_value = self.user_entered_value.to_latex(self.cell_width, self.effective_format.text_format)
 
         # there is a 3rd possibility, the cell has no values at all, quite an empty cell
         else:
@@ -94,7 +94,7 @@ class Cell(object):
             bgcolor = self.default_format.bgcolor.to_latex()
 
         # finally build the cell content
-        cell_content = f"{halign} {cell_value} {bgcolor}".strip()
+        cell_content = f"{halign} {cell_value} \\cellcolor{bgcolor}".strip()
 
         return cell_content
 
@@ -210,6 +210,96 @@ class Row(object):
         return row_lines
 
 
+''' gsheet text format object wrapper
+'''
+class TextFormat(object):
+
+    ''' constructor
+    '''
+    def __init__(self, text_format_dict=None):
+        self.source = text_format_dict
+        if self.source:
+            self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
+            self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'), '')
+            self.font_size = int(text_format_dict.get('fontSize', 0))
+            self.is_bold = text_format_dict.get('bold')
+            self.is_italic = text_format_dict.get('italic')
+            self.is_strikethrough = text_format_dict.get('strikethrough')
+            self.is_underline = text_format_dict.get('underline')
+        else:
+            self.fgcolor = RgbColor()
+            self.font_family = ''
+            self.font_size = 0
+            self.is_bold = False
+            self.is_italic = False
+            self.is_strikethrough = False
+            self.is_underline = False
+
+
+    def to_latex(self, text):
+        content = f"{{{text}}}"
+
+        if self.is_underline: content = f"{{\\underline{content}}}"
+        if self.is_strikethrough: content = f"{{\\sout{content}}}"
+        if self.is_italic: content = f"{{\\textit{content}}}"
+        if self.is_bold: content = f"{{\\textbf{content}}}"
+
+        # color, font, font-size
+        if self.font_family != '':
+            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{self.fgcolor.to_latex()}"
+        else:
+            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{self.fgcolor.to_latex()}"
+
+
+        latex = f"{{{fontspec}{content}}}"
+        return latex
+
+
+''' gsheet cell value object wrapper
+'''
+class CellValue(object):
+
+    ''' constructor
+    '''
+    def __init__(self, value_dict, formatted_value=None):
+        if value_dict:
+            if formatted_value:
+                self.string_value = formatted_value
+            else:
+                self.string_value = value_dict.get('stringValue')
+
+            self.image = value_dict.get('image')
+        else:
+            self.string_value = ''
+            self.image = None
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, cell_width, format):
+        # if image
+        if self.image:
+            # even now the width may exceed actual cell width, we need to adjust for that
+            dpi_x = 150 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
+            dpi_y = 150 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
+            image_width = self.image['width'] / dpi_x
+            image_height = self.image['height'] / dpi_y
+            if image_width > cell_width:
+                adjust_ratio = (cell_width / image_width)
+                # keep a padding of 0.1 inch
+                image_width = cell_width - 0.2
+                image_height = image_height * adjust_ratio
+
+            latex = f"{{\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}}}"
+
+        # if text, formattedValue will contain the text
+        else:
+            # print(self.string_value)
+            latex = format.to_latex(tex_escape(self.string_value))
+
+        return latex
+
+
 ''' Cell Merge spec wrapper
 '''
 class CellMergeSpec(object):
@@ -280,7 +370,7 @@ class RgbColor(object):
     ''' generates the latex code
     '''
     def to_latex(self):
-        return f"\cellcolor[rgb]{{{self.red},{self.green},{self.blue}}}"
+        return f"[rgb]{{{self.red},{self.green},{self.blue}}}"
 
 
 ''' gsheet cell padding object wrapper
@@ -300,41 +390,6 @@ class Padding(object):
             self.right = 0
             self.bottom = 0
             self.left = 0
-
-
-''' gsheet text format object wrapper
-'''
-class TextFormat(object):
-
-    ''' constructor
-    '''
-    def __init__(self, text_format_dict=None):
-        self.source = text_format_dict
-        if self.source:
-            self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
-            self.font_family = text_format_dict.get('fontFamily')
-            self.font_size = int(text_format_dict.get('fontSize', 0))
-            self.is_bold = text_format_dict.get('bold')
-            self.is_italic = text_format_dict.get('italic')
-            self.is_strikethrough = text_format_dict.get('strikethrough')
-            self.is_underline = text_format_dict.get('underline')
-        else:
-            self.fgcolor = RgbColor()
-            self.font_family = None
-            self.font_size = 0
-            self.is_bold = False
-            self.is_italic = False
-            self.is_strikethrough = False
-            self.is_underline = False
-
-
-    def to_latex(self):
-        b = '\\textbf' if self.is_bold else ''
-        i = '\\textit' if self.is_italic else ''
-        s = '\\sout' if self.is_strikethrough else ''
-        u = '\\underline' if self.is_underline else ''
-
-        return f"{b}{i}{s}{u}"
 
 
 ''' gsheet cell borders object wrapper
@@ -413,54 +468,6 @@ class Border(object):
         return latex
 
 
-''' gsheet cell value object wrapper
-'''
-class CellValue(object):
-
-    ''' constructor
-    '''
-    def __init__(self, value_dict, formatted_value=None):
-        if value_dict:
-            if formatted_value:
-                self.string_value = formatted_value
-            else:
-                self.string_value = value_dict.get('stringValue')
-
-            self.image = value_dict.get('image')
-        else:
-            self.string_value = None
-            self.image = None
-
-
-    ''' generates the latex code
-    '''
-    def to_latex(self, cell_width):
-        # if image
-        if self.image:
-            # even now the width may exceed actual cell width, we need to adjust for that
-            dpi_x = 150 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
-            dpi_y = 150 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
-            image_width = self.image['width'] / dpi_x
-            image_height = self.image['height'] / dpi_y
-            if image_width > cell_width:
-                adjust_ratio = (cell_width / image_width)
-                # keep a padding of 0.1 inch
-                image_width = cell_width - 0.2
-                image_height = image_height * adjust_ratio
-
-            latex = f"{{\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}}}"
-
-        # if text, formattedValue will contain the text
-        else:
-            text = self.string_value
-            if text is None:
-                text = ''
-
-            latex = f"{{{tex_escape(text)}}}"
-
-        return latex
-
-
 ''' gsheet cell format object wrapper
 '''
 class CellFormat(object):
@@ -511,9 +518,7 @@ class TextFormatRun(object):
     ''' generates the latex code
     '''
     def to_latex(self, text):
-        format = self.format.to_latex()
-        latex = f"{{{format}{{{tex_escape(text[self.start_index:])}}}}}"
-        print(latex)
+        latex = self.format.to_latex(tex_escape(text[self.start_index:]))
 
         return latex
 

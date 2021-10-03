@@ -6,6 +6,11 @@ various utilities for generating latex code
 
 import re
 
+FONT_MAP = {
+    'Calibri': '',
+    'Bree Serif': 'Noto Serif Light',
+}
+
 CONV = {
     '&': r'\&',
     '%': r'\%',

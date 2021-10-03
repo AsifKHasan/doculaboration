@@ -23,7 +23,20 @@ header-includes:
 
 - \babelprovide[onchar=fonts ids]{bengali}
 - \babelprovide[import, main]{english}
+
+- \babelfont[bengali]{rm}{Nikosh}
+- \babelfont[bengali]{rm}{Vrinda}
+- \babelfont[bengali]{rm}{AdorshoLipi}
+- \babelfont[bengali]{rm}{SolaimanLipi}
+- \babelfont[bengali]{rm}{Noto Sans Bengali}
+- \babelfont[bengali]{rm}{Noto Serif Bengali}
+- \babelfont[bengali]{rm}{Mukti}
 - \babelfont[bengali]{rm}{Kalpurush}
+
+- \babelfont[english]{rm}{Tex Gyre Adventor}
+- \babelfont[english]{rm}{FreeSerif}
+- \babelfont[english]{rm}{FreeSans}
 - \babelfont[english]{rm}{Latin Modern Roman}
+- \babelfont[english]{rm}{Latin Modern Sans}
 
 ---
