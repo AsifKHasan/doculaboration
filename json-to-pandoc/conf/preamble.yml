@@ -14,10 +14,17 @@ header-includes:
 - \usepackage{bold-extra}
 - \usepackage{fontspec}
 - \usepackage{babel}
-- \usepackage{xcolor,colortbl}
+# - \usepackage{xcolor}
+- \usepackage{colortbl}
 - \usepackage{hhline}
 - \usepackage{multirow}
 - \usepackage{ulem}
+- \usepackage{ehhline}
+- \usepackage{stackengine}
+# - \usepackage{etoolbox}
+# - \usepackage{xpatch} % or etoolbox
+# - \usepackage{xparse}
+
 
 - \tracinglostchars=2
 

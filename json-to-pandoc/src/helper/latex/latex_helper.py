@@ -865,13 +865,13 @@ class LatexTable(LatexBlock):
     ''' generates the latex code
     '''
     def to_latex(self):
-        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
         table_lines = []
 
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
         table_lines.append(f"\\setlength\\parindent{{0pt}}")
-        table_lines.append(f"\\begin{{longtable}}[l]{{|{table_col_spec}|}}\n")
+        table_lines.append(f"\\begin{{longtable}}[l]{{{table_col_spec}}}\n")
 
         # TODO: generate the table
         r = 1
