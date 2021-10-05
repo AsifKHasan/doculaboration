@@ -39,7 +39,7 @@ GSHEET_LATEX_BORDER_MAPPING = {
 VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
-COLSEP = 0.00
+COLSEP = 0.05
 
 
 class MultiSpan(object):

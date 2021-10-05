@@ -11,21 +11,17 @@ to update all python packages
 pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 ```
 
-to generate pdf from a docbook xml
-```
-pandoc -s -f docbook -t latex -o spectrum__written-exam-questions__rmstu__2021-08-07.pdf spectrum__written-exam-questions__rmstu__2021-08-07.xml
-```
-
-to generate pdf from a pandoc markdown
-```
-pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf
-
-metadata.yaml
-```
-
 Download and install বাংলা fonts
 ```
 wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
 ```
+
+to generate pdf from a gsheet through pandoc/latex
+```
+./json-from-gsheet.py --config '../conf/config.yml'
+./pandoc-from-json.py --config '../conf/config.yml'
+pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf
+```
+
 
 {\fontsize{12pt}{12pt}\fontspec{carlito}\color{blue}{\textbf{\textit{\underline{\sout{Resource Profile}}}}}}

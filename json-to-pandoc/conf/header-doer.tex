@@ -9,19 +9,19 @@
 \newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
 
 % vertical border macro [color and width]
-\newcommand\vborder[2]{\color[rgb]{#1}\deflength\arrayrulewidth{#2}\vline}
+\newcommand\vborder[2]{\color[rgb]{#1}\setlength\arrayrulewidth{#2}\vline}
 
 % horizontal border macro [color and width]
 \newcommand\hborder[2]{\arrayrulecolor[rgb]{#1}\global\deflength\arrayrulewidth{#2}}
 
 % we set default table column separation to 0.05 inches
-\setlength{\tabcolsep}{0.00in}
+\setlength{\tabcolsep}{0.05in}
 
 % we set default table row height to be 1.2 times of normal height
 \renewcommand{\arraystretch}{1.2}
 
 % we need a little bit space top of each row so that texts do not touch top border
-\renewcommand\extrarowheight{3pt}
+\renewcommand\extrarowheight{2pt}
 
 \newcommand\mc\multicolumn
 \newcommand\mr\multirow
