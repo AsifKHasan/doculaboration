@@ -49,6 +49,14 @@ class MultiSpan(object):
     LastCell = 'LastCell'
 
 
+''' :param text: a plain text message
+    :return: the message escaped to appear correctly in LaTeX
+'''
+def tex_escape(text):
+    regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(CONV.keys(), key = lambda item: - len(item))))
+    return regex.sub(lambda match: CONV[match.group()], text)
+
+
 '''
 '''
 def begin_latex():
@@ -57,11 +65,3 @@ def begin_latex():
 
 def end_latex():
     return "```\n\n"
-
-
-''' :param text: a plain text message
-    :return: the message escaped to appear correctly in LaTeX
-'''
-def tex_escape(text):
-    regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(CONV.keys(), key = lambda item: - len(item))))
-    return regex.sub(lambda match: CONV[match.group()], text)

@@ -16,11 +16,12 @@ class Cell(object):
     '''
     def __init__(self, row_num, col_num, value, default_format, column_widths):
         self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
+        self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.merge_spec = CellMergeSpec()
 
-        if value:
+        if self.value:
             self.formatted_value = value.get('formattedValue')
             self.user_entered_value = CellValue(value.get('userEnteredValue'), self.formatted_value)
             self.effective_value = CellValue(value.get('effectiveValue'))
@@ -30,6 +31,8 @@ class Cell(object):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
             self.note = CellNote(value.get('note'))
+            self.is_empty = False
+            self.is_top_border, self.is_bottom_border = True, True
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -39,7 +42,35 @@ class Cell(object):
             self.formatted_value = None
             self.user_entered_format = None
             self.effective_format = None
-            self.note = None
+            self.note = CellNote()
+            self.is_empty = True
+            self.is_top_border, self.is_bottom_border = False, False
+
+
+    ''' Copy the cell as an InnerCell or LastCell assuming it is the FirstCell. This is required for generating extra cells for Multirow
+    '''
+    def copy_as(self, row_ahead):
+        new_cell = Cell(self.row_num + row_ahead, self.col_num, self.value, self.default_format, self.column_widths)
+
+        new_cell.cell_width = self.cell_width
+        new_cell.merge_spec.col_span = self.merge_spec.col_span
+        new_cell.merge_spec.row_span = self.merge_spec.row_span
+        new_cell.merge_spec.multi_col = self.merge_spec.multi_col
+
+        # is it an InnerCell or LastCell
+        if row_ahead < (self.merge_spec.row_span - 1):
+            # the new cell is an InnerCell of the multirow
+            new_cell.merge_spec.multi_row = MultiSpan.InnerCell
+            new_cell.is_top_border = False
+            new_cell.is_bottom_border = False
+
+        else:
+            # the new cell is the LastCell of the multirow
+            new_cell.merge_spec.multi_row = MultiSpan.LastCell
+            new_cell.is_top_border = False
+            new_cell.is_bottom_border = True
+
+        return new_cell
 
 
     ''' latex code for cell borders
@@ -47,12 +78,21 @@ class Cell(object):
     def border_latex(self):
         if self.effective_format:
             t, b, l, r = self.effective_format.borders.to_latex()
+            if not self.is_top_border:
+                t = '~'
+
+            if not self.is_bottom_border:
+                b = '~'
+
         else:
-            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
+            # print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
             t, b, l, r = None, None, None, None
 
-        t = f"*{{{self.merge_spec.col_span}}}{t}".strip()
-        b = f"*{{{self.merge_spec.col_span}}}{b}".strip()
+        if t is not None:
+            t = f"*{{{self.merge_spec.col_span}}}{t}".strip()
+
+        if b is not None:
+            b = f"*{{{self.merge_spec.col_span}}}{b}".strip()
 
         # print(f"({self.row_num},{self.col_num}) : top    border {t}")
         # print(f"({self.row_num},{self.col_num}) : bottom border {b}")
@@ -63,26 +103,31 @@ class Cell(object):
     ''' latex code for cell content
     '''
     def content_latex(self):
-        # textFormatRuns first
-        if len(self.text_format_runs):
-            run_value_list = []
-            processed_idx = len(self.formatted_value)
-            for text_format_run in reversed(self.text_format_runs):
-                text = self.formatted_value[:processed_idx]
-                run_value_list.insert(0, text_format_run.to_latex(text))
-                processed_idx = text_format_run.start_index
+        # the content is not valid for multirow FirstCell and InnerCell
+        if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+            cell_value = None
 
-            cell_value = ''.join(run_value_list)
-
-        # userEnteredValue next, it can be either image or text
-        elif self.user_entered_value:
-            # if image, userEnteredValue will have an image
-            # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-            cell_value = self.user_entered_value.to_latex(self.cell_width, self.effective_format.text_format)
-
-        # there is a 3rd possibility, the cell has no values at all, quite an empty cell
         else:
-            cell_value = f"{{}}"
+            # textFormatRuns first
+            if len(self.text_format_runs):
+                run_value_list = []
+                processed_idx = len(self.formatted_value)
+                for text_format_run in reversed(self.text_format_runs):
+                    text = self.formatted_value[:processed_idx]
+                    run_value_list.insert(0, text_format_run.to_latex(text))
+                    processed_idx = text_format_run.start_index
+
+                cell_value = ''.join(run_value_list)
+
+            # userEnteredValue next, it can be either image or text
+            elif self.user_entered_value:
+                # if image, userEnteredValue will have an image
+                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
+                cell_value = self.user_entered_value.to_latex(self.cell_width, self.effective_format.text_format)
+
+            # there is a 3rd possibility, the cell has no values at all, quite an empty cell
+            else:
+                cell_value = f"{{}}"
 
 
         # cell halign
@@ -94,7 +139,10 @@ class Cell(object):
             bgcolor = self.default_format.bgcolor.to_latex()
 
         # finally build the cell content
-        cell_content = f"{halign} {cell_value} \\cellcolor{bgcolor}".strip()
+        if cell_value:
+            cell_content = f"{halign} {cell_value} \\cellcolor{bgcolor}".strip()
+        else:
+            cell_content = f"{halign} \\cellcolor{bgcolor}".strip()
 
         return cell_content
 
@@ -116,14 +164,20 @@ class Cell(object):
 
         # first we go for multicolumn, multirow and column width part
         if self.effective_format:
-            cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l} {self.effective_format.valign.valign}{{{self.cell_width}in}} {r}}}"
+            valign = self.effective_format.valign.valign
+        else:
+            valign = VALIGN.get('MIDDLE')
 
+        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l} {valign}{{{self.cell_width}in}} {r}}}"
 
         # next we build the cell content
         cell_content = self.content_latex()
 
         # finally we build the whole cell
-        latex_lines.append(f"{cell_col_span} {{{cell_content}}}")
+        if self.merge_spec.multi_row == MultiSpan.LastCell:
+            latex_lines.append(f"{cell_col_span} {{\\mr{{{-self.merge_spec.row_span}}}{{=}} {{{cell_content}}}}}")
+        else:
+            latex_lines.append(f"{cell_col_span} {{{cell_content}}}")
 
         return latex_lines
 
@@ -136,6 +190,7 @@ class Row(object):
     '''
     def __init__(self, row_num, row_data, default_format, section_width, column_widths):
         self.row_num, self.section_width, self.column_widths, self.default_format = row_num, section_width, column_widths, default_format
+        self.row_name = f"row: [{self.row_num}]"
 
         self.cells = []
         c = 0
@@ -144,10 +199,14 @@ class Row(object):
             c = c + 1
 
 
+    ''' is the row empty (no cells at all)
+    '''
     def is_empty(self):
         return (len(self.cells) == 0)
 
 
+    ''' gets the specific sell by ordinal
+    '''
     def get_cell(self, c):
         if c >= 0 and c < len(self.cells):
             return self.cells[c]
@@ -155,10 +214,33 @@ class Row(object):
             return None
 
 
+    ''' gets the specific sell by ordinal
+    '''
+    def insert_cell(self, pos, cell):
+        self.cells.insert(pos, cell)
+
+
+    ''' it is true only when the first cell has a out_of_table true value
+    '''
     def is_out_of_table(self):
         if len(self.cells) > 0:
-            # the first cell is teh relevant cell only
-            return self.cells[0].note.out_of_table
+            # the first cell is the relevant cell only
+            if self.cells[0]:
+                return self.cells[0].note.out_of_table
+            else:
+                return False
+        else:
+            return False
+
+    ''' it is true only when the first cell has a repeat-rows note with value > 0
+    '''
+    def is_table_start(self):
+        if len(self.cells) > 0:
+            # the first cell is the relevant cell only
+            if self.cells[0]:
+                return (self.cells[0].note.header_rows > 0)
+            else:
+                return False
         else:
             return False
 
@@ -168,10 +250,19 @@ class Row(object):
     def borders_tb(self):
         top_borders = []
         bottom_borders = []
+        c = 0
         for cell in self.cells:
+            if cell is None:
+                warn(f"{self.row_name} has a Null cell at {c}")
+
             t, b, _, _ = cell.border_latex()
-            top_borders.append(t)
-            bottom_borders.append(b)
+            if t is not None:
+                top_borders.append(t)
+
+            if b is not None:
+                bottom_borders.append(b)
+
+            c = c + 1
 
         top_border = ' '.join(top_borders)
         bottom_border = ' '.join(bottom_borders)
@@ -183,6 +274,9 @@ class Row(object):
     '''
     def to_latex(self):
         row_lines = []
+
+        row_lines.append(f"% {self.row_name}")
+
         # top and bottom borders
         top_border, bottom_border = self.borders_tb()
 
@@ -711,11 +805,15 @@ class LatexSection(LatexSectionBase):
             last_col = merge.end_col
             cell = self.cell_matrix[first_row].get_cell(first_col)
             if cell:
-                cell.merge_spec.multi_col = MultiSpan.FirstCell
-                cell.merge_spec.multi_row = MultiSpan.FirstCell
-
                 cell.merge_spec.col_span = merge.col_span
                 cell.merge_spec.row_span = merge.row_span
+
+                if merge.col_span > 1:
+                    cell.merge_spec.multi_col = MultiSpan.FirstCell
+
+                if merge.row_span > 1:
+                    cell.merge_spec.multi_row = MultiSpan.FirstCell
+                    cell.is_bottom_border = False
 
                 for c in range(first_col + 1, last_col):
                     cell.cell_width = cell.cell_width + self.column_widths[c] + COLSEP * 2
@@ -728,7 +826,7 @@ class LatexSection(LatexSectionBase):
         for r in range(0, self.row_count):
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
-            if data_row.is_out_of_table() == True:
+            if data_row.is_out_of_table():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -738,6 +836,15 @@ class LatexSection(LatexSectionBase):
                 self.content_list.append(block)
 
                 next_table_starts_in_row = r + 1
+
+            # the row may start with a note of repeat-rows which means that a new table is atarting
+            elif data_row.is_table_start():
+                # there may be a pending/running table
+                if r > next_table_starts_in_row:
+                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    self.content_list.append(table)
+
+                    next_table_starts_in_row = r
 
             else:
                 next_table_ends_in_row = r
@@ -858,9 +965,49 @@ class LatexTable(LatexBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
+        self.table_name = f"LatexTable: {self.start_row}-{self.end_row}[{self.row_count}]"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
+
+        self.adjust_cells()
+
+
+    ''' adjust (create/modify) cells for handling multirow and multicolumn
+    '''
+    def adjust_cells(self):
+        debug(f"..adjusting cells for {self.table_name}")
+        last_non_empty_row, last_non_empty_row_num = None, -1
+        r = 0
+        for row in self.table_cell_matrix:
+            if row.is_empty():
+                # if the row is empty, it means the row is part of multirow spanning all columns
+                # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
+                debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
+                multirow_first_cell = last_non_empty_row.cells[0]
+                new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
+                row.insert_cell(0, new_cell)
+
+            else:
+                last_non_empty_row, last_non_empty_row_num = row, r
+                # the row is not empty, it means the row is part of multirow spanning all columns
+                row_cells = row.cells
+                c = 0
+                # a cell may be empty meaning it is part of a multicolumn or multirow span
+                for cell in row_cells:
+                    if cell.is_empty:
+                        # the cell is empty
+                        debug(f"......cell [{r},{c}] is empty")
+
+                    else:
+                        # the cell is not  empty
+                        pass
+
+                    c = c + 1
+
+            r = r + 1
+
+
 
     ''' generates the latex code
     '''
