@@ -805,18 +805,63 @@ class LatexSection(LatexSectionBase):
             last_col = merge.end_col
             cell = self.cell_matrix[first_row].get_cell(first_col)
             if cell:
+                # get the total width of the cell when merged
+                for c in range(first_col + 1, last_col):
+                    cell.cell_width = cell.cell_width + self.column_widths[c] + COLSEP * 2
+
                 cell.merge_spec.col_span = merge.col_span
                 cell.merge_spec.row_span = merge.row_span
 
+                # if it is a column merge, mark multi_col as FirstCell
                 if merge.col_span > 1:
                     cell.merge_spec.multi_col = MultiSpan.FirstCell
 
+                    # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
+                    for next_cell_in_row in self.cell_matrix[first_row].cells[first_col+1:last_col]:
+                        if next_cell_in_row.is_empty:
+                            next_cell_in_row.merge_spec.multi_col = MultiSpan.InnerCell
+
+                    # the last cell of the merge to be marked as LastCell
+                    try:
+                        last_cell_in_row = self.cell_matrix[first_row].cells[last_col-1]
+                        if last_cell_in_row.is_empty:
+                            last_cell_in_row.merge_spec.multi_col = MultiSpan.LastCell
+                    except IndexError:
+                        pass
+
+                # if it is a row merge, mark multi_row as FirstCell
                 if merge.row_span > 1:
                     cell.merge_spec.multi_row = MultiSpan.FirstCell
+                    # multi_row FirstCell does not have a bottom border
                     cell.is_bottom_border = False
 
-                for c in range(first_col + 1, last_col):
-                    cell.cell_width = cell.cell_width + self.column_widths[c] + COLSEP * 2
+                    # we may have empty cells in the same row which are part of this row merge (in case of both row and column merge), we need to mark their multi_row property correctly
+                    for next_cell_in_row in self.cell_matrix[first_row].cells[first_col+1:last_col]:
+                        if next_cell_in_row.is_empty:
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
+
+                    # we may have empty cells in subsequent rows which are part of this row merge, we need to mark their multi_row property correctly
+                    for next_row in self.cell_matrix[first_row+1:last_row]:
+                        # the cells (if empty) should have the same multi_col value as the same cell in the first row
+                        for next_cell_in_row in next_row.cells[first_col:last_col]:
+                            if next_cell_in_row.is_empty:
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
+                                # get the cell in the same column of the first row
+                                the_cell_in_first_row = self.cell_matrix[first_row].get_cell(next_cell_in_row.col_num)
+                                if the_cell_in_first_row:
+                                    next_cell_in_row.merge_spec.multi_col = the_cell_in_first_row.merge_spec.multi_col
+                                    next_cell_in_row.merge_spec.col_span = the_cell_in_first_row.merge_spec.col_span
+                                    next_cell_in_row.cell_width = the_cell_in_first_row.cell_width
+
+                    # the cells of the last row of the merge to be marked as LastCell
+                    try:
+                        last_row = self.cell_matrix[last_row-1]
+                    except IndexError:
+                        pass
+
+                    for next_cell_in_row in last_row.cells[first_col:last_col]:
+                        if next_cell_in_row.is_empty:
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
 
 
         # we have a concept of in-cell content and out-of-cell content
