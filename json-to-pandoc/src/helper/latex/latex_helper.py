@@ -47,6 +47,21 @@ class Cell(object):
             self.is_top_border, self.is_bottom_border = False, False
 
 
+    ''' Copy value, format, from the cell passed
+    '''
+    def copy_from(self, from_cell):
+        self.formatted_value = from_cell.formatted_value
+        self.user_entered_value = from_cell.user_entered_value
+        self.effective_value = from_cell.effective_value
+        self.effective_format = from_cell.effective_format
+        self.text_format_runs = from_cell.text_format_runs
+
+        self.merge_spec.multi_col = from_cell.merge_spec.multi_col
+        self.merge_spec.col_span = from_cell.merge_spec.col_span
+        self.merge_spec.row_span = from_cell.merge_spec.row_span
+        self.cell_width = from_cell.cell_width
+
+
     ''' Copy the cell as an InnerCell or LastCell assuming it is the FirstCell. This is required for generating extra cells for Multirow
     '''
     def copy_as(self, row_ahead):
@@ -86,7 +101,7 @@ class Cell(object):
 
         else:
             # print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
-            t, b, l, r = None, None, None, None
+            t, b, l, r = None, None, '', ''
 
         if t is not None:
             t = f"*{{{self.merge_spec.col_span}}}{t}".strip()
@@ -168,7 +183,7 @@ class Cell(object):
         else:
             valign = VALIGN.get('MIDDLE')
 
-        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l} {valign}{{{self.cell_width}in}} {r}}}"
+        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l}{valign}{{{self.cell_width}in}}{r}}}"
 
         # next we build the cell content
         cell_content = self.content_latex()
@@ -829,16 +844,19 @@ class LatexSection(LatexSectionBase):
                     except IndexError:
                         pass
 
-                # if it is a row merge, mark multi_row as FirstCell
+                # if it is a row merge, mark multi_row accordingly
                 if merge.row_span > 1:
                     cell.merge_spec.multi_row = MultiSpan.FirstCell
                     # multi_row FirstCell does not have a bottom border
+                    cell.is_top_border = True
                     cell.is_bottom_border = False
 
                     # we may have empty cells in the same row which are part of this row merge (in case of both row and column merge), we need to mark their multi_row property correctly
                     for next_cell_in_row in self.cell_matrix[first_row].cells[first_col+1:last_col]:
                         if next_cell_in_row.is_empty:
                             next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
+                            next_cell_in_row.is_top_border = True
+                            next_cell_in_row.is_bottom_border = False
 
                     # we may have empty cells in subsequent rows which are part of this row merge, we need to mark their multi_row property correctly
                     for next_row in self.cell_matrix[first_row+1:last_row]:
@@ -846,12 +864,16 @@ class LatexSection(LatexSectionBase):
                         for next_cell_in_row in next_row.cells[first_col:last_col]:
                             if next_cell_in_row.is_empty:
                                 next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
+                                next_cell_in_row.is_top_border = False
+                                next_cell_in_row.is_bottom_border = False
+
                                 # get the cell in the same column of the first row
                                 the_cell_in_first_row = self.cell_matrix[first_row].get_cell(next_cell_in_row.col_num)
                                 if the_cell_in_first_row:
-                                    next_cell_in_row.merge_spec.multi_col = the_cell_in_first_row.merge_spec.multi_col
-                                    next_cell_in_row.merge_spec.col_span = the_cell_in_first_row.merge_spec.col_span
-                                    next_cell_in_row.cell_width = the_cell_in_first_row.cell_width
+                                    next_cell_in_row.copy_from(the_cell_in_first_row)
+                                    # next_cell_in_row.merge_spec.multi_col = the_cell_in_first_row.merge_spec.multi_col
+                                    # next_cell_in_row.merge_spec.col_span = the_cell_in_first_row.merge_spec.col_span
+                                    # next_cell_in_row.cell_width = the_cell_in_first_row.cell_width
 
                     # the cells of the last row of the merge to be marked as LastCell
                     try:
@@ -862,6 +884,8 @@ class LatexSection(LatexSectionBase):
                     for next_cell_in_row in last_row.cells[first_col:last_col]:
                         if next_cell_in_row.is_empty:
                             next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
+                            next_cell_in_row.is_top_border = False
+                            next_cell_in_row.is_bottom_border = True
 
 
         # we have a concept of in-cell content and out-of-cell content
@@ -1026,8 +1050,9 @@ class LatexTable(LatexBlock):
         r = 0
         for row in self.table_cell_matrix:
             if row.is_empty():
-                # if the row is empty, it means the row is part of multirow spanning all columns
+                # if the row is empty, it means the row is part of (one or more) multirow spanning all columns
                 # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
+                # TODO: this row may be part of one or more multirow
                 debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
                 multirow_first_cell = last_non_empty_row.cells[0]
                 new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
@@ -1044,14 +1069,9 @@ class LatexTable(LatexBlock):
                         # the cell is empty
                         debug(f"......cell [{r},{c}] is empty")
 
-                    else:
-                        # the cell is not  empty
-                        pass
-
                     c = c + 1
 
             r = r + 1
-
 
 
     ''' generates the latex code
@@ -1065,7 +1085,7 @@ class LatexTable(LatexBlock):
         table_lines.append(f"\\setlength\\parindent{{0pt}}")
         table_lines.append(f"\\begin{{longtable}}[l]{{{table_col_spec}}}\n")
 
-        # TODO: generate the table
+        # generate the table
         r = 1
         for row in self.table_cell_matrix:
             table_lines = table_lines + row.to_latex()
