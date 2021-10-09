@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from helper.logger import *
-from helper.latex.latex_helper import LatexToCSection
+from helper.latex.latex_section import LatexToCSection
 
 def generate(section_data, section_specs, context):
     if section_data['section'] != '':

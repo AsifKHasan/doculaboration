@@ -41,14 +41,6 @@ HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedlef
 
 COLSEP = 0.05
 
-
-class MultiSpan(object):
-    No = 'No'
-    FirstCell = 'FirstCell'
-    InnerCell = 'InnerCell'
-    LastCell = 'LastCell'
-
-
 ''' :param text: a plain text message
     :return: the message escaped to appear correctly in LaTeX
 '''

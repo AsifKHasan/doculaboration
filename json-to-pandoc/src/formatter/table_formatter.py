@@ -3,7 +3,7 @@
 import importlib
 
 from helper.logger import *
-from helper.latex.latex_helper import LatexSection
+from helper.latex.latex_section import LatexSection
 
 def generate(section_data, section_specs, context):
     if section_data['section'] != '':
