@@ -159,7 +159,31 @@ class LatexSection(LatexSectionBase):
                 else:
                     # for single column row spans, subsequent cells in the same column of the FirstCell will be either empty or missing
                     debug(f"cell [{first_row},{first_col}] starts a single-column span of {row_span} rows")
-                    # TODO 1
+                    # iterate through the next rows
+                    for r in range(first_row+1, last_row):
+                        next_row_object = self.cell_matrix[r]
+                        cell_in_next_row = next_row_object.get_cell(first_col)
+                        if cell_in_next_row is None:
+                            # the cell may not be existing at all, we have to create
+                            debug(f"..cell [{r},{first_col}] does not exist, it is to be created")
+                            cell_in_next_row = Cell(r, first_col, {}, first_cell.default_format, first_cell.column_widths)
+                            next_row_object.insert_cell(first_col, cell_in_next_row)
+
+                        if cell_in_next_row.is_empty:
+                            # cells in subsequent rows should have the same value and format as the first_cell when it is row merge
+                            cell_in_next_row.copy_from(first_cell)
+                            if r == last_row-1:
+                                # the last cell of the merge to be marked as LastCell
+                                debug(f"..cell [{r},{first_col}] is the LastCell of the row merge")
+                                cell_in_next_row.mark_multirow(MultiSpan.LastCell)
+
+                            else:
+                                # the inner cells of the merge to be marked as InnerCell
+                                debug(f"..cell [{r},{first_col}] is an InnerCell of the row merge")
+                                cell_in_next_row.mark_multirow(MultiSpan.InnerCell)
+
+                        else:
+                            warn(f"..cell [{r},{first_col}] is not empty, it must be part of another row merge which is an issue")
 
             elif col_span > 1:
                 # for colspans, we may get empty cells in subsequent columns of this row
@@ -172,7 +196,7 @@ class LatexSection(LatexSectionBase):
                     next_cell_in_row = first_row_object.get_cell(c)
 
                     if next_cell_in_row is None:
-                        # the cell may not be xisting at all, we have to create
+                        # the cell may not be existing at all, we have to create
                         debug(f"..cell [{first_row},{c}] does not exist, the merge is the last merge for the row")
                         debug(f"..cell [{first_row},{c}] to be inserted")
                         next_cell_in_row = Cell(first_row, c, {}, first_cell.default_format, first_cell.column_widths)
@@ -190,7 +214,7 @@ class LatexSection(LatexSectionBase):
                             next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
 
                     else:
-                        warn(f"..cell [{first_row},{c}] is not empty, it must be part of another merge which is an issue")
+                        warn(f"..cell [{first_row},{c}] is not empty, it must be part of another column merge which is an issue")
 
 
 

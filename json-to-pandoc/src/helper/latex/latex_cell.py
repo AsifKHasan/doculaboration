@@ -36,7 +36,7 @@ class Cell(object):
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
-            self.merge_spec.multi_col = MultiSpan.InnerCell
+            self.merge_spec.multi_col = MultiSpan.No
             self.user_entered_value = None
             self.effective_value = None
             self.formatted_value = None
@@ -57,6 +57,18 @@ class Cell(object):
     '''
     def mark_multirow(self, span):
         self.merge_spec.multi_row = span
+        if span == MultiSpan.FirstCell:
+            self.is_top_border = True
+            self.is_bottom_border = False
+        elif span == MultiSpan.InnerCell:
+            self.is_top_border = False
+            self.is_bottom_border = False
+        elif span == MultiSpan.LastCell:
+            self.is_top_border = False
+            self.is_bottom_border = True
+        elif span == MultiSpan.No:
+            self.is_top_border = True
+            self.is_bottom_border = True
 
 
     ''' Copy value, format, from the cell passed
@@ -244,7 +256,18 @@ class Row(object):
     ''' inserts a specific cell at a specific ordinal
     '''
     def insert_cell(self, pos, cell):
-        self.cells.insert(pos, cell)
+        # if pos is greater than the last index
+        if pos > len(self.cells):
+            # insert None objects in between
+            fill_from = len(self.cells)
+            for i in range(fill_from, pos):
+                self.cells.append(None)
+
+        if pos < len(self.cells):
+            self.cells[pos] = cell
+        else:
+            self.cells.append(cell)
+
 
 
     ''' it is true only when the first cell has a out_of_table true value
@@ -282,12 +305,13 @@ class Row(object):
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
 
-            t, b, _, _ = cell.border_latex()
-            if t is not None:
-                top_borders.append(t)
+            else:
+                t, b, _, _ = cell.border_latex()
+                if t is not None:
+                    top_borders.append(t)
 
-            if b is not None:
-                bottom_borders.append(b)
+                if b is not None:
+                    bottom_borders.append(b)
 
             c = c + 1
 
@@ -311,14 +335,19 @@ class Row(object):
         row_lines.append(top_border)
 
         first_cell = True
+        c = 0
         for cell in self.cells:
-            cell_lines = cell.to_latex()
+            if cell is None:
+                warn(f"{self.row_name} has a Null cell at {c}")
+                cell_lines = []
+            else:
+                cell_lines = cell.to_latex()
 
-            if not first_cell and len(cell_lines) > 1:
+            if c > 0 and len(cell_lines) > 1:
                 row_lines.append('&')
 
             row_lines = row_lines + cell_lines
-            first_cell = False
+            c = c + 1
 
         row_lines.append(f"\\tabularnewline")
 
