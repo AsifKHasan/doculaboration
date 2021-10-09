@@ -154,10 +154,12 @@ class LatexSection(LatexSectionBase):
                     # for multi column row spans, subsequent cells in the same columns of the FirstCell will be either empty or missing
                     debug(f"cell [{first_row},{first_col}] starts a span of {row_span} rows and {col_span} columns")
                     first_cell.mark_multicol(MultiSpan.FirstCell)
+                    # TODO 2
 
                 else:
                     # for single column row spans, subsequent cells in the same column of the FirstCell will be either empty or missing
                     debug(f"cell [{first_row},{first_col}] starts a single-column span of {row_span} rows")
+                    # TODO 1
 
             elif col_span > 1:
                 # for colspans, we may get empty cells in subsequent columns of this row
@@ -181,6 +183,7 @@ class LatexSection(LatexSectionBase):
                             # the last cell of the merge to be marked as LastCell
                             debug(f"..cell [{first_row},{c}] is the LastCell of the column merge")
                             next_cell_in_row.mark_multicol(MultiSpan.LastCell)
+
                         else:
                             # the inner cells of the merge to be marked as InnerCell
                             debug(f"..cell [{first_row},{c}] is an InnerCell of the column merge")
@@ -202,7 +205,6 @@ class LatexSection(LatexSectionBase):
             if row.is_empty():
                 # if the row is empty, it means the row is part of (one or more) multirow spanning all columns
                 # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
-                # TODO: this row may be part of one or more multirow
                 debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
                 multirow_first_cell = last_non_empty_row.cells[0]
                 new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
@@ -233,13 +235,6 @@ class LatexSection(LatexSectionBase):
             last_col = merge.end_col
             cell = self.cell_matrix[first_row].get_cell(first_col)
             if cell:
-                # get the total width of the cell when merged
-                for c in range(first_col + 1, last_col):
-                    cell.cell_width = cell.cell_width + self.column_widths[c] + COLSEP * 2
-
-                cell.merge_spec.col_span = merge.col_span
-                cell.merge_spec.row_span = merge.row_span
-
                 # if it is a row merge, mark multi_row accordingly
                 if merge.row_span > 1:
                     cell.merge_spec.multi_row = MultiSpan.FirstCell
@@ -282,8 +277,6 @@ class LatexSection(LatexSectionBase):
                             next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
                             next_cell_in_row.is_top_border = False
                             next_cell_in_row.is_bottom_border = True
-
-
 
 
     ''' processes the cells to generate the proper order of tables and blocks
@@ -409,7 +402,6 @@ class LatexSection(LatexSectionBase):
             if row.is_empty():
                 # if the row is empty, it means the row is part of (one or more) multirow spanning all columns
                 # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
-                # TODO: this row may be part of one or more multirow
                 debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
                 multirow_first_cell = last_non_empty_row.cells[0]
                 new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
@@ -631,7 +623,7 @@ class LatexParagraph(LatexBlock):
         block_lines.append(begin_latex())
         block_lines.append(f"% LatexParagraph: row {self.row_number}")
 
-        # TODO: generate the block
+        # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
             row_text = self.data_row.get_cell(0).content_latex()
             block_lines.append(row_text)
