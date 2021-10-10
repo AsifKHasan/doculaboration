@@ -143,6 +143,9 @@ class LatexSection(LatexSectionBase):
             for c in range(first_col + 1, last_col):
                 first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
 
+            if col_span > 1:
+                first_cell.cell_width = first_cell.cell_width + COLSEP
+
             first_cell.merge_spec.col_span = col_span
             first_cell.merge_spec.row_span = row_span
 
@@ -152,20 +155,20 @@ class LatexSection(LatexSectionBase):
                 first_cell.mark_multirow(MultiSpan.FirstCell)
                 if col_span > 1:
                     # for multi column row spans, subsequent cells in the same columns of the FirstCell will be either empty or missing
-                    debug(f"cell [{first_row},{first_col}] starts a span of {row_span} rows and {col_span} columns")
+                    # debug(f"cell [{first_row},{first_col}] starts a span of {row_span} rows and {col_span} columns")
                     first_cell.mark_multicol(MultiSpan.FirstCell)
                     # TODO 2
 
                 else:
                     # for single column row spans, subsequent cells in the same column of the FirstCell will be either empty or missing
-                    debug(f"cell [{first_row},{first_col}] starts a single-column span of {row_span} rows")
+                    # debug(f"cell [{first_row},{first_col}] starts a single-column span of {row_span} rows")
                     # iterate through the next rows
                     for r in range(first_row+1, last_row):
                         next_row_object = self.cell_matrix[r]
                         cell_in_next_row = next_row_object.get_cell(first_col)
                         if cell_in_next_row is None:
                             # the cell may not be existing at all, we have to create
-                            debug(f"..cell [{r},{first_col}] does not exist, it is to be created")
+                            # debug(f"..cell [{r},{first_col}] does not exist, it is to be created")
                             cell_in_next_row = Cell(r, first_col, {}, first_cell.default_format, first_cell.column_widths)
                             next_row_object.insert_cell(first_col, cell_in_next_row)
 
@@ -174,12 +177,12 @@ class LatexSection(LatexSectionBase):
                             cell_in_next_row.copy_from(first_cell)
                             if r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
-                                debug(f"..cell [{r},{first_col}] is the LastCell of the row merge")
+                                # debug(f"..cell [{r},{first_col}] is the LastCell of the row merge")
                                 cell_in_next_row.mark_multirow(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                debug(f"..cell [{r},{first_col}] is an InnerCell of the row merge")
+                                # debug(f"..cell [{r},{first_col}] is an InnerCell of the row merge")
                                 cell_in_next_row.mark_multirow(MultiSpan.InnerCell)
 
                         else:
@@ -188,29 +191,29 @@ class LatexSection(LatexSectionBase):
             elif col_span > 1:
                 # for colspans, we may get empty cells in subsequent columns of this row
                 first_cell.mark_multicol(MultiSpan.FirstCell)
-                debug(f"cell [{first_row},{first_col}] starts a single-row span of {col_span} columns")
+                # debug(f"cell [{first_row},{first_col}] starts a single-row span of {col_span} columns")
 
                 # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
                 for c in range(first_col+1, last_col):
-                    debug(f"..cell [{first_row},{c}] is part of column merge")
+                    # debug(f"..cell [{first_row},{c}] is part of column merge")
                     next_cell_in_row = first_row_object.get_cell(c)
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        debug(f"..cell [{first_row},{c}] does not exist, the merge is the last merge for the row")
-                        debug(f"..cell [{first_row},{c}] to be inserted")
+                        # debug(f"..cell [{first_row},{c}] does not exist, the merge is the last merge for the row")
+                        # debug(f"..cell [{first_row},{c}] to be inserted")
                         next_cell_in_row = Cell(first_row, c, {}, first_cell.default_format, first_cell.column_widths)
                         first_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
                         if c == last_col-1:
                             # the last cell of the merge to be marked as LastCell
-                            debug(f"..cell [{first_row},{c}] is the LastCell of the column merge")
+                            # debug(f"..cell [{first_row},{c}] is the LastCell of the column merge")
                             next_cell_in_row.mark_multicol(MultiSpan.LastCell)
 
                         else:
                             # the inner cells of the merge to be marked as InnerCell
-                            debug(f"..cell [{first_row},{c}] is an InnerCell of the column merge")
+                            # debug(f"..cell [{first_row},{c}] is an InnerCell of the column merge")
                             next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
 
                     else:
@@ -222,14 +225,14 @@ class LatexSection(LatexSectionBase):
 
 
     def pqr(self):
-        debug(f"..adjusting cells for {self.table_name}")
+        # debug(f"..adjusting cells for {self.table_name}")
         last_non_empty_row, last_non_empty_row_num = None, -1
         r = 0
         for row in self.table_cell_matrix:
             if row.is_empty():
                 # if the row is empty, it means the row is part of (one or more) multirow spanning all columns
                 # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
-                debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
+                # debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
                 multirow_first_cell = last_non_empty_row.cells[0]
                 new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
                 row.insert_cell(0, new_cell)
@@ -419,14 +422,14 @@ class LatexSection(LatexSectionBase):
             self.content_list.append(table)
 
 
-        debug(f"..adjusting cells for {self.table_name}")
+        # debug(f"..adjusting cells for {self.table_name}")
         last_non_empty_row, last_non_empty_row_num = None, -1
         r = 0
         for row in self.table_cell_matrix:
             if row.is_empty():
                 # if the row is empty, it means the row is part of (one or more) multirow spanning all columns
                 # we need to know if this is an InnerCell or LastCell, this can be inferred from the first cell of the last non-empty row
-                debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
+                # debug(f"....row [{r}] is empty. A new cell to be injected at [{r},0] created from the values from [{last_non_empty_row_num},0]")
                 multirow_first_cell = last_non_empty_row.cells[0]
                 new_cell = multirow_first_cell.copy_as(r - last_non_empty_row_num)
                 row.insert_cell(0, new_cell)
@@ -606,13 +609,13 @@ class LatexTable(LatexBlock):
     ''' generates the latex code
     '''
     def to_latex(self):
-        table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
         table_lines = []
 
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
         table_lines.append(f"\\setlength\\parindent{{0pt}}")
-        table_lines.append(f"\\begin{{longtable}}[l]{{{table_col_spec}}}\n")
+        table_lines.append(f"\\begin{{longtable}}[l]{{|{table_col_spec}|}}\n")
 
         # generate the table
         r = 1

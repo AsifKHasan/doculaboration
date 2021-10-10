@@ -112,31 +112,77 @@ class Cell(object):
         return new_cell
 
 
-    ''' latex code for cell borders
+    ''' latex code for cell borders (top and bottom)
     '''
-    def border_latex(self):
-        if self.effective_format:
-            t, b, l, r = self.effective_format.borders.to_latex()
-            if not self.is_top_border:
-                t = '~'
+    def border_latex_tb(self):
+        # we have a special case with multirow spans. If a cell is multirow and depending on which row top and bottom border colors will change to cell bgcolor
+        # only if the cell has a bgcolor
+        if self.effective_format and self.effective_format.bgcolor:
+            # first let us handle top border
+            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its top border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
+                t = self.effective_format.borders.to_latex_t(self.effective_format.bgcolor)
+            else:
+                t = self.effective_format.borders.to_latex_t()
 
-            if not self.is_bottom_border:
-                b = '~'
+            # let us handle bottom border then
+            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its bottom border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
+                b = self.effective_format.borders.to_latex_b(self.effective_format.bgcolor)
+            else:
+                b = self.effective_format.borders.to_latex_b()
 
         else:
-            # print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
-            t, b, l, r = None, None, '', ''
+            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
+            t, b = None, None
 
         if t is not None:
-            t = f"*{{{self.merge_spec.col_span}}}{t}".strip()
+            t = f"*{{{self.merge_spec.col_span}}}{{{t}}}".strip()
 
         if b is not None:
-            b = f"*{{{self.merge_spec.col_span}}}{b}".strip()
+            b = f"*{{{self.merge_spec.col_span}}}{{{b}}}".strip()
 
-        # print(f"({self.row_num},{self.col_num}) : top    border {t}")
-        # print(f"({self.row_num},{self.col_num}) : bottom border {b}")
+        return t, b
 
-        return t, b, l, r
+
+    ''' latex code for cell borders (top and bottom)
+    '''
+    def border_latex_lr1(self):
+        # only if the cell has a bgcolor
+        if self.effective_format and self.effective_format.bgcolor:
+            # first let us handle top border
+            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its top border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
+                t = self.effective_format.borders.to_latex_t(self.effective_format.bgcolor)
+            else:
+                t = self.effective_format.borders.to_latex_t()
+
+            # let us handle bottom border then
+            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its bottom border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
+                b = self.effective_format.borders.to_latex_b(self.effective_format.bgcolor)
+            else:
+                b = self.effective_format.borders.to_latex_b()
+
+        else:
+            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
+            t, b = None, None
+
+        return t, b
+
+
+    ''' latex code for cell borders (left and right)
+    '''
+    def border_latex_lr(self):
+        # only if the cell has a bgcolor
+        if self.effective_format and self.effective_format.bgcolor:
+            l = self.effective_format.borders.to_latex_l(self.effective_format.bgcolor)
+            r = self.effective_format.borders.to_latex_r(self.effective_format.bgcolor)
+        else:
+            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
+            l, r = '', ''
+
+        return l, r
 
 
     ''' latex code for cell content
@@ -194,7 +240,7 @@ class Cell(object):
         latex_lines.append(f"% {self.merge_spec.to_string()}")
 
         # get the vertical left and right borders
-        _, _, l, r = self.border_latex()
+        l, r = self.border_latex_lr()
 
         # the cell could be an inner or last cell in a multicolumn setting
         if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
@@ -207,14 +253,15 @@ class Cell(object):
         else:
             valign = VALIGN.get('MIDDLE')
 
-        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{l}{valign}{{{self.cell_width}in}}{r}}}"
+        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{!{l} {valign}{{{self.cell_width}in}} !{r}}}"
+        # cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{valign}{{{self.cell_width}in}}}}"
 
         # next we build the cell content
         cell_content = self.content_latex()
 
         # finally we build the whole cell
         if self.merge_spec.multi_row == MultiSpan.LastCell:
-            latex_lines.append(f"{cell_col_span} {{\\mr{{{-self.merge_spec.row_span}}}{{=}} {{{cell_content}}}}}")
+            latex_lines.append(f"{cell_col_span} {{\\mr{{{-self.merge_spec.row_span}}}{{=}}{{{cell_content}}}}}")
         else:
             latex_lines.append(f"{cell_col_span} {{{cell_content}}}")
 
@@ -269,7 +316,6 @@ class Row(object):
             self.cells.append(cell)
 
 
-
     ''' it is true only when the first cell has a out_of_table true value
     '''
     def is_out_of_table(self):
@@ -281,6 +327,7 @@ class Row(object):
                 return False
         else:
             return False
+
 
     ''' it is true only when the first cell has a repeat-rows note with value > 0
     '''
@@ -298,15 +345,15 @@ class Row(object):
     ''' generates the top and bottom borders
     '''
     def borders_tb(self):
-        top_borders = []
-        bottom_borders = []
+        top_borders = ['']
+        bottom_borders = ['']
         c = 0
         for cell in self.cells:
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                t, b, _, _ = cell.border_latex()
+                t, b = cell.border_latex_tb()
                 if t is not None:
                     top_borders.append(t)
 
@@ -315,8 +362,8 @@ class Row(object):
 
             c = c + 1
 
-        top_border = ' '.join(top_borders)
-        bottom_border = ' '.join(bottom_borders)
+        top_border = ''.join(top_borders)
+        bottom_border = ''.join(bottom_borders)
 
         return f"\\hhline{{{top_border}}}", f"\\hhline{{{bottom_border}}}"
 
@@ -513,6 +560,9 @@ class RgbColor(object):
             self.red = int(float(rgb_dict.get('red', 0)) * 255)
             self.green = int(float(rgb_dict.get('green', 0)) * 255)
             self.blue = int(float(rgb_dict.get('blue', 0)) * 255)
+            # self.red = float(rgb_dict.get('red', 0))
+            # self.green = float(rgb_dict.get('green', 0))
+            # self.blue = float(rgb_dict.get('blue', 0))
 
 
     ''' generates the latex code
@@ -558,13 +608,69 @@ class Borders(object):
             self.bottom = None
             self.left = None
 
-    def to_latex(self):
-        t = self.top.to_latex_h() if self.top else '~'
-        b = self.bottom.to_latex_h() if self.bottom else '~'
-        l = self.left.to_latex_v() if self.left else ''
-        r = self.right.to_latex_v() if self.right else ''
 
-        return t, b, l, r
+    ''' top border
+    '''
+    def to_latex_t(self, overriding_color=None):
+        if self.top:
+            t = self.top.to_latex_h(overriding_color)
+
+        elif overriding_color:
+            top = Border()
+            t = top.to_latex_h(overriding_color)
+
+        else:
+            t = '~'
+
+        return t
+
+
+    ''' bottom border
+    '''
+    def to_latex_b(self, overriding_color=None):
+        if self.bottom:
+            b = self.bottom.to_latex_h(overriding_color)
+
+        elif overriding_color:
+            bottom = Border()
+            b = bottom.to_latex_h(overriding_color)
+
+        else:
+            b = '~'
+
+        return b
+
+
+    ''' left border
+    '''
+    def to_latex_l(self, overriding_color=None):
+        if self.left:
+            l = self.left.to_latex_v()
+
+        elif overriding_color:
+            left = Border()
+            l = left.to_latex_v(overriding_color)
+
+        else:
+            l = ' '
+
+        return l
+
+
+    ''' right border
+    '''
+    def to_latex_r(self, overriding_color=None):
+        if self.right:
+            r = self.right.to_latex_v()
+
+        elif overriding_color:
+            right = Border()
+            r = right.to_latex_v(overriding_color)
+
+        else:
+            r = ' '
+
+        return r
 
 
 ''' gsheet cell border object wrapper
@@ -600,18 +706,29 @@ class Border(object):
                 self.style = '~'
 
         else:
-            self.style = '~'
-            self.width = 0
+            self.style = '-'
+            self.width = 0.4
             self.color = RgbColor()
 
-    def to_latex_h(self):
-        latex = f"{{>{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}}}"
+    ''' horizontal border
+    '''
+    def to_latex_h(self, overriding_color=None):
+        if overriding_color is None:
+            latex = f">{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}"
+        else:
+            latex = f">{{\\hborder{{{overriding_color.red},{overriding_color.green},{overriding_color.blue}}}{{{self.width}pt}}}}{self.style}"
 
         return latex
 
 
-    def to_latex_v(self):
-        latex = f"!{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
+    ''' vertical border
+    '''
+    def to_latex_v(self, overriding_color=None):
+        # latex = f"!{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
+        if overriding_color is None:
+            latex = f"{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
+        else:
+            latex = f"{{\\vborder{{{overriding_color.red},{overriding_color.green},{overriding_color.blue}}}{{{self.width}pt}}}}"
 
         return latex
 
