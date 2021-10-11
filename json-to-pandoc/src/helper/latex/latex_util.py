@@ -39,7 +39,9 @@ GSHEET_LATEX_BORDER_MAPPING = {
 VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
-COLSEP = 0.00
+COLSEP = 0.05
+
+VBORDER_WIDTH = (0.4 / 72.27)
 
 ''' :param text: a plain text message
     :return: the message escaped to appear correctly in LaTeX

@@ -16,23 +16,23 @@ class Cell(object):
     '''
     def __init__(self, row_num, col_num, value, default_format, column_widths):
         self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
+        self.cell_name = f"cell: [{self.row_num},{self.col_num}]"
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.merge_spec = CellMergeSpec()
 
         if self.value:
-            self.formatted_value = value.get('formattedValue')
-            self.user_entered_value = CellValue(value.get('userEnteredValue'), self.formatted_value)
-            self.effective_value = CellValue(value.get('effectiveValue'))
-            self.user_entered_format = CellFormat(value.get('userEnteredFormat'))
-            self.effective_format = CellFormat(value.get('effectiveFormat'), self.default_format)
-            for text_format_run in value.get('textFormatRuns', []):
+            self.formatted_value = self.value.get('formattedValue')
+            self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
+            self.effective_value = CellValue(self.value.get('effectiveValue'))
+            self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
+            self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
+            for text_format_run in self.value.get('textFormatRuns', []):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
             self.note = CellNote(value.get('note'))
             self.is_empty = False
-            self.is_top_border, self.is_bottom_border = True, True
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -44,7 +44,43 @@ class Cell(object):
             self.effective_format = None
             self.note = CellNote()
             self.is_empty = True
-            self.is_top_border, self.is_bottom_border = False, False
+
+
+    ''' Copy value, format from the cell passed
+    '''
+    def copy_from(self, from_cell):
+        self.value = from_cell.value
+        if self.value:
+            self.formatted_value = self.value.get('formattedValue')
+            self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
+            self.effective_value = CellValue(self.value.get('effectiveValue'))
+            self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
+            self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
+            for text_format_run in self.value.get('textFormatRuns', []):
+                self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
+
+        self.merge_spec.multi_col = from_cell.merge_spec.multi_col
+        self.merge_spec.col_span = from_cell.merge_spec.col_span
+        self.merge_spec.row_span = from_cell.merge_spec.row_span
+        self.cell_width = from_cell.cell_width
+
+
+    ''' adjust cell borders based on cell's bgcolor
+    '''
+    def adjust_borders(self):
+        # if the cell has a bgcolor and any border is missing, that border should be colored as bgcolor
+        if self.user_entered_format and self.user_entered_format.bgcolor:
+            self.effective_format.override_borders(self.user_entered_format.bgcolor)
+        else:
+            warn(f"..cell [{self.row_num},{self.col_num}] does not have a bgcolor defined in userEnteredFormat")
+
+        # if the cell is multi_row FirstCell or InnerCell, bottom border color is bgcolor
+        if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+            self.effective_format.recolor_bottom_border(self.user_entered_format.bgcolor)
+
+        # if the cell is multi_row InnerCell or LastCell, top border color is bgcolor
+        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            self.effective_format.recolor_top_border(self.user_entered_format.bgcolor)
 
 
     ''' mark the cell multi_col
@@ -57,83 +93,15 @@ class Cell(object):
     '''
     def mark_multirow(self, span):
         self.merge_spec.multi_row = span
-        if span == MultiSpan.FirstCell:
-            self.is_top_border = True
-            self.is_bottom_border = False
-        elif span == MultiSpan.InnerCell:
-            self.is_top_border = False
-            self.is_bottom_border = False
-        elif span == MultiSpan.LastCell:
-            self.is_top_border = False
-            self.is_bottom_border = True
-        elif span == MultiSpan.No:
-            self.is_top_border = True
-            self.is_bottom_border = True
-
-
-    ''' Copy value, format, from the cell passed
-    '''
-    def copy_from(self, from_cell):
-        self.formatted_value = from_cell.formatted_value
-        self.user_entered_value = from_cell.user_entered_value
-        self.effective_value = from_cell.effective_value
-        self.effective_format = from_cell.effective_format
-        self.text_format_runs = from_cell.text_format_runs
-
-        self.merge_spec.multi_col = from_cell.merge_spec.multi_col
-        self.merge_spec.col_span = from_cell.merge_spec.col_span
-        self.merge_spec.row_span = from_cell.merge_spec.row_span
-        self.cell_width = from_cell.cell_width
-
-
-    ''' Copy the cell as an InnerCell or LastCell assuming it is the FirstCell. This is required for generating extra cells for Multirow
-    '''
-    def copy_as(self, row_ahead):
-        new_cell = Cell(self.row_num + row_ahead, self.col_num, self.value, self.default_format, self.column_widths)
-
-        new_cell.cell_width = self.cell_width
-        new_cell.merge_spec.col_span = self.merge_spec.col_span
-        new_cell.merge_spec.row_span = self.merge_spec.row_span
-        new_cell.merge_spec.multi_col = self.merge_spec.multi_col
-
-        # is it an InnerCell or LastCell
-        if row_ahead < (self.merge_spec.row_span - 1):
-            # the new cell is an InnerCell of the multirow
-            new_cell.merge_spec.multi_row = MultiSpan.InnerCell
-            new_cell.is_top_border = False
-            new_cell.is_bottom_border = False
-
-        else:
-            # the new cell is the LastCell of the multirow
-            new_cell.merge_spec.multi_row = MultiSpan.LastCell
-            new_cell.is_top_border = False
-            new_cell.is_bottom_border = True
-
-        return new_cell
 
 
     ''' latex code for cell borders (top and bottom)
     '''
-    def border_latex_tb(self):
-        # we have a special case with multirow spans. If a cell is multirow and depending on which row top and bottom border colors will change to cell bgcolor
-        # only if the cell has a bgcolor
-        if self.effective_format and self.effective_format.bgcolor:
-            # first let us handle top border
-            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its top border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
-                t = self.effective_format.borders.to_latex_t(self.effective_format.bgcolor)
-            else:
-                t = self.effective_format.borders.to_latex_t()
-
-            # let us handle bottom border then
-            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
-                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its bottom border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
-                b = self.effective_format.borders.to_latex_b(self.effective_format.bgcolor)
-            else:
-                b = self.effective_format.borders.to_latex_b()
-
+    def borders_tb_latex(self):
+        if self.effective_format and self.effective_format.borders:
+            t = self.effective_format.borders.to_latex_t()
+            b = self.effective_format.borders.to_latex_b()
         else:
-            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
             t, b = None, None
 
         if t is not None:
@@ -145,41 +113,13 @@ class Cell(object):
         return t, b
 
 
-    ''' latex code for cell borders (top and bottom)
-    '''
-    def border_latex_lr1(self):
-        # only if the cell has a bgcolor
-        if self.effective_format and self.effective_format.bgcolor:
-            # first let us handle top border
-            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its top border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
-                t = self.effective_format.borders.to_latex_t(self.effective_format.bgcolor)
-            else:
-                t = self.effective_format.borders.to_latex_t()
-
-            # let us handle bottom border then
-            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
-                debug(f"..cell [{self.row_num},{self.col_num}] is a multirow {self.merge_spec.multi_row}. Its bottom border should be the same as the cell bgcolor {self.effective_format.bgcolor.to_latex()}")
-                b = self.effective_format.borders.to_latex_b(self.effective_format.bgcolor)
-            else:
-                b = self.effective_format.borders.to_latex_b()
-
-        else:
-            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
-            t, b = None, None
-
-        return t, b
-
-
     ''' latex code for cell borders (left and right)
     '''
-    def border_latex_lr(self):
-        # only if the cell has a bgcolor
-        if self.effective_format and self.effective_format.bgcolor:
-            l = self.effective_format.borders.to_latex_l(self.effective_format.bgcolor)
-            r = self.effective_format.borders.to_latex_r(self.effective_format.bgcolor)
+    def borders_lr_latex(self):
+        if self.effective_format and self.effective_format.borders:
+            l = self.effective_format.borders.to_latex_l()
+            r = self.effective_format.borders.to_latex_r()
         else:
-            print(f"({self.row_num},{self.col_num}) : no effectiveFormat")
             l, r = '', ''
 
         return l, r
@@ -235,12 +175,22 @@ class Cell(object):
     ''' generates the latex code
     '''
     def to_latex(self):
+        # adjust the borders first
+        self.adjust_borders()
+
+        debug(f"..processing {self.cell_name}")
+        if self.effective_format:
+            if not self.effective_format.borders:
+                warn(f"..{self.cell_name} # NO-BORDER")
+        else:
+            warn(f"..{self.cell_name} # NO-EFFECTVE-FORMAT")
+
         latex_lines = []
 
         latex_lines.append(f"% {self.merge_spec.to_string()}")
 
         # get the vertical left and right borders
-        l, r = self.border_latex_lr()
+        l, r = self.borders_lr_latex()
 
         # the cell could be an inner or last cell in a multicolumn setting
         if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
@@ -344,16 +294,16 @@ class Row(object):
 
     ''' generates the top and bottom borders
     '''
-    def borders_tb(self):
-        top_borders = ['']
-        bottom_borders = ['']
+    def borders_latex(self):
+        top_borders = []
+        bottom_borders = []
         c = 0
         for cell in self.cells:
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                t, b = cell.border_latex_tb()
+                t, b = cell.borders_tb_latex()
                 if t is not None:
                     top_borders.append(t)
 
@@ -362,25 +312,18 @@ class Row(object):
 
             c = c + 1
 
-        top_border = ''.join(top_borders)
-        bottom_border = ''.join(bottom_borders)
+        top_border = '|'.join(top_borders)
+        bottom_border = '|'.join(bottom_borders)
 
-        return f"\\hhline{{{top_border}}}", f"\\hhline{{{bottom_border}}}"
+        return f"\\hhline{{|{top_border}|}}", f"\\hhline{{|{bottom_border}|}}"
 
 
     ''' generates the latex code
     '''
     def to_latex(self):
-        row_lines = []
+        debug(f"processing {self.row_name}")
 
-        row_lines.append(f"% {self.row_name}")
-
-        # top and bottom borders
-        top_border, bottom_border = self.borders_tb()
-
-        # top border
-        row_lines.append(top_border)
-
+        all_cell_lines = []
         first_cell = True
         c = 0
         for cell in self.cells:
@@ -391,12 +334,25 @@ class Row(object):
                 cell_lines = cell.to_latex()
 
             if c > 0 and len(cell_lines) > 1:
-                row_lines.append('&')
+                all_cell_lines.append('&')
 
-            row_lines = row_lines + cell_lines
+            all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
 
-        row_lines.append(f"\\tabularnewline")
+        all_cell_lines.append(f"\\tabularnewline")
+
+
+        row_lines = []
+        row_lines.append(f"% {self.row_name}")
+
+        # top and bottom borders
+        top_border, bottom_border = self.borders_latex()
+
+        # top border
+        row_lines.append(top_border)
+
+        # all cells
+        row_lines = row_lines + all_cell_lines
 
         # bottom border
         row_lines.append(bottom_border)
@@ -495,6 +451,243 @@ class CellValue(object):
         return latex
 
 
+''' gsheet cell format object wrapper
+'''
+class CellFormat(object):
+
+    ''' constructor
+    '''
+    def __init__(self, format_dict, default_format=None):
+        if format_dict:
+            self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
+            self.borders = Borders(format_dict.get('borders'))
+            self.padding = Padding(format_dict.get('padding'))
+            self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
+            self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
+            self.text_format = TextFormat(format_dict.get('textFormat'))
+        elif default_format:
+            self.bgcolor = default_format.bgcolor
+            self.borders = default_format.borders
+            self.padding = default_format.padding
+            self.halign = default_format.halign
+            self.valign = default_format.valign
+            self.text_format = default_format.text_format
+        else:
+            self.bgcolor = None
+            self.borders = None
+            self.padding = None
+            self.halign = None
+            self.valign = None
+            self.text_format = None
+
+
+    ''' override borders with the specified color
+    '''
+    def override_borders(self, color):
+        if self.borders is None:
+            self.borders = Borders(None, color)
+        else:
+            self.borders.override_top_border(color)
+            self.borders.override_bottom_border(color)
+            self.borders.override_left_border(color)
+            self.borders.override_right_border(color)
+
+
+    ''' recolor top border with the specified color
+    '''
+    def recolor_top_border(self, color):
+        self.borders.override_top_border(color, forced=True)
+
+
+    ''' recolor bottom border with the specified color
+    '''
+    def recolor_bottom_border(self, color):
+        self.borders.override_bottom_border(color, forced=True)
+
+
+''' gsheet cell borders object wrapper
+'''
+class Borders(object):
+
+    ''' constructor
+    '''
+    def __init__(self, borders_dict=None, border_color=None):
+        self.top = None
+        self.right = None
+        self.bottom = None
+        self.left = None
+
+        if borders_dict:
+            self.top = Border(borders_dict.get('top'))
+            self.right = Border(borders_dict.get('right'))
+            self.bottom = Border(borders_dict.get('bottom'))
+            self.left = Border(borders_dict.get('left'))
+
+        if border_color:
+            if self.top is None:
+                self.top = Border(None, border_color)
+
+            if self.right is None:
+                self.right = Border(None, border_color)
+
+            if self.bottom is None:
+                self.bottom = Border(None, border_color)
+
+            if self.left is None:
+                self.left = Border(None, border_color)
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
+
+
+    ''' override top border with the specified color
+    '''
+    def override_top_border(self, border_color, forced=False):
+        if border_color:
+            if self.top is None:
+                self.top = Border(None, border_color)
+            elif forced:
+                self.top.color = border_color
+
+
+    ''' override bottom border with the specified color
+    '''
+    def override_bottom_border(self, border_color, forced=False):
+        if border_color:
+            if self.bottom is None:
+                self.bottom = Border(None, border_color)
+            elif forced:
+                self.bottom.color = border_color
+
+
+    ''' override left border with the specified color
+    '''
+    def override_left_border(self, border_color):
+        if border_color:
+            if self.left is None:
+                self.left = Border(None, border_color)
+
+
+    ''' override right border with the specified color
+    '''
+    def override_right_border(self, border_color):
+        if border_color:
+            if self.right is None:
+                self.right = Border(None, border_color)
+
+
+    ''' top border
+    '''
+    def to_latex_t(self):
+        if self.top:
+            t = self.top.to_latex_h()
+
+        else:
+            t = '~'
+
+        return t
+
+
+    ''' bottom border
+    '''
+    def to_latex_b(self):
+        if self.bottom:
+            b = self.bottom.to_latex_h()
+
+        else:
+            b = '~'
+
+        return b
+
+
+    ''' left border
+    '''
+    def to_latex_l(self):
+        if self.left:
+            l = self.left.to_latex_v()
+
+        else:
+            l = ' '
+
+        return l
+
+
+    ''' right border
+    '''
+    def to_latex_r(self):
+        if self.right:
+            r = self.right.to_latex_v()
+
+        else:
+            r = ' '
+
+        return r
+
+
+''' gsheet cell border object wrapper
+'''
+class Border(object):
+
+    ''' constructor
+    '''
+    def __init__(self, border_dict=None, border_color=None):
+        if border_dict:
+            self.style = border_dict.get('style')
+            self.width = int(border_dict.get('width')) * 0.4
+            self.color = RgbColor(border_dict.get('color'))
+
+            if self.style in ['DOTTED', 'DASHED', 'SOLID']:
+                self.style = '-'
+
+            elif self.style in ['DOUBLE']:
+                self.style = '='
+
+            elif self.style in ['SOLID_MEDIUM']:
+                self.width = self.width * 2
+                self.style = '-'
+
+            elif self.style in ['SOLID_THICK']:
+                self.width = self.width * 3
+                self.style = '-'
+
+            elif self.style in ['NONE']:
+                self.style = '~'
+
+            else:
+                self.style = '~'
+
+        else:
+            self.style = '-'
+            self.width = 0.4
+            if border_color is None:
+                self.color = RgbColor()
+            else:
+                self.color = border_color
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"style: {self.style}, width: {self.width}, color: {self.color}"
+
+
+    ''' horizontal border
+    '''
+    def to_latex_h(self):
+        latex = f">{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}"
+        return latex
+
+
+    ''' vertical border
+    '''
+    def to_latex_v(self):
+        latex = f"{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
+        return latex
+
+
 ''' Cell Merge spec wrapper
 '''
 class CellMergeSpec(object):
@@ -565,6 +758,11 @@ class RgbColor(object):
             # self.blue = float(rgb_dict.get('blue', 0))
 
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"[RGB]{{{self.red},{self.green},{self.blue}}}"
+
     ''' generates the latex code
     '''
     def to_latex(self):
@@ -588,179 +786,6 @@ class Padding(object):
             self.right = 0
             self.bottom = 0
             self.left = 0
-
-
-''' gsheet cell borders object wrapper
-'''
-class Borders(object):
-
-    ''' constructor
-    '''
-    def __init__(self, borders_dict=None):
-        if borders_dict:
-            self.top = Border(borders_dict.get('top'))
-            self.right = Border(borders_dict.get('right'))
-            self.bottom = Border(borders_dict.get('bottom'))
-            self.left = Border(borders_dict.get('left'))
-        else:
-            self.top = None
-            self.right = None
-            self.bottom = None
-            self.left = None
-
-
-    ''' top border
-    '''
-    def to_latex_t(self, overriding_color=None):
-        if self.top:
-            t = self.top.to_latex_h(overriding_color)
-
-        elif overriding_color:
-            top = Border()
-            t = top.to_latex_h(overriding_color)
-
-        else:
-            t = '~'
-
-        return t
-
-
-    ''' bottom border
-    '''
-    def to_latex_b(self, overriding_color=None):
-        if self.bottom:
-            b = self.bottom.to_latex_h(overriding_color)
-
-        elif overriding_color:
-            bottom = Border()
-            b = bottom.to_latex_h(overriding_color)
-
-        else:
-            b = '~'
-
-        return b
-
-
-    ''' left border
-    '''
-    def to_latex_l(self, overriding_color=None):
-        if self.left:
-            l = self.left.to_latex_v()
-
-        elif overriding_color:
-            left = Border()
-            l = left.to_latex_v(overriding_color)
-
-        else:
-            l = ' '
-
-        return l
-
-
-    ''' right border
-    '''
-    def to_latex_r(self, overriding_color=None):
-        if self.right:
-            r = self.right.to_latex_v()
-
-        elif overriding_color:
-            right = Border()
-            r = right.to_latex_v(overriding_color)
-
-        else:
-            r = ' '
-
-        return r
-
-
-''' gsheet cell border object wrapper
-'''
-class Border(object):
-
-    ''' constructor
-    '''
-    def __init__(self, border_dict=None):
-        if border_dict:
-            self.style = border_dict.get('style')
-            self.width = int(border_dict.get('width')) * 0.4
-            self.color = RgbColor(border_dict.get('color'))
-
-            if self.style in ['DOTTED', 'DASHED', 'SOLID']:
-                self.style = '-'
-
-            elif self.style in ['DOUBLE']:
-                self.style = '='
-
-            elif self.style in ['SOLID_MEDIUM']:
-                self.width = self.width * 2
-                self.style = '-'
-
-            elif self.style in ['SOLID_THICK']:
-                self.width = self.width * 3
-                self.style = '-'
-
-            elif self.style in ['NONE']:
-                self.style = '~'
-
-            else:
-                self.style = '~'
-
-        else:
-            self.style = '-'
-            self.width = 0.4
-            self.color = RgbColor()
-
-    ''' horizontal border
-    '''
-    def to_latex_h(self, overriding_color=None):
-        if overriding_color is None:
-            latex = f">{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}"
-        else:
-            latex = f">{{\\hborder{{{overriding_color.red},{overriding_color.green},{overriding_color.blue}}}{{{self.width}pt}}}}{self.style}"
-
-        return latex
-
-
-    ''' vertical border
-    '''
-    def to_latex_v(self, overriding_color=None):
-        # latex = f"!{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
-        if overriding_color is None:
-            latex = f"{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
-        else:
-            latex = f"{{\\vborder{{{overriding_color.red},{overriding_color.green},{overriding_color.blue}}}{{{self.width}pt}}}}"
-
-        return latex
-
-
-''' gsheet cell format object wrapper
-'''
-class CellFormat(object):
-
-    ''' constructor
-    '''
-    def __init__(self, format_dict, default_format=None):
-        if format_dict:
-            self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
-            self.borders = Borders(format_dict.get('borders'))
-            self.padding = Padding(format_dict.get('padding'))
-            self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
-            self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
-            self.text_format = TextFormat(format_dict.get('textFormat'))
-        elif default_format:
-            self.bgcolor = default_format.bgcolor
-            self.borders = default_format.borders
-            self.padding = default_format.padding
-            self.halign = default_format.halign
-            self.valign = default_format.valign
-            self.text_format = default_format.text_format
-        else:
-            self.bgcolor = None
-            self.borders = None
-            self.padding = None
-            self.halign = None
-            self.valign = None
-            self.text_format = None
 
 
 ''' gsheet text format run object wrapper
