@@ -144,105 +144,95 @@ class LatexSection(LatexSectionBase):
                 first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
 
             if col_span > 1:
+                first_cell.merge_spec.multi_col = MultiSpan.FirstCell
                 first_cell.cell_width = first_cell.cell_width + ((col_span -1) * 2 * VBORDER_WIDTH)
+            else:
+                first_cell.merge_spec.multi_col = MultiSpan.No
+
+            if row_span > 1:
+                first_cell.merge_spec.multi_row = MultiSpan.FirstCell
+            else:
+                first_cell.merge_spec.multi_row = MultiSpan.No
 
             first_cell.merge_spec.col_span = col_span
             first_cell.merge_spec.row_span = row_span
 
-            # we start with row spans first as they are the complex ones
-            if row_span > 1:
-                # for rowspans, there can be two cases - the rowspan may be single column, or it can be multi column
-                first_cell.mark_multirow(MultiSpan.FirstCell)
-                if col_span > 1:
-                    # for multi column row spans, subsequent cells in the same columns of the FirstCell will be either empty or missing
-                    # debug(f"cell [{first_row},{first_col}] starts a span of {row_span} rows and {col_span} columns")
-                    first_cell.mark_multicol(MultiSpan.FirstCell)
-                    # TODO 2
-                    # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
-                    for c in range(first_col+1, last_col):
-                        # debug(f"..cell [{first_row},{c}] is part of column merge")
-                        next_cell_in_row = first_row_object.get_cell(c)
+            # for row spans, subsequent cells in the same column of the FirstCell will be either empty or missing, iterate through the next rows
+            for r in range(first_row, last_row):
+                next_row_object = self.cell_matrix[r]
 
-                        if next_cell_in_row is None:
-                            # the cell may not be existing at all, we have to create
-                            # debug(f"..cell [{first_row},{c}] does not exist, the merge is the last merge for the row")
-                            # debug(f"..cell [{first_row},{c}] to be inserted")
-                            next_cell_in_row = Cell(first_row, c, {}, first_cell.default_format, first_cell.column_widths)
-                            first_row_object.insert_cell(c, next_cell_in_row)
+                # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
+                for c in range(first_col, last_col):
+                    # exclude the very first cell
+                    if r == first_row and c == first_col:
+                        continue
 
-                        if next_cell_in_row.is_empty:
-                            if c == last_col-1:
+                    # debug(f"..cell [{r},{c}] is part of column merge")
+                    next_cell_in_row = next_row_object.get_cell(c)
+
+                    if next_cell_in_row is None:
+                        # the cell may not be existing at all, we have to create
+                        # debug(f"..cell [{r},{c}] does not exist, to be inserted")
+                        next_cell_in_row = Cell(r, c, {}, first_cell.default_format, first_cell.column_widths)
+                        next_row_object.insert_cell(c, next_cell_in_row)
+
+                    if next_cell_in_row.is_empty:
+                        # the cells in the first column in subsequent rows should have the same value and format as the first_cell when it is row merge
+                        if c == first_col:
+                            # debug(f"..cell [{r},{c}] is the FirstCell of the column merge which is also a row merge")
+                            next_cell_in_row.copy_from(first_cell)
+
+                        # mark cells for multicol only if it is multicol
+                        if col_span > 1:
+                            if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{first_row},{c}] is the LastCell of the column merge")
+                                # debug(f"..cell [{r},{c}] is the LastCell of the column merge")
+                                next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
+
+                            elif c == last_col-1:
+                                # the last cell of the merge to be marked as LastCell
+                                # debug(f"..cell [{r},{c}] is the LastCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                # debug(f"..cell [{first_row},{c}] is an InnerCell of the column merge")
+                                # debug(f"..cell [{r},{c}] is an InnerCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
 
                         else:
-                            warn(f"..cell [{first_row},{c}] is not empty, it must be part of another column merge which is an issue")
+                            next_cell_in_row.mark_multicol(MultiSpan.No)
 
 
-                # for row spans, subsequent cells in the same column of the FirstCell will be either empty or missing
-                # debug(f"cell [{first_row},{first_col}] starts a single-column span of {row_span} rows")
-                # iterate through the next rows
-                for r in range(first_row+1, last_row):
-                    next_row_object = self.cell_matrix[r]
-                    cell_in_next_row = next_row_object.get_cell(first_col)
-                    if cell_in_next_row is None:
-                        # the cell may not be existing at all, we have to create
-                        # debug(f"..cell [{r},{first_col}] does not exist, it is to be created")
-                        cell_in_next_row = Cell(r, first_col, {}, first_cell.default_format, first_cell.column_widths)
-                        next_row_object.insert_cell(first_col, cell_in_next_row)
+                        # mark cells for multirow only if it is multirow
+                        if row_span > 1:
+                            if r == first_row:
+                                # the last cell of the merge to be marked as LastCell
+                                # debug(f"..cell [{r},{c}] is the LastCell of the row merge")
+                                next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
 
-                    if cell_in_next_row.is_empty:
-                        # cells in subsequent rows should have the same value and format as the first_cell when it is row merge
-                        cell_in_next_row.copy_from(first_cell)
-                        if r == last_row-1:
-                            # the last cell of the merge to be marked as LastCell
-                            # debug(f"..cell [{r},{first_col}] is the LastCell of the row merge")
-                            cell_in_next_row.mark_multirow(MultiSpan.LastCell)
+                            elif r == last_row-1:
+                                # the last cell of the merge to be marked as LastCell
+                                # debug(f"..cell [{r},{c}] is the LastCell of the row merge")
+                                next_cell_in_row.mark_multirow(MultiSpan.LastCell)
+
+                            else:
+                                # the inner cells of the merge to be marked as InnerCell
+                                # debug(f"..cell [{r},{c}] is an InnerCell of the row merge")
+                                next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
 
                         else:
-                            # the inner cells of the merge to be marked as InnerCell
-                            # debug(f"..cell [{r},{first_col}] is an InnerCell of the row merge")
-                            cell_in_next_row.mark_multirow(MultiSpan.InnerCell)
+                            next_cell_in_row.mark_multirow(MultiSpan.No)
+
 
                     else:
-                        warn(f"..cell [{r},{first_col}] is not empty, it must be part of another row merge which is an issue")
+                        warn(f"..cell [{r},{c}] is not empty, it must be part of another column/row merge which is an issue")
 
-            elif col_span > 1:
-                # for colspans, we may get empty cells in subsequent columns of this row
-                first_cell.mark_multicol(MultiSpan.FirstCell)
-                # debug(f"cell [{first_row},{first_col}] starts a single-row span of {col_span} columns")
 
-                # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
-                for c in range(first_col+1, last_col):
-                    # debug(f"..cell [{first_row},{c}] is part of column merge")
-                    next_cell_in_row = first_row_object.get_cell(c)
-
-                    if next_cell_in_row is None:
-                        # the cell may not be existing at all, we have to create
-                        # debug(f"..cell [{first_row},{c}] does not exist, the merge is the last merge for the row")
-                        # debug(f"..cell [{first_row},{c}] to be inserted")
-                        next_cell_in_row = Cell(first_row, c, {}, first_cell.default_format, first_cell.column_widths)
-                        first_row_object.insert_cell(c, next_cell_in_row)
-
-                    if next_cell_in_row.is_empty:
-                        if c == last_col-1:
-                            # the last cell of the merge to be marked as LastCell
-                            # debug(f"..cell [{first_row},{c}] is the LastCell of the column merge")
-                            next_cell_in_row.mark_multicol(MultiSpan.LastCell)
-
-                        else:
-                            # the inner cells of the merge to be marked as InnerCell
-                            # debug(f"..cell [{first_row},{c}] is an InnerCell of the column merge")
-                            next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
-
-                    else:
-                        warn(f"..cell [{first_row},{c}] is not empty, it must be part of another column merge which is an issue")
+        # let us see how the cells look now
+        # for row in self.cell_matrix:
+        #     print(row.row_name)
+        #     for cell in row.cells:
+        #         print(f".. {cell}")
 
 
     ''' processes the cells to split the cells into tables and blocks nd ordering the tables and blocks properly

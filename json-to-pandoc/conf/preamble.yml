@@ -18,6 +18,7 @@ header-includes:
 - \usepackage{hhline}
 - \usepackage{multirow}
 - \usepackage{ulem}
+- \usepackage{tabu}
 # - \usepackage{xcolor}
 # - \usepackage{ehhline}
 # - \usepackage{stackengine}

@@ -46,6 +46,12 @@ class Cell(object):
             self.is_empty = True
 
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"[{self.row_num},{self.col_num}], value: {not self.is_empty}, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
+
+
     ''' Copy value, format from the cell passed
     '''
     def copy_from(self, from_cell):
@@ -71,16 +77,16 @@ class Cell(object):
         # if the cell has a bgcolor and any border is missing, that border should be colored as bgcolor
         if self.user_entered_format and self.user_entered_format.bgcolor:
             self.effective_format.override_borders(self.user_entered_format.bgcolor)
-        else:
-            warn(f"..cell [{self.row_num},{self.col_num}] does not have a bgcolor defined in userEnteredFormat")
 
-        # if the cell is multi_row FirstCell or InnerCell, bottom border color is bgcolor
-        if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
-            self.effective_format.recolor_bottom_border(self.user_entered_format.bgcolor)
+        # only if multi_col is No or FirstCell
+        if self.merge_spec.multi_col in [MultiSpan.FirstCell, MultiSpan.No]:
+            # if the cell is multi_row FirstCell or InnerCell, bottom border color is bgcolor
+            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+                self.effective_format.recolor_bottom_border(self.user_entered_format.bgcolor)
 
-        # if the cell is multi_row InnerCell or LastCell, top border color is bgcolor
-        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            self.effective_format.recolor_top_border(self.user_entered_format.bgcolor)
+            # if the cell is multi_row InnerCell or LastCell, top border color is bgcolor
+            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+                self.effective_format.recolor_top_border(self.user_entered_format.bgcolor)
 
 
     ''' mark the cell multi_col
@@ -105,10 +111,10 @@ class Cell(object):
             t, b = None, None
 
         if t is not None:
-            t = f"*{{{self.merge_spec.col_span}}}{{{t}}}".strip()
+            t = f"*{self.merge_spec.col_span}{{{t}}}".strip()
 
         if b is not None:
-            b = f"*{{{self.merge_spec.col_span}}}{{{b}}}".strip()
+            b = f"*{self.merge_spec.col_span}{{{b}}}".strip()
 
         return t, b
 
@@ -178,12 +184,12 @@ class Cell(object):
         # adjust the borders first
         self.adjust_borders()
 
-        debug(f"..processing {self.cell_name}")
-        if self.effective_format:
-            if not self.effective_format.borders:
-                warn(f"..{self.cell_name} # NO-BORDER")
-        else:
-            warn(f"..{self.cell_name} # NO-EFFECTVE-FORMAT")
+        # debug(f"..processing {self.cell_name}")
+        # if self.effective_format:
+        #     if not self.effective_format.borders:
+        #         warn(f"..{self.cell_name} # NO-BORDER")
+        # else:
+        #     warn(f"..{self.cell_name} # NO-EFFECTVE-FORMAT")
 
         latex_lines = []
 
@@ -321,7 +327,7 @@ class Row(object):
     ''' generates the latex code
     '''
     def to_latex(self):
-        debug(f"processing {self.row_name}")
+        # debug(f"processing {self.row_name}")
 
         all_cell_lines = []
         first_cell = True
@@ -339,7 +345,8 @@ class Row(object):
             all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
 
-        all_cell_lines.append(f"\\tabularnewline")
+        all_cell_lines.append(f"\\tabularnewline[-0.9pt]")
+        # all_cell_lines.append(f"\\tabularnewline[\\dimexpr\\arrayrulewidth * -2]")
 
 
         row_lines = []
@@ -639,22 +646,11 @@ class Border(object):
             self.width = int(border_dict.get('width')) * 0.4
             self.color = RgbColor(border_dict.get('color'))
 
-            if self.style in ['DOTTED', 'DASHED', 'SOLID']:
+            if self.style in ['DOTTED', 'DASHED', 'SOLID', 'SOLID_MEDIUM', 'SOLID_THICK']:
                 self.style = '-'
 
             elif self.style in ['DOUBLE']:
                 self.style = '='
-
-            elif self.style in ['SOLID_MEDIUM']:
-                self.width = self.width * 2
-                self.style = '-'
-
-            elif self.style in ['SOLID_THICK']:
-                self.width = self.width * 3
-                self.style = '-'
-
-            elif self.style in ['NONE']:
-                self.style = '~'
 
             else:
                 self.style = '~'

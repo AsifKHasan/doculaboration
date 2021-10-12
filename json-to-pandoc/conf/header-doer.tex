@@ -12,7 +12,7 @@
 \newcommand\vborder[2]{\color[RGB]{#1}\setlength\arrayrulewidth{#2}\vline}
 
 % horizontal border macro [color and width]
-\newcommand\hborder[2]{\arrayrulecolor[RGB]{#1}\setlength\arrayrulewidth{#2}}
+\newcommand\hborder[2]{\arrayrulecolor[RGB]{#1}\global\deflength\arrayrulewidth{#2}}
 
 % we set default table column separation to 0.05 inches
 \setlength{\tabcolsep}{0.05in}
