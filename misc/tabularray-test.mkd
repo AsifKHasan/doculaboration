@@ -1,0 +1,246 @@
+```{=latex}
+% "top" strut
+\newcommand\Tstrut[1]{\rule[2.0ex]{0pt}{#1}}
+
+% "bottom" strut
+\newcommand\Bstrut[1]{\rule[-0.9ex]{0pt}{#1}}
+
+% Title Style - used for Level 0 heading
+\newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
+
+% vertical border macro [color and width]
+\newcommand\vborder[2]{\color[RGB]{#1}\setlength\arrayrulewidth{#2}\vline}
+
+% horizontal border macro [color and width]
+\newcommand\hborder[2]{\arrayrulecolor[RGB]{#1}\global\deflength\arrayrulewidth{#2}}
+
+% we set default table column separation to 0.05 inches
+\setlength{\tabcolsep}{0.05in}
+
+% we set default table row height to be 1.2 times of normal height
+\renewcommand{\arraystretch}{1.2}
+
+% we need a little bit space top of each row so that texts do not touch top border
+\renewcommand\extrarowheight{2pt}
+
+\newcommand\mc\multicol
+\newcommand\mr\multirow
+
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+
+\definecolor{xred}{HTML}{e6b8af}
+```
+
+```{=latex}
+% LatexSection: 0.0-testpage
+\newpage
+\pdfpagewidth 8.27in
+\pdfpageheight 11.69in
+\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
+```
+
+
+# A - Test Page
+
+
+```{=latex}
+% LatexTable: (0-11) : 12 rows
+\setlength\parindent{0pt}
+\begin{longtblr}[l]{|p{0.6126315789473684in}|p{1.681578947368421in}|p{1.681578947368421in}|p{1.681578947368421in}|p{0.6126315789473684in}|}
+
+% row: [0]
+\hline
+% multicolumn: FirstCell, multirow: FirstCell
+\SetCell[r=2,c=3]{valign=m,halign=c,bg=xred} {2 rows x 3 columns}
+&
+% multicolumn: InnerCell, multirow: FirstCell
+[r:0,c:1]
+&
+% multicolumn: LastCell, multirow: FirstCell
+[r:0,c:2]
+&
+% multicolumn: FirstCell, multirow: FirstCell
+\SetCell[r=3,c=2]{valign=m,halign=c,bg=xred} {3 rows x 2 columns}
+&
+% multicolumn: LastCell, multirow: FirstCell
+[r:0,c:4]
+\\
+\hline
+
+% row: [1]
+\hline
+% multicolumn: FirstCell, multirow: LastCell
+[r:1,c:0]
+&
+% multicolumn: InnerCell, multirow: LastCell
+[r:1,c:1]
+&
+% multicolumn: LastCell, multirow: LastCell
+[r:1,c:2]
+&
+% multicolumn: FirstCell, multirow: InnerCell
+[r:1,c:3]
+&
+% multicolumn: LastCell, multirow: InnerCell
+[r:1,c:4]
+\\
+\hline
+
+% row: [2]
+\hline
+% multicolumn: No, multirow: No
+\SetCell{valign=m,halign=c,bg=xred} {No Span}
+&
+% multicolumn: FirstCell, multirow: No
+\SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
+&
+% multicolumn: LastCell, multirow: No
+[r:2,c:2]
+&
+% multicolumn: FirstCell, multirow: LastCell
+[r:2,c:3]
+&
+% multicolumn: LastCell, multirow: LastCell
+[r:2,c:4]
+\\
+\hline
+
+% row: [3]
+\hline
+% multicolumn: No, multirow: No
+\SetCell{valign=m,halign=c,bg=xred} {No Span}
+&
+% multicolumn: No, multirow: No
+\SetCell{valign=m,halign=c,bg=xred} {No Span}
+&
+% multicolumn: FirstCell, multirow: FirstCell
+\SetCell[r=2,c=2]{valign=m,halign=c,bg=xred} {2 rows x 2 columns}
+&
+% multicolumn: LastCell, multirow: FirstCell
+[r:3,c:3]
+&
+% multicolumn: No, multirow: No
+\SetCell{valign=m,halign=c,bg=xred} {No Span}
+\\
+\hline
+
+% row: [4]
+\hline
+% multicolumn: FirstCell, multirow: No
+[r:4,c:0]
+&
+% multicolumn: LastCell, multirow: No
+[r:4,c:1]
+&
+% multicolumn: FirstCell, multirow: LastCell
+[r:4,c:2]
+&
+% multicolumn: LastCell, multirow: LastCell
+[r:4,c:3]
+&
+% multicolumn: No, multirow: No
+[r:4,c:4]
+\\
+\hline
+
+% row: [5]
+\hline
+% multicolumn: FirstCell, multirow: FirstCell
+&
+% multicolumn: InnerCell, multirow: FirstCell
+&
+% multicolumn: InnerCell, multirow: FirstCell
+&
+% multicolumn: InnerCell, multirow: FirstCell
+&
+% multicolumn: LastCell, multirow: FirstCell
+\\
+\hline
+
+% row: [6]
+\hline
+% multicolumn: FirstCell, multirow: InnerCell
+&
+% multicolumn: InnerCell, multirow: InnerCell
+&
+% multicolumn: InnerCell, multirow: InnerCell
+&
+% multicolumn: InnerCell, multirow: InnerCell
+&
+% multicolumn: LastCell, multirow: InnerCell
+\\
+\hline
+
+% row: [7]
+\hline
+% multicolumn: FirstCell, multirow: LastCell
+&
+% multicolumn: InnerCell, multirow: LastCell
+&
+% multicolumn: InnerCell, multirow: LastCell
+&
+% multicolumn: InnerCell, multirow: LastCell
+&
+% multicolumn: LastCell, multirow: LastCell
+\\
+\hline
+
+% row: [8]
+\hline
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: FirstCell
+&
+% multicolumn: No, multirow: FirstCell
+\\
+\hline
+
+% row: [9]
+\hline
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: FirstCell
+&
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: InnerCell
+&
+% multicolumn: No, multirow: InnerCell
+\\
+\hline
+
+% row: [10]
+\hline
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: InnerCell
+&
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: LastCell
+&
+% multicolumn: No, multirow: InnerCell
+\\
+\hline
+
+% row: [11]
+\hline
+% multicolumn: No, multirow: No
+&
+% multicolumn: No, multirow: LastCell
+&
+% multicolumn: FirstCell, multirow: No
+&
+% multicolumn: LastCell, multirow: No
+&
+% multicolumn: No, multirow: LastCell
+\\
+\hline
+
+\end{longtblr}
+```

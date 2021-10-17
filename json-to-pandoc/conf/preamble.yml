@@ -18,14 +18,7 @@ header-includes:
 - \usepackage{hhline}
 - \usepackage{multirow}
 - \usepackage{ulem}
-- \usepackage{tabu}
-# - \usepackage{xcolor}
-# - \usepackage{ehhline}
-# - \usepackage{stackengine}
-# - \usepackage{etoolbox}
-# - \usepackage{xpatch} % or etoolbox
-# - \usepackage{xparse}
-
+- \usepackage{tabularray}
 
 - \tracinglostchars=2
 
