@@ -6,22 +6,25 @@ CRDT (gsheet, etc.) based documentation collaboration pipeline to generate edita
 * *json-to-docbook* is for genearting docbook xml for generating editable/printable outputs
 * *json-to-pandoc* is for genearting pandoc markdown for generating editable/printable outputs
 
-to update all python packages
+## (optional) update all python packages
 ```
 pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 ```
 
-Download and install বাংলা fonts
-```
-wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
-```
+## toolchain
+1. Pandoc from https://pandoc.org/
+2. TexLive from https://tug.org/texlive/
+3. LuaLatex
+4. We need fonts
+  * Download and install বাংলা fonts
+  ```
+  wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
+  ```
 
+## usage
 to generate pdf from a gsheet through pandoc/latex
 ```
 ./json-from-gsheet.py --config '../conf/config.yml'
 ./pandoc-from-json.py --config '../conf/config.yml'
 pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf
 ```
-
-
-{\fontsize{12pt}{12pt}\fontspec{carlito}\color{blue}{\textbf{\textit{\underline{\sout{Resource Profile}}}}}}

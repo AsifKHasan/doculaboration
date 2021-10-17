@@ -1,0 +1,232 @@
+```{=latex}
+% "top" strut
+\newcommand\Tstrut[1]{\rule[2.0ex]{0pt}{#1}}
+
+% "bottom" strut
+\newcommand\Bstrut[1]{\rule[-0.9ex]{0pt}{#1}}
+
+% Title Style - used for Level 0 heading
+\newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
+
+% vertical border macro [color and width]
+\newcommand\vborder[2]{\color[RGB]{#1}\setlength\arrayrulewidth{#2}\vline}
+
+% horizontal border macro [color and width]
+\newcommand\hborder[2]{\arrayrulecolor[RGB]{#1}\global\deflength\arrayrulewidth{#2}}
+
+% we set default table column separation to 0.05 inches
+\setlength{\tabcolsep}{0.05in}
+
+% we set default table row height to be 1.2 times of normal height
+\renewcommand{\arraystretch}{1.2}
+
+% we need a little bit space top of each row so that texts do not touch top border
+\renewcommand\extrarowheight{2pt}
+
+\newcommand\mc\multicolumn
+\newcommand\mr\multirow
+
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+```
+
+```{=latex}
+% LatexSection: 0.0-testpage
+\newpage
+\pdfpagewidth 8.27in
+\pdfpageheight 11.69in
+\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
+```
+
+
+# A - Test Page
+
+
+```{=latex}
+% LatexTable: (0-11) : 12 rows
+\setlength\parindent{0pt}
+\begin{longtable}[l]{|p{0.6126315789473684in}|p{1.681578947368421in}|p{1.681578947368421in}|p{1.681578947368421in}|p{0.6126315789473684in}|}
+
+% row: [0]
+\hhline{|*3{>{\hborder{0,0,0}{0.8pt}}-}|*2{>{\hborder{0,0,0}{0.8pt}}-}|}
+% multicolumn: FirstCell, multirow: FirstCell
+\mc{3}{!{\vborder{0,0,0}{0.8pt}} m{4.197928673905602in} !{\vborder{0,0,0}{0.4pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: InnerCell, multirow: FirstCell
+% multicolumn: LastCell, multirow: FirstCell
+&
+% multicolumn: FirstCell, multirow: FirstCell
+\mc{2}{!{\vborder{0,0,0}{0.4pt}} m{2.4052801264264856in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: FirstCell
+\tabularnewline[-0.9pt]
+\hhline{|*3{>{\hborder{230,184,174}{0.4pt}}-}|*2{>{\hborder{230,184,174}{0.4pt}}-}|}
+
+% row: [1]
+\hhline{|*3{>{\hborder{230,184,174}{0.8pt}}-}|*2{>{\hborder{230,184,174}{0.8pt}}-}|}
+% multicolumn: FirstCell, multirow: LastCell
+\mc{3}{!{\vborder{0,0,0}{0.8pt}} m{4.197928673905602in} !{\vborder{0,0,0}{0.4pt}}} {\mr{-2}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{2 rows x 3 columns}}}} \cellcolor[RGB]{230,184,174}}}
+% multicolumn: InnerCell, multirow: LastCell
+% multicolumn: LastCell, multirow: LastCell
+&
+% multicolumn: FirstCell, multirow: InnerCell
+\mc{2}{!{\vborder{0,0,0}{0.4pt}} m{2.4052801264264856in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: InnerCell
+\tabularnewline[-0.9pt]
+\hhline{|*3{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{230,184,174}{0.4pt}}-}|}
+
+% row: [2]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{230,184,174}{0.8pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: FirstCell, multirow: No
+\mc{2}{!{\vborder{0,0,0}{0.4pt}} m{3.474227494847538in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{2 columns}}}} \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: No
+&
+% multicolumn: FirstCell, multirow: LastCell
+\mc{2}{!{\vborder{0,0,0}{0.4pt}} m{2.4052801264264856in} !{\vborder{0,0,0}{0.8pt}}} {\mr{-3}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{3 rows x 2 columns}}} \cellcolor[RGB]{230,184,174}}}
+% multicolumn: LastCell, multirow: LastCell
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{0,0,0}{0.4pt}}-}|}
+
+% row: [3]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{255,0,0}{1.2000000000000002pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: FirstCell, multirow: FirstCell
+\mc{2}{!{\vborder{255,0,0}{1.2000000000000002pt}} m{3.474227494847538in} !{\vborder{255,0,0}{1.2000000000000002pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: FirstCell
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{No Span}}} \cellcolor[RGB]{230,184,174}}
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{230,184,174}{1.2000000000000002pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|}
+
+% row: [4]
+\hhline{|*2{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{230,184,174}{1.2000000000000002pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|}
+% multicolumn: FirstCell, multirow: No
+\mc{2}{!{\vborder{0,0,0}{0.8pt}} m{2.4052801264264856in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{2 columns}}}} \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: No
+&
+% multicolumn: FirstCell, multirow: LastCell
+\mc{2}{!{\vborder{255,0,0}{1.2000000000000002pt}} m{3.474227494847538in} !{\vborder{255,0,0}{1.2000000000000002pt}}} {\mr{-2}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{2 rows x 2 columns}}} \cellcolor[RGB]{230,184,174}}}
+% multicolumn: LastCell, multirow: LastCell
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{No Span}}} \cellcolor[RGB]{230,184,174}}
+\tabularnewline[-0.9pt]
+\hhline{|*2{>{\hborder{0,0,0}{0.4pt}}-}|*2{>{\hborder{255,0,0}{1.2000000000000002pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|}
+
+% row: [5]
+\hhline{|*5{>{\hborder{0,0,0}{0.4pt}}-}|}
+% multicolumn: FirstCell, multirow: FirstCell
+\mc{5}{!{\vborder{0,0,0}{0.8pt}} m{6.714278400442783in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: InnerCell, multirow: FirstCell
+% multicolumn: InnerCell, multirow: FirstCell
+% multicolumn: InnerCell, multirow: FirstCell
+% multicolumn: LastCell, multirow: FirstCell
+\tabularnewline[-0.9pt]
+\hhline{|*5{>{\hborder{230,184,174}{0.4pt}}-}|}
+
+% row: [6]
+\hhline{|*5{>{\hborder{230,184,174}{0.4pt}}-}|}
+% multicolumn: FirstCell, multirow: InnerCell
+\mc{5}{!{\vborder{0,0,0}{0.8pt}} m{6.714278400442783in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+% multicolumn: InnerCell, multirow: InnerCell
+% multicolumn: InnerCell, multirow: InnerCell
+% multicolumn: InnerCell, multirow: InnerCell
+% multicolumn: LastCell, multirow: InnerCell
+\tabularnewline[-0.9pt]
+\hhline{|*5{>{\hborder{230,184,174}{0.4pt}}-}|}
+
+% row: [7]
+\hhline{|*5{>{\hborder{230,184,174}{0.4pt}}-}|}
+% multicolumn: FirstCell, multirow: LastCell
+\mc{5}{!{\vborder{0,0,0}{0.8pt}} m{6.714278400442783in} !{\vborder{0,0,0}{0.8pt}}} {\mr{-3}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{3 rows x 5 columns }}}} \cellcolor[RGB]{230,184,174}}}
+% multicolumn: InnerCell, multirow: LastCell
+% multicolumn: InnerCell, multirow: LastCell
+% multicolumn: InnerCell, multirow: LastCell
+% multicolumn: LastCell, multirow: LastCell
+\tabularnewline[-0.9pt]
+\hhline{|*5{>{\hborder{0,0,0}{0.4pt}}-}|}
+
+% row: [8]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: FirstCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: FirstCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.8pt}}-}|}
+
+% row: [9]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: FirstCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: InnerCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: InnerCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.8pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.8pt}}-}|}
+
+% row: [10]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: InnerCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: LastCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\mr{-3}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{3 rows}}} \cellcolor[RGB]{230,184,174}}}
+&
+% multicolumn: No, multirow: InnerCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\centering \cellcolor[RGB]{230,184,174}}
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.8pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.8pt}}-}|}
+
+% row: [11]
+\hhline{|*1{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|*2{>{\hborder{0,0,0}{0.4pt}}-}|*1{>{\hborder{230,184,174}{0.4pt}}-}|}
+% multicolumn: No, multirow: No
+\mc{1}{!{\vborder{0,0,0}{0.8pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{No Span}}}} \cellcolor[RGB]{230,184,174}}
+&
+% multicolumn: No, multirow: LastCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0.4pt}}} {\mr{-3}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{3 rows}}}} \cellcolor[RGB]{230,184,174}}}
+&
+% multicolumn: FirstCell, multirow: No
+\mc{2}{!{\vborder{0,0,0}{0.4pt}} m{3.474227494847538in} !{\vborder{0,0,0}{0.4pt}}} {\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{\textit{2 columns}}}} \cellcolor[RGB]{230,184,174}}
+% multicolumn: LastCell, multirow: No
+&
+% multicolumn: No, multirow: LastCell
+\mc{1}{!{\vborder{0,0,0}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0.8pt}}} {\mr{-4}{=}{\centering {\fontsize{11pt}{11pt}\color[RGB]{0,0,0}{\textbf{4 rows}}} \cellcolor[RGB]{230,184,174}}}
+\tabularnewline[-0.9pt]
+\hhline{|*1{>{\hborder{0,0,0}{0.8pt}}-}|*1{>{\hborder{0,0,0}{0.8pt}}-}|*2{>{\hborder{0,0,0}{0.8pt}}-}|*1{>{\hborder{0,0,0}{0.8pt}}-}|}
+
+\end{longtable}
+```
+
