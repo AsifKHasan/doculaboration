@@ -55,190 +55,225 @@
 \SetCell[r=2,c=3]{valign=m,halign=c,bg=xred} {2 rows x 3 columns}
 &
 % multicolumn: InnerCell, multirow: FirstCell
-[r:0,c:1]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:1}
 &
 % multicolumn: LastCell, multirow: FirstCell
-[r:0,c:2]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:2}
 &
 % multicolumn: FirstCell, multirow: FirstCell
 \SetCell[r=3,c=2]{valign=m,halign=c,bg=xred} {3 rows x 2 columns}
 &
 % multicolumn: LastCell, multirow: FirstCell
-[r:0,c:4]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:4}
 \\
 \hline
 
 % row: [1]
 \hline
 % multicolumn: FirstCell, multirow: LastCell
-[r:1,c:0]
+% \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {r:1,c:0}
 &
 % multicolumn: InnerCell, multirow: LastCell
-[r:1,c:1]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:1}
 &
 % multicolumn: LastCell, multirow: LastCell
-[r:1,c:2]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:2}
 &
 % multicolumn: FirstCell, multirow: InnerCell
-[r:1,c:3]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:3}
 &
 % multicolumn: LastCell, multirow: InnerCell
-[r:1,c:4]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:4}
 \\
 \hline
 
 % row: [2]
 \hline
 % multicolumn: No, multirow: No
-\SetCell{valign=m,halign=c,bg=xred} {No Span}
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: FirstCell, multirow: No
 \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
 &
 % multicolumn: LastCell, multirow: No
-[r:2,c:2]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:2}
 &
 % multicolumn: FirstCell, multirow: LastCell
-[r:2,c:3]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:3}
 &
 % multicolumn: LastCell, multirow: LastCell
-[r:2,c:4]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:4}
 \\
 \hline
 
 % row: [3]
 \hline
 % multicolumn: No, multirow: No
-\SetCell{valign=m,halign=c,bg=xred} {No Span}
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: No
-\SetCell{valign=m,halign=c,bg=xred} {No Span}
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: FirstCell, multirow: FirstCell
 \SetCell[r=2,c=2]{valign=m,halign=c,bg=xred} {2 rows x 2 columns}
 &
 % multicolumn: LastCell, multirow: FirstCell
-[r:3,c:3]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:3,c:3}
 &
 % multicolumn: No, multirow: No
-\SetCell{valign=m,halign=c,bg=xred} {No Span}
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 \\
 \hline
 
 % row: [4]
 \hline
 % multicolumn: FirstCell, multirow: No
-[r:4,c:0]
+\SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
 &
 % multicolumn: LastCell, multirow: No
-[r:4,c:1]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:1}
 &
 % multicolumn: FirstCell, multirow: LastCell
-[r:4,c:2]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:2}
 &
 % multicolumn: LastCell, multirow: LastCell
-[r:4,c:3]
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:3}
 &
 % multicolumn: No, multirow: No
-[r:4,c:4]
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 \\
 \hline
 
 % row: [5]
 \hline
 % multicolumn: FirstCell, multirow: FirstCell
+\SetCell[r=3,c=5]{valign=m,halign=c,bg=xred} {3 rows x 5 columns}
 &
 % multicolumn: InnerCell, multirow: FirstCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:1}
 &
 % multicolumn: InnerCell, multirow: FirstCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:2}
 &
 % multicolumn: InnerCell, multirow: FirstCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:3}
 &
 % multicolumn: LastCell, multirow: FirstCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:4}
 \\
 \hline
 
 % row: [6]
 \hline
 % multicolumn: FirstCell, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:0}
 &
 % multicolumn: InnerCell, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:1}
 &
 % multicolumn: InnerCell, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:2}
 &
 % multicolumn: InnerCell, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:3}
 &
 % multicolumn: LastCell, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:4}
 \\
 \hline
 
 % row: [7]
 \hline
 % multicolumn: FirstCell, multirow: LastCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:0}
 &
 % multicolumn: InnerCell, multirow: LastCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:1}
 &
 % multicolumn: InnerCell, multirow: LastCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:2}
 &
 % multicolumn: InnerCell, multirow: LastCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:3}
 &
 % multicolumn: LastCell, multirow: LastCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:4}
 \\
 \hline
 
 % row: [8]
 \hline
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: FirstCell
+\SetCell[r=3,c=1]{valign=m,halign=c,bg=xred} {3 rows}
 &
 % multicolumn: No, multirow: FirstCell
+\SetCell[r=4,c=1]{valign=m,halign=c,bg=xred} {4 rows}
 \\
 \hline
 
 % row: [9]
 \hline
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: FirstCell
+\SetCell[r=3,c=1]{valign=m,halign=c,bg=xred} {3 rows}
 &
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:9,c:3}
 &
 % multicolumn: No, multirow: InnerCell
+% \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:9,c:4}
 \\
 \hline
 
 % row: [10]
 \hline
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: InnerCell
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:1}
 &
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: LastCell
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:3}
 &
 % multicolumn: No, multirow: InnerCell
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:4}
 \\
 \hline
 
 % row: [11]
 \hline
 % multicolumn: No, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
 &
 % multicolumn: No, multirow: LastCell
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:1}
 &
 % multicolumn: FirstCell, multirow: No
+\SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
 &
 % multicolumn: LastCell, multirow: No
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:3}
 &
 % multicolumn: No, multirow: LastCell
+\SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:4}
 \\
 \hline
 
