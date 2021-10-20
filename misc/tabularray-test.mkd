@@ -2,7 +2,7 @@
 % Title Style - used for Level 0 heading
 \newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
 
-\definecolor{xred}{HTML}{e6b8af}
+\definecolor{a6b8af}{HTML}{a6b8af}
 ```
 
 ```{=latex}
@@ -26,16 +26,16 @@
   % row: [0]
   \hline
     % [r:0,c:0]
-    \SetCell[r=3]{halign=c,bg=xred} 3 Rows
+    \SetCell[r=3]{halign=c,bg=a6b8af} 3 Rows
     &
     % [r:0,c:1]
-    \SetCell[c=2]{halign=c,bg=xred} 2 Columns
+    \SetCell[c=2]{halign=c,bg=a6b8af} 2 Columns
     &
     % [r:0,c:2]
     1-3
     &
     % [r:0,c:3]
-    \SetCell[r=2,c=2]{halign=c,bg=xred} 2 Rows 2 Columns
+    \SetCell[r=2,c=2]{halign=c,bg=a6b8af} 2 Rows 2 Columns
     &
     % [r:0,c:4]
     1-5
@@ -77,7 +77,7 @@
   % row: [3]
   \hline
     % [r:3,c:0]
-    \SetCell[r=3,c=5]{halign=c,bg=xred} 3 rows x 5 columns
+    \SetCell[r=3,c=5]{halign=c,bg=a6b8af} 3 rows x 5 columns
     &
     % [r:3,c:1]
     4-2
@@ -138,7 +138,7 @@
 
 ```{=latex}
 % LatexTable: (0-11) : 12 rows
-\begin{tblr}[l]{
+\begin{longtblr}[l]{
   colspec={|p{0.6126315789473684in}|p{1.681578947368421in}|p{1.681578947368421in}|p{1.681578947368421in}|p{0.6126315789473684in}|},
   stretch=1.0,
   vspan=default,
@@ -146,221 +146,222 @@
   rows={ht=12pt}
 }
 % row: [0]
-\hline
+  \cline[fg=blue5,wd=0.4pt,dash=solid]{1-3}
+  \cline[fg=blue7,wd=0.4pt,dash=solid]{4-5}
   % multicolumn: FirstCell, multirow: FirstCell
-  \SetCell[r=2,c=3]{valign=m,halign=c,bg=xred} {2 rows x 3 columns}
+  \SetCell[r=2,c=3]{valign=m,halign=c,bg=a6b8af} {2 rows x 3 columns}
   &
   % multicolumn: InnerCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:0,c:1}
   &
   % multicolumn: LastCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:0,c:2}
   &
   % multicolumn: FirstCell, multirow: FirstCell
-  \SetCell[r=3,c=2]{valign=m,halign=c,bg=xred} {3 rows x 2 columns}
+  \SetCell[r=3,c=2]{valign=m,halign=c,bg=a6b8af} {3 rows x 2 columns}
   &
   % multicolumn: LastCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:0,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:0,c:4}
 \\
 
 % row: [1]
 \hline
   % multicolumn: FirstCell, multirow: LastCell
-  % \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {r:1,c:0}
+  % \SetCell[r=1,c=2]{valign=m,halign=c,bg=a6b8af} {r:1,c:0}
   &
   % multicolumn: InnerCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:1,c:1}
   &
   % multicolumn: LastCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:1,c:2}
   &
   % multicolumn: FirstCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:1,c:3}
   &
   % multicolumn: LastCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:1,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:1,c:4}
 \\
 
 % row: [2]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{Re} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.15294118,0.30588236,0.07450981}{sour} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\underline{ce}} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{ P} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\sout{rof}} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\textit{ile}}}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: FirstCell, multirow: No
-  \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
+  \SetCell[r=1,c=2]{valign=m,halign=c,bg=a6b8af} {\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{Re}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.15294118,0.30588236,0.07450981}{sour}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\underline{ce}} \fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{ P}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\sout{rof}}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\textit{ile}}}
   &
   % multicolumn: LastCell, multirow: No
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:2,c:2}
   &
   % multicolumn: FirstCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:2,c:3}
   &
   % multicolumn: LastCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:2,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:2,c:4}
 \\
 
 % row: [3]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: FirstCell, multirow: FirstCell
-  \SetCell[r=2,c=2]{valign=m,halign=c,bg=xred} {2 rows x 2 columns}
+  \SetCell[r=2,c=2]{valign=m,halign=c,bg=a6b8af} {2 rows x 2 columns}
   &
   % multicolumn: LastCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:3,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:3,c:3}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
 \\
 
 % row: [4]
 \hline
   % multicolumn: FirstCell, multirow: No
-  \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
+  \SetCell[r=1,c=2]{valign=m,halign=c,bg=a6b8af} {2 columns}
   &
   % multicolumn: LastCell, multirow: No
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:4,c:1}
   &
   % multicolumn: FirstCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:4,c:2}
   &
   % multicolumn: LastCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:4,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:4,c:3}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
 \\
 
 % row: [5]
 \hline
   % multicolumn: FirstCell, multirow: FirstCell
-  \SetCell[r=3,c=5]{valign=m,halign=c,bg=xred} {3 rows x 5 columns}
+  \SetCell[r=3,c=5]{valign=m,halign=c,bg=a6b8af} {3 rows x 5 columns}
   &
   % multicolumn: InnerCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:5,c:1}
   &
   % multicolumn: InnerCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:5,c:2}
   &
   % multicolumn: InnerCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:5,c:3}
   &
   % multicolumn: LastCell, multirow: FirstCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:5,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:5,c:4}
 \\
 
 % row: [6]
 \hline
   % multicolumn: FirstCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:0}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:6,c:0}
   &
   % multicolumn: InnerCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:6,c:1}
   &
   % multicolumn: InnerCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:6,c:2}
   &
   % multicolumn: InnerCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:6,c:3}
   &
   % multicolumn: LastCell, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:6,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:6,c:4}
 \\
 
 % row: [7]
 \hline
   % multicolumn: FirstCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:0}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:7,c:0}
   &
   % multicolumn: InnerCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:1}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:7,c:1}
   &
   % multicolumn: InnerCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:2}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:7,c:2}
   &
   % multicolumn: InnerCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:7,c:3}
   &
   % multicolumn: LastCell, multirow: LastCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:7,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:7,c:4}
 \\
 
 % row: [8]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: FirstCell
-  \SetCell[r=3,c=1]{valign=m,halign=c,bg=xred} {3 rows}
+  \SetCell[r=3,c=1]{valign=m,halign=c,bg=a6b8af} {3 rows}
   &
   % multicolumn: No, multirow: FirstCell
-  \SetCell[r=4,c=1]{valign=m,halign=c,bg=xred} {4 rows}
+  \SetCell[r=4,c=1]{valign=m,halign=c,bg=a6b8af} {4 rows}
 \\
 
 % row: [9]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: FirstCell
-  \SetCell[r=3,c=1]{valign=m,halign=c,bg=xred} {3 rows}
+  \SetCell[r=3,c=1]{valign=m,halign=c,bg=a6b8af} {3 rows}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:9,c:3}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:9,c:3}
   &
   % multicolumn: No, multirow: InnerCell
-  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:9,c:4}
+  % \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:9,c:4}
 \\
 
 % row: [10]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: InnerCell
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:1}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:10,c:1}
   &
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: LastCell
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:3}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:10,c:3}
   &
   % multicolumn: No, multirow: InnerCell
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:10,c:4}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:10,c:4}
 \\
 
 % row: [11]
 \hline
   % multicolumn: No, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {No Span}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {No Span}
   &
   % multicolumn: No, multirow: LastCell
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:1}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:11,c:1}
   &
   % multicolumn: FirstCell, multirow: No
-  \SetCell[r=1,c=2]{valign=m,halign=c,bg=xred} {2 columns}
+  \SetCell[r=1,c=2]{valign=m,halign=c,bg=a6b8af} {2 columns}
   &
   % multicolumn: LastCell, multirow: No
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:3}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:11,c:3}
   &
   % multicolumn: No, multirow: LastCell
-  \SetCell[r=1,c=1]{valign=m,halign=c,bg=xred} {r:11,c:4}
+  \SetCell[r=1,c=1]{valign=m,halign=c,bg=a6b8af} {r:11,c:4}
 \\
 \hline
 
-\end{tblr}
+\end{longtblr}
 ```

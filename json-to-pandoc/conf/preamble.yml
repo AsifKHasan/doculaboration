@@ -10,17 +10,13 @@ header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{graphicx}
 - \usepackage{grffile}
-- \usepackage{longtable,array}
 - \usepackage{bold-extra}
 - \usepackage{fontspec}
 - \usepackage{babel}
 - \usepackage{colortbl}
-- \usepackage{hhline}
-- \usepackage{multirow}
 - \usepackage{ulem}
 - \usepackage{tabularray}
 - \usepackage{xcolor}
-
 
 - \tracinglostchars=2
 
