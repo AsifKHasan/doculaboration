@@ -27,17 +27,15 @@ CONV = {
 }
 
 GSHEET_LATEX_BORDER_MAPPING = {
-    'DOTTED': '-',
-    'DASHED': '-',
-    'SOLID': '-',
-    'SOLID_MEDIUM': '-',
-    'SOLID_THICK': '-',
-    'DOUBLE': '=',
-    'NONE': '~'
+    'DOTTED': 'dotted',
+    'DASHED': 'dashed',
+    'SOLID': 'solid'
 }
 
-VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
-HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
+TBLR_VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
+PARA_VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
+TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
+PARA_HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
 COLSEP = 0.05
 

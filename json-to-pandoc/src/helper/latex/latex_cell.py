@@ -166,7 +166,7 @@ class Cell(object):
             halign = self.effective_format.halign.halign
             bgcolor = self.effective_format.bgcolor.to_latex()
         else:
-            halign = HALIGN.get('LEFT')
+            halign = TBLR_HALIGN.get('LEFT')
             bgcolor = self.default_format.bgcolor.to_latex()
 
         # finally build the cell content
@@ -207,7 +207,7 @@ class Cell(object):
         if self.effective_format:
             valign = self.effective_format.valign.valign
         else:
-            valign = VALIGN.get('MIDDLE')
+            valign = TBLR_VALIGN.get('MIDDLE')
 
         cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{!{l} {valign}{{{self.cell_width}in}} !{r}}}"
         # cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{valign}{{{self.cell_width}in}}}}"
@@ -854,9 +854,9 @@ class VerticalAlignment(object):
     '''
     def __init__(self, valign=None):
         if valign:
-            self.valign = VALIGN.get(valign, 'p')
+            self.valign = TBLR_VALIGN.get(valign, 'p')
         else:
-            self.valign = VALIGN.get('TOP')
+            self.valign = TBLR_VALIGN.get('TOP')
 
 
 ''' gsheet horizontal alignment object wrapper
@@ -867,9 +867,9 @@ class HorizontalAlignment(object):
     '''
     def __init__(self, halign=None):
         if halign:
-            self.halign = HALIGN.get(halign, 'LEFT')
+            self.halign = TBLR_HALIGN.get(halign, 'LEFT')
         else:
-            self.halign = HALIGN.get('LEFT')
+            self.halign = TBLR_HALIGN.get('LEFT')
 
 
 ''' Helper for cell span specification

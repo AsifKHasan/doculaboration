@@ -234,6 +234,8 @@ class LatexSection(LatexSectionBase):
         #     for cell in row.cells:
         #         print(f".. {cell}")
 
+        return
+
 
     ''' processes the cells to split the cells into tables and blocks nd ordering the tables and blocks properly
     '''
@@ -395,12 +397,18 @@ class LatexTable(LatexBlock):
     '''
     def to_latex(self):
         table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = f"colspec={{|{table_col_spec}|}}"
+        table_stretch = f"stretch={1.0}"
+        table_vspan = f"vspan=default"
+        table_hspan = f"hspan=default"
+        table_rows = f"rows={{ht={12}pt}}"
+
         table_lines = []
 
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
-        table_lines.append(f"\\setlength\\parindent{{0pt}}")
-        table_lines.append(f"\\begin{{longtable}}[l]{{|{table_col_spec}|}}\n")
+        # table_lines.append(f"\\setlength\\parindent{{0pt}}")
+        table_lines.append(f"\\begin{{longtblr}}[l]{{\n\t{table_col_spec},\n\t{table_stretch},\n\t{table_vspan},\n\t{table_hspan},\n\t{table_rows}\n}}\n")
 
         # generate the table
         r = 1
@@ -413,7 +421,7 @@ class LatexTable(LatexBlock):
 
             r = r + 1
 
-        table_lines.append(f"\\end{{longtable}}")
+        table_lines.append(f"\\end{{longtblr}}")
         table_lines.append(end_latex())
         return table_lines
 

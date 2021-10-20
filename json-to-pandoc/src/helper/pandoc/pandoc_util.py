@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-'''
-various utilities for generating a pandoc markdown document
+''' various utilities for generating a pandoc markdown document
 '''
 
 import sys
