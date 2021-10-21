@@ -26,6 +26,9 @@ class LatexSectionBase(object):
         self.level = section_data['level']
         self.page_numbering = section_data['page-number']
 
+        # the colors dict to be returned
+        self.color_dict = {}
+
         section_contents = section_data.get('contents')
 
         self.title = None
@@ -287,9 +290,10 @@ class LatexSection(LatexSectionBase):
 
         # iterate to through tables and blocks contents
         for block in self.content_list:
-            latex_lines = latex_lines + block.to_latex()
+            latex_lines = latex_lines + block.to_latex(self.color_dict)
 
-        return latex_lines
+
+        return latex_lines, self.color_dict
 
 
 ''' Latex section object
@@ -317,9 +321,9 @@ class LatexToCSection(LatexSectionBase):
 
         # iterate to through tables and blocks contents
         for block in self.content_list:
-            latex_lines = latex_lines + block.to_latex()
+            latex_lines = latex_lines + block.to_latex(self.color_dict)
 
-        return latex_lines
+        return latex_lines, self.color_dict
 
 
 ''' Latex Block object wrapper base class (plain latex, table, header etc.)
@@ -328,7 +332,7 @@ class LatexBlock(object):
 
     ''' generates latex code
     '''
-    def to_latex(self):
+    def to_latex(self, color_dict):
         pass
 
 
@@ -343,7 +347,7 @@ class LatexSectionHeader(LatexBlock):
 
     ''' generates latex code
     '''
-    def to_latex(self):
+    def to_latex(self, color_dict):
         header_lines = []
         header_lines.append('')
         header_lines.append(begin_latex())
@@ -395,7 +399,7 @@ class LatexTable(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self):
+    def to_latex(self, color_dict):
         table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
         table_col_spec = f"colspec={{|{table_col_spec}|}}"
         table_stretch = f"stretch={1.0}"
@@ -413,7 +417,7 @@ class LatexTable(LatexBlock):
         # generate the table
         r = 1
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.to_latex()))
+            row_lines = list(map(lambda x: f"\t{x}", row.to_latex(color_dict)))
             table_lines = table_lines + row_lines
 
             # header row
@@ -439,14 +443,14 @@ class LatexParagraph(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self):
+    def to_latex(self, color_dict):
         block_lines = []
         block_lines.append(begin_latex())
         block_lines.append(f"% LatexParagraph: row {self.row_number}")
 
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_latex()
+            row_text = self.data_row.get_cell(0).content_latex(color_dict)
             block_lines.append(row_text)
 
         block_lines.append(end_latex())

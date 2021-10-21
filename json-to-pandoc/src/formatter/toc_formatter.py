@@ -16,4 +16,4 @@ def generate(section_data, section_specs, context):
     latex_section = LatexToCSection(section_data, section_specs[section_data['section-break']])
 
     # TODO: for now we just get the latex code for the section, we need to wrap this into a latex document object and append to that document
-    return latex_section.to_latex()
+    return latex_section.to_latex(), {}
