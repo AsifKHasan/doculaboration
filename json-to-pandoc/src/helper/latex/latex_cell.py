@@ -66,8 +66,8 @@ class Cell(object):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
         self.merge_spec.multi_col = from_cell.merge_spec.multi_col
-        self.merge_spec.col_span = from_cell.merge_spec.col_span
-        self.merge_spec.row_span = from_cell.merge_spec.row_span
+        # self.merge_spec.col_span = from_cell.merge_spec.col_span
+        # self.merge_spec.row_span = from_cell.merge_spec.row_span
         self.cell_width = from_cell.cell_width
 
 
@@ -101,42 +101,59 @@ class Cell(object):
         self.merge_spec.multi_row = span
 
 
-    ''' latex code for cell borders (top and bottom)
+    ''' latex code for top border
     '''
-    def borders_tb_latex(self):
+    def top_border_latex(self):
+        t = None
         if self.effective_format and self.effective_format.borders:
             t = self.effective_format.borders.to_latex_t()
-            b = self.effective_format.borders.to_latex_b()
-        else:
-            t, b = None, None
+            t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
 
-        if t is not None:
-            t = f"*{self.merge_spec.col_span}{{{t}}}".strip()
-
-        if b is not None:
-            b = f"*{self.merge_spec.col_span}{{{b}}}".strip()
-
-        return t, b
+        return t
 
 
-    ''' latex code for cell borders (left and right)
+    ''' latex code for bottom border
     '''
-    def borders_lr_latex(self):
+    def bottom_border_latex(self):
+        b = None
+        if self.effective_format and self.effective_format.borders:
+            b = self.effective_format.borders.to_latex_b()
+            b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+
+        return b
+
+
+    ''' latex code for left border
+    '''
+    def left_border_latex(self):
+        l = None
         if self.effective_format and self.effective_format.borders:
             l = self.effective_format.borders.to_latex_l()
-            r = self.effective_format.borders.to_latex_r()
-        else:
-            l, r = '', ''
+            l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
 
-        return l, r
+        return l
+
+
+    ''' latex code for right border
+    '''
+    def right_border_latex(self):
+        r = None
+        if self.effective_format and self.effective_format.borders:
+            r = self.effective_format.borders.to_latex_r()
+            r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+
+        return r
 
 
     ''' latex code for cell content
     '''
     def content_latex(self):
-        # the content is not valid for multirow FirstCell and InnerCell
-        if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
-            cell_value = None
+        # the content is not valid for multirow LastCell and InnerCell
+        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            cell_value = f""
+
+        elif self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            cell_value = f""
 
         else:
             # textFormatRuns first
@@ -158,24 +175,9 @@ class Cell(object):
 
             # there is a 3rd possibility, the cell has no values at all, quite an empty cell
             else:
-                cell_value = f"{{}}"
+                cell_value = f""
 
-
-        # cell halign
-        if self.effective_format:
-            halign = self.effective_format.halign.halign
-            bgcolor = self.effective_format.bgcolor.to_latex()
-        else:
-            halign = TBLR_HALIGN.get('LEFT')
-            bgcolor = self.default_format.bgcolor.to_latex()
-
-        # finally build the cell content
-        if cell_value:
-            cell_content = f"{halign} {cell_value} \\cellcolor{bgcolor}".strip()
-        else:
-            cell_content = f"{halign} \\cellcolor{bgcolor}".strip()
-
-        return cell_content
+        return cell_value
 
 
     ''' generates the latex code
@@ -195,31 +197,24 @@ class Cell(object):
 
         latex_lines.append(f"% {self.merge_spec.to_string()}")
 
-        # get the vertical left and right borders
-        l, r = self.borders_lr_latex()
-
-        # the cell could be an inner or last cell in a multicolumn setting
-        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            # we simply do not generate anything
-            return latex_lines
-
-        # first we go for multicolumn, multirow and column width part
-        if self.effective_format:
-            valign = self.effective_format.valign.valign
-        else:
-            valign = TBLR_VALIGN.get('MIDDLE')
-
-        cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{!{l} {valign}{{{self.cell_width}in}} !{r}}}"
-        # cell_col_span = f"\\mc{{{self.merge_spec.col_span}}}{{{valign}{{{self.cell_width}in}}}}"
-
         # next we build the cell content
-        cell_content = self.content_latex()
+        cell_value = self.content_latex()
 
         # finally we build the whole cell
-        if self.merge_spec.multi_row == MultiSpan.LastCell:
-            latex_lines.append(f"{cell_col_span} {{\\mr{{{-self.merge_spec.row_span}}}{{=}}{{{cell_content}}}}}")
+        # cell halign
+        if self.effective_format:
+            halign = self.effective_format.halign.halign
+            valign = self.effective_format.valign.valign
+            bgcolor = self.effective_format.bgcolor
         else:
-            latex_lines.append(f"{cell_col_span} {{{cell_content}}}")
+            halign = TBLR_HALIGN.get('LEFT')
+            valign = TBLR_VALIGN.get('MIDDLE')
+            bgcolor = self.default_format.bgcolor
+
+        # finally build the cell content
+        cell_content = f"\\SetCell[r={self.merge_spec.row_span},c={self.merge_spec.col_span}]{{valign={valign},halign={halign},bg={bgcolor}}}{{{cell_value}}}"
+
+        latex_lines.append(cell_content)
 
         return latex_lines
 
@@ -298,10 +293,28 @@ class Row(object):
             return False
 
 
-    ''' generates the top and bottom borders
+    ''' generates the top borders
     '''
-    def borders_latex(self):
+    def top_borders_latex(self):
         top_borders = []
+        c = 0
+        for cell in self.cells:
+            if cell is None:
+                warn(f"{self.row_name} has a Null cell at {c}")
+
+            else:
+                t = cell.top_border_latex()
+                if t is not None:
+                    top_borders.append(f"\\cline{t}")
+
+            c = c + 1
+
+        return top_borders
+
+
+    ''' generates the bottom borders
+    '''
+    def bottom_borders_latex(self):
         bottom_borders = []
         c = 0
         for cell in self.cells:
@@ -309,26 +322,34 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                t, b = cell.borders_tb_latex()
-                if t is not None:
-                    top_borders.append(t)
-
+                b = cell.bottom_border_latex()
                 if b is not None:
-                    bottom_borders.append(b)
+                    bottom_borders.append(f"\\cline{b}")
 
             c = c + 1
 
-        top_border = '|'.join(top_borders)
-        bottom_border = '|'.join(bottom_borders)
-
-        return f"\\hhline{{|{top_border}|}}", f"\\hhline{{|{bottom_border}|}}"
+        return bottom_borders
 
 
     ''' generates the latex code
     '''
     def to_latex(self):
-        # debug(f"processing {self.row_name}")
+        debug(f"processing {self.row_name}")
 
+        row_lines = []
+        row_lines.append(f"% {self.row_name}")
+
+        # top and bottom borders
+        top_border_lines = self.top_borders_latex()
+        top_border_lines.append('')
+        top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
+
+        bottom_border_lines = self.bottom_borders_latex()
+        bottom_border_lines.append('')
+        bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
+
+
+        # gets the cell latex lines
         all_cell_lines = []
         first_cell = True
         c = 0
@@ -340,30 +361,24 @@ class Row(object):
                 cell_lines = cell.to_latex()
 
             if c > 0 and len(cell_lines) > 1:
-                all_cell_lines.append('&')
+                all_cell_lines.append('&\n')
 
             all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
 
-        all_cell_lines.append(f"\\tabularnewline[-0.9pt]")
-        # all_cell_lines.append(f"\\tabularnewline[\\dimexpr\\arrayrulewidth * -2]")
+        all_cell_lines.append(f"\\\\")
+        all_cell_lines = list(map(lambda x: f"\t{x}", all_cell_lines))
 
-
-        row_lines = []
-        row_lines.append(f"% {self.row_name}")
-
-        # top and bottom borders
-        top_border, bottom_border = self.borders_latex()
 
         # top border
-        row_lines.append(top_border)
+        row_lines = row_lines + top_border_lines
 
         # all cells
         row_lines = row_lines + all_cell_lines
 
         # bottom border
-        row_lines.append(bottom_border)
-        row_lines.append('')
+        row_lines.append('\t')
+        row_lines = row_lines + bottom_border_lines
 
         return row_lines
 
@@ -395,21 +410,21 @@ class TextFormat(object):
 
 
     def to_latex(self, text):
-        content = f"{{{text}}}"
+        content = f"{text}"
 
-        if self.is_underline: content = f"{{\\underline{content}}}"
-        if self.is_strikethrough: content = f"{{\\sout{content}}}"
-        if self.is_italic: content = f"{{\\textit{content}}}"
-        if self.is_bold: content = f"{{\\textbf{content}}}"
+        if self.is_underline: content = f"\\underline{{{content}}}"
+        if self.is_strikethrough: content = f"\\sout{{{content}}}"
+        if self.is_italic: content = f"\\textit{{{content}}}"
+        if self.is_bold: content = f"\\textbf{{{content}}}"
 
         # color, font, font-size
         if self.font_family != '':
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{self.fgcolor.to_latex()}"
+            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor}}}"
         else:
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{self.fgcolor.to_latex()}"
+            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor}}}"
 
 
-        latex = f"{{{fontspec}{content}}}"
+        latex = f"{fontspec}{content}"
         return latex
 
 
@@ -448,7 +463,7 @@ class CellValue(object):
                 image_width = cell_width - 0.2
                 image_height = image_height * adjust_ratio
 
-            latex = f"{{\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}}}"
+            latex = f"\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}"
 
         # if text, formattedValue will contain the text
         else:
@@ -589,11 +604,9 @@ class Borders(object):
     ''' top border
     '''
     def to_latex_t(self):
+        t = None
         if self.top:
-            t = self.top.to_latex_h()
-
-        else:
-            t = '~'
+            t = self.top.to_latex()
 
         return t
 
@@ -601,11 +614,9 @@ class Borders(object):
     ''' bottom border
     '''
     def to_latex_b(self):
+        b = None
         if self.bottom:
-            b = self.bottom.to_latex_h()
-
-        else:
-            b = '~'
+            b = self.bottom.to_latex()
 
         return b
 
@@ -613,11 +624,9 @@ class Borders(object):
     ''' left border
     '''
     def to_latex_l(self):
+        l = None
         if self.left:
-            l = self.left.to_latex_v()
-
-        else:
-            l = ' '
+            l = self.left.to_latex()
 
         return l
 
@@ -625,11 +634,9 @@ class Borders(object):
     ''' right border
     '''
     def to_latex_r(self):
+        r = None
         if self.right:
-            r = self.right.to_latex_v()
-
-        else:
-            r = ' '
+            r = self.right.to_latex()
 
         return r
 
@@ -646,17 +653,11 @@ class Border(object):
             self.width = int(border_dict.get('width')) * 0.4
             self.color = RgbColor(border_dict.get('color'))
 
-            if self.style in ['DOTTED', 'DASHED', 'SOLID', 'SOLID_MEDIUM', 'SOLID_THICK']:
-                self.style = '-'
-
-            elif self.style in ['DOUBLE']:
-                self.style = '='
-
-            else:
-                self.style = '~'
+            # TODO: handle double
+            self.style = GSHEET_LATEX_BORDER_MAPPING.get(self.style, 'solid')
 
         else:
-            self.style = '-'
+            self.style = 'solid'
             self.width = 0.4
             if border_color is None:
                 self.color = RgbColor()
@@ -670,17 +671,10 @@ class Border(object):
         return f"style: {self.style}, width: {self.width}, color: {self.color}"
 
 
-    ''' horizontal border
+    ''' border
     '''
-    def to_latex_h(self):
-        latex = f">{{\\hborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}{self.style}"
-        return latex
-
-
-    ''' vertical border
-    '''
-    def to_latex_v(self):
-        latex = f"{{\\vborder{{{self.color.red},{self.color.green},{self.color.blue}}}{{{self.width}pt}}}}"
+    def to_latex(self):
+        latex = f"[fg={self.color},wd={self.width}pt,dash={self.style}]"
         return latex
 
 
@@ -757,12 +751,7 @@ class RgbColor(object):
     ''' string representation
     '''
     def __repr__(self):
-        return f"[RGB]{{{self.red},{self.green},{self.blue}}}"
-
-    ''' generates the latex code
-    '''
-    def to_latex(self):
-        return f"[RGB]{{{self.red},{self.green},{self.blue}}}"
+        return 'c' + ''.join('{:02X}'.format(a) for a in [self.red, self.green, self.blue])
 
 
 ''' gsheet cell padding object wrapper

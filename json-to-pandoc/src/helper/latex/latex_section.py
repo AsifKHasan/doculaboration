@@ -413,11 +413,12 @@ class LatexTable(LatexBlock):
         # generate the table
         r = 1
         for row in self.table_cell_matrix:
-            table_lines = table_lines + row.to_latex()
+            row_lines = list(map(lambda x: f"\t{x}", row.to_latex()))
+            table_lines = table_lines + row_lines
 
             # header row
             if self.header_row_count == r:
-                table_lines.append(f"\\endhead\n")
+                table_lines.append(f"\t\\endhead\n")
 
             r = r + 1
 
