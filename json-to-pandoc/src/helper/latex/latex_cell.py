@@ -66,8 +66,8 @@ class Cell(object):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
         self.merge_spec.multi_col = from_cell.merge_spec.multi_col
-        # self.merge_spec.col_span = from_cell.merge_spec.col_span
-        # self.merge_spec.row_span = from_cell.merge_spec.row_span
+        self.merge_spec.col_span = from_cell.merge_spec.col_span
+        self.merge_spec.row_span = from_cell.merge_spec.row_span
         self.cell_width = from_cell.cell_width
 
 
@@ -107,7 +107,7 @@ class Cell(object):
         t = None
         if self.effective_format and self.effective_format.borders:
             t = self.effective_format.borders.to_latex_t(color_dict)
-            t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+            t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return t
 
@@ -118,7 +118,7 @@ class Cell(object):
         b = None
         if self.effective_format and self.effective_format.borders:
             b = self.effective_format.borders.to_latex_b(color_dict)
-            b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+            b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return b
 
@@ -129,7 +129,7 @@ class Cell(object):
         l = None
         if self.effective_format and self.effective_format.borders:
             l = self.effective_format.borders.to_latex_l(color_dict)
-            l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+            l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return l
 
@@ -140,7 +140,7 @@ class Cell(object):
         r = None
         if self.effective_format and self.effective_format.borders:
             r = self.effective_format.borders.to_latex_r(color_dict)
-            r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}".strip()
+            r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return r
 
@@ -213,9 +213,9 @@ class Cell(object):
 
         # finally build the cell content
         color_dict[bgcolor.key()] = bgcolor.value()
-        cell_content = f"\\SetCell[r={self.merge_spec.row_span},c={self.merge_spec.col_span}]{{valign={valign},halign={halign},bg={bgcolor.key()}}}{{{cell_value}}}"
-
-        latex_lines.append(cell_content)
+        if not self.is_empty:
+            cell_content = f"\\SetCell[r={self.merge_spec.row_span},c={self.merge_spec.col_span}]{{valign={valign},halign={halign},bg={bgcolor.key()}}} {{{cell_value}}}"
+            latex_lines.append(cell_content)
 
         return latex_lines
 
@@ -342,11 +342,9 @@ class Row(object):
 
         # top and bottom borders
         top_border_lines = self.top_borders_latex(color_dict)
-        top_border_lines.append('')
         top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
 
         bottom_border_lines = self.bottom_borders_latex(color_dict)
-        bottom_border_lines.append('')
         bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
 
 
@@ -361,8 +359,8 @@ class Row(object):
             else:
                 cell_lines = cell.to_latex(color_dict)
 
-            if c > 0 and len(cell_lines) > 1:
-                all_cell_lines.append('&\n')
+            if c > 0:
+                all_cell_lines.append('&')
 
             all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
@@ -378,7 +376,6 @@ class Row(object):
         row_lines = row_lines + all_cell_lines
 
         # bottom border
-        row_lines.append('\t')
         row_lines = row_lines + bottom_border_lines
 
         return row_lines
