@@ -400,8 +400,9 @@ class LatexTable(LatexBlock):
     ''' generates the latex code
     '''
     def to_latex(self, color_dict):
-        table_col_spec = '|'.join([f"p{{{i}in}}" for i in self.column_widths])
-        table_col_spec = f"colspec={{|{table_col_spec}|}}"
+        table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
+        table_col_spec = f"colspec={{{table_col_spec}}}"
+        table_rulesep = f"rulesep={0}pt"
         table_stretch = f"stretch={1.0}"
         table_vspan = f"vspan=default"
         table_hspan = f"hspan=default"
@@ -411,13 +412,20 @@ class LatexTable(LatexBlock):
 
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
-        # table_lines.append(f"\\setlength\\parindent{{0pt}}")
-        table_lines.append(f"\\begin{{longtblr}}[l]{{\n\t{table_col_spec},\n\t{table_stretch},\n\t{table_vspan},\n\t{table_hspan},\n\t{table_rows}\n}}\n")
+        table_lines.append(f"\\begin{{longtblr}}[l]{{\n\t{table_col_spec},\n\t{table_rulesep},\n\t{table_stretch},\n\t{table_vspan},\n\t{table_hspan},\n\t{table_rows},")
+
+        # include cell formats
+        for row in self.table_cell_matrix:
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_format_latex(color_dict)))
+            table_lines = table_lines + row_lines
+
+        # close the table definition
+        table_lines.append(f"}}\n")
 
         # generate the table
         r = 1
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.to_latex(color_dict)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(color_dict)))
             table_lines = table_lines + row_lines
 
             # header row

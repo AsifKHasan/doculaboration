@@ -107,7 +107,8 @@ class Cell(object):
         t = None
         if self.effective_format and self.effective_format.borders:
             t = self.effective_format.borders.to_latex_t(color_dict)
-            t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if t is not None:
+                t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
 
         return t
 
@@ -118,7 +119,8 @@ class Cell(object):
         b = None
         if self.effective_format and self.effective_format.borders:
             b = self.effective_format.borders.to_latex_b(color_dict)
-            b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if b is not None:
+                b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
 
         return b
 
@@ -129,7 +131,8 @@ class Cell(object):
         l = None
         if self.effective_format and self.effective_format.borders:
             l = self.effective_format.borders.to_latex_l(color_dict)
-            l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if l is not None:
+                l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return l
 
@@ -140,7 +143,8 @@ class Cell(object):
         r = None
         if self.effective_format and self.effective_format.borders:
             r = self.effective_format.borders.to_latex_r(color_dict)
-            r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if r is not None:
+                r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return r
 
@@ -148,6 +152,10 @@ class Cell(object):
     ''' latex code for cell content
     '''
     def content_latex(self, color_dict):
+        content_lines = []
+
+        content_lines.append(f"% {self.merge_spec.to_string()}")
+
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
             cell_value = f""
@@ -177,14 +185,16 @@ class Cell(object):
             else:
                 cell_value = f""
 
-        return cell_value
+        content_lines.append(cell_value)
+
+        return content_lines
 
 
-    ''' generates the latex code
+    ''' latex code for cell format
     '''
-    def to_latex(self, color_dict):
+    def format_latex(self, color_dict):
         # adjust the borders first
-        self.adjust_borders()
+        # self.adjust_borders()
 
         # debug(f"..processing {self.cell_name}")
         # if self.effective_format:
@@ -194,11 +204,6 @@ class Cell(object):
         #     warn(f"..{self.cell_name} # NO-EFFECTVE-FORMAT")
 
         latex_lines = []
-
-        latex_lines.append(f"% {self.merge_spec.to_string()}")
-
-        # next we build the cell content
-        cell_value = self.content_latex(color_dict)
 
         # finally we build the whole cell
         # cell halign
@@ -214,8 +219,8 @@ class Cell(object):
         # finally build the cell content
         color_dict[bgcolor.key()] = bgcolor.value()
         if not self.is_empty:
-            cell_content = f"\\SetCell[r={self.merge_spec.row_span},c={self.merge_spec.col_span}]{{valign={valign},halign={halign},bg={bgcolor.key()}}} {{{cell_value}}}"
-            latex_lines.append(cell_content)
+            cell_format_latex = f"cell{{{self.row_num+1}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()}}},"
+            latex_lines.append(cell_format_latex)
 
         return latex_lines
 
@@ -228,7 +233,7 @@ class Row(object):
     '''
     def __init__(self, row_num, row_data, default_format, section_width, column_widths):
         self.row_num, self.section_width, self.column_widths, self.default_format = row_num, section_width, column_widths, default_format
-        self.row_name = f"row: [{self.row_num}]"
+        self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
         c = 0
@@ -306,7 +311,7 @@ class Row(object):
             else:
                 t = cell.top_border_latex(color_dict)
                 if t is not None:
-                    top_borders.append(f"\\cline{t}")
+                    top_borders.append(f"\\SetHline{t}")
 
             c = c + 1
 
@@ -325,28 +330,83 @@ class Row(object):
             else:
                 b = cell.bottom_border_latex(color_dict)
                 if b is not None:
-                    bottom_borders.append(f"\\cline{b}")
+                    bottom_borders.append(f"\\SetHline{b}")
 
             c = c + 1
 
         return bottom_borders
 
 
+    ''' generates the left borders
+    '''
+    def left_borders_latex(self, color_dict):
+        left_borders = []
+        c = 0
+        for cell in self.cells:
+            if cell is None:
+                warn(f"{self.row_name} has a Null cell at {c}")
+
+            else:
+                l = cell.left_border_latex(color_dict)
+                if l is not None:
+                    left_borders.append(f"\\rline{l}")
+
+            c = c + 1
+
+        return left_borders
+
+
+    ''' generates the left borders
+    '''
+    def right_borders_latex(self, color_dict):
+        right_borders = []
+        c = 0
+        for cell in self.cells:
+            if cell is None:
+                warn(f"{self.row_name} has a Null cell at {c}")
+
+            else:
+                r = cell.right_border_latex(color_dict)
+                if r is not None:
+                    right_borders.append(f"\\rline{r}")
+
+            c = c + 1
+
+        return right_borders
+
+
+    ''' generates the latex code for cell formats
+    '''
+    def cell_format_latex(self, color_dict):
+        cell_format_lines = []
+        for cell in self.cells:
+            if cell is not None:
+                if not cell.is_empty:
+                    cell_format_lines = cell_format_lines + cell.format_latex(color_dict)
+
+        return cell_format_lines
+
+
     ''' generates the latex code
     '''
-    def to_latex(self, color_dict):
+    def cell_content_latex(self, color_dict):
         debug(f"processing {self.row_name}")
 
         row_lines = []
         row_lines.append(f"% {self.row_name}")
 
-        # top and bottom borders
+        # borders
         top_border_lines = self.top_borders_latex(color_dict)
         top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
 
         bottom_border_lines = self.bottom_borders_latex(color_dict)
         bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
 
+        # left_border_lines = self.left_borders_latex(color_dict)
+        # left_border_lines = list(map(lambda x: f"\t{x}", left_border_lines))
+
+        # right_border_lines = self.right_borders_latex(color_dict)
+        # right_border_lines = list(map(lambda x: f"\t{x}", right_border_lines))
 
         # gets the cell latex lines
         all_cell_lines = []
@@ -357,7 +417,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
             else:
-                cell_lines = cell.to_latex(color_dict)
+                cell_lines = cell.content_latex(color_dict)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -371,6 +431,8 @@ class Row(object):
 
         # top border
         row_lines = row_lines + top_border_lines
+        # row_lines = row_lines + left_border_lines
+        # row_lines = row_lines + right_border_lines
 
         # all cells
         row_lines = row_lines + all_cell_lines
@@ -408,7 +470,7 @@ class TextFormat(object):
 
 
     def to_latex(self, text, color_dict):
-        content = f"{text}"
+        content = f"{{{text}}}"
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
         if self.is_underline: content = f"\\underline{{{content}}}"

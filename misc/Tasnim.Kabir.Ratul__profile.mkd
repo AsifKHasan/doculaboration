@@ -1,30 +1,18 @@
 ```{=latex}
-% "top" strut
-\newcommand\Tstrut[1]{\rule[2.0ex]{0pt}{#1}}
-
-% "bottom" strut
-\newcommand\Bstrut[1]{\rule[-0.9ex]{0pt}{#1}}
-
 % Title Style - used for Level 0 heading
 \newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
 
-% vertical border macro [color and width]
-\newcommand\vborder[2]{\color[rgb]{#1}\setlength\arrayrulewidth{#2}\vline}
-
-% horizontal border macro [color and width]
-\newcommand\hborder[2]{\arrayrulecolor[rgb]{#1}\global\deflength\arrayrulewidth{#2}}
-
-% we set default table column separation to 0.05 inches
-\setlength{\tabcolsep}{0.05in}
-
-% we set default table row height to be 1.2 times of normal height
-\renewcommand{\arraystretch}{1.2}
-
-% we need a little bit space top of each row so that texts do not touch top border
-\renewcommand\extrarowheight{2pt}
-
-\newcommand\mc\multicolumn
-\newcommand\mr\multirow
+% define colors for tabularray
+\definecolor{FFFFFF}{HTML}{FFFFFF}
+\definecolor{D9D1E9}{HTML}{D9D1E9}
+\definecolor{D9D9D9}{HTML}{D9D9D9}
+\definecolor{D9EAD3}{HTML}{D9EAD3}
+\definecolor{D0E0E3}{HTML}{D0E0E3}
+\definecolor{000000}{HTML}{000000}
+\definecolor{FF0000}{HTML}{FF0000}
+\definecolor{980000}{HTML}{980000}
+\definecolor{274E13}{HTML}{274E13}
+\definecolor{434343}{HTML}{434343}
 ```
 
 ```{=latex}
@@ -37,978 +25,125 @@
 
 ```{=latex}
 % LatexTable: (0-8) : 9 rows
-\setlength\parindent{0pt}
-\begin{longtable}[l]{p{0.5770000000000001in}p{5.316000000000001in}p{0.5770000000000001in}}
-
-\hhline{*{3}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{6.67in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{3}~}
-
-\hhline{*{3}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{6.67in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{3}~}
-
-\hhline{*{3}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{6.67in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{3}~}
-
-\hhline{*{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.5770000000000001in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{5.316000000000001in} } {\centering {\includegraphics[width=4.822916666666667in]{/home/asif/projects/asif@github.com/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.5770000000000001in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~}
-
-\hhline{*{3}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{6.67in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{3}~}
-
-\hhline{*{3}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{6.67in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{3}~}
-
-\hhline{*{3}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{!{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}} m{6.67in} !{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}}} {\centering {\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{Re}}{\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.15294118,0.30588236,0.07450981}{sour}}{\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\underline{ce}}}{\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{ P}}{\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\sout{rof}}}{\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color[rgb]{0.59607846,0.0,0.0}{\textit{ile}}} \cellcolor[rgb]{0.8509804,0.8509804,0.8509804}}
-\tabularnewline
-\hhline{*{3}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-
-\hhline{*{3}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{!{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}} m{6.67in} !{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}}} {\centering {\fontsize{18pt}{18pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{\textbf{Tasnim Kabir Ratul}}} \cellcolor[rgb]{0.8509804,0.91764706,0.827451}}
-\tabularnewline
-\hhline{*{3}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-
-\hhline{*{1}~ *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.5770000000000001in} } {\centering {\fontsize{14pt}{14pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{\textbf{}}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}} m{5.316000000000001in} !{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}}} {\centering {\fontsize{14pt}{14pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{\textbf{\textit{তাসনিম কবির রাতুল}}}} \cellcolor[rgb]{0.8156863,0.8784314,0.8901961}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.5770000000000001in} } {\centering {\fontsize{14pt}{14pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{\textbf{}}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}~}
-
-\end{longtable}
-```
-
-
-
-```{=latex}
-% LatexSection: 0-testpage
-\newpage
-\pdfpagewidth 8.27in
-\pdfpageheight 11.69in
-\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
-```
-
-
-# A - Test Page
-
-
-```{=latex}
-% LatexTable: (0-2) : 3 rows
-\setlength\parindent{0pt}
-\begin{longtable}[l]{p{0.6126315789473684in}p{1.681578947368421in}p{1.681578947368421in}p{1.681578947368421in}p{0.6126315789473684in}}
-
-\hhline{*{5}{>{\hborder{1.0,0.0,0.0}{0.4pt}}-}}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{5}{!{\vborder{0.21960784,0.4627451,0.11372549}{1.6pt}} m{6.669999999999999in} !{\vborder{1.0,0.0,0.0}{0.4pt}}} {\cellcolor[rgb]{1.0,0.9490196,0.8}}
-\tabularnewline
-\hhline{}
-
-\hhline{}
-\mc{5}{!{\vborder{0.21960784,0.4627451,0.11372549}{1.6pt}} m{6.669999999999999in} !{\vborder{1.0,0.0,0.0}{0.4pt}}} {\cellcolor[rgb]{1.0,0.9490196,0.8}}
-\tabularnewline
-\hhline{}
-
-\hhline{}
-\mc{5}{!{\vborder{0.21960784,0.4627451,0.11372549}{1.6pt}} m{6.669999999999999in} !{\vborder{1.0,0.0,0.0}{0.4pt}}} {\mr[c]{-3}{=} {\centering {\fontsize{36pt}{36pt}\color[rgb]{1.0,0.0,0.0}{\textbf{\textit{5}}}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{\textbf{ }}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{columns}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{\textbf{ }}}{\fontsize{24pt}{24pt}\color[rgb]{0.15294118,0.30588236,0.07450981}{\textbf{x}}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{\textbf{ }}}{\fontsize{36pt}{36pt}\color[rgb]{1.0,0.0,0.0}{\textbf{\textit{\sout{\underline{3}}}}}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{\textbf{ }}}{\fontsize{24pt}{24pt}\color[rgb]{0.4,0.4,0.4}{rows}} \cellcolor[rgb]{1.0,0.9490196,0.8}}}
-\tabularnewline
-\hhline{*{5}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-}}
-
-\end{longtable}
-```
-
-
-```{=latex}
-% LatexParagraph: row 3
-\raggedleft {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{That was a 4x3 table. This should take the whole page width. Alignmnet will be right. We are making the line a bit longer, as long as possible, so that we get a wrapped line.}} \cellcolor[rgb]{1.0,1.0,1.0}
-```
-
-
-```{=latex}
-% LatexParagraph: row 4
-\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{This is also an out-of-cell content, this should take the whole page width. Alignmnet will be centered. We are making the line a bit longer, as long as possible, so that we get a wrapped line.}} \cellcolor[rgb]{1.0,1.0,1.0}
-```
-
-
-```{=latex}
-% LatexParagraph: row 5
-\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{This is another. This should take the whole page width. Alignment will be left. We are making the line a bit longer, as long as possible, so that we get a wrapped line.}} \cellcolor[rgb]{1.0,1.0,1.0}
-```
-
-
-```{=latex}
-% LatexTable: (6-42) : 37 rows
-\setlength\parindent{0pt}
-\begin{longtable}[l]{p{0.6126315789473684in}p{1.681578947368421in}p{1.681578947368421in}p{1.681578947368421in}p{0.6126315789473684in}}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{\textbf{Header A}}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{\textbf{Header B}}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{\textbf{Header C}}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{\textbf{Header D}}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{\textbf{Header E}}} \cellcolor[rgb]{0.8509804,0.8235294,0.9137255}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-
-\endhead
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{A}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{B}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{C}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{D}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{E}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{3}~ *{1}None *{1}None *{2}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ m{4.17578947368421in} } {\centering {\fontsize{12pt}{12pt}\color[rgb]{0.59607846,0.0,0.0}{\textbf{\textit{3 columns x 2 rows}}}} \cellcolor[rgb]{0.8509804,0.91764706,0.827451}}
-&
-% multicolumn: InnerCell, multirow: No
-% multicolumn: InnerCell, multirow: No
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{2}{ m{2.39421052631579in} } {\centering {\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github.com/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}} \cellcolor[rgb]{0.8509804,0.8509804,0.8509804}}
-\tabularnewline
-\hhline{*{3}~ *{1}None *{1}None *{2}~}
-
-\tabularnewline
-\hhline{}
-
-\tabularnewline
-\hhline{}
-
-\tabularnewline
-\hhline{}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0.21960784,0.4627451,0.11372549}{1.6pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0.21960784,0.4627451,0.11372549}{1.6pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{1.6pt}}-}}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A5}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B5}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C5}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{1.681578947368421in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D5}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ m{0.6126315789473684in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E5}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A6}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B6}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C6}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D6}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E6}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A7}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B7}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C7}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D7}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E7}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A8}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B8}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C8}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D8}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E8}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A9}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B9}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C9}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D9}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E9}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A10}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B10}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C10}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D10}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E10}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A11}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B11}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C11}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D11}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E11}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A12}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B12}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C12}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D12}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E12}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A13}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B13}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C13}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D13}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E13}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A14}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B14}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C14}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D14}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E14}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A15}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B15}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C15}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D15}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E15}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A16}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B16}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C16}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D16}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E16}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A17}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B17}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C17}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D17}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E17}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A18}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B18}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C18}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D18}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E18}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A19}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B19}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C19}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D19}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E19}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A20}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B20}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C20}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D20}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E20}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A21}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B21}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C21}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D21}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E21}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A22}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B22}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C22}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D22}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E22}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A23}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B23}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C23}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D23}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E23}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A24}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B24}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C24}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D24}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E24}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A25}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B25}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C25}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D25}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E25}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A26}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B26}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C26}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D26}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E26}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A27}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B27}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C27}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D27}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E27}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A28}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B28}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C28}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D28}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E28}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A29}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B29}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C29}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D29}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E29}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A30}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B30}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C30}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D30}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E30}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\hhline{*{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~} *{1}{>{\hborder{0,0,0}{0pt}}~}}
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{A31}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{B31}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{C31}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{1.681578947368421in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{D31}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0,0,0}{0pt}} m{0.6126315789473684in} !{\vborder{0,0,0}{0pt}}} {\centering {\fontsize{10pt}{10pt}\color[rgb]{0.2627451,0.2627451,0.2627451}{E31}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-} *{1}{>{\hborder{0.4,0.4,0.4}{3.6000000000000005pt}}-}}
-
-\end{longtable}
-```
-
-
-
-```{=latex}
-% LatexSection: 5-appraisal-2021
-\newpage
-\pdfpagewidth 8.27in
-\pdfpageheight 11.69in
-\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
-```
-
-
-# 5 - Appraisal, 2021
-
-
-```{=latex}
-% LatexTable: (0-16) : 17 rows
-\setlength\parindent{0pt}
-\begin{longtable}[l]{p{0.20772727272727268in}p{2.207954545454545in}p{0.20772727272727268in}p{3.746590909090909in}}
-
-\hhline{*{4}{>{\hborder{0,0,0}{0.4pt}}-}}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{4}{!{\vborder{0,0,0}{0.4pt}} p{6.669999999999999in} !{\vborder{0,0,0}{0.4pt}}} {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{\textbf{This 2021 assessment details (criteria, targets, etc.) are very much based on the resource level and grade's alignment with the business functionality in the sense that}}} \cellcolor[rgb]{0.8509804,0.91764706,0.827451}}
-\tabularnewline
-\hhline{*{4}{>{\hborder{0,0,0}{0.4pt}}-}}
-
-\hhline{*{1}~ *{3}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{•}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ p{6.362272727272726in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{1.0,0.0,0.0}{appraisal criteria will be based on identifying exactly where the appraisee is now at the beginning/middle of 2021}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{3}~}
-
-\hhline{*{1}~ *{3}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{•}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ p{6.362272727272726in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0.15294118,0.30588236,0.07450981}{appraisal criteria will be based on identifying where the organization needs and expects the appraisee to be at the end of 2021}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{3}~}
-
-\hhline{*{1}~ *{3}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{•}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{3}{ p{6.362272727272726in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{appraisal criteria will comprise of activities and smaller targets that in combination will guide an appraisee to his/her target by the end of 2021}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{3}~}
-
-\hhline{*{4}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{4}{ p{6.669999999999999in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{\textbf{Identification of current level and grade}}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{4}~}
-
-\hhline{*{1}~ *{1}{>{\hborder{1.0,0.0,0.0}{0.4pt}}-} *{1}~ *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{1.0,0.0,0.0}{0.4pt}} p{2.207954545454545in} !{\vborder{1.0,0.0,0.0}{0.4pt}}} {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{!{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}} p{3.746590909090909in} !{\vborder{0.21960784,0.4627451,0.11372549}{0.4pt}}} {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}{>{\hborder{1.0,0.0,0.0}{0.4pt}}-} *{1}~ *{1}{>{\hborder{0.21960784,0.4627451,0.11372549}{0.4pt}}-}}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,0.0,0.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{0.21960784,0.4627451,0.11372549}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{4}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{4}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{4}{ p{6.669999999999999in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{\textbf{Target level and grade to be achieved}}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{4}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{4}~}
-% multicolumn: FirstCell, multirow: FirstCell
-\mc{4}{ p{6.669999999999999in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{\textbf{Activities planned to be executed for target achievement}}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{4}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{1}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{2}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\centering {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{3}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{2.207954545454545in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{0.20772727272727268in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-&
-% multicolumn: No, multirow: No
-\mc{1}{ p{3.746590909090909in} } {\raggedright {\fontsize{10pt}{10pt}\color[rgb]{0,0,0}{}} \cellcolor[rgb]{1.0,1.0,1.0}}
-\tabularnewline
-\hhline{*{1}~ *{1}~ *{1}~ *{1}~}
-
-\end{longtable}
+\begin{longtblr}[l]{
+	colspec={p{0.5770000000000001in}p{5.316000000000001in}p{0.5770000000000001in}},
+	stretch=1.0,
+  rulesep=0pt,
+	vspan=default,
+	hspan=default,
+	rows={ht=12pt},
+	cell{1}{1} = {r=1,c=3}{valign=m,halign=l,bg=FFFFFF},
+	cell{2}{1} = {r=1,c=3}{valign=m,halign=c,bg=FFFFFF},
+	cell{3}{1} = {r=1,c=3}{valign=m,halign=c,bg=FFFFFF},
+	cell{4}{1} = {r=1,c=1}{valign=m,halign=c,bg=FFFFFF},
+	cell{4}{2} = {r=1,c=1}{valign=m,halign=c,bg=D9D1E9},
+	cell{4}{3} = {r=1,c=1}{valign=m,halign=c,bg=FFFFFF},
+	cell{5}{1} = {r=1,c=3}{valign=m,halign=c,bg=FFFFFF},
+	cell{6}{1} = {r=1,c=3}{valign=m,halign=c,bg=FFFFFF},
+	cell{7}{1} = {r=1,c=3}{valign=m,halign=c,bg=D9D9D9},
+	cell{8}{1} = {r=1,c=3}{valign=m,halign=c,bg=D9EAD3},
+	cell{9}{1} = {r=1,c=1}{valign=m,halign=c,bg=FFFFFF},
+	cell{9}{2} = {r=1,c=1}{valign=m,halign=c,bg=D0E0E3},
+	cell{9}{3} = {r=1,c=1}{valign=m,halign=c,bg=FFFFFF},
+}
+
+	% row: [1]
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{10pt}{10pt}\color{000000}{}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+	% row: [2]
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+	% row: [3]
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+	% row: [4]
+		\cline[fg=FF0000,wd=1.2000000000000002pt,dash=solid]{2-2}
+		% multicolumn: No, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		&
+		% multicolumn: No, multirow: No
+		\includegraphics[width=4.822916666666667in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		&
+		% multicolumn: No, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		\\
+		\cline[fg=FF0000,wd=1.2000000000000002pt,dash=solid]{2-2}
+	% row: [5]
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+	% row: [6]
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{10pt}{10pt}\color{FF0000}{}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+	% row: [7]
+		\cline[fg=FF0000,wd=0.4pt,dash=solid]{1-3}
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{980000}\textbf{{Re}}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{274E13}{sour}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{980000}\underline{{ce}}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{980000}{ P}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{980000}\sout{{rof}}\fontsize{24pt}{24pt}\fontspec{Noto Serif Light}\color{980000}\textit{{ile}}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+		\SetHline[1]{1-3}{fg=FF0000,wd=0.4pt,dash=solid}
+	% row: [8]
+		\SetHline[2]{1-3}{fg=274E13,wd=0.4pt,dash=solid}
+		% multicolumn: FirstCell, multirow: No
+		\fontsize{18pt}{18pt}\color{434343}\textbf{{Tasnim Kabir Ratul}}
+		&
+		% multicolumn: InnerCell, multirow: No
+
+		&
+		% multicolumn: LastCell, multirow: No
+
+		\\
+		\cline[fg=274E13,wd=0.4pt,dash=solid]{1-3}
+	% row: [9]
+		\cline[fg=FF0000,wd=0.4pt,dash=solid]{2-2}
+		% multicolumn: No, multirow: No
+		\fontsize{14pt}{14pt}\color{434343}\textbf{{}}
+		&
+		% multicolumn: No, multirow: No
+		\fontsize{14pt}{14pt}\color{434343}\textbf{\textit{{তাসনিম কবির রাতুল}}}
+		&
+		% multicolumn: No, multirow: No
+		\fontsize{14pt}{14pt}\color{434343}\textbf{{}}
+		\\
+		\cline[fg=FF0000,wd=0.4pt,dash=solid]{2-2}
+\end{longtblr}
 ```

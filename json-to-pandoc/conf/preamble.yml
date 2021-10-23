@@ -16,7 +16,6 @@ header-includes:
 - \usepackage{colortbl}
 - \usepackage{ulem}
 - \usepackage{tabularray}
-- \usepackage{xcolor}
 
 - \tracinglostchars=2
 
