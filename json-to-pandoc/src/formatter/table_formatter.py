@@ -25,13 +25,11 @@ def generate(section_data, section_specs, context):
                 content_type = 'table'
 
             module = importlib.import_module(f"formatter.{content_type}_formatter")
-            section_text = section_text + module.generate(section, section_specs, context)
+            section_lines, color_dict =  module.generate(section, section_specs, context)
 
     else:
         # it is a new section
         latex_section = LatexSection(section_data, section_specs[section_data['section-break']])
+        section_lines, color_dict = latex_section.to_latex()
 
-        # TODO: for now we just get the latex code for the section, we need to wrap this into a latex document object and append to that document
-        section_text, color_dict = latex_section.to_latex()
-
-    return section_text, color_dict
+    return section_lines, color_dict

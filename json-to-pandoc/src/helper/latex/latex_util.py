@@ -37,9 +37,7 @@ PARA_VALIGN = {'TOP': 'p', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 PARA_HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
 
-COLSEP = 0.05
-
-VBORDER_WIDTH = (0.4 / 72.27)
+COLSEP = (6/72)
 
 ''' :param text: a plain text message
     :return: the message escaped to appear correctly in LaTeX

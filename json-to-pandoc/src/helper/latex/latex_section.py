@@ -108,7 +108,7 @@ class LatexSectionBase(object):
     ''' generates the latex code
     '''
     def to_latex(self):
-        return ''
+        pass
 
 
 ''' Latex section object
@@ -148,7 +148,7 @@ class LatexSection(LatexSectionBase):
 
             if col_span > 1:
                 first_cell.merge_spec.multi_col = MultiSpan.FirstCell
-                first_cell.cell_width = first_cell.cell_width + ((col_span -1) * 2 * VBORDER_WIDTH)
+                first_cell.cell_width = first_cell.cell_width + ((col_span - 1) * 2 * COLSEP)
             else:
                 first_cell.merge_spec.multi_col = MultiSpan.No
 
@@ -233,9 +233,9 @@ class LatexSection(LatexSectionBase):
 
         # let us see how the cells look now
         # for row in self.cell_matrix:
-        #     print(row.row_name)
+        #     debug(row.row_name)
         #     for cell in row.cells:
-        #         print(f".. {cell}")
+        #         debug(f".. {cell}")
 
         return
 
@@ -291,7 +291,6 @@ class LatexSection(LatexSectionBase):
         # iterate to through tables and blocks contents
         for block in self.content_list:
             latex_lines = latex_lines + block.to_latex(self.color_dict)
-
 
         return latex_lines, self.color_dict
 
@@ -354,11 +353,11 @@ class LatexSectionHeader(LatexBlock):
         header_lines.append(f"% LatexSection: {self.title}")
 
         if self.section_break.startswith('newpage_'):
-            header_lines.append(f"\\newpage")
+            header_lines.append(f"\t\\newpage")
 
-        header_lines.append(f"\pdfpagewidth {self.section_spec['page_width']}in")
-        header_lines.append(f"\pdfpageheight {self.section_spec['page_height']}in")
-        header_lines.append(f"\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
+        header_lines.append(f"\t\\pdfpagewidth {self.section_spec['page_width']}in")
+        header_lines.append(f"\t\\pdfpageheight {self.section_spec['page_height']}in")
+        header_lines.append(f"\t\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
 
         header_lines.append(end_latex())
 
@@ -391,7 +390,7 @@ class LatexTable(LatexBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
-        self.table_name = f"LatexTable: {self.start_row}-{self.end_row}[{self.row_count}]"
+        self.table_name = f"LatexTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
@@ -407,34 +406,30 @@ class LatexTable(LatexBlock):
         table_vspan = f"vspan=default"
         table_hspan = f"hspan=default"
         table_rows = f"rows={{ht={12}pt}}"
+        table_rowhead = f"rowhead={self.header_row_count}"
 
         table_lines = []
 
         table_lines.append(begin_latex())
-        table_lines.append(f"% LatexTable: ({self.start_row}-{self.end_row}) : {self.row_count} rows")
-        table_lines.append(f"\\begin{{longtblr}}[l]{{\n\t{table_col_spec},\n\t{table_rulesep},\n\t{table_stretch},\n\t{table_vspan},\n\t{table_hspan},\n\t{table_rows},")
+        table_lines.append(f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows")
+        table_lines.append(f"\t\\begin{{longtblr}}[l]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
 
-        # include cell formats
+        # generate cell formats
+        r = 1
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_format_latex(color_dict)))
+            row_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_latex(r, color_dict)))
             table_lines = table_lines + row_lines
+            r = r + 1
 
         # close the table definition
-        table_lines.append(f"}}\n")
+        table_lines.append(f"\t}}\n")
 
-        # generate the table
-        r = 1
+        # generate cell values
         for row in self.table_cell_matrix:
             row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(color_dict)))
             table_lines = table_lines + row_lines
 
-            # header row
-            if self.header_row_count == r:
-                table_lines.append(f"\t\\endhead\n")
-
-            r = r + 1
-
-        table_lines.append(f"\\end{{longtblr}}")
+        table_lines.append(f"\t\\end{{longtblr}}")
         table_lines.append(end_latex())
         return table_lines
 
@@ -454,12 +449,13 @@ class LatexParagraph(LatexBlock):
     def to_latex(self, color_dict):
         block_lines = []
         block_lines.append(begin_latex())
-        block_lines.append(f"% LatexParagraph: row {self.row_number}")
+        block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
 
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
             row_text = self.data_row.get_cell(0).content_latex(color_dict)
-            block_lines.append(row_text)
+            row_lines = list(map(lambda x: f"\t{x}", row_text))
+            block_lines = block_lines + row_lines
 
         block_lines.append(end_latex())
         return block_lines
