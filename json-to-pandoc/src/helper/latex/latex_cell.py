@@ -58,12 +58,11 @@ class Cell(object):
         return f"{s}....{b}"
 
 
-    ''' Copy value, format from the cell passed
+    ''' Copy format from the cell passed
     '''
-    def copy_from(self, from_cell):
-        if self.value:
-            self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+    def copy_format_from(self, from_cell):
+        self.user_entered_format = from_cell.user_entered_format
+        self.effective_format = from_cell.effective_format
 
         self.merge_spec.multi_col = from_cell.merge_spec.multi_col
         self.merge_spec.col_span = from_cell.merge_spec.col_span

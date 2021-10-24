@@ -170,36 +170,34 @@ class LatexSection(LatexSectionBase):
                     if r == first_row and c == first_col:
                         continue
 
-                    # debug(f"..cell [{r},{c}] is part of column merge")
+                    # debug(f"..cell [{r+1},{c+1}] is part of column merge")
                     next_cell_in_row = next_row_object.get_cell(c)
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        # debug(f"..cell [{r},{c}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(r, c, {}, first_cell.default_format, first_cell.column_widths)
+                        # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
+                        next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
-                        # the cells in the first column in subsequent rows should have the same value and format as the first_cell when it is row merge
-                        if c == first_col:
-                            # debug(f"..cell [{r},{c}] is the FirstCell of the column merge which is also a row merge")
-                            next_cell_in_row.copy_from(first_cell)
+                        # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
+                        next_cell_in_row.copy_format_from(first_cell)
 
                         # mark cells for multicol only if it is multicol
                         if col_span > 1:
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r},{c}] is the LastCell of the column merge")
+                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r},{c}] is the LastCell of the column merge")
+                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                # debug(f"..cell [{r},{c}] is an InnerCell of the column merge")
+                                # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
 
                         else:
@@ -210,17 +208,17 @@ class LatexSection(LatexSectionBase):
                         if row_span > 1:
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r},{c}] is the LastCell of the row merge")
+                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r},{c}] is the LastCell of the row merge")
+                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                # debug(f"..cell [{r},{c}] is an InnerCell of the row merge")
+                                # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
 
                         else:
@@ -228,7 +226,7 @@ class LatexSection(LatexSectionBase):
 
 
                     else:
-                        warn(f"..cell [{r},{c}] is not empty, it must be part of another column/row merge which is an issue")
+                        warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
 
 
         # let us see how the cells look now
