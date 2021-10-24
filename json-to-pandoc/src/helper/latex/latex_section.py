@@ -412,6 +412,12 @@ class LatexTable(LatexBlock):
 
         table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows")
+        table_lines.append(f"\t\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
+        table_lines.append(f"\t\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
+        table_lines.append(f"\t\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
+        table_lines.append(f"\t\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
+        table_lines.append(f"\t\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
+
         table_lines.append(f"\t\\begin{{longtblr}}[l]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
 
         # generate cell formats

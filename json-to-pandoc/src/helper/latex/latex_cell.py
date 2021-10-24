@@ -61,10 +61,32 @@ class Cell(object):
     ''' Copy value, format from the cell passed
     '''
     def copy_from(self, from_cell):
+        if self.value:
+            self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
+            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+
         self.merge_spec.multi_col = from_cell.merge_spec.multi_col
         self.merge_spec.col_span = from_cell.merge_spec.col_span
         self.merge_spec.row_span = from_cell.merge_spec.row_span
         self.cell_width = from_cell.cell_width
+
+
+    ''' adjust cell borders based on cell's bgcolor
+    '''
+    def adjust_borders(self):
+        # if the cell has a bgcolor and any border is missing, that border should be colored as bgcolor
+        if self.user_entered_format and self.user_entered_format.bgcolor:
+            self.effective_format.override_borders(self.user_entered_format.bgcolor)
+
+        # only if multi_col is No or FirstCell
+        if self.merge_spec.multi_col in [MultiSpan.FirstCell, MultiSpan.No]:
+            # if the cell is multi_row FirstCell or InnerCell, bottom border color is bgcolor
+            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
+                self.effective_format.recolor_bottom_border(self.user_entered_format.bgcolor)
+
+            # if the cell is multi_row InnerCell or LastCell, top border color is bgcolor
+            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+                self.effective_format.recolor_top_border(self.user_entered_format.bgcolor)
 
 
     ''' mark the cell multi_col
@@ -173,6 +195,9 @@ class Cell(object):
     ''' latex code for cell format
     '''
     def format_latex(self, r, color_dict):
+        # adjust the borders first
+        # self.adjust_borders()
+
         latex_lines = []
 
         # finally we build the whole cell
@@ -534,6 +559,30 @@ class CellFormat(object):
             self.text_format = None
 
 
+    ''' override borders with the specified color
+    '''
+    def override_borders(self, color):
+        if self.borders is None:
+            self.borders = Borders(None, color)
+        else:
+            self.borders.override_top_border(color)
+            self.borders.override_bottom_border(color)
+            self.borders.override_left_border(color)
+            self.borders.override_right_border(color)
+
+
+    ''' recolor top border with the specified color
+    '''
+    def recolor_top_border(self, color):
+        self.borders.override_top_border(color, forced=True)
+
+
+    ''' recolor bottom border with the specified color
+    '''
+    def recolor_bottom_border(self, color):
+        self.borders.override_bottom_border(color, forced=True)
+
+
 ''' gsheet cell borders object wrapper
 '''
 class Borders(object):
@@ -564,6 +613,42 @@ class Borders(object):
     '''
     def __repr__(self):
         return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
+
+
+    ''' override top border with the specified color
+    '''
+    def override_top_border(self, border_color, forced=False):
+        if border_color:
+            if self.top is None:
+                self.top = Border(None, border_color)
+            elif forced:
+                self.top.color = border_color
+
+
+    ''' override bottom border with the specified color
+    '''
+    def override_bottom_border(self, border_color, forced=False):
+        if border_color:
+            if self.bottom is None:
+                self.bottom = Border(None, border_color)
+            elif forced:
+                self.bottom.color = border_color
+
+
+    ''' override left border with the specified color
+    '''
+    def override_left_border(self, border_color):
+        if border_color:
+            if self.left is None:
+                self.left = Border(None, border_color)
+
+
+    ''' override right border with the specified color
+    '''
+    def override_right_border(self, border_color):
+        if border_color:
+            if self.right is None:
+                self.right = Border(None, border_color)
 
 
     ''' top border
