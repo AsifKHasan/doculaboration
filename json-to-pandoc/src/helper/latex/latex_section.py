@@ -421,8 +421,15 @@ class LatexTable(LatexBlock):
         # generate cell formats
         r = 1
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_latex(r, color_dict)))
-            table_lines = table_lines + row_lines
+            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_latex(r, color_dict)))
+            table_lines = table_lines + cell_format_lines
+            r = r + 1
+
+        # generate vertical borders
+        r = 1
+        for row in self.table_cell_matrix:
+            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_latex(r, color_dict)))
+            table_lines = table_lines + v_lines
             r = r + 1
 
         # close the table definition

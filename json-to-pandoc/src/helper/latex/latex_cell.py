@@ -100,15 +100,52 @@ class Cell(object):
         self.merge_spec.multi_row = span
 
 
+    ''' whether top border is allowed for the cell
+    '''
+    def top_border_allowed(self):
+        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
+            return True
+
+        return False
+
+
+    ''' whether bottom border is allowed for the cell
+    '''
+    def bottom_border_allowed(self):
+        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.LastCell]:
+            return True
+
+        return False
+
+
+    ''' whether left border is allowed for the cell
+    '''
+    def left_border_allowed(self):
+        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+            return True
+
+        return False
+
+
+    ''' whether right border is allowed for the cell
+    '''
+    def right_border_allowed(self):
+        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.LastCell]:
+            return True
+
+        return False
+
+
     ''' latex code for top border
     '''
     def top_border_latex(self, color_dict):
         t = None
         if self.effective_format and self.effective_format.borders:
-            t = self.effective_format.borders.to_latex_t(color_dict)
-            if t is not None:
-                # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
-                t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if self.top_border_allowed():
+                t = self.effective_format.borders.to_latex_t(color_dict)
+                if t is not None:
+                    # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
+                    t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return t
 
@@ -118,36 +155,34 @@ class Cell(object):
     def bottom_border_latex(self, color_dict):
         b = None
         if self.effective_format and self.effective_format.borders:
-            b = self.effective_format.borders.to_latex_b(color_dict)
-            if b is not None:
-                # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
-                b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if self.bottom_border_allowed():
+                b = self.effective_format.borders.to_latex_b(color_dict)
+                if b is not None:
+                    # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
+                    b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
 
         return b
 
 
-    ''' latex code for left border
+    ''' latex code for left and right borders
+        r is row numbner (1 based)
     '''
-    def left_border_latex(self, color_dict):
-        l = None
+    def cell_vertical_borders_latex(self, r, color_dict):
+        lr_borders = []
         if self.effective_format and self.effective_format.borders:
-            l = self.effective_format.borders.to_latex_l(color_dict)
-            if l is not None:
-                l = f"[{l}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
+            if self.left_border_allowed():
+                lb = self.effective_format.borders.to_latex_l(color_dict)
+                if lb is not None:
+                    lb = f"vline{{{self.col_num+1}}} = {{{r}}}{{{lb}}},"
+                    lr_borders.append(lb)
 
-        return l
+            if self.right_border_allowed():
+                rb = self.effective_format.borders.to_latex_r(color_dict)
+                if rb is not None:
+                    rb = f"vline{{{self.col_num+2}}} = {{{r}}}{{{rb}}},"
+                    lr_borders.append(rb)
 
-
-    ''' latex code for right border
-    '''
-    def right_border_latex(self, color_dict):
-        r = None
-        if self.effective_format and self.effective_format.borders:
-            r = self.effective_format.borders.to_latex_r(color_dict)
-            if r is not None:
-                r = f"[{r}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
-
-        return r
+        return lr_borders
 
 
     ''' latex code for cell content
@@ -332,42 +367,18 @@ class Row(object):
         return bottom_borders
 
 
-    ''' generates the left borders
+    ''' generates the vertical borders
     '''
-    def left_borders_latex(self, color_dict):
-        left_borders = []
+    def vertical_borders_latex(self, r, color_dict):
+        v_lines = []
         c = 0
         for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                l = cell.left_border_latex(color_dict)
-                if l is not None:
-                    left_borders.append(f"\\rline{l}")
+            if cell is not None:
+                v_lines = v_lines + cell.cell_vertical_borders_latex(r, color_dict)
 
             c = c + 1
 
-        return left_borders
-
-
-    ''' generates the left borders
-    '''
-    def right_borders_latex(self, color_dict):
-        right_borders = []
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                r = cell.right_border_latex(color_dict)
-                if r is not None:
-                    right_borders.append(f"\\rline{r}")
-
-            c = c + 1
-
-        return right_borders
+        return v_lines
 
 
     ''' generates the latex code for cell formats
