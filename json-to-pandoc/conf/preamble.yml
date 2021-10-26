@@ -1,5 +1,5 @@
 ---
-# documentclass: report
+# documentclass: article
 tables: true
 geometry:
 - top=0.75in
@@ -17,6 +17,8 @@ header-includes:
 - \usepackage{xcolor}
 - \usepackage{ulem}
 - \usepackage{tabularray}
+- \usepackage{fancyhdr}
+- \usepackage{lastpage}
 
 - \tracinglostchars=2
 
