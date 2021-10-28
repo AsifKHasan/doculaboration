@@ -29,10 +29,68 @@
 ```
 
 ```{=latex}
-\fancypagestyle{header-odd}{
+\newcommand{\headerodd}{%
+	\begin{tblr}[l]{
+		colspec={p{5.00in}p{1.50in}},
+		rulesep=0pt,
+		stretch=1.0,
+		vspan=default,
+		hspan=default,
+		rows={ht=12pt},
+		cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=eeeeee},
+		cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=eeeeee},
+	}
+
+	% row: [1]
+		% multicolumn: No, multirow: No
+		&
+		% multicolumn: No, multirow: No
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\\
+	\end{tblr}
+}
+```
+
+```{=latex}
+\newcommand{\footerodd}{%
+	\begin{tblr}[l]{
+		colspec={p{5.00in}p{1.50in}},
+		rulesep=0pt,
+		stretch=1.0,
+		vspan=default,
+		hspan=default,
+		rows={ht=12pt},
+		cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=eeeeee},
+		cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=eeeeee},
+	}
+
+	% row: [1]
+		% multicolumn: No, multirow: No
+		{Tasnim Kabir Ratul}
+		&
+		% multicolumn: No, multirow: No
+		{\thepage\ of \pageref{LastPage}}
+		\\
+	\end{tblr}
+}
+```
+
+```{=latex}
+\fancypagestyle{0.0-testpage}{
+	\fancyhead{}
+	\fancyfoot{}
+	\fancyhead{\headerodd}
+	\fancyfoot{\footerodd}
+}
+```
+
+```{=latex}
+\fancypagestyle{0.1-testpage}{
+	\fancyhead{}
+	\fancyfoot{}
 	\fancyhead[LE,RO]{\textsl{\rightmark}}
 	\fancyhead[LO,RE]{\textsl{\leftmark}}
-	\fancyfoot[R]{\thepage\ of \pageref{LastPage}}
+	\fancyfoot[L]{\thepage\ of \pageref{LastPage}}
 }
 ```
 
@@ -42,7 +100,7 @@
 	\pdfpagewidth 8.27in
 	\pdfpageheight 11.69in
 	\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
-	\pagestyle{header-odd}
+	\pagestyle{0.0-testpage}
 ```
 
 
@@ -155,7 +213,7 @@
 		\cline[fg=999999,wd=1.2000000000000002pt,dash=solid]{4-5}
 		\cline[fg=999999,wd=1.2000000000000002pt,dash=solid]{5-6}
 		% multicolumn: FirstCell, multirow: FirstCell
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: InnerCell, multirow: FirstCell
 
@@ -164,7 +222,7 @@
 
 		&
 		% multicolumn: FirstCell, multirow: FirstCell
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: LastCell, multirow: FirstCell
 
@@ -327,10 +385,10 @@
 		\fontsize{11pt}{11pt}\color{000000}\textbf{\textit{{No Span}}}
 		&
 		% multicolumn: No, multirow: FirstCell
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: No, multirow: FirstCell
-		\includegraphics[width=0.04in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/photo__Tasnim.Kabir.Ratul.png}
+		\includegraphics[width=0.04in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/photo__Tasnim.Kabir.Ratul.png}
 		\\
 		\cline[fg=000000,wd=0.4pt,dash=solid]{1-1}
 		\cline[fg=000000,wd=0.4pt,dash=solid]{2-2}
@@ -342,7 +400,7 @@
 		\fontsize{11pt}{11pt}\color{000000}\textbf{\textit{{No Span}}}
 		&
 		% multicolumn: No, multirow: FirstCell
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: No, multirow: No
 		\fontsize{11pt}{11pt}\color{000000}\textbf{\textit{{No Span}}}
@@ -410,6 +468,7 @@
 	\pdfpagewidth 8.27in
 	\pdfpageheight 11.69in
 	\newgeometry{top=0.75in, bottom=0.75in, left=0.75in, right=0.75in}
+	\pagestyle{0.1-testpage}
 ```
 
 
@@ -558,7 +617,7 @@
 
 		&
 		% multicolumn: FirstCell, multirow: FirstCell
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: LastCell, multirow: FirstCell
 
@@ -597,7 +656,7 @@
 		\fontsize{12pt}{12pt}\color{980000}\textbf{\textit{{}}}
 		&
 		% multicolumn: FirstCell, multirow: No
-		\includegraphics[width=0.2708333333333333in]{/home/asif/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
+		\includegraphics[width=0.2708333333333333in]{D:/projects/asif@github/doculaboration/gsheet-to-json/conf/../../out/tmp/spectrum-logo-large-277x221.png}
 		&
 		% multicolumn: LastCell, multirow: No
 
