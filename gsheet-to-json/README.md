@@ -8,7 +8,7 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 
 Linux usage:
 ```
-set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
+DOCULABORATION_BASE="/Users/asif.hasan/projects/asifhasan@github/doculaboration"
 cd ${DOCULABORATION_BASE}
 cd ./gsheet-to-json/src
 ./json-from-gsheet.py --config '../conf/config.yml'
