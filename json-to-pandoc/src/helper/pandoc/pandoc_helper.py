@@ -6,6 +6,7 @@
 import yaml
 import importlib
 
+from helper.pandoc.pandoc_util import *
 from helper.logger import *
 
 class Pandoc(object):
@@ -29,6 +30,7 @@ class Pandoc(object):
 
         self.document_lines = []
         self.color_dict = {}
+        section_index = 0
         for section in section_list:
             content_type = section['content-type']
 
@@ -37,15 +39,15 @@ class Pandoc(object):
                 content_type = 'table'
 
             module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
-            section_lines, section_color_dict = module.generate(section, section_specs, config)
-            self.color_dict = {**self.color_dict, **section_color_dict}
+            section_lines = module.generate(section, section_specs, config, LETTERS[section_index], self.color_dict)
             self.document_lines = self.document_lines + section_lines
+            section_index = section_index + 1
 
         # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
         for k,v in self.color_dict.items():
             self.header_lines.append(f"\definecolor{{{k}}}{{HTML}}{{{v}}}")
 
-        self.header_lines.append("```")
+        self.header_lines.append("```\n\n")
 
         # save the markdown document string in a file
         with open(pandoc_path, "w", encoding="utf-8") as f:

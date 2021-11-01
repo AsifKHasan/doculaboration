@@ -23,7 +23,7 @@ pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n
 
 ## Linux usage:
 ```
-DOCULABORATION_BASE="/Users/asif.hasan/projects/asifhasan@github/doculaboration"
+DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
 cd ./out
 pandoc Tasnim.Kabir.Ratul__profile.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o Tasnim.Kabir.Ratul__profile.pdf

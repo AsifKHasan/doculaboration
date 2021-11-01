@@ -15,7 +15,7 @@ class LatexSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec):
+    def __init__(self, section_data, section_spec, section_index):
         self.section_spec = section_spec
         self.section_break = section_data['section-break']
         self.section_width = float(self.section_spec['page_width']) - float(self.section_spec['left_margin']) - float(self.section_spec['right_margin']) - float(self.section_spec['gutter'])
@@ -25,12 +25,118 @@ class LatexSectionBase(object):
         self.heading = section_data['heading']
         self.level = section_data['level']
         self.page_numbering = section_data['page-number']
+        self.title = f"{self.section} : {self.heading}"
+        self.section_index = section_index
+        self.page_style_name = f"pagestyle{self.section_index}"
 
-        # the colors dict to be returned
-        self.color_dict = {}
+        # headers and footers
+        self.header_first = LatexPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
+        self.header_odd = LatexPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
+        self.header_even = LatexPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
+        self.footer_first = LatexPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
+        self.footer_odd = LatexPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
+        self.footer_even = LatexPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
 
-        section_contents = section_data.get('contents')
+        self.section_contents = LatexContent(section_data.get('contents'), self.section_width, self.section_index)
 
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+        header_footer_lines = []
+
+        # get headers and footers
+        if self.header_first.has_content:
+            header_footer_lines = header_footer_lines + self.header_first.to_latex(color_dict)
+
+        if self.header_odd.has_content:
+            header_footer_lines = header_footer_lines + self.header_odd.to_latex(color_dict)
+
+        if self.header_even.has_content:
+            header_footer_lines = header_footer_lines + self.header_even.to_latex(color_dict)
+
+        if self.footer_first.has_content:
+            header_footer_lines = header_footer_lines + self.footer_first.to_latex(color_dict)
+
+        if self.footer_odd.has_content:
+            header_footer_lines = header_footer_lines + self.footer_odd.to_latex(color_dict)
+
+        if self.footer_even.has_content:
+            header_footer_lines = header_footer_lines + self.footer_even.to_latex(color_dict)
+
+        header_footer_lines = mark_as_latex(header_footer_lines)
+
+        # now the pagestyle
+        pagestyle_lines = []
+        pagestyle_lines.append(f"\\fancypagestyle{{{self.page_style_name}}}{{")
+        pagestyle_lines.append(f"\t\\fancyhf{{}}")
+        pagestyle_lines.append(f"\t\\renewcommand{{\headrulewidth}}{{0pt}}")
+        if self.header_odd.has_content:
+            pagestyle_lines.append(f"\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
+
+        if self.header_even.has_content:
+            pagestyle_lines.append(f"\t\\fancyhead[E]{{\\{self.header_even.id}}}")
+
+        if self.footer_odd.has_content:
+            pagestyle_lines.append(f"\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
+
+        if self.footer_even.has_content:
+            pagestyle_lines.append(f"\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
+
+        pagestyle_lines.append(f"}}")
+        pagestyle_lines = mark_as_latex(pagestyle_lines)
+
+        # generate the header block
+        header_block = LatexSectionHeader(self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title, self.page_style_name)
+        header_lines = header_block.to_latex(color_dict)
+
+        # get the contents
+        content_lines = self.section_contents.to_latex(color_dict)
+
+        return header_footer_lines + pagestyle_lines + header_lines + content_lines
+
+
+''' Latex table section object
+'''
+class LatexTableSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec, section_index):
+        super().__init__(section_data, section_spec, section_index)
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+        return super().to_latex(color_dict)
+
+
+''' Latex section object
+'''
+class LatexToCSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec, section_index):
+        super().__init__(section_data, section_spec, section_index)
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+        return super().to_latex(color_dict)
+
+
+''' Latex section content base object
+'''
+class LatexContent(object):
+
+    ''' constructor
+    '''
+    def __init__(self, content_data, section_width, section_index):
+        self.section_width = section_width
+        self.section_index = section_index
         self.title = None
         self.row_count = 0
         self.column_count = 0
@@ -45,13 +151,16 @@ class LatexSectionBase(object):
 
         self.default_format = None
 
-        if section_contents:
+        # we need a list to hold the tables and block for the cells
+        self.content_list = []
+
+        if content_data:
             self.has_content = True
 
-            properties = section_contents.get('properties')
+            properties = content_data.get('properties')
             self.default_format = CellFormat(properties.get('defaultFormat'))
 
-            sheets = section_contents.get('sheets')
+            sheets = content_data.get('sheets')
             if isinstance(sheets, list) and len(sheets) > 0:
                 sheet_properties = sheets[0].get('properties')
                 if sheet_properties:
@@ -88,37 +197,12 @@ class LatexSectionBase(object):
                         self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths))
                         r = r + 1
 
+            # process and split
+            self.process()
+            self.split()
+
         else:
             self.has_content = False
-
-        # we need a list to hold the tables and block for the cells
-        self.content_list = []
-
-        # generate the header block
-        header_block = LatexSectionHeader(self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title)
-        self.content_list.append(header_block)
-
-
-    ''' processes the cells to generate the proper order of tables and blocks
-    '''
-    def process(self):
-        pass
-
-
-    ''' generates the latex code
-    '''
-    def to_latex(self):
-        pass
-
-
-''' Latex section object
-'''
-class LatexSection(LatexSectionBase):
-
-    ''' constructor
-    '''
-    def __init__(self, section_data, section_spec):
-        super().__init__(section_data, section_spec)
 
 
     ''' processes the cells to
@@ -279,48 +363,54 @@ class LatexSection(LatexSectionBase):
 
     ''' generates the latex code
     '''
-    def to_latex(self):
-        # process and split
-        self.process()
-        self.split()
-
+    def to_latex(self, color_dict):
         latex_lines = []
 
-        # iterate to through tables and blocks contents
+        # iterate through tables and blocks contents
+        first_block = True
         for block in self.content_list:
-            latex_lines = latex_lines + block.to_latex(self.color_dict)
+            if not first_block:
+                latex_lines.append('')
 
-        return latex_lines, self.color_dict
+            latex_lines = latex_lines + block.to_latex(longtable=True, color_dict=color_dict)
+            first_block = False
+
+        latex_lines = mark_as_latex(latex_lines)
+
+        return latex_lines
 
 
-''' Latex section object
-'''
-class LatexToCSection(LatexSectionBase):
+class LatexPageHeaderFooter(LatexContent):
 
     ''' constructor
+        header_footer : header/footer
+        odd_even      : first/odd/even
     '''
-    def __init__(self, section_data, section_spec):
-        super().__init__(section_data, section_spec)
+    def __init__(self, content_data, section_width, section_index, header_footer, odd_even):
+        super().__init__(content_data, section_width, section_index)
+        self.header_footer, self.odd_even = header_footer, odd_even
+        self.id = f"{self.header_footer}{self.odd_even}{section_index}"
 
-
-    ''' processes the cells to generate the proper order of tables and blocks
-    '''
-    def process(self):
-        pass
 
     ''' generates the latex code
     '''
-    def to_latex(self):
-        # process first
-        self.process()
-
+    def to_latex(self, color_dict):
         latex_lines = []
 
-        # iterate to through tables and blocks contents
-        for block in self.content_list:
-            latex_lines = latex_lines + block.to_latex(self.color_dict)
+        latex_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
 
-        return latex_lines, self.color_dict
+        # iterate through tables and blocks contents
+        first_block = True
+        for block in self.content_list:
+            if not first_block:
+                latex_lines.append('')
+
+            latex_lines = latex_lines + block.to_latex(longtable=False, color_dict=color_dict)
+            first_block = False
+
+        latex_lines.append(f"}}")
+
+        return latex_lines
 
 
 ''' Latex Block object wrapper base class (plain latex, table, header etc.)
@@ -329,7 +419,7 @@ class LatexBlock(object):
 
     ''' generates latex code
     '''
-    def to_latex(self, color_dict):
+    def to_latex(self, longtable, color_dict):
         pass
 
 
@@ -339,15 +429,14 @@ class LatexSectionHeader(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, section_spec, section_break, level, no_heading, section, heading, title):
-        self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title = section_spec, section_break, level, no_heading, section, heading, title
+    def __init__(self, section_spec, section_break, level, no_heading, section, heading, title, page_style_name):
+        self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading, self.title, self.page_style_name = section_spec, section_break, level, no_heading, section, heading, title, page_style_name
 
     ''' generates latex code
     '''
     def to_latex(self, color_dict):
         header_lines = []
-        header_lines.append('')
-        header_lines.append(begin_latex())
+        # header_lines.append('')
         header_lines.append(f"% LatexSection: {self.title}")
 
         if self.section_break.startswith('newpage_'):
@@ -356,10 +445,11 @@ class LatexSectionHeader(LatexBlock):
         header_lines.append(f"\t\\pdfpagewidth {self.section_spec['page_width']}in")
         header_lines.append(f"\t\\pdfpageheight {self.section_spec['page_height']}in")
         header_lines.append(f"\t\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
-
-        header_lines.append(end_latex())
+        header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
+        header_lines = mark_as_latex(header_lines)
 
         # heading
+        heading_lines = []
         if not self.no_heading:
             if self.section != '':
                 heading_text = f"{'#' * self.level} {self.section} - {self.heading}".strip()
@@ -368,14 +458,13 @@ class LatexSectionHeader(LatexBlock):
 
             # headings are styles based on level
             if self.level != 0:
-                header_lines.append(heading_text)
-                header_lines.append('\n')
+                heading_lines.append(heading_text)
+                heading_lines.append('\n')
             else:
-                header_lines.append(begin_latex())
-                header_lines.append(f"\\titlestyle{{{heading_text}}}")
-                header_lines.append(end_latex())
+                heading_lines.append(f"\\titlestyle{{{heading_text}}}")
+                heading_lines = mark_as_latex(heading_lines)
 
-        return header_lines
+        return header_lines + heading_lines
 
 
 ''' Latex Table object wrapper
@@ -396,7 +485,7 @@ class LatexTable(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self, color_dict):
+    def to_latex(self, longtable, color_dict):
         table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
         table_col_spec = f"colspec={{{table_col_spec}}}"
         table_rulesep = f"rulesep={0}pt"
@@ -408,15 +497,18 @@ class LatexTable(LatexBlock):
 
         table_lines = []
 
-        table_lines.append(begin_latex())
         table_lines.append(f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows")
-        table_lines.append(f"\t\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
-        table_lines.append(f"\t\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
-        table_lines.append(f"\t\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
-        table_lines.append(f"\t\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
-        table_lines.append(f"\t\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
+        if longtable:
+            table_lines.append(f"\t\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
+            table_lines.append(f"\t\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
+            table_lines.append(f"\t\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
+            table_lines.append(f"\t\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
+            table_lines.append(f"\t\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
+            table_type = "longtblr"
+        else:
+            table_type = "tblr"
 
-        table_lines.append(f"\t\\begin{{longtblr}}[l]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
+        table_lines.append(f"\t\\begin{{{table_type}}}[l]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
 
         # generate cell formats
         r = 1
@@ -440,8 +532,8 @@ class LatexTable(LatexBlock):
             row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(color_dict)))
             table_lines = table_lines + row_lines
 
-        table_lines.append(f"\t\\end{{longtblr}}")
-        table_lines.append(end_latex())
+        table_lines.append(f"\t\\end{{{table_type}}}")
+
         return table_lines
 
 
@@ -457,9 +549,8 @@ class LatexParagraph(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self, color_dict):
+    def to_latex(self, longtable, color_dict):
         block_lines = []
-        block_lines.append(begin_latex())
         block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
 
         # TODO 3: generate the block
@@ -468,5 +559,4 @@ class LatexParagraph(LatexBlock):
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
 
-        block_lines.append(end_latex())
         return block_lines

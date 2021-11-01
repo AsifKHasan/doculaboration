@@ -1,5 +1,6 @@
 ---
-# documentclass: article
+# documentclass: book
+classoption: twoside
 tables: true
 geometry:
 - top=0.75in

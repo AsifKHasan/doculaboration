@@ -34,6 +34,11 @@ class Cell(object):
             self.note = CellNote(value.get('note'))
             self.is_empty = False
 
+            # handle special notes
+            if self.note.page_number:
+                self.user_entered_value.string_value = "\\thepage\\ of \\pageref{LastPage}"
+                self.user_entered_value.verbatim = True
+
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
             self.merge_spec.multi_col = MultiSpan.No
@@ -396,7 +401,7 @@ class Row(object):
     ''' generates the latex code
     '''
     def cell_content_latex(self, color_dict):
-        debug(f"processing {self.row_name}")
+        # debug(f"processing {self.row_name}")
 
         row_lines = []
         row_lines.append(f"% {self.row_name}")
@@ -501,6 +506,7 @@ class CellValue(object):
     ''' constructor
     '''
     def __init__(self, value_dict, formatted_value=None):
+        self.verbatim = False
         if value_dict:
             if formatted_value:
                 self.string_value = formatted_value
@@ -534,7 +540,10 @@ class CellValue(object):
         # if text, formattedValue will contain the text
         else:
             # print(self.string_value)
-            latex = format.to_latex(tex_escape(self.string_value), color_dict)
+            if self.verbatim:
+                latex = format.to_latex(self.string_value, color_dict)
+            else:
+                latex = format.to_latex(tex_escape(self.string_value), color_dict)
 
         return latex
 
@@ -877,7 +886,7 @@ class CellNote(object):
         self.header_rows = 0
         self.new_page = False
         self.keep_with_next = False
-        self.page_number_style = None
+        self.page_number = False
 
         if note_json:
             try:
@@ -898,7 +907,7 @@ class CellNote(object):
             self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
-            self.page_number_style = note_dict.get('page-number')
+            self.page_number = note_dict.get('page-number') is not None
 
 
 ''' gsheet vertical alignment object wrapper

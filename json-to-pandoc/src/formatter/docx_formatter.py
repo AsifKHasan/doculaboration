@@ -2,7 +2,7 @@
 
 from helper.logger import *
 
-def generate(section_data, section_specs, context):
+def generate(section_data, section_specs, context, section_index, color_dict):
     error('formatter [docx] not supported')
 
-    return '', {}
+    return ''

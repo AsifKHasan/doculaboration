@@ -8,7 +8,7 @@ dirs:
 
 files:
   # the custom styles for pandoc
-  pandoc-styles:           "./style-doer.tex"
+  pandoc-styles:           "./styles-doer.yml"
   # the custom (latex) header for pandoc
   document-header:           "./header-doer.tex"
 

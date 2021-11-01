@@ -49,9 +49,9 @@ def tex_escape(text):
 
 '''
 '''
-def begin_latex():
-    return "```{=latex}"
+def mark_as_latex(lines):
+    latex_lines = ["```{=latex}"]
+    latex_lines = latex_lines + lines
+    latex_lines.append("```\n\n")
 
-
-def end_latex():
-    return "```\n\n"
+    return latex_lines

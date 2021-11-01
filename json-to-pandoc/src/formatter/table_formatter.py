@@ -3,9 +3,9 @@
 import importlib
 
 from helper.logger import *
-from helper.latex.latex_section import LatexSection
+from helper.latex.latex_section import LatexTableSection
 
-def generate(section_data, section_specs, context):
+def generate(section_data, section_specs, context, section_index, color_dict):
     if section_data['section'] != '':
         debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
     else:
@@ -25,11 +25,11 @@ def generate(section_data, section_specs, context):
                 content_type = 'table'
 
             module = importlib.import_module(f"formatter.{content_type}_formatter")
-            section_lines, color_dict =  module.generate(section, section_specs, context)
+            section_lines, color_dict =  module.generate(section, section_specs, context, section_index, color_dict)
 
     else:
         # it is a new section
-        latex_section = LatexSection(section_data, section_specs[section_data['section-break']])
-        section_lines, color_dict = latex_section.to_latex()
+        latex_section = LatexTableSection(section_data, section_specs[section_data['section-break']], section_index)
+        section_lines = latex_section.to_latex(color_dict)
 
-    return section_lines, color_dict
+    return section_lines
