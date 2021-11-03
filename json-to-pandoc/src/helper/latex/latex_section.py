@@ -229,11 +229,12 @@ class LatexContent(object):
 
             # get the total width of the first_cell when merged
             for c in range(first_col + 1, last_col):
-                first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
+                # first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
+                first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c]
 
             if col_span > 1:
                 first_cell.merge_spec.multi_col = MultiSpan.FirstCell
-                first_cell.cell_width = first_cell.cell_width + ((col_span - 1) * 2 * COLSEP)
+                # first_cell.cell_width = first_cell.cell_width + ((col_span - 1) * 2 * COLSEP)
             else:
                 first_cell.merge_spec.multi_col = MultiSpan.No
 

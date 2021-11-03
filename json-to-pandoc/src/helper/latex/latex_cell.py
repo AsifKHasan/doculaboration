@@ -54,7 +54,7 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty}, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
+        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty}, wd: {self.cell_width}in, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
         if self.effective_format:
             b = f"{self.user_entered_format.borders}"
         else:
@@ -262,7 +262,7 @@ class Cell(object):
         # finally build the cell content
         color_dict[bgcolor.key()] = bgcolor.value()
         if not self.is_empty:
-            cell_format_latex = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()}}},"
+            cell_format_latex = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
             latex_lines.append(cell_format_latex)
 
         return latex_lines
