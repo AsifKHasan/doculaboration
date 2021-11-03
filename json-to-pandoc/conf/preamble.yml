@@ -2,6 +2,7 @@
 # documentclass: book
 classoption: twoside
 tables: true
+papersize: a4
 geometry:
 - top=0.75in
 - left=0.75in
@@ -11,15 +12,15 @@ header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{graphicx}
 - \usepackage{grffile}
-- \usepackage{bold-extra}
-- \usepackage{fontspec}
-- \usepackage{babel}
+- \usepackage{fancyhdr}
 - \usepackage{colortbl}
 - \usepackage{xcolor}
 - \usepackage{ulem}
-- \usepackage{tabularray}
-- \usepackage{fancyhdr}
 - \usepackage{lastpage}
+- \usepackage{bold-extra}
+- \usepackage{fontspec}
+- \usepackage{babel}
+- \usepackage{tabularray}
 
 - \tracinglostchars=2
 
@@ -40,5 +41,4 @@ header-includes:
 - \babelfont[english]{rm}{FreeSans}
 - \babelfont[english]{rm}{Latin Modern Roman}
 - \babelfont[english]{rm}{Latin Modern Sans}
-
 ---

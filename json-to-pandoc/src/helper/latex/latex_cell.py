@@ -194,10 +194,11 @@ class Cell(object):
 
     ''' latex code for cell content
     '''
-    def content_latex(self, include_formatting, color_dict):
+    def content_latex(self, include_formatting, color_dict, strip_comments=False):
         content_lines = []
 
-        content_lines.append(f"% {self.merge_spec.to_string()}")
+        if not strip_comments:
+            content_lines.append(f"% {self.merge_spec.to_string()}")
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
@@ -410,11 +411,12 @@ class Row(object):
 
     ''' generates the latex code
     '''
-    def cell_content_latex(self, include_formatting, color_dict):
+    def cell_content_latex(self, include_formatting, color_dict, strip_comments=False):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
-        row_lines.append(f"% {self.row_name}")
+        if not strip_comments:
+            row_lines.append(f"% {self.row_name}")
 
         # borders
         top_border_lines = self.top_borders_latex(color_dict)
@@ -438,7 +440,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
             else:
-                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict)
+                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments)
 
             if c > 0:
                 all_cell_lines.append('&')

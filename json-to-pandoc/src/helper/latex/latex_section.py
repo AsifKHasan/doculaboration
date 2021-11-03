@@ -369,13 +369,17 @@ class LatexContent(object):
         latex_lines = []
 
         # iterate through tables and blocks contents
-        first_block = True
+        last_block_is_a_paragraph = False
         for block in self.content_list:
-            if not first_block:
-                latex_lines.append('')
+            # if current block is a paragraph and last block was also a paragraph, insert a newline
+            if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
+                latex_lines.append(f"\t\\\\[{10}pt]")
 
             latex_lines = latex_lines + block.to_latex(longtable=True, color_dict=color_dict)
-            first_block = False
+
+            # keep track of the block as the previous block
+            if isinstance(block, LatexParagraph):
+                last_block_is_a_paragraph = True
 
         latex_lines = mark_as_latex(latex_lines)
 
@@ -404,10 +408,7 @@ class LatexPageHeaderFooter(LatexContent):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            if not first_block:
-                latex_lines.append('')
-
-            latex_lines = latex_lines + block.to_latex(longtable=False, color_dict=color_dict)
+            latex_lines = latex_lines + block.to_latex(longtable=False, color_dict=color_dict, strip_comments=True)
             first_block = False
 
         latex_lines.append(f"}}")
@@ -421,7 +422,7 @@ class LatexBlock(object):
 
     ''' generates latex code
     '''
-    def to_latex(self, longtable, color_dict):
+    def to_latex(self, longtable, color_dict, strip_comments=False):
         pass
 
 
@@ -436,17 +437,16 @@ class LatexSectionHeader(LatexBlock):
 
     ''' generates latex code
     '''
-    def to_latex(self, color_dict):
+    def to_latex(self, color_dict, strip_comments=False):
         header_lines = []
-        # header_lines.append('')
         header_lines.append(f"% LatexSection: {self.title}")
 
         if self.section_break.startswith('newpage_'):
             header_lines.append(f"\t\\newpage")
+            header_lines.append(f"\t\\pdfpagewidth {self.section_spec['page_width']}in")
+            header_lines.append(f"\t\\pdfpageheight {self.section_spec['page_height']}in")
+            header_lines.append(f"\t\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
 
-        header_lines.append(f"\t\\pdfpagewidth {self.section_spec['page_width']}in")
-        header_lines.append(f"\t\\pdfpageheight {self.section_spec['page_height']}in")
-        header_lines.append(f"\t\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
         header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
         header_lines = mark_as_latex(header_lines)
 
@@ -487,7 +487,7 @@ class LatexTable(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self, longtable, color_dict):
+    def to_latex(self, longtable, color_dict, strip_comments=False):
         # table template
         template_lines = []
         if longtable:
@@ -525,7 +525,11 @@ class LatexTable(LatexBlock):
         else:
             table_spec_keys = f"\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},"
 
-        table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"]
+        if strip_comments:
+            table_lines = []
+        else:
+            table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"]
+
         table_lines = table_lines + template_lines
         table_lines.append(f"\t\\begin{{{table_type}}}[{table_inner_keys}\n\t]{{{table_spec_keys}")
 
@@ -548,7 +552,7 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
@@ -568,9 +572,10 @@ class LatexParagraph(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self, longtable, color_dict):
+    def to_latex(self, longtable, color_dict, strip_comments=False):
         block_lines = []
-        block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
+        if not strip_comments:
+            block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
 
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:

@@ -45,7 +45,7 @@ class Pandoc(object):
 
         # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
         for k,v in self.color_dict.items():
-            self.header_lines.append(f"\definecolor{{{k}}}{{HTML}}{{{v}}}")
+            self.header_lines.append(f"\t\definecolor{{{k}}}{{HTML}}{{{v}}}")
 
         self.header_lines.append("```\n\n")
 
