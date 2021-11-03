@@ -194,17 +194,17 @@ class Cell(object):
 
     ''' latex code for cell content
     '''
-    def content_latex(self, color_dict):
+    def content_latex(self, include_formatting, color_dict):
         content_lines = []
 
         content_lines.append(f"% {self.merge_spec.to_string()}")
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = f""
+            cell_value = None
 
         elif self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = f""
+            cell_value = None
 
         else:
             # textFormatRuns first
@@ -226,9 +226,20 @@ class Cell(object):
 
             # there is a 3rd possibility, the cell has no values at all, quite an empty cell
             else:
-                cell_value = f""
+                cell_value = None
 
-        content_lines.append(cell_value)
+        if cell_value:
+            # paragraphs need formatting to be included, table cells do not need them
+            if include_formatting:
+                # alignments and bgcolor
+                if self.effective_format:
+                    halign = PARA_HALIGN.get(self.effective_format.halign.halign)
+                else:
+                    halign = PARA_HALIGN.get('LEFT')
+
+                cell_value = f"{halign}{{{cell_value}}}"
+
+            content_lines.append(cell_value)
 
         return content_lines
 
@@ -236,12 +247,9 @@ class Cell(object):
     ''' latex code for cell format
     '''
     def format_latex(self, r, color_dict):
-        # adjust the borders first
-        # self.adjust_borders()
-
         latex_lines = []
 
-        # finally we build the whole cell
+        # alignments and bgcolor
         if self.effective_format:
             halign = self.effective_format.halign.halign
             valign = self.effective_format.valign.valign
@@ -402,7 +410,7 @@ class Row(object):
 
     ''' generates the latex code
     '''
-    def cell_content_latex(self, color_dict):
+    def cell_content_latex(self, include_formatting, color_dict):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -430,7 +438,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
             else:
-                cell_lines = cell.content_latex(color_dict)
+                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict)
 
             if c > 0:
                 all_cell_lines.append('&')

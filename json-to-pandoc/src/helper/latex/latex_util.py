@@ -35,7 +35,7 @@ GSHEET_LATEX_BORDER_MAPPING = {
 TBLR_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
-PARA_HALIGN = {'LEFT': '\\raggedright', 'CENTER': '\\centering', 'RIGHT': '\\raggedleft', 'JUSTIFY': ''}
+PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
 
 COLSEP = (6/72)
 

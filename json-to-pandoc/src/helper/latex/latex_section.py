@@ -64,7 +64,8 @@ class LatexSectionBase(object):
         if self.footer_even.has_content:
             header_footer_lines = header_footer_lines + self.footer_even.to_latex(color_dict)
 
-        header_footer_lines = mark_as_latex(header_footer_lines)
+        if len(header_footer_lines) > 0:
+            header_footer_lines = mark_as_latex(header_footer_lines)
 
         # now the pagestyle
         pagestyle_lines = []
@@ -486,6 +487,29 @@ class LatexTable(LatexBlock):
     ''' generates the latex code
     '''
     def to_latex(self, longtable, color_dict):
+        # table template
+        template_lines = []
+        if longtable:
+            template_lines.append(f"\t\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{conthead}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{contfoot}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
+            template_lines.append(f"\t\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
+            table_type = "longtblr"
+        else:
+            table_type = "tblr"
+
+        # optional inner keys
+        table_caption = f"caption="
+        table_entry = f"entry=none"
+        table_label = f"label=none"
+        table_presep = f"presep={0}pt"
+        table_postsep = f"postsep={0}pt"
+        table_inner_keys = f"\n\t\t{table_caption},\n\t\t{table_entry},\n\t\t{table_label},\n\t\t{table_presep},\n\t\t{table_postsep}"
+
+        # table spec keys
         table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
         table_col_spec = f"colspec={{{table_col_spec}}}"
         table_rulesep = f"rulesep={0}pt"
@@ -495,23 +519,14 @@ class LatexTable(LatexBlock):
         table_rows = f"rows={{ht={12}pt}}"
         table_rowhead = f"rowhead={self.header_row_count}"
 
-        table_inner_keys = "caption=,entry=none,label=none,presep=0pt,postsep=0pt"
-
-
-        table_lines = []
-
-        table_lines.append(f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows")
         if longtable:
-            table_lines.append(f"\t\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
-            table_lines.append(f"\t\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
-            table_lines.append(f"\t\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
-            table_lines.append(f"\t\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
-            table_lines.append(f"\t\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
-            table_type = "longtblr"
+            table_spec_keys = f"\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},"
         else:
-            table_type = "tblr"
+            table_spec_keys = f"\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},"
 
-        table_lines.append(f"\t\\begin{{{table_type}}}[{table_inner_keys}]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
+        table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"]
+        table_lines = table_lines + template_lines
+        table_lines.append(f"\t\\begin{{{table_type}}}[{table_inner_keys}\n\t]{{{table_spec_keys}")
 
         # generate cell formats
         r = 1
@@ -528,11 +543,11 @@ class LatexTable(LatexBlock):
             r = r + 1
 
         # close the table definition
-        table_lines.append(f"\t}}\n")
+        table_lines.append(f"\t}}")
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(color_dict)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
@@ -558,7 +573,7 @@ class LatexParagraph(LatexBlock):
 
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_latex(color_dict)
+            row_text = self.data_row.get_cell(0).content_latex(include_formatting=True, color_dict=color_dict)
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
 
