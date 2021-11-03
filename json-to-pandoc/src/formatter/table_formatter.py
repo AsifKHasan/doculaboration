@@ -16,7 +16,7 @@ def generate(section_data, section_specs, context, section_index, color_dict):
 
     # process contents
     # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
-    if 'sections' in section_data['contents']:
+    if section_data['contents'] is not None and 'sections' in section_data['contents']:
         for section in section_data['contents']['sections']:
             content_type = section['content-type']
 

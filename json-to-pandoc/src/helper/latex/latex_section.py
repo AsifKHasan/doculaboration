@@ -495,6 +495,9 @@ class LatexTable(LatexBlock):
         table_rows = f"rows={{ht={12}pt}}"
         table_rowhead = f"rowhead={self.header_row_count}"
 
+        table_inner_keys = "caption=,entry=none,label=none,presep=0pt,postsep=0pt"
+
+
         table_lines = []
 
         table_lines.append(f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows")
@@ -508,7 +511,7 @@ class LatexTable(LatexBlock):
         else:
             table_type = "tblr"
 
-        table_lines.append(f"\t\\begin{{{table_type}}}[l]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
+        table_lines.append(f"\t\\begin{{{table_type}}}[{table_inner_keys}]{{\n\t\t{table_col_spec},\n\t\t{table_rulesep},\n\t\t{table_stretch},\n\t\t{table_vspan},\n\t\t{table_hspan},\n\t\t{table_rows},\n\t\t{table_rowhead},")
 
         # generate cell formats
         r = 1

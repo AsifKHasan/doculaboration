@@ -109,7 +109,8 @@ class Cell(object):
     '''
     def top_border_allowed(self):
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
-            return True
+            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+                return True
 
         return False
 
@@ -118,7 +119,8 @@ class Cell(object):
     '''
     def bottom_border_allowed(self):
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.LastCell]:
-            return True
+            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+                return True
 
         return False
 
