@@ -1,6 +1,3 @@
-document:
-  odd_and_even_pages_header_footer: true
-
 sections:
     continuous_portrait:
         break: CONTINUOUS

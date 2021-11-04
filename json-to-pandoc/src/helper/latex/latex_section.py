@@ -43,48 +43,50 @@ class LatexSectionBase(object):
     ''' generates the latex code
     '''
     def to_latex(self, color_dict):
-        header_footer_lines = []
+        header_footer_lines = [f"% HeaderFooter - [{self.title}]"]
 
         # get headers and footers
         if self.header_first.has_content:
-            header_footer_lines = header_footer_lines + self.header_first.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.header_first.to_latex(color_dict)))
 
         if self.header_odd.has_content:
-            header_footer_lines = header_footer_lines + self.header_odd.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
 
         if self.header_even.has_content:
-            header_footer_lines = header_footer_lines + self.header_even.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
 
         if self.footer_first.has_content:
-            header_footer_lines = header_footer_lines + self.footer_first.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
 
         if self.footer_odd.has_content:
-            header_footer_lines = header_footer_lines + self.footer_odd.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
 
         if self.footer_even.has_content:
-            header_footer_lines = header_footer_lines + self.footer_even.to_latex(color_dict)
+            header_footer_lines = header_footer_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
 
         if len(header_footer_lines) > 0:
             header_footer_lines = mark_as_latex(header_footer_lines)
 
         # now the pagestyle
         pagestyle_lines = []
-        pagestyle_lines.append(f"\\fancypagestyle{{{self.page_style_name}}}{{")
-        pagestyle_lines.append(f"\t\\fancyhf{{}}")
-        pagestyle_lines.append(f"\t\\renewcommand{{\headrulewidth}}{{0pt}}")
+        pagestyle_lines.append(f"% PageStyle - [{self.title}]")
+        pagestyle_lines.append(f"\t\\fancypagestyle{{{self.page_style_name}}}{{")
+        pagestyle_lines.append(f"\t\t\\fancyhf{{}}")
+        pagestyle_lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
+        pagestyle_lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
         if self.header_odd.has_content:
-            pagestyle_lines.append(f"\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
+            pagestyle_lines.append(f"\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
 
         if self.header_even.has_content:
-            pagestyle_lines.append(f"\t\\fancyhead[E]{{\\{self.header_even.id}}}")
+            pagestyle_lines.append(f"\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
 
         if self.footer_odd.has_content:
-            pagestyle_lines.append(f"\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
+            pagestyle_lines.append(f"\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
 
         if self.footer_even.has_content:
-            pagestyle_lines.append(f"\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
+            pagestyle_lines.append(f"\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
 
-        pagestyle_lines.append(f"}}")
+        pagestyle_lines.append(f"\t}}")
         pagestyle_lines = mark_as_latex(pagestyle_lines)
 
         # generate the header block
@@ -439,13 +441,24 @@ class LatexSectionHeader(LatexBlock):
     '''
     def to_latex(self, color_dict, strip_comments=False):
         header_lines = []
-        header_lines.append(f"% LatexSection: {self.title}")
+        header_lines.append(f"% LatexSection - [{self.title}]")
+        page_width = self.section_spec['page_width']
+        page_height = self.section_spec['page_height']
+        top_margin = self.section_spec['top_margin']
+        bottom_margin = self.section_spec['bottom_margin']
+        left_margin = self.section_spec['left_margin']
+        right_marhin = self.section_spec['right_margin']
+        text_width = page_width - left_margin - right_marhin
+        text_height = page_height - top_margin - bottom_margin
 
         if self.section_break.startswith('newpage_'):
-            header_lines.append(f"\t\\newpage")
-            header_lines.append(f"\t\\pdfpagewidth {self.section_spec['page_width']}in")
-            header_lines.append(f"\t\\pdfpageheight {self.section_spec['page_height']}in")
-            header_lines.append(f"\t\\newgeometry{{top={self.section_spec['top_margin']}in, bottom={self.section_spec['bottom_margin']}in, left={self.section_spec['left_margin']}in, right={self.section_spec['right_margin']}in}}")
+            header_lines.append(f"\t\\clearpage")
+
+        header_lines.append(f"\t\\pagewidth={page_width}in")
+        header_lines.append(f"\t\\pageheight={page_height}in")
+        header_lines.append(f"\t\\textwidth={text_width}in")
+        header_lines.append(f"\t\\textheight={text_height}in")
+        header_lines.append(f"\t\\newgeometry{{top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_marhin}in}}")
 
         header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
         header_lines = mark_as_latex(header_lines)

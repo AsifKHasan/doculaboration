@@ -1,7 +1,7 @@
 ---
 # documentclass: book
-classoption: twoside
-tables: true
+# classoption: twoside
+# tables: true
 papersize: a4
 geometry:
 - top=0.75in
@@ -10,6 +10,7 @@ geometry:
 - bottom=0.75in
 header-includes:
 - \RequirePackage{luatex85}
+- \usepackage{geometry}
 - \usepackage{graphicx}
 - \usepackage{grffile}
 - \usepackage{fancyhdr}
@@ -21,6 +22,9 @@ header-includes:
 - \usepackage{fontspec}
 - \usepackage{babel}
 - \usepackage{tabularray}
+# - \usepackage{lscape}
+# - \usepackage{pdflscape}
+- \usepackage{typearea}
 
 - \tracinglostchars=2
 
