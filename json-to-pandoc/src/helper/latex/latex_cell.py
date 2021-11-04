@@ -415,8 +415,8 @@ class Row(object):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
-        if not strip_comments:
-            row_lines.append(f"% {self.row_name}")
+        # if not strip_comments:
+        row_lines.append(f"% {self.row_name}")
 
         # borders
         top_border_lines = self.top_borders_latex(color_dict)
