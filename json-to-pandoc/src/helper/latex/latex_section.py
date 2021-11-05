@@ -15,9 +15,29 @@ class LatexSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index):
+    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
         self.section_spec = section_spec
         self.section_break = section_data['section-break']
+
+        if self.section_break.startswith('newpage_'):
+            self.newpage = True
+        else:
+            self.newpage = False
+
+        if self.section_break.endswith('_landscape'):
+            self.landscape = True
+            if last_section_was_landscape:
+                self.orientation_changed = False
+            else:
+                self.orientation_changed = True
+        else:
+            self.landscape = False
+            if last_section_was_landscape:
+                self.orientation_changed = True
+            else:
+                self.orientation_changed = False
+
+
         self.section_width = float(self.section_spec['page_width']) - float(self.section_spec['left_margin']) - float(self.section_spec['right_margin']) - float(self.section_spec['gutter'])
 
         self.no_heading = section_data['no-heading']
@@ -44,7 +64,7 @@ class LatexSectionBase(object):
     '''
     def to_latex(self, color_dict):
         # generate the header block
-        header_block = LatexSectionHeader(self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading)
+        header_block = LatexSectionHeader(self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed)
         header_lines, heading_lines = header_block.to_latex(color_dict)
 
         # get headers and footers
@@ -103,8 +123,8 @@ class LatexTableSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index):
-        super().__init__(section_data, section_spec, section_index)
+    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
+        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
 
 
     ''' generates the latex code
@@ -119,8 +139,8 @@ class LatexToCSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index):
-        super().__init__(section_data, section_spec, section_index)
+    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
+        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
 
 
     ''' generates the latex code
@@ -435,30 +455,29 @@ class LatexSectionHeader(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, section_spec, section_break, level, no_heading, section, heading):
-        self.section_spec, self.section_break, self.level, self.no_heading, self.section, self.heading = section_spec, section_break, level, no_heading, section, heading
+    def __init__(self, section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed):
+        self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed = section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed
 
     ''' generates latex code
     '''
     def to_latex(self, color_dict, strip_comments=False):
         header_lines = []
+        paper = 'a4paper'
         page_width = self.section_spec['page_width']
         page_height = self.section_spec['page_height']
         top_margin = self.section_spec['top_margin']
         bottom_margin = self.section_spec['bottom_margin']
         left_margin = self.section_spec['left_margin']
         right_marhin = self.section_spec['right_margin']
-        text_width = page_width - left_margin - right_marhin
-        text_height = page_height - top_margin - bottom_margin
 
-        if self.section_break.startswith('newpage_'):
+        if self.newpage:
             header_lines.append(f"\t\\newpage")
 
-        header_lines.append(f"\t\\pagewidth={page_width}in")
-        header_lines.append(f"\t\\pageheight={page_height}in")
-        header_lines.append(f"\t\\textwidth={text_width}in")
-        header_lines.append(f"\t\\textheight={text_height}in")
-        header_lines.append(f"\t\\newgeometry{{top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_marhin}in}}")
+        if self.orientation_changed:
+            if self.landscape:
+                header_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_marhin}in, landscape}}")
+            else:
+                header_lines.append(f"\t\\restoregeometry")
 
         # heading
         heading_lines = []

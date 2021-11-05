@@ -31,6 +31,7 @@ class Pandoc(object):
         self.document_lines = []
         self.color_dict = {}
         section_index = 0
+        last_section_was_landscape = True
         for section in section_list:
             content_type = section['content-type']
 
@@ -39,7 +40,7 @@ class Pandoc(object):
                 content_type = 'table'
 
             module = importlib.import_module('formatter.{0}_formatter'.format(content_type))
-            section_lines = module.generate(section, section_specs, config, LETTERS[section_index], self.color_dict)
+            section_lines, last_section_was_landscape = module.generate(section, section_specs, config, LETTERS[section_index], self.color_dict, last_section_was_landscape)
             self.document_lines = self.document_lines + section_lines
             section_index = section_index + 1
 

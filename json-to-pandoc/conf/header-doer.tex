@@ -2,6 +2,16 @@
 % Title Style - used for Level 0 heading
 \newcommand\titlestyle[1]{{\vspace{0.2cm}\begin{center}\Large\scshape\textbf #1 \end{center}\vspace{0.2cm}}}
 
+\makeatletter
+\def\ifGm@preamble#1{\@firstofone}
+\appto\restoregeometry{%
+  \pdfpagewidth=\paperwidth
+  \pdfpageheight=\paperheight}
+\apptocmd\newgeometry{%
+  \pdfpagewidth=\paperwidth
+  \pdfpageheight=\paperheight}{}{}
+\makeatother
+
 \pagestyle{fancy}
 
 % define colors for tabularray

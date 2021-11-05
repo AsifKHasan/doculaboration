@@ -541,6 +541,7 @@ class CellValue(object):
             dpi_y = 150 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
             image_width = self.image['width'] / dpi_x
             image_height = self.image['height'] / dpi_y
+            debug(f"image : [{image_width}in X {image_height}in, cell-width [{cell_width}in]")
             if image_width > cell_width:
                 adjust_ratio = (cell_width / image_width)
                 # keep a padding of 0.1 inch

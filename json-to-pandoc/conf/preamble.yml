@@ -2,15 +2,16 @@
 # documentclass: book
 # classoption: twoside
 # tables: true
-papersize: a4
-geometry:
-- top=0.75in
-- left=0.75in
-- right=0.75in
-- bottom=0.75in
+# papersize: a4
+# geometry:
+# - top=0.75in
+# - left=0.75in
+# - right=0.75in
+# - bottom=0.75in
 header-includes:
 - \RequirePackage{luatex85}
-- \usepackage{geometry}
+- \usepackage{etoolbox}
+- \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
 - \usepackage{graphicx}
 - \usepackage{grffile}
 - \usepackage{fancyhdr}
@@ -22,9 +23,7 @@ header-includes:
 - \usepackage{fontspec}
 - \usepackage{babel}
 - \usepackage{tabularray}
-# - \usepackage{lscape}
-# - \usepackage{pdflscape}
-- \usepackage{typearea}
+- \usepackage{lscape}
 
 - \tracinglostchars=2
 
