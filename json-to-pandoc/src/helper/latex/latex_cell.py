@@ -64,6 +64,83 @@ class Cell(object):
         return f"{s}....{b}"
 
 
+    ''' latex code for cell content
+    '''
+    def content_latex(self, include_formatting, color_dict, strip_comments=False):
+        content_lines = []
+
+        if not strip_comments:
+            content_lines.append(f"% {self.merge_spec.to_string()}")
+
+        # the content is not valid for multirow LastCell and InnerCell
+        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            cell_value = None
+
+        elif self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            cell_value = None
+
+        else:
+            # textFormatRuns first
+            if len(self.text_format_runs):
+                run_value_list = []
+                processed_idx = len(self.formatted_value)
+                for text_format_run in reversed(self.text_format_runs):
+                    text = self.formatted_value[:processed_idx]
+                    run_value_list.insert(0, text_format_run.to_latex(text, color_dict))
+                    processed_idx = text_format_run.start_index
+
+                cell_value = ''.join(run_value_list)
+
+            # userEnteredValue next, it can be either image or text
+            elif self.user_entered_value:
+                # if image, userEnteredValue will have an image
+                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
+                cell_value = self.user_entered_value.to_latex(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
+
+            # there is a 3rd possibility, the cell has no values at all, quite an empty cell
+            else:
+                cell_value = None
+
+        if cell_value:
+            # paragraphs need formatting to be included, table cells do not need them
+            if include_formatting:
+                # alignments and bgcolor
+                if self.effective_format:
+                    halign = PARA_HALIGN.get(self.effective_format.halign.halign)
+                else:
+                    halign = PARA_HALIGN.get('LEFT')
+
+                cell_value = f"{halign}{{{cell_value}}}"
+
+            content_lines.append(cell_value)
+
+        return content_lines
+
+
+    ''' latex code for cell format
+    '''
+    def format_latex(self, r, color_dict):
+        latex_lines = []
+
+        # alignments and bgcolor
+        if self.effective_format:
+            halign = self.effective_format.halign.halign
+            valign = self.effective_format.valign.valign
+            bgcolor = self.effective_format.bgcolor
+        else:
+            halign = TBLR_HALIGN.get('LEFT')
+            valign = TBLR_VALIGN.get('MIDDLE')
+            bgcolor = self.default_format.bgcolor
+
+        # finally build the cell content
+        color_dict[bgcolor.key()] = bgcolor.value()
+        if not self.is_empty:
+            cell_format_latex = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
+            latex_lines.append(cell_format_latex)
+
+        return latex_lines
+
+
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
@@ -173,83 +250,6 @@ class Cell(object):
                     lr_borders.append(rb)
 
         return lr_borders
-
-
-    ''' latex code for cell content
-    '''
-    def content_latex(self, include_formatting, color_dict, strip_comments=False):
-        content_lines = []
-
-        if not strip_comments:
-            content_lines.append(f"% {self.merge_spec.to_string()}")
-
-        # the content is not valid for multirow LastCell and InnerCell
-        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = None
-
-        elif self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = None
-
-        else:
-            # textFormatRuns first
-            if len(self.text_format_runs):
-                run_value_list = []
-                processed_idx = len(self.formatted_value)
-                for text_format_run in reversed(self.text_format_runs):
-                    text = self.formatted_value[:processed_idx]
-                    run_value_list.insert(0, text_format_run.to_latex(text, color_dict))
-                    processed_idx = text_format_run.start_index
-
-                cell_value = ''.join(run_value_list)
-
-            # userEnteredValue next, it can be either image or text
-            elif self.user_entered_value:
-                # if image, userEnteredValue will have an image
-                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                cell_value = self.user_entered_value.to_latex(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
-
-            # there is a 3rd possibility, the cell has no values at all, quite an empty cell
-            else:
-                cell_value = None
-
-        if cell_value:
-            # paragraphs need formatting to be included, table cells do not need them
-            if include_formatting:
-                # alignments and bgcolor
-                if self.effective_format:
-                    halign = PARA_HALIGN.get(self.effective_format.halign.halign)
-                else:
-                    halign = PARA_HALIGN.get('LEFT')
-
-                cell_value = f"{halign}{{{cell_value}}}"
-
-            content_lines.append(cell_value)
-
-        return content_lines
-
-
-    ''' latex code for cell format
-    '''
-    def format_latex(self, r, color_dict):
-        latex_lines = []
-
-        # alignments and bgcolor
-        if self.effective_format:
-            halign = self.effective_format.halign.halign
-            valign = self.effective_format.valign.valign
-            bgcolor = self.effective_format.bgcolor
-        else:
-            halign = TBLR_HALIGN.get('LEFT')
-            valign = TBLR_VALIGN.get('MIDDLE')
-            bgcolor = self.default_format.bgcolor
-
-        # finally build the cell content
-        color_dict[bgcolor.key()] = bgcolor.value()
-        if not self.is_empty:
-            cell_format_latex = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
-            latex_lines.append(cell_format_latex)
-
-        return latex_lines
 
 
 ''' gsheet Row object wrapper
@@ -543,7 +543,7 @@ class CellValue(object):
                     image_height_in_inches = image_height_in_inches * adjust_ratio
 
                 if image_height_in_inches > cell_height:
-                    debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
+                    # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
                     adjust_ratio = (cell_height / image_height_in_inches)
                     image_width_in_inches = image_width_in_inches * adjust_ratio
                     image_height_in_inches = image_height_in_inches * adjust_ratio
