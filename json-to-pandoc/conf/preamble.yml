@@ -1,13 +1,6 @@
 ---
 # documentclass: book
 # classoption: twoside
-# tables: true
-# papersize: a4
-# geometry:
-# - top=0.75in
-# - left=0.75in
-# - right=0.75in
-# - bottom=0.75in
 header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{etoolbox}
@@ -24,7 +17,9 @@ header-includes:
 - \usepackage{babel}
 - \usepackage{tabularray}
 - \usepackage{lscape}
+- \usepackage{hyperref}
 
+- \hypersetup{colorlinks,linkcolor=blue}
 - \tracinglostchars=2
 
 - \babelprovide[onchar=fonts ids]{bengali}

@@ -2,7 +2,7 @@
 
 from helper.logger import *
 
-def generate(section_data, section_specs, context, section_index, color_dict):
+def generate(section_data, section_specs, context, section_index, color_dict, last_section_was_landscape):
     error('formatter [docx] not supported')
 
-    return ''
+    return [], last_section_was_landscape

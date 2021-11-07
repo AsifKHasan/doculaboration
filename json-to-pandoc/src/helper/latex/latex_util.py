@@ -38,6 +38,15 @@ TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
 
 COLSEP = (6/72)
+ROWSEP = (2/72)
+
+
+''' given pixel size, calculate the row height in inches
+    a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
+'''
+def row_height_in_inches(pixel_size):
+    return (pixel_size - 9) / 72
+
 
 ''' :param text: a plain text message
     :return: the message escaped to appear correctly in LaTeX

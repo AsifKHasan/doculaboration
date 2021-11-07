@@ -108,13 +108,9 @@ class LatexSectionBase(object):
 
         header_lines = [f"% PageStyle - [{self.title}]"] + header_lines
 
-
         header_lines = mark_as_latex(header_lines)
 
-        # get the contents
-        content_lines = self.section_contents.to_latex(color_dict)
-
-        return header_lines + heading_lines + content_lines
+        return header_lines + heading_lines
 
 
 ''' Latex table section object
@@ -130,10 +126,15 @@ class LatexTableSection(LatexSectionBase):
     ''' generates the latex code
     '''
     def to_latex(self, color_dict):
-        return super().to_latex(color_dict)
+        section_lines = super().to_latex(color_dict)
+
+        # get the contents
+        content_lines = self.section_contents.to_latex(color_dict)
+
+        return section_lines + content_lines
 
 
-''' Latex section object
+''' Latex ToC section object
 '''
 class LatexToCSection(LatexSectionBase):
 
@@ -146,7 +147,63 @@ class LatexToCSection(LatexSectionBase):
     ''' generates the latex code
     '''
     def to_latex(self, color_dict):
-        return super().to_latex(color_dict)
+        section_lines = super().to_latex(color_dict)
+
+        # table-of-contents
+        content_lines = []
+        content_lines.append("\\renewcommand{\\contentsname}{}")
+        content_lines.append("\\tableofcontents")
+        content_lines = mark_as_latex(content_lines)
+
+        return section_lines + content_lines
+
+
+''' Latex LoT section object
+'''
+class LatexLoTSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
+        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+        section_lines = super().to_latex(color_dict)
+
+        # table-of-contents
+        content_lines = []
+        content_lines.append("\\renewcommand{\\listtablename}{}")
+        content_lines.append("\\listoftables")
+        content_lines = mark_as_latex(content_lines)
+
+        return section_lines + content_lines
+
+
+''' Latex LoF section object
+'''
+class LatexLoFSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
+        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+        section_lines = super().to_latex(color_dict)
+
+        # table-of-contents
+        content_lines = []
+        content_lines.append("\\renewcommand{\\listfigurename}{}")
+        content_lines.append("\\listoffigures")
+        content_lines = mark_as_latex(content_lines)
+
+        return section_lines + content_lines
 
 
 ''' Latex section content base object
@@ -215,7 +272,7 @@ class LatexContent(object):
                     # rowData
                     r = 0
                     for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths))
+                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
                         r = r + 1
 
             # process and split
@@ -249,12 +306,14 @@ class LatexContent(object):
 
             # get the total width of the first_cell when merged
             for c in range(first_col + 1, last_col):
-                # first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
-                first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c]
+                first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
+
+            # get the total height of the first_cell when merged
+            for r in range(first_row + 1, last_row):
+                first_cell.cell_height = first_cell.cell_height + self.cell_matrix[r].row_height + ROWSEP * 2
 
             if col_span > 1:
                 first_cell.merge_spec.multi_col = MultiSpan.FirstCell
-                # first_cell.cell_width = first_cell.cell_width + ((col_span - 1) * 2 * COLSEP)
             else:
                 first_cell.merge_spec.multi_col = MultiSpan.No
 
@@ -269,6 +328,7 @@ class LatexContent(object):
             # for row spans, subsequent cells in the same column of the FirstCell will be either empty or missing, iterate through the next rows
             for r in range(first_row, last_row):
                 next_row_object = self.cell_matrix[r]
+                row_height = next_row_object.row_height
 
                 # we may have empty cells in this same row which are part of this column merge, we need to mark their multi_col property correctly
                 for c in range(first_col, last_col):
@@ -282,7 +342,7 @@ class LatexContent(object):
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
                         # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths)
+                        next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -540,12 +600,13 @@ class LatexTable(LatexBlock):
         table_col_spec = f"colspec={{{table_col_spec}}},"
         table_rulesep = f"rulesep={0}pt,"
         table_stretch = f"stretch={1.0},"
-        table_vspan = f"vspan=default,"
+        table_vspan = f"vspan=even,"
         table_hspan = f"hspan=default,"
         table_rows = f"rows={{ht={12}pt}},"
         table_rowhead = f"rowhead={self.header_row_count},"
 
-        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_rows]
+        # table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_rows]
+        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan]
         if longtable:
             table_spec_keys.append(table_rowhead)
 
@@ -558,6 +619,13 @@ class LatexTable(LatexBlock):
         table_lines.append(f"\t]{{")
         table_lines = table_lines + table_spec_keys
 
+
+        # generate row formats
+        r = 1
+        for row in self.table_cell_matrix:
+            row_format_line = f"\t\t{row.row_format_latex(r, color_dict)}"
+            table_lines.append(row_format_line)
+            r = r + 1
 
         # generate cell formats
         r = 1

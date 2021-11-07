@@ -14,12 +14,13 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, default_format, column_widths):
+    def __init__(self, row_num, col_num, value, default_format, column_widths, row_height):
         self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
         self.cell_name = f"cell: [{self.row_num},{self.col_num}]"
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
+        self.cell_height = row_height
         self.merge_spec = CellMergeSpec()
 
         if self.value:
@@ -54,7 +55,7 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty}, wd: {self.cell_width}in, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
+        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty}, wd: {self.cell_width}in, ht: {self.cell_height}px, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
         if self.effective_format:
             b = f"{self.user_entered_format.borders}"
         else:
@@ -73,24 +74,6 @@ class Cell(object):
         self.merge_spec.col_span = from_cell.merge_spec.col_span
         self.merge_spec.row_span = from_cell.merge_spec.row_span
         self.cell_width = from_cell.cell_width
-
-
-    ''' adjust cell borders based on cell's bgcolor
-    '''
-    def adjust_borders(self):
-        # if the cell has a bgcolor and any border is missing, that border should be colored as bgcolor
-        if self.user_entered_format and self.user_entered_format.bgcolor:
-            self.effective_format.override_borders(self.user_entered_format.bgcolor)
-
-        # only if multi_col is No or FirstCell
-        if self.merge_spec.multi_col in [MultiSpan.FirstCell, MultiSpan.No]:
-            # if the cell is multi_row FirstCell or InnerCell, bottom border color is bgcolor
-            if self.merge_spec.multi_row in [MultiSpan.FirstCell, MultiSpan.InnerCell]:
-                self.effective_format.recolor_bottom_border(self.user_entered_format.bgcolor)
-
-            # if the cell is multi_row InnerCell or LastCell, top border color is bgcolor
-            if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-                self.effective_format.recolor_top_border(self.user_entered_format.bgcolor)
 
 
     ''' mark the cell multi_col
@@ -223,7 +206,7 @@ class Cell(object):
             elif self.user_entered_value:
                 # if image, userEnteredValue will have an image
                 # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                cell_value = self.user_entered_value.to_latex(self.cell_width, self.effective_format.text_format, color_dict)
+                cell_value = self.user_entered_value.to_latex(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
 
             # there is a 3rd possibility, the cell has no values at all, quite an empty cell
             else:
@@ -275,14 +258,14 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, default_format, section_width, column_widths):
-        self.row_num, self.section_width, self.column_widths, self.default_format = row_num, section_width, column_widths, default_format
+    def __init__(self, row_num, row_data, default_format, section_width, column_widths, row_height):
+        self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height = row_num, default_format, section_width, column_widths, row_height
         self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths))
+            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, self.row_height))
             c = c + 1
 
 
@@ -395,6 +378,14 @@ class Row(object):
             c = c + 1
 
         return v_lines
+
+
+    ''' generates the latex code for row formats
+    '''
+    def row_format_latex(self, r, color_dict):
+        row_format_line = f"row{{{r}}} = {{ht={self.row_height}in}},"
+
+        return row_format_line
 
 
     ''' generates the latex code for cell formats
@@ -533,22 +524,39 @@ class CellValue(object):
 
     ''' generates the latex code
     '''
-    def to_latex(self, cell_width, format, color_dict):
+    def to_latex(self, cell_width, cell_height, format, color_dict):
         # if image
         if self.image:
             # even now the width may exceed actual cell width, we need to adjust for that
-            dpi_x = 150 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
-            dpi_y = 150 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
-            image_width = self.image['width'] / dpi_x
-            image_height = self.image['height'] / dpi_y
-            debug(f"image : [{image_width}in X {image_height}in, cell-width [{cell_width}in]")
-            if image_width > cell_width:
-                adjust_ratio = (cell_width / image_width)
-                # keep a padding of 0.1 inch
-                image_width = cell_width - 0.2
-                image_height = image_height * adjust_ratio
+            dpi_x = 96 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
+            dpi_y = 96 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
+            image_width_in_pixel = self.image['size'][0]
+            image_height_in_pixel = self.image['size'][1]
+            image_width_in_inches =  image_width_in_pixel / dpi_x
+            image_height_in_inches = image_height_in_pixel / dpi_y
 
-            latex = f"\includegraphics[width={image_width}in]{{{os_specific_path(self.image['path'])}}}"
+            if self.image['mode'] == 1:
+                # image is to be scaled within the cell width and height
+                if image_width_in_inches > cell_width:
+                    adjust_ratio = (cell_width / image_width_in_inches)
+                    image_width_in_inches = image_width_in_inches * adjust_ratio
+                    image_height_in_inches = image_height_in_inches * adjust_ratio
+
+                if image_height_in_inches > cell_height:
+                    debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
+                    adjust_ratio = (cell_height / image_height_in_inches)
+                    image_width_in_inches = image_width_in_inches * adjust_ratio
+                    image_height_in_inches = image_height_in_inches * adjust_ratio
+
+            elif self.image['mode'] == 3:
+                # image size is unchanged
+                pass
+
+            else:
+                # treat it as if image mode is 3
+                pass
+
+            latex = f"\includegraphics[width={image_width_in_inches}in]{{{os_specific_path(self.image['path'])}}}"
 
         # if text, formattedValue will contain the text
         else:
@@ -779,6 +787,7 @@ class RowMetadata(object):
     '''
     def __init__(self, row_metadata_dict):
         self.pixel_size = int(row_metadata_dict['pixelSize'])
+        self.inches = row_height_in_inches(self.pixel_size)
 
 
 ''' gsheet columnMetadata object wrapper
