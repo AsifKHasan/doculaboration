@@ -24,6 +24,7 @@ CONV = {
     '\\': r'\textbackslash{}',
     '<': r'\textless{}',
     '>': r'\textgreater{}',
+    '\n': r'\linebreak{}',
 }
 
 GSHEET_LATEX_BORDER_MAPPING = {
