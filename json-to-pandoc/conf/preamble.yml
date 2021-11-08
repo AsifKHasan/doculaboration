@@ -5,7 +5,6 @@ header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{etoolbox}
 - \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
-- \usepackage{caption}
 - \usepackage{graphicx}
 - \usepackage{grffile}
 - \usepackage{fancyhdr}
@@ -19,9 +18,10 @@ header-includes:
 - \usepackage{tabularray}
 - \usepackage{lscape}
 - \usepackage{hyperref}
-# - \usepackage{subcaption}
+- \usepackage{slantsc}
 
-- \hypersetup{colorlinks,linkcolor=blue}
+- \hypersetup{colorlinks,linkcolor=gray}
+
 - \tracinglostchars=2
 
 - \babelprovide[onchar=fonts ids]{bengali}

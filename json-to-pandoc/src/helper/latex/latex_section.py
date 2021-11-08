@@ -152,7 +152,9 @@ class LatexToCSection(LatexSectionBase):
         # table-of-contents
         content_lines = []
         content_lines.append("\\renewcommand{\\contentsname}{}")
+        content_lines.append("\\vspace{-0.5in}")
         content_lines.append("\\tableofcontents")
+        content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(content_lines)
 
         return section_lines + content_lines
@@ -176,7 +178,9 @@ class LatexLoTSection(LatexSectionBase):
         # table-of-contents
         content_lines = []
         content_lines.append("\\renewcommand{\\listtablename}{}")
+        content_lines.append("\\vspace{-0.5in}")
         content_lines.append("\\listoftables")
+        content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(content_lines)
 
         return section_lines + content_lines
@@ -200,7 +204,9 @@ class LatexLoFSection(LatexSectionBase):
         # table-of-contents
         content_lines = []
         content_lines.append("\\renewcommand{\\listfigurename}{}")
+        content_lines.append("\\vspace{-0.5in}")
         content_lines.append("\\listoffigures")
+        content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(content_lines)
 
         return section_lines + content_lines
@@ -460,6 +466,8 @@ class LatexContent(object):
             # keep track of the block as the previous block
             if isinstance(block, LatexParagraph):
                 last_block_is_a_paragraph = True
+            else:
+                last_block_is_a_paragraph = False
 
         latex_lines = mark_as_latex(latex_lines)
 

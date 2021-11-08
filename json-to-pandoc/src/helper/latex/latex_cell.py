@@ -112,7 +112,24 @@ class Cell(object):
 
                 cell_value = f"{halign}{{{cell_value}}}"
 
+
             content_lines.append(cell_value)
+
+            # handle styles defined in notes
+            if self.note.style:
+                if self.note.style == 'figure':
+                    # caption for figure
+                    content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
+                elif self.note.style == 'table':
+                    # caption for table
+                    content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
+                else:
+                    # some custom style needs to be applied
+                    heading_tag = LATEX_HEADING_MAP.get(self.note.style)
+                    if heading_tag:
+                        content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
+                    else:
+                        warn(f"style : [self.note.style] not defined")
 
         return content_lines
 
