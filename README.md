@@ -3,15 +3,14 @@ CRDT (gsheet, etc.) based documentation collaboration pipeline to generate edita
 
 * *gsheet-to-json* is for generating json output from gsheet data. The output json is meant to be fed as input for document generation components of the pipeline
 * *json-to-docx* is for generating docx (WordML) documents for editing
-* *json-to-docbook* is for genearting docbook xml for generating editable/printable outputs
-* *json-to-pandoc* is for genearting pandoc markdown for generating editable/printable outputs
+* *json-to-pandoc* is for generating pandoc markdown for generating editable/printable outputs
 
 ## (optional) update all python packages
 ```
 pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
 ```
 
-## toolchain
+## Toolchain
 1. Pandoc from https://pandoc.org/
 2. TexLive from https://tug.org/texlive/
 3. LuaLatex
@@ -26,8 +25,7 @@ pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
 cd ./out
-DOCUMENT="Tasnim.Kabir.Ratul__profile"
-DOCUMENT="gsheet-to-docx__user-manual__v.0.0.0"
+DOCUMENT="name-of-the-gsheet"
 time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
 ```
 
@@ -36,7 +34,6 @@ time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
 cd ./out
-set DOCUMENT="Tasnim.Kabir.Ratul__profile"
-set DOCUMENT="gsheet-to-docx__user-manual__v.0.0.0"
-time pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
+set DOCUMENT="name-of-the-gsheet"
+pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```

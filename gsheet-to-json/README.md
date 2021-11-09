@@ -6,7 +6,7 @@ You will need a ```credential.json``` in ```conf``` which is not in the repo and
 
 copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the copied file
 
-Linux usage:
+## Linux usage:
 ```
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
@@ -14,7 +14,7 @@ cd ./gsheet-to-json/src
 ./json-from-gsheet.py --config '../conf/config.yml'
 ```
 
-Windows usage:
+## Windows usage:
 ```
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
