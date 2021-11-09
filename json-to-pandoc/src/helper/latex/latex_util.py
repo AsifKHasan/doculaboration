@@ -41,6 +41,9 @@ PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
 COLSEP = (6/72)
 ROWSEP = (2/72)
 
+HEADER_FOOTER_FIRST_COL_HSPACE = -6
+HEADER_FOOTER_LAST_COL_HSPACE = -6
+
 LATEX_HEADING_MAP = {
     'Heading 1' : 'section',
     'Heading 2' : 'subsection',

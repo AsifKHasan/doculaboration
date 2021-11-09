@@ -218,20 +218,20 @@ def download_image(image_formula, tmp_dir, row_height):
     if mode == 1:
         height = row_height
         width = int(height * aspect_ratio)
-        info('.... adjusting image {0} at {1}x{2}-{3} based on row height {4}'.format(local_path, width, height, im_dpi, row_height))
+        # info('.... adjusting image {0} at {1}x{2}-{3} based on row height {4}'.format(local_path, width, height, im_dpi, row_height))
         return {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link is without height, width - use actual image size
     if mode == 3:
-        info('.... keeping image {0} at {1}x{2}-{3} as-is'.format(local_path, im_width, im_height, im_dpi))
+        # info('.... keeping image {0} at {1}x{2}-{3} as-is'.format(local_path, im_width, im_height, im_dpi))
         return {'url': url, 'path': local_path, 'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link specifies height and width, use those
     if mode == 4 and len(s) == 4:
-        info('.... image {0} at {1}x{2}-{3} size specified'.format(local_path, im_width, im_height, im_dpi))
+        # info('.... image {0} at {1}x{2}-{3} size specified'.format(local_path, im_width, im_height, im_dpi))
         return {'url': url, 'path': local_path, 'height': int(s[2]), 'width': int(s[3]), 'dpi': im_dpi, 'size': im.size, 'mode': mode}
     else:
-        info('.... image link does not specify height and width: {0}'.format(image_formula))
+        warn('.... image link does not specify height and width: {0}'.format(image_formula))
         return None
 
 def download_pdf_from_web(url, tmp_dir):

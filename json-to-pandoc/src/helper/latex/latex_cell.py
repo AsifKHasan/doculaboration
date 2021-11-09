@@ -66,7 +66,7 @@ class Cell(object):
 
     ''' latex code for cell content
     '''
-    def content_latex(self, include_formatting, color_dict, strip_comments=False):
+    def content_latex(self, include_formatting, color_dict, strip_comments=False, left_hspace=None, right_hspace=None):
         content_lines = []
 
         if not strip_comments:
@@ -112,6 +112,13 @@ class Cell(object):
 
                 cell_value = f"{halign}{{{cell_value}}}"
 
+
+            # the cell may have a left_hspace or right_hspace
+            if left_hspace:
+                cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
+
+            if right_hspace:
+                cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
 
             content_lines.append(cell_value)
 
@@ -419,7 +426,7 @@ class Row(object):
 
     ''' generates the latex code
     '''
-    def cell_content_latex(self, include_formatting, color_dict, strip_comments=False):
+    def cell_content_latex(self, include_formatting, color_dict, strip_comments=False, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -448,7 +455,19 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
             else:
-                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments)
+                left_hspace = None
+                right_hspace = None
+                # if the cell is for a header/footer based on column add hspace
+                if header_footer in ['header', 'footer']:
+                    # first column has a left -ve hspace
+                    if c == 0:
+                        left_hspace = HEADER_FOOTER_FIRST_COL_HSPACE
+
+                    # first column has a left -ve hspace
+                    if c == len(self.cells) - 1:
+                        right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
+
+                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
             if c > 0:
                 all_cell_lines.append('&')

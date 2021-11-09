@@ -178,7 +178,7 @@ class LatexLoTSection(LatexSectionBase):
         # table-of-contents
         content_lines = []
         content_lines.append("\\renewcommand{\\listtablename}{}")
-        content_lines.append("\\vspace{-0.5in}")
+        content_lines.append("\\vspace{-0.4in}")
         content_lines.append("\\listoftables")
         content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(content_lines)
@@ -204,7 +204,7 @@ class LatexLoFSection(LatexSectionBase):
         # table-of-contents
         content_lines = []
         content_lines.append("\\renewcommand{\\listfigurename}{}")
-        content_lines.append("\\vspace{-0.5in}")
+        content_lines.append("\\vspace{-0.4in}")
         content_lines.append("\\listoffigures")
         content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(content_lines)
@@ -496,7 +496,7 @@ class LatexPageHeaderFooter(LatexContent):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.to_latex(longtable=False, color_dict=color_dict, strip_comments=True)
+            block_lines = block.to_latex(longtable=False, color_dict=color_dict, strip_comments=True, header_footer=self.header_footer)
             # block_lines = list(map(lambda x: f"\t{x}", block_lines))
             latex_lines = latex_lines + block_lines
 
@@ -513,7 +513,7 @@ class LatexBlock(object):
 
     ''' generates latex code
     '''
-    def to_latex(self, longtable, color_dict, strip_comments=False):
+    def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
         pass
 
 
@@ -528,7 +528,7 @@ class LatexSectionHeader(LatexBlock):
 
     ''' generates latex code
     '''
-    def to_latex(self, color_dict, strip_comments=False):
+    def to_latex(self, color_dict, strip_comments=False, header_footer=None):
         header_lines = []
         paper = 'a4paper'
         page_width = self.section_spec['page_width']
@@ -584,7 +584,7 @@ class LatexTable(LatexBlock):
 
     ''' generates the latex code
     '''
-    def to_latex(self, longtable, color_dict, strip_comments=False):
+    def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
         # table template
         template_lines = []
         if longtable:
@@ -624,7 +624,7 @@ class LatexTable(LatexBlock):
         table_lines = table_lines + template_lines
         table_lines.append(f"\\begin{{{table_type}}}[")
         table_lines = table_lines + table_inner_keys
-        table_lines.append(f"\t]{{")
+        table_lines.append("\t]{")
         table_lines = table_lines + table_spec_keys
 
 
@@ -654,7 +654,7 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
