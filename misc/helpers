@@ -1,0 +1,10 @@
+TEXLive contains the otfinfo command line program, which can query this information; for example
+otfinfo -i `kpsewhich lmroman10-regular.otf`
+
+
+LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., ‘Latin Modern Roman’ instead of ‘ec-lmr10’), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
+luaotfload-tool
+
+
+some fonts to use (Preferred Family Name)
+Latin Modern Roman

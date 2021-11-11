@@ -4,6 +4,8 @@
 header-includes:
 - \RequirePackage{luatex85}
 - \usepackage{etoolbox}
+- \usepackage{fontspec}
+- \DeclareFontSeriesDefault[rm]{bf}{b}
 - \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
 - \usepackage{graphicx}
 - \usepackage{grffile}
@@ -13,7 +15,6 @@ header-includes:
 - \usepackage{ulem}
 - \usepackage{lastpage}
 - \usepackage{bold-extra}
-- \usepackage{fontspec}
 - \usepackage{babel}
 - \usepackage{tabularray}
 - \usepackage{lscape}
@@ -24,21 +25,29 @@ header-includes:
 
 - \tracinglostchars=2
 
+- \babelprovide[import, language=Default]{english}
 - \babelprovide[onchar=fonts ids]{bengali}
-- \babelprovide[import, main]{english}
 
-- \babelfont[bengali]{rm}{Nikosh}
-- \babelfont[bengali]{rm}{Vrinda}
-- \babelfont[bengali]{rm}{AdorshoLipi}
-- \babelfont[bengali]{rm}{SolaimanLipi}
-- \babelfont[bengali]{rm}{Noto Sans Bengali}
-- \babelfont[bengali]{rm}{Noto Serif Bengali}
-- \babelfont[bengali]{rm}{Mukti}
-- \babelfont[bengali]{rm}{Kalpurush}
+- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Noto Serif}
+- \babelfont[Language=Default]{sf}{Noto Sans}
+- \babelfont[Language=Default]{tt}{Noto Sans Mono}
+- \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+- \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
+- \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
 
-- \babelfont[english]{rm}{Tex Gyre Adventor}
-- \babelfont[english]{rm}{FreeSerif}
-- \babelfont[english]{rm}{FreeSans}
-- \babelfont[english]{rm}{Latin Modern Roman}
-- \babelfont[english]{rm}{Latin Modern Sans}
+# - \babelfont[bengali]{rm}{Nikosh}
+# - \babelfont[bengali]{rm}{Vrinda}
+# - \babelfont[bengali]{rm}{AdorshoLipi}
+# - \babelfont[bengali]{rm}{SolaimanLipi}
+# - \babelfont[bengali]{rm}{Noto Sans Bengali}
+# - \babelfont[bengali]{rm}{Noto Serif Bengali}
+# - \babelfont[bengali]{rm}{Mukti}
+# - \babelfont[bengali]{rm}{Kalpurush}
+#
+# - \babelfont[english]{rm}{Tex Gyre Adventor}
+# - \babelfont[english]{rm}{FreeSerif}
+# - \babelfont[english]{rm}{FreeSans}
+# - \babelfont[english]{rm}{Latin Modern Roman}
+# - \babelfont[english]{rm}{Latin Modern Sans}
+# - \babelfont[english]{rm}{Open Sans Regular}
 ---
