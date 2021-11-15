@@ -523,10 +523,10 @@ class TextFormat(object):
         content = f"{{{text}}}"
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
-        if self.is_underline: content = f"\\underline{{{content}}}"
-        if self.is_strikethrough: content = f"\\sout{{{content}}}"
-        if self.is_italic: content = f"\\textit{{{content}}}"
-        if self.is_bold: content = f"\\textbf{{{content}}}"
+        if self.is_underline: content = f"\\underline{content}"
+        if self.is_strikethrough: content = f"\\sout{content}"
+        if self.is_italic: content = f"\\textit{content}"
+        if self.is_bold: content = f"\\textbf{content}"
 
         # color, font, font-size
         if self.font_family != '':

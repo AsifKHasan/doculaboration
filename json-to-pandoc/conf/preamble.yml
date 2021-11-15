@@ -28,21 +28,25 @@ header-includes:
 - \babelprovide[import, language=Default]{english}
 - \babelprovide[onchar=fonts ids]{bengali}
 
-- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Noto Serif}
-- \babelfont[Language=Default]{sf}{Noto Sans}
-- \babelfont[Language=Default]{tt}{Noto Sans Mono}
-- \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
+- \babelfont[Language=Default]{sf}{Latin Modern Sans}
+- \babelfont[Language=Default]{tt}{Latin Modern Mono}
+
+# - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
 - \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
 - \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
 
-# - \babelfont[bengali]{rm}{Nikosh}
-# - \babelfont[bengali]{rm}{Vrinda}
-# - \babelfont[bengali]{rm}{AdorshoLipi}
-# - \babelfont[bengali]{rm}{SolaimanLipi}
-# - \babelfont[bengali]{rm}{Noto Sans Bengali}
-# - \babelfont[bengali]{rm}{Noto Serif Bengali}
-# - \babelfont[bengali]{rm}{Mukti}
-# - \babelfont[bengali]{rm}{Kalpurush}
+- \babelfont[bengali,Language=Default]{rm}{Akaash}
+# - \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
+# - \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
+# - \babelfont[bengali,Language=Default]{rm}{Kalpurush}
+# - \babelfont[bengali,Language=Default]{rm}{Nikosh}
+# - \babelfont[bengali,Language=Default]{rm}{Vrinda}
+# - \babelfont[bengali,Language=Default]{rm}{AdorshoLipi}
+# - \babelfont[bengali,Language=Default]{rm}{SolaimanLipi}
+# - \babelfont[bengali,Language=Default]{rm}{Noto Sans Bengali}
+# - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+# - \babelfont[bengali,Language=Default]{rm}{Mukti}
 #
 # - \babelfont[english]{rm}{Tex Gyre Adventor}
 # - \babelfont[english]{rm}{FreeSerif}

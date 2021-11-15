@@ -8,7 +8,7 @@ import re
 
 FONT_MAP = {
     'Calibri': '',
-    'Bree Serif': 'Noto Serif Light',
+    'Bree Serif': 'FreeSerif',
 }
 
 CONV = {
