@@ -37,8 +37,8 @@ header-includes:
 - \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
 
 - \babelfont[bengali,Language=Default]{rm}{Akaash}
-# - \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
-# - \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
+- \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
+- \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
 # - \babelfont[bengali,Language=Default]{rm}{Kalpurush}
 # - \babelfont[bengali,Language=Default]{rm}{Nikosh}
 # - \babelfont[bengali,Language=Default]{rm}{Vrinda}

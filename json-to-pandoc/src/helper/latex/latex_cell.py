@@ -520,13 +520,28 @@ class TextFormat(object):
 
 
     def to_latex(self, text, color_dict):
-        content = f"{{{text}}}"
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
+        content = f"{text}"
 
-        if self.is_underline: content = f"\\underline{content}"
-        if self.is_strikethrough: content = f"\\sout{content}"
-        if self.is_italic: content = f"\\textit{content}"
-        if self.is_bold: content = f"\\textbf{content}"
+        styled = False
+        if self.is_underline:
+            content = f"\\underline{{{content}}}"
+            styled = True
+
+        if self.is_strikethrough:
+            content = f"\\sout{{{content}}}"
+            styled = True
+
+        if self.is_italic:
+            content = f"\\textit{{{content}}}"
+            styled = True
+
+        if self.is_bold:
+            content = f"\\textbf{{{content}}}"
+            styled = True
+
+        if not styled:
+            content = f"{{{content}}}"
 
         # color, font, font-size
         if self.font_family != '':
