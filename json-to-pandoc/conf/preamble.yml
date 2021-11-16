@@ -3,6 +3,7 @@
 # classoption: twoside
 header-includes:
 - \RequirePackage{luatex85}
+- \RequirePackage{titlesec}
 - \usepackage{etoolbox}
 - \usepackage{fontspec}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
