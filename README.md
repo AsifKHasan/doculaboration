@@ -22,18 +22,18 @@ pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n
 
 ## Linux usage:
 ```
+DOCUMENT="name-of-the-gsheet"
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
 cd ./out
-DOCUMENT="name-of-the-gsheet"
 time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
 ```
 
 ## Windows usage:
 ```
+set DOCUMENT="name-of-the-gsheet"
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
 cd ./out
-set DOCUMENT="name-of-the-gsheet"
 pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```

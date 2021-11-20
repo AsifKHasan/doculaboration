@@ -1,3 +1,10 @@
+TODO
+1. latex block
+2. verbatim block
+3. superscript
+4. subscript
+5. footnote
+
 TEXLive contains the otfinfo command line program, which can query this information; for example
 otfinfo -i `kpsewhich lmroman10-regular.otf`
 
