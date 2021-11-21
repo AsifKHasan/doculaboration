@@ -1,16 +1,17 @@
 ---
-# documentclass: book
+documentclass: book
 # classoption: twoside
+subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
-- \RequirePackage{luatex85}
-- \RequirePackage{titlesec}
+- \RequirePackage{luatex85}     # we use lualatex as our engine
+- \RequirePackage{titlesec}     # for custom titles and headings
 - \usepackage{etoolbox}
 - \usepackage{fontspec}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
 - \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
 - \usepackage{graphicx}
-- \usepackage{grffile}
-- \usepackage{fancyhdr}
+- \usepackage{grffile}          # png support?
+- \usepackage{fancyhdr}         # custom header/footer
 - \usepackage{colortbl}
 - \usepackage{xcolor}
 - \usepackage{ulem}
