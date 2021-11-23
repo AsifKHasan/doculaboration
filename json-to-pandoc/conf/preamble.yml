@@ -1,7 +1,7 @@
 ---
-documentclass: book
+# documentclass: book
 # classoption: twoside
-subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
+# subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
 - \RequirePackage{luatex85}     # we use lualatex as our engine
 - \RequirePackage{titlesec}     # for custom titles and headings
@@ -34,13 +34,16 @@ header-includes:
 - \babelfont[Language=Default]{sf}{Latin Modern Sans}
 - \babelfont[Language=Default]{tt}{Latin Modern Mono}
 
-# - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
-- \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
-- \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+- \babelfont[bengali]{rm}{Noto Serif Bengali}
+- \babelfont[bengali]{sf}{Noto Sans Bengali}
+- \babelfont[bengali]{tt}{Noto Sans Bengali UI}
 
-- \babelfont[bengali,Language=Default]{rm}{Akaash}
-- \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
-- \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
+# - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+# - \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
+# - \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+# - \babelfont[bengali,Language=Default]{rm}{Akaash}
+# - \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
+# - \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
 # - \babelfont[bengali,Language=Default]{rm}{Kalpurush}
 # - \babelfont[bengali,Language=Default]{rm}{Nikosh}
 # - \babelfont[bengali,Language=Default]{rm}{Vrinda}
