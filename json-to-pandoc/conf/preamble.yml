@@ -1,5 +1,5 @@
 ---
-documentclass: book
+# documentclass: book
 # classoption: twoside
 subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
