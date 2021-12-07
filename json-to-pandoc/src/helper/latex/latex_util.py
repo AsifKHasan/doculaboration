@@ -33,7 +33,7 @@ GSHEET_LATEX_BORDER_MAPPING = {
     'SOLID': 'solid'
 }
 
-TBLR_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
+TBLR_VALIGN = {'TOP': 'h', 'MIDDLE': 'm', 'BOTTOM': 'f'}
 PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}

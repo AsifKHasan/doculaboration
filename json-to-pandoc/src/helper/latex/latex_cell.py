@@ -33,7 +33,11 @@ class Cell(object):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
             self.note = CellNote(value.get('note'))
-            self.is_empty = False
+            if 'effectiveValue' in self.value:
+                self.is_empty = False
+            else:
+                # debug(f"....cell [{self.row_num},{self.col_num}] is empty")
+                self.is_empty = True
 
             # handle special notes
             if self.note.page_number:

@@ -1,7 +1,7 @@
 ---
 # documentclass: book
 # classoption: twoside
-# subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
+subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
 - \RequirePackage{luatex85}     # we use lualatex as our engine
 - \RequirePackage{titlesec}     # for custom titles and headings

@@ -347,11 +347,12 @@ class LatexContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
+                        debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
                         next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
+                        # debug(f"..cell [{r+1},{c+1}] is empty")
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
                         next_cell_in_row.copy_format_from(first_cell)
 
@@ -396,9 +397,9 @@ class LatexContent(object):
                         else:
                             next_cell_in_row.mark_multirow(MultiSpan.No)
 
-
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
+                        # pass
 
 
         # let us see how the cells look now
@@ -609,7 +610,7 @@ class LatexTable(LatexBlock):
         table_rulesep = f"rulesep={0}pt,"
         table_stretch = f"stretch={1.0},"
         table_vspan = f"vspan=even,"
-        table_hspan = f"hspan=default,"
+        table_hspan = f"hspan=minimal,"
         table_rows = f"rows={{ht={12}pt}},"
         table_rowhead = f"rowhead={self.header_row_count},"
 
