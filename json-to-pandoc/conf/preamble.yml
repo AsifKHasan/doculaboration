@@ -5,6 +5,7 @@ subparagraph: yes               # for using titlesec with Pandoc (as both define
 header-includes:
 - \RequirePackage{luatex85}     # we use lualatex as our engine
 - \RequirePackage{titlesec}     # for custom titles and headings
+- \usepackage{babel}
 - \usepackage{etoolbox}
 - \usepackage{fontspec}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
@@ -17,30 +18,49 @@ header-includes:
 - \usepackage{ulem}
 - \usepackage{lastpage}
 - \usepackage{bold-extra}
-- \usepackage{babel}
 - \usepackage{tabularray}
 - \usepackage{lscape}
 - \usepackage{hyperref}
 - \usepackage{slantsc}
+- \usepackage{needspace}
 
 - \hypersetup{colorlinks,linkcolor=gray}
 
 - \tracinglostchars=2
 
-- \babelprovide[import, language=Default]{english}
+- \babelprovide[import,main]{english}
 - \babelprovide[onchar=fonts ids]{bengali}
+- \defaultfontfeatures{Scale=MatchLowercase, Ligatures=TeX, Renderer=HarfBuzz}
 
-- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
-- \babelfont[Language=Default]{sf}{Latin Modern Sans}
-- \babelfont[Language=Default]{tt}{Latin Modern Mono}
+- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Arial}
+- \babelfont[Language=Default]{sf}{Arial}
+- \babelfont[Language=Default]{tt}{Arial}
 
-- \babelfont[bengali]{rm}{Noto Serif Bengali}
-- \babelfont[bengali]{sf}{Noto Sans Bengali}
-- \babelfont[bengali]{tt}{Noto Sans Bengali UI}
+- \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+- \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
+- \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+
+- \babeltags{english=english}
+- \babeltags{bengali=bengali}
+
+# - \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
+# - \babelfont[Language=Default]{sf}{Latin Modern Sans}
+# - \babelfont[Language=Default]{tt}{Latin Modern Mono}
+
+# - \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Noto Serif}
+# - \babelfont[Language=Default]{sf}{Noto Sans}
+# - \babelfont[Language=Default]{tt}{Noto Sans Mono}
+
+# - \babelfont[english]{sf}{FreeSerif}
+
+# - \babelfont[english]{rm}{Tex Gyre Adventor}
+# - \babelfont[english]{rm}{FreeSans}
+# - \babelfont[english]{rm}{Open Sans Regular}
 
 # - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
 # - \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
 # - \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+
 # - \babelfont[bengali,Language=Default]{rm}{Akaash}
 # - \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
 # - \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
@@ -49,14 +69,5 @@ header-includes:
 # - \babelfont[bengali,Language=Default]{rm}{Vrinda}
 # - \babelfont[bengali,Language=Default]{rm}{AdorshoLipi}
 # - \babelfont[bengali,Language=Default]{rm}{SolaimanLipi}
-# - \babelfont[bengali,Language=Default]{rm}{Noto Sans Bengali}
-# - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
 # - \babelfont[bengali,Language=Default]{rm}{Mukti}
-#
-# - \babelfont[english]{rm}{Tex Gyre Adventor}
-# - \babelfont[english]{rm}{FreeSerif}
-# - \babelfont[english]{rm}{FreeSans}
-# - \babelfont[english]{rm}{Latin Modern Roman}
-# - \babelfont[english]{rm}{Latin Modern Sans}
-# - \babelfont[english]{rm}{Open Sans Regular}
 ---

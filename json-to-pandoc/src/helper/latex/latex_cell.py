@@ -33,7 +33,7 @@ class Cell(object):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
             self.note = CellNote(value.get('note'))
-            if 'effectiveValue' in self.value:
+            if 'userEnteredFormat' in self.value:
                 self.is_empty = False
             else:
                 # debug(f"....cell [{self.row_num},{self.col_num}] is empty")
@@ -124,23 +124,26 @@ class Cell(object):
             if right_hspace:
                 cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
 
-            content_lines.append(cell_value)
-
             # handle styles defined in notes
             if self.note.style:
-                if self.note.style == 'figure':
+                if self.note.style == 'Figure':
                     # caption for figure
+                    # content_lines.append(f"\\neeedspace{{2em}}")
                     content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
-                elif self.note.style == 'table':
+                elif self.note.style == 'Table':
                     # caption for table
+                    # content_lines.append(f"\\neeedspace{{2em}}")
                     content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
                 else:
                     # some custom style needs to be applied
                     heading_tag = LATEX_HEADING_MAP.get(self.note.style)
                     if heading_tag:
+                        # content_lines.append(f"\\neeedspace{{2em}}")
                         content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
                     else:
-                        warn(f"style : [self.note.style] not defined")
+                        warn(f"style : {self.note.style} not defined")
+
+            content_lines.append(cell_value)
 
         return content_lines
 
@@ -507,7 +510,7 @@ class TextFormat(object):
         self.source = text_format_dict
         if self.source:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
-            self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'), '')
+            self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'), 'Arial')
             self.font_size = int(text_format_dict.get('fontSize', 0))
             self.is_bold = text_format_dict.get('bold')
             self.is_italic = text_format_dict.get('italic')
