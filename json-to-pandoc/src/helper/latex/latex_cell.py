@@ -124,6 +124,10 @@ class Cell(object):
             if right_hspace:
                 cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
 
+            # handle new-page defined in notes
+            if self.note.new_page:
+                content_lines.append(f"\\pagebreak")
+
             # handle styles defined in notes
             if self.note.style:
                 if self.note.style == 'Figure':
@@ -510,7 +514,19 @@ class TextFormat(object):
         self.source = text_format_dict
         if self.source:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
-            self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'), 'Arial')
+            if 'fontFamily' in text_format_dict:
+                if not text_format_dict['fontFamily'] in FONT_MAP:
+                    self.font_family = DEFAULT_FONT
+                    warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
+                elif text_format_dict['fontFamily'] == DEFAULT_FONT:
+                    self.font_family = ''
+                else:
+                    self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'))
+                    if not self.font_family == text_format_dict['fontFamily']:
+                        warn(f"{text_format_dict['fontFamily']} is mapped to {FONT_MAP[text_format_dict['fontFamily']]}")
+            else:
+                self.font_family = ''
+
             self.font_size = int(text_format_dict.get('fontSize', 0))
             self.is_bold = text_format_dict.get('bold')
             self.is_italic = text_format_dict.get('italic')

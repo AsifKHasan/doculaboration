@@ -15,6 +15,14 @@ pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n
 2. TexLive from https://tug.org/texlive/
 3. LuaLatex
 4. We need fonts
+  * Download and install Microsoft core fonts (Arial, Courier New, Georgia, Impact, Times New Roman, Verdana etc.)
+  ```
+  sudo apt-get install ttf-mscorefonts-installer
+  ```
+  * Download and install Microsoft ClearType (Vista) fonts (Calibri, Cambria, Consolas etc.)
+  ```
+  wget -qO- http://plasmasturm.org/code/vistafonts-installer/vistafonts-installer | bash
+  ```
   * Download and install বাংলা fonts
   ```
   wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh

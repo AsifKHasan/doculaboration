@@ -242,7 +242,7 @@ class LatexContent(object):
             self.has_content = True
 
             properties = content_data.get('properties')
-            self.default_format = CellFormat(properties.get('defaultFormat'))
+            # self.default_format = CellFormat(properties.get('defaultFormat'))
 
             sheets = content_data.get('sheets')
             if isinstance(sheets, list) and len(sheets) > 0:
@@ -540,7 +540,7 @@ class LatexSectionHeader(LatexBlock):
         right_marhin = self.section_spec['right_margin']
 
         if self.newpage:
-            header_lines.append(f"\t\\newpage")
+            header_lines.append(f"\t\\pagebreak")
 
         if self.orientation_changed:
             if self.landscape:

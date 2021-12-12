@@ -6,10 +6,10 @@ header-includes:
 - \RequirePackage{luatex85}     # we use lualatex as our engine
 - \RequirePackage{titlesec}     # for custom titles and headings
 - \usepackage{babel}
-- \usepackage{etoolbox}
 - \usepackage{fontspec}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
 - \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
+- \usepackage{etoolbox}
 - \usepackage{graphicx}
 - \usepackage{grffile}          # png support?
 - \usepackage{fancyhdr}         # custom header/footer
@@ -28,13 +28,16 @@ header-includes:
 
 - \tracinglostchars=2
 
-- \babelprovide[import,main]{english}
-- \babelprovide[onchar=fonts ids]{bengali}
 - \defaultfontfeatures{Scale=MatchLowercase, Ligatures=TeX, Renderer=HarfBuzz}
 
-- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Arial}
-- \babelfont[Language=Default]{sf}{Arial}
-- \babelfont[Language=Default]{tt}{Arial}
+- \babelprovide[import,main]{english}
+- \babelprovide[import,onchar=fonts ids]{bengali}
+
+- \setmainfont{Calibri}
+
+- \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
+- \babelfont[Language=Default]{sf}{Latin Modern Sans}
+- \babelfont[Language=Default]{tt}{Latin Modern Mono}
 
 - \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
 - \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}

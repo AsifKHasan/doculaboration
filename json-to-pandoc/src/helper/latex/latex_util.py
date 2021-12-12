@@ -6,8 +6,11 @@ various utilities for generating latex code
 
 import re
 
+DEFAULT_FONT = 'Calibri'
+
 FONT_MAP = {
     'Calibri': '',
+    'Arial': 'Arial',
     'Bree Serif': 'FreeSerif',
 }
 
