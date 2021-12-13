@@ -15,6 +15,9 @@ pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n
 2. TexLive from https://tug.org/texlive/
 3. LuaLatex
 4. We need fonts
+  * Google Noto fonts from https://github.com/google/fonts
+  * GNU free fonts from https://www.gnu.org/software/freefont/
+  * Go Smallcaps font from https://www.fontmirror.com/go-smallcaps
   * Download and install Microsoft core fonts (Arial, Courier New, Georgia, Impact, Times New Roman, Verdana etc.)
   ```
   sudo apt-get install ttf-mscorefonts-installer
@@ -43,5 +46,5 @@ set DOCUMENT="name-of-the-gsheet"
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
 cd ./out
-pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
+ptime pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```
