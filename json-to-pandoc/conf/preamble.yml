@@ -22,7 +22,6 @@ header-includes:
 - \usepackage{lscape}
 - \usepackage{hyperref}
 - \usepackage{slantsc}
-- \usepackage{needspace}
 
 - \hypersetup{colorlinks,linkcolor=gray}
 

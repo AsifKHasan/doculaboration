@@ -128,26 +128,30 @@ class Cell(object):
             if self.note.new_page:
                 content_lines.append(f"\\pagebreak")
 
-            # handle styles defined in notes
-            if self.note.style:
-                if self.note.style == 'Figure':
-                    # caption for figure
-                    # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
-                elif self.note.style == 'Table':
-                    # caption for table
-                    # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
-                else:
-                    # some custom style needs to be applied
-                    heading_tag = LATEX_HEADING_MAP.get(self.note.style)
-                    if heading_tag:
-                        # content_lines.append(f"\\neeedspace{{2em}}")
-                        content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
-                    else:
-                        warn(f"style : {self.note.style} not defined")
+            # handle keep-with-previous defined in notes
+            if self.note.keep_with_previous:
+                content_lines.append(f"\\nopagebreak")
 
+            # the actual content
             content_lines.append(cell_value)
+
+            # handle styles defined in notes
+            if self.note.style == 'Figure':
+                # caption for figure
+                # content_lines.append(f"\\neeedspace{{2em}}")
+                content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
+            elif self.note.style == 'Table':
+                # caption for table
+                # content_lines.append(f"\\neeedspace{{2em}}")
+                content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
+            elif self.note.style:
+                # some custom style needs to be applied
+                heading_tag = LATEX_HEADING_MAP.get(self.note.style)
+                if heading_tag:
+                    # content_lines.append(f"\\neeedspace{{2em}}")
+                    content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
+                else:
+                    warn(f"style : {self.note.style} not defined")
 
         return content_lines
 
@@ -982,6 +986,7 @@ class CellNote(object):
         self.header_rows = 0
         self.new_page = False
         self.keep_with_next = False
+        self.keep_with_previous = False
         self.page_number = False
 
         if note_json:
@@ -1003,6 +1008,7 @@ class CellNote(object):
             self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
+            self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.page_number = note_dict.get('page-number') is not None
 
 
