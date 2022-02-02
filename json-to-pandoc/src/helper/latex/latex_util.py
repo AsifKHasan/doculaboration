@@ -11,6 +11,7 @@ DEFAULT_FONT = 'Calibri'
 FONT_MAP = {
     'Calibri': '',
     'Arial': 'Arial',
+    'Consolas': 'Consolas',
     'Bree Serif': 'FreeSerif',
 }
 
