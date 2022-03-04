@@ -16,10 +16,11 @@ from helper.gsheet.gsheet_helper import GsheetHelper
 
 class JsonFromGsheet(object):
 
-	def __init__(self, config_path):
+	def __init__(self, config_path, gsheet=None):
 		self.start_time = int(round(time.time() * 1000))
 		self._config_path = Path(config_path).resolve()
 		self._data = {}
+		self._gsheet = gsheet
 
 	def run(self):
 		self.set_up()
@@ -36,6 +37,10 @@ class JsonFromGsheet(object):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		# if gsheet name was provided as parameter, override the configuration
+		if self._gsheet:
+			self._CONFIG['gsheets'] = [self._gsheet]
 
 		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
 		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
@@ -55,12 +60,14 @@ class JsonFromGsheet(object):
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
 		debug("Script took {} seconds".format((self.end_time - self.start_time)/1000))
+		# input("Press Enter to continue...")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-c", "--config", required=True, help="configuration yml path")
+	ap.add_argument("-g", "--gsheet", required=False, help="gsheet name to override gsheet list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = JsonFromGsheet(args["config"])
+	generator = JsonFromGsheet(args["config"], args["gsheet"])
 	generator.run()

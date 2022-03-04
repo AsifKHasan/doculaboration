@@ -15,10 +15,11 @@ from helper.pandoc.pandoc_util import *
 
 class PandocFromJson(object):
 
-	def __init__(self, config_path):
+	def __init__(self, config_path, json=None):
 		self.start_time = int(round(time.time() * 1000))
 		self._config_path = Path(config_path).resolve()
 		self._data = {}
+		self._json = json
 
 	def run(self):
 		self.set_up()
@@ -37,6 +38,10 @@ class PandocFromJson(object):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		# if json name was provided as parameter, override the configuration
+		if self._json:
+			self._CONFIG['jsons'] = [self._json]
 
 		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
 		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
@@ -63,7 +68,8 @@ if __name__ == '__main__':
 	# construct the argument parse and parse the arguments
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-c", "--config", required=True, help="configuration yml path")
+	ap.add_argument("-j", "--json", required=False, help="json name to override json list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = PandocFromJson(args["config"])
+	generator = PandocFromJson(args["config"], args["json"])
 	generator.run()
