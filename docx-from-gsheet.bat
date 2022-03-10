@@ -3,7 +3,9 @@
 @echo off
 
 :: parameters
-set DOCUMENT="MoL-LSG__eoi-and-tor"
+:: set DOCUMENT="NBR-NSW__functional-and-technical-report__PwC__v5.0"
+:: set DOCUMENT="BCC-EDGE__Feasibility-Study"
+set DOCUMENT="BCC-EDGE__DPP"
 set DOCULABORATION_BASE="d:/projects/asif@github/doculaboration"
 
 cd %DOCULABORATION_BASE%
