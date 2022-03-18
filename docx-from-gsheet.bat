@@ -5,7 +5,8 @@
 :: parameters
 :: set DOCUMENT="NBR-NSW__functional-and-technical-report__PwC__v5.0"
 :: set DOCUMENT="BCC-EDGE__Feasibility-Study"
-set DOCUMENT="BCC-EDGE__DPP"
+:: set DOCUMENT="BCC-EDGE__DPP"
+set DOCUMENT="Résumé__Md.Jakir.Hossain"
 set DOCULABORATION_BASE="d:/projects/asif@github/doculaboration"
 
 cd %DOCULABORATION_BASE%
