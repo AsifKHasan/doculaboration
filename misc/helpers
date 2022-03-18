@@ -28,3 +28,37 @@ links for json-to-odt
 https://mashupguide.net/1.0/html/ch17s04.xhtml
 https://github.com/eea/odfpy/tree/master/examples
 https://glot.io/snippets/f0nuzv7b8k
+
+cd D:\projects\asif@github
+
+pushd algorithms-with-games
+git pull
+popd
+
+pushd automatigo
+git pull
+popd
+
+pushd bangla-language
+git pull
+popd
+
+pushd code-snippets
+git pull
+popd
+
+pushd data-driven-documents
+git pull
+popd
+
+pushd doculaboration
+git pull
+popd
+
+pushd gsheet-to-docx
+git pull
+popd
+
+pushd visualization-explorations
+git pull
+popd
