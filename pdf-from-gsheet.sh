@@ -4,10 +4,7 @@
 set echo off
 
 # parameters
-DOCUMENT="MoL-DLRMS__eoi-and-tor"
-DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
-
-cd ${DOCULABORATION_BASE}
+DOCUMENT=$1
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
