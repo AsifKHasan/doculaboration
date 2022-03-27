@@ -1,6 +1,0 @@
-argparse
-PyYAML
-yamllint
-
-termcolor
-colorama
