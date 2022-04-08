@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-from helper.pandoc.pandoc_util import *
-from helper.latex.latex_util import *
+from helper.odt.odt_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   gsheet cell wrappers
@@ -68,9 +67,9 @@ class Cell(object):
         return f"{s}....{b}"
 
 
-    ''' latex code for cell content
+    ''' odt code for cell content
     '''
-    def content_latex(self, include_formatting, color_dict, strip_comments=False, left_hspace=None, right_hspace=None):
+    def content_odt(self, include_formatting, color_dict, strip_comments=False, left_hspace=None, right_hspace=None):
         content_lines = []
 
         if not strip_comments:
@@ -90,7 +89,7 @@ class Cell(object):
                 processed_idx = len(self.formatted_value)
                 for text_format_run in reversed(self.text_format_runs):
                     text = self.formatted_value[:processed_idx]
-                    run_value_list.insert(0, text_format_run.to_latex(text, color_dict))
+                    run_value_list.insert(0, text_format_run.to_odt(text, color_dict))
                     processed_idx = text_format_run.start_index
 
                 cell_value = ''.join(run_value_list)
@@ -99,7 +98,7 @@ class Cell(object):
             elif self.user_entered_value:
                 # if image, userEnteredValue will have an image
                 # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                cell_value = self.user_entered_value.to_latex(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
+                cell_value = self.user_entered_value.to_odt(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
 
             # there is a 3rd possibility, the cell has no values at all, quite an empty cell
             else:
@@ -156,10 +155,10 @@ class Cell(object):
         return content_lines
 
 
-    ''' latex code for cell format
+    ''' odt code for cell format
     '''
-    def format_latex(self, r, color_dict):
-        latex_lines = []
+    def format_odt(self, r, color_dict):
+        odt_lines = []
 
         # alignments and bgcolor
         if self.effective_format:
@@ -174,10 +173,10 @@ class Cell(object):
         # finally build the cell content
         color_dict[bgcolor.key()] = bgcolor.value()
         if not self.is_empty:
-            cell_format_latex = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
-            latex_lines.append(cell_format_latex)
+            cell_format_odt = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
+            odt_lines.append(cell_format_odt)
 
-        return latex_lines
+        return odt_lines
 
 
     ''' Copy format from the cell passed
@@ -242,13 +241,13 @@ class Cell(object):
         return False
 
 
-    ''' latex code for top border
+    ''' odt code for top border
     '''
-    def top_border_latex(self, color_dict):
+    def top_border_odt(self, color_dict):
         t = None
         if self.effective_format and self.effective_format.borders:
             if self.top_border_allowed():
-                t = self.effective_format.borders.to_latex_t(color_dict)
+                t = self.effective_format.borders.to_odt_t(color_dict)
                 if t is not None:
                     # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
                     t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
@@ -256,13 +255,13 @@ class Cell(object):
         return t
 
 
-    ''' latex code for bottom border
+    ''' odt code for bottom border
     '''
-    def bottom_border_latex(self, color_dict):
+    def bottom_border_odt(self, color_dict):
         b = None
         if self.effective_format and self.effective_format.borders:
             if self.bottom_border_allowed():
-                b = self.effective_format.borders.to_latex_b(color_dict)
+                b = self.effective_format.borders.to_odt_b(color_dict)
                 if b is not None:
                     # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
                     b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
@@ -270,20 +269,20 @@ class Cell(object):
         return b
 
 
-    ''' latex code for left and right borders
+    ''' odt code for left and right borders
         r is row numbner (1 based)
     '''
-    def cell_vertical_borders_latex(self, r, color_dict):
+    def cell_vertical_borders_odt(self, r, color_dict):
         lr_borders = []
         if self.effective_format and self.effective_format.borders:
             if self.left_border_allowed():
-                lb = self.effective_format.borders.to_latex_l(color_dict)
+                lb = self.effective_format.borders.to_odt_l(color_dict)
                 if lb is not None:
                     lb = f"vline{{{self.col_num+1}}} = {{{r}}}{{{lb}}},"
                     lr_borders.append(lb)
 
             if self.right_border_allowed():
-                rb = self.effective_format.borders.to_latex_r(color_dict)
+                rb = self.effective_format.borders.to_odt_r(color_dict)
                 if rb is not None:
                     rb = f"vline{{{self.col_num+2}}} = {{{r}}}{{{rb}}},"
                     lr_borders.append(rb)
@@ -367,7 +366,7 @@ class Row(object):
 
     ''' generates the top borders
     '''
-    def top_borders_latex(self, color_dict):
+    def top_borders_odt(self, color_dict):
         top_borders = []
         c = 0
         for cell in self.cells:
@@ -375,7 +374,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                t = cell.top_border_latex(color_dict)
+                t = cell.top_border_odt(color_dict)
                 if t is not None:
                     # top_borders.append(f"\\SetHline{t}")
                     top_borders.append(f"\\cline{t}")
@@ -387,7 +386,7 @@ class Row(object):
 
     ''' generates the bottom borders
     '''
-    def bottom_borders_latex(self, color_dict):
+    def bottom_borders_odt(self, color_dict):
         bottom_borders = []
         c = 0
         for cell in self.cells:
@@ -395,7 +394,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                b = cell.bottom_border_latex(color_dict)
+                b = cell.bottom_border_odt(color_dict)
                 if b is not None:
                     # bottom_borders.append(f"\\SetHline{b}")
                     bottom_borders.append(f"\\cline{b}")
@@ -407,41 +406,41 @@ class Row(object):
 
     ''' generates the vertical borders
     '''
-    def vertical_borders_latex(self, r, color_dict):
+    def vertical_borders_odt(self, r, color_dict):
         v_lines = []
         c = 0
         for cell in self.cells:
             if cell is not None:
-                v_lines = v_lines + cell.cell_vertical_borders_latex(r, color_dict)
+                v_lines = v_lines + cell.cell_vertical_borders_odt(r, color_dict)
 
             c = c + 1
 
         return v_lines
 
 
-    ''' generates the latex code for row formats
+    ''' generates the odt code for row formats
     '''
-    def row_format_latex(self, r, color_dict):
+    def row_format_odt(self, r, color_dict):
         row_format_line = f"row{{{r}}} = {{ht={self.row_height}in}},"
 
         return row_format_line
 
 
-    ''' generates the latex code for cell formats
+    ''' generates the odt code for cell formats
     '''
-    def cell_format_latex(self, r, color_dict):
+    def cell_format_odt(self, r, color_dict):
         cell_format_lines = []
         for cell in self.cells:
             if cell is not None:
                 if not cell.is_empty:
-                    cell_format_lines = cell_format_lines + cell.format_latex(r, color_dict)
+                    cell_format_lines = cell_format_lines + cell.format_odt(r, color_dict)
 
         return cell_format_lines
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def cell_content_latex(self, include_formatting, color_dict, strip_comments=False, header_footer=None):
+    def cell_content_odt(self, include_formatting, color_dict, strip_comments=False, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -449,19 +448,19 @@ class Row(object):
         row_lines.append(f"% {self.row_name}")
 
         # borders
-        top_border_lines = self.top_borders_latex(color_dict)
+        top_border_lines = self.top_borders_odt(color_dict)
         top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
 
-        bottom_border_lines = self.bottom_borders_latex(color_dict)
+        bottom_border_lines = self.bottom_borders_odt(color_dict)
         bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
 
-        # left_border_lines = self.left_borders_latex(color_dict)
+        # left_border_lines = self.left_borders_odt(color_dict)
         # left_border_lines = list(map(lambda x: f"\t{x}", left_border_lines))
 
-        # right_border_lines = self.right_borders_latex(color_dict)
+        # right_border_lines = self.right_borders_odt(color_dict)
         # right_border_lines = list(map(lambda x: f"\t{x}", right_border_lines))
 
-        # gets the cell latex lines
+        # gets the cell odt lines
         all_cell_lines = []
         first_cell = True
         c = 0
@@ -482,7 +481,7 @@ class Row(object):
                     if c == len(self.cells) - 1:
                         right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
 
-                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
+                cell_lines = cell.content_odt(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -546,7 +545,7 @@ class TextFormat(object):
             self.is_underline = False
 
 
-    def to_latex(self, text, color_dict):
+    def to_odt(self, text, color_dict):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
         content = f"{text}"
 
@@ -576,8 +575,8 @@ class TextFormat(object):
         else:
             fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
 
-        latex = f"{fontspec}{content}"
-        return latex
+        odt = f"{fontspec}{content}"
+        return odt
 
 
 ''' gsheet cell value object wrapper
@@ -600,9 +599,9 @@ class CellValue(object):
             self.image = None
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, cell_width, cell_height, format, color_dict):
+    def to_odt(self, cell_width, cell_height, format, color_dict):
         # if image
         if self.image:
             # even now the width may exceed actual cell width, we need to adjust for that
@@ -634,17 +633,17 @@ class CellValue(object):
                 # treat it as if image mode is 3
                 pass
 
-            latex = f"\includegraphics[width={image_width_in_inches}in]{{{os_specific_path(self.image['path'])}}}"
+            odt = f"\includegraphics[width={image_width_in_inches}in]{{{os_specific_path(self.image['path'])}}}"
 
         # if text, formattedValue will contain the text
         else:
             # print(self.string_value)
             if self.verbatim:
-                latex = format.to_latex(self.string_value, color_dict)
+                odt = format.to_odt(self.string_value, color_dict)
             else:
-                latex = format.to_latex(tex_escape(self.string_value), color_dict)
+                odt = format.to_odt(tex_escape(self.string_value), color_dict)
 
-        return latex
+        return odt
 
 
 ''' gsheet cell format object wrapper
@@ -771,40 +770,40 @@ class Borders(object):
 
     ''' top border
     '''
-    def to_latex_t(self, color_dict):
+    def to_odt_t(self, color_dict):
         t = None
         if self.top:
-            t = self.top.to_latex(color_dict)
+            t = self.top.to_odt(color_dict)
 
         return t
 
 
     ''' bottom border
     '''
-    def to_latex_b(self, color_dict):
+    def to_odt_b(self, color_dict):
         b = None
         if self.bottom:
-            b = self.bottom.to_latex(color_dict)
+            b = self.bottom.to_odt(color_dict)
 
         return b
 
 
     ''' left border
     '''
-    def to_latex_l(self, color_dict):
+    def to_odt_l(self, color_dict):
         l = None
         if self.left:
-            l = self.left.to_latex(color_dict)
+            l = self.left.to_odt(color_dict)
 
         return l
 
 
     ''' right border
     '''
-    def to_latex_r(self, color_dict):
+    def to_odt_r(self, color_dict):
         r = None
         if self.right:
-            r = self.right.to_latex(color_dict)
+            r = self.right.to_odt(color_dict)
 
         return r
 
@@ -837,10 +836,10 @@ class Border(object):
 
     ''' border
     '''
-    def to_latex(self, color_dict):
+    def to_odt(self, color_dict):
         color_dict[self.color.key()] = self.color.value()
-        latex = f"fg={self.color.key()},wd={self.width}pt,dash={self.style}"
-        return latex
+        odt = f"fg={self.color.key()},wd={self.width}pt,dash={self.style}"
+        return odt
 
 
 ''' Cell Merge spec wrapper
@@ -965,12 +964,12 @@ class TextFormatRun(object):
             self.format = None
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, text, color_dict):
-        latex = self.format.to_latex(tex_escape(text[self.start_index:]), color_dict)
+    def to_odt(self, text, color_dict):
+        odt = self.format.to_odt(tex_escape(text[self.start_index:]), color_dict)
 
-        return latex
+        return odt
 
 
 ''' gsheet cell notes object wrapper

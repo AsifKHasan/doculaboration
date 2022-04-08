@@ -48,10 +48,10 @@ def process_section(sheet, toc, context, parent=None):
         'page-spec'             : toc[6],
         'margin-spec'           : toc[7],
         'landscape'             : True if s[8] == "Yes" else False,
-        'start-new-page'        : True if s[9] == "Yes" else False,
-        'hide-page-number'      : True if s[10] == "Yes" else False,
+        'new-page'              : True if s[9] == "Yes" else False,
+        'hide-pageno'           : True if s[10] == "Yes" else False,
         'hide-heading'          : True if s[11] == "Yes" else False,
-        'different-first-page'  : True if s[12] == "Yes" else False,
+        'different-firstpage'   : True if s[12] == "Yes" else False,
         'header-first'          : s[13],
         'header-odd'            : s[14],
         'header-even'           : s[15],
@@ -71,14 +71,14 @@ def process_section(sheet, toc, context, parent=None):
 
         if parent['override-child-header']:
             warn(f"child gsheet's header is OVERRIDDEN")
-            d['different-first-page'] = parent['different-first-page']
+            d['different-firstpage'] = parent['different-firstpage']
             d['header-first'] = parent['header-first']
             d['header-odd'] = parent['header-odd']
             d['header-even'] = parent['header-even']
         else:
             warn(f"child gsheet's header is NOT overridden")
             module = importlib.import_module('processor.table_processor')
-            if d['different-first-page']:
+            if d['different-firstpage']:
                 if d['header-first'] != '' and d['header-first'] is not None:
                     d['header-first'] = module.process(sheet, {'link': d['header-first']}, context)
                 else:
@@ -98,14 +98,14 @@ def process_section(sheet, toc, context, parent=None):
 
         if parent['override-child-footer']:
             warn(f"child gsheet's footer is OVERRIDDEN")
-            d['different-first-page'] = parent['different-first-page']
+            d['different-firstpage'] = parent['different-firstpage']
             d['footer-first'] = parent['footer-first']
             d['footer-odd'] = parent['footer-odd']
             d['footer-even'] = parent['footer-even']
         else:
             warn(f"child gsheet's footer is NOT overridden")
             module = importlib.import_module('processor.table_processor')
-            if d['different-first-page']:
+            if d['different-firstpage']:
                 if d['footer-first'] != '' and d['footer-first'] is not None:
                     d['footer-first'] = module.process(sheet, {'link': d['footer-first']}, context)
                 else:
@@ -126,7 +126,7 @@ def process_section(sheet, toc, context, parent=None):
         module = importlib.import_module('processor.table_processor')
 
         # process header, it may be text or link
-        if d['different-first-page']:
+        if d['different-firstpage']:
             if d['header-first'] != '' and d['header-first'] is not None:
                 d['header-first'] = module.process(sheet, {'link': d['header-first']}, context)
             else:

@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
-'''
-various utilities for generating latex code
+''' various utilities for generating an Openoffice odt document
 '''
 
+import sys
 import re
+from helper.logger import *
+
+LETTERS = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ'
+]
 
 DEFAULT_FONT = 'Calibri'
 
@@ -55,6 +61,17 @@ LATEX_HEADING_MAP = {
     'Heading 4' : 'paragraph',
     'Heading 5' : 'subparagraph',
 }
+
+
+''' :param path: a path string
+    :return: the path that the OS accepts
+'''
+def os_specific_path(path):
+    if sys.platform == 'win32':
+        return path.replace('\\', '/')
+    else:
+        return path
+
 
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)

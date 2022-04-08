@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 import json
-from helper.pandoc.pandoc_util import *
-from helper.latex.latex_cell import *
-from helper.latex.latex_util import *
+from helper.odt.odt_cell import *
+from helper.odt.odt_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
-#   latex section objects wrappers
+#   odt section objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
 
-''' Latex section base object
+''' Odt section base object
 '''
-class LatexSectionBase(object):
+class OdtSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
+    def __init__(self, section_data, config):
+        self._config = config
         self.section_spec = section_spec
         self.section_break = section_data['section-break']
 
@@ -50,171 +50,89 @@ class LatexSectionBase(object):
         self.page_style_name = f"pagestyle{self.section_index}"
 
         # headers and footers
-        self.header_first = LatexPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
-        self.header_odd = LatexPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
-        self.header_even = LatexPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
-        self.footer_first = LatexPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
-        self.footer_odd = LatexPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
-        self.footer_even = LatexPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
+        self.header_first = OdtPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
+        self.header_odd = OdtPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
+        self.header_even = OdtPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
+        self.footer_first = OdtPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
+        self.footer_odd = OdtPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
+        self.footer_even = OdtPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
 
-        self.section_contents = LatexContent(section_data.get('contents'), self.section_width, self.section_index)
+        self.section_contents = OdtContent(section_data.get('contents'), self.section_width, self.section_index)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        # generate the header block
-        header_block = LatexSectionHeader(self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed)
-        header_lines, heading_lines = header_block.to_latex(color_dict)
-
-        # get headers and footers
-        if self.header_first.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t\{x}", self.header_first.to_latex(color_dict)))
-
-        if self.header_odd.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
-
-        if self.header_even.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
-
-        if self.footer_first.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
-
-        if self.footer_odd.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
-
-        if self.footer_even.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
-
-        # now the pagestyle
-        header_lines.append(f"\t\\fancypagestyle{{{self.page_style_name}}}{{")
-        header_lines.append(f"\t\t\\fancyhf{{}}")
-        header_lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
-        header_lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
-        if self.header_odd.has_content:
-            header_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
-
-        if self.header_even.has_content:
-            header_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
-
-        if self.footer_odd.has_content:
-            header_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
-
-        if self.footer_even.has_content:
-            header_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
-
-        header_lines.append(f"\t\t}}")
-        header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
-
-        header_lines = [f"% PageStyle - [{self.title}]"] + header_lines
-
-        header_lines = mark_as_latex(header_lines)
-
-        return header_lines + heading_lines
+    def to_odt(self, odt):
+        pass
 
 
-''' Latex table section object
+''' Odt table section object
 '''
-class LatexTableSection(LatexSectionBase):
+class OdtTableSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        section_lines = super().to_latex(color_dict)
-
-        # get the contents
-        content_lines = self.section_contents.to_latex(color_dict)
-
-        return section_lines + content_lines
+    def to_odt(self, odt):
+        pass
 
 
-''' Latex ToC section object
+''' Odt ToC section object
 '''
-class LatexToCSection(LatexSectionBase):
+class OdtToCSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        section_lines = super().to_latex(color_dict)
-
-        # table-of-contents
-        content_lines = []
-        content_lines.append("\\renewcommand{\\contentsname}{}")
-        content_lines.append("\\vspace{-0.5in}")
-        content_lines.append("\\tableofcontents")
-        content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
-
-        return section_lines + content_lines
+    def to_odt(self, odt):
+        pass
 
 
-''' Latex LoT section object
+''' Odt LoT section object
 '''
-class LatexLoTSection(LatexSectionBase):
+class OdtLoTSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        section_lines = super().to_latex(color_dict)
-
-        # table-of-contents
-        content_lines = []
-        content_lines.append("\\renewcommand{\\listtablename}{}")
-        content_lines.append("\\vspace{-0.4in}")
-        content_lines.append("\\listoftables")
-        content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
-
-        return section_lines + content_lines
+    def to_odt(self, odt):
+        pass
 
 
-''' Latex LoF section object
+''' Odt LoF section object
 '''
-class LatexLoFSection(LatexSectionBase):
+class OdtLoFSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        section_lines = super().to_latex(color_dict)
-
-        # table-of-contents
-        content_lines = []
-        content_lines.append("\\renewcommand{\\listfigurename}{}")
-        content_lines.append("\\vspace{-0.4in}")
-        content_lines.append("\\listoffigures")
-        content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
-
-        return section_lines + content_lines
+    def to_odt(self, odt):
+        pass
 
 
-''' Latex section content base object
+''' Odt section content base object
 '''
-class LatexContent(object):
+class OdtContent(object):
 
     ''' constructor
     '''
@@ -424,10 +342,10 @@ class LatexContent(object):
             if data_row.is_out_of_table():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
-                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
                     self.content_list.append(table)
 
-                block = LatexParagraph(data_row, r)
+                block = OdtParagraph(data_row, r)
                 self.content_list.append(block)
 
                 next_table_starts_in_row = r + 1
@@ -436,7 +354,7 @@ class LatexContent(object):
             elif data_row.is_table_start():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
-                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
@@ -446,36 +364,36 @@ class LatexContent(object):
 
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
-            table = LatexTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
+            table = OdtTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
             self.content_list.append(table)
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        latex_lines = []
+    def to_odt(self, color_dict):
+        odt_lines = []
 
         # iterate through tables and blocks contents
         last_block_is_a_paragraph = False
         for block in self.content_list:
             # if current block is a paragraph and last block was also a paragraph, insert a newline
-            if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
-                latex_lines.append(f"\t\\\\[{10}pt]")
+            if isinstance(block, OdtParagraph) and last_block_is_a_paragraph:
+                odt_lines.append(f"\t\\\\[{10}pt]")
 
-            latex_lines = latex_lines + block.to_latex(longtable=True, color_dict=color_dict)
+            odt_lines = odt_lines + block.to_odt(longtable=True, color_dict=color_dict)
 
             # keep track of the block as the previous block
-            if isinstance(block, LatexParagraph):
+            if isinstance(block, OdtParagraph):
                 last_block_is_a_paragraph = True
             else:
                 last_block_is_a_paragraph = False
 
-        latex_lines = mark_as_latex(latex_lines)
+        odt_lines = mark_as_odt(odt_lines)
 
-        return latex_lines
+        return odt_lines
 
 
-class LatexPageHeaderFooter(LatexContent):
+class OdtPageHeaderFooter(OdtContent):
 
     ''' constructor
         header_footer : header/footer
@@ -487,49 +405,49 @@ class LatexPageHeaderFooter(LatexContent):
         self.id = f"{self.header_footer}{self.odd_even}{section_index}"
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, color_dict):
-        latex_lines = []
+    def to_odt(self, color_dict):
+        odt_lines = []
 
-        latex_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
+        odt_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
 
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.to_latex(longtable=False, color_dict=color_dict, strip_comments=True, header_footer=self.header_footer)
+            block_lines = block.to_odt(longtable=False, color_dict=color_dict, strip_comments=True, header_footer=self.header_footer)
             # block_lines = list(map(lambda x: f"\t{x}", block_lines))
-            latex_lines = latex_lines + block_lines
+            odt_lines = odt_lines + block_lines
 
             first_block = False
 
-        latex_lines.append(f"\t}}")
+        odt_lines.append(f"\t}}")
 
-        return latex_lines
+        return odt_lines
 
 
-''' Latex Block object wrapper base class (plain latex, table, header etc.)
+''' Odt Block object wrapper base class (plain odt, table, header etc.)
 '''
-class LatexBlock(object):
+class OdtBlock(object):
 
-    ''' generates latex code
+    ''' generates odt code
     '''
-    def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
+    def to_odt(self, longtable, color_dict, strip_comments=False, header_footer=None):
         pass
 
 
-''' Latex Header Block wrapper
+''' Odt Header Block wrapper
 '''
-class LatexSectionHeader(LatexBlock):
+class OdtSectionHeader(OdtBlock):
 
     ''' constructor
     '''
     def __init__(self, section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed):
         self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed = section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed
 
-    ''' generates latex code
+    ''' generates odt code
     '''
-    def to_latex(self, color_dict, strip_comments=False, header_footer=None):
+    def to_odt(self, color_dict, strip_comments=False, header_footer=None):
         header_lines = []
         paper = 'a4paper'
         page_width = self.section_spec['page_width']
@@ -562,14 +480,14 @@ class LatexSectionHeader(LatexBlock):
                 heading_lines.append('\n')
             else:
                 heading_lines.append(f"\\titlestyle{{{heading_text}}}")
-                heading_lines = mark_as_latex(heading_lines)
+                heading_lines = mark_as_odt(heading_lines)
 
         return header_lines, heading_lines
 
 
-''' Latex Table object wrapper
+''' Odt Table object wrapper
 '''
-class LatexTable(LatexBlock):
+class OdtTable(OdtBlock):
 
     ''' constructor
     '''
@@ -577,15 +495,15 @@ class LatexTable(LatexBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
-        self.table_name = f"LatexTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
+        self.table_name = f"OdtTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
 
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
+    def to_odt(self, longtable, color_dict, strip_comments=False, header_footer=None):
         # table template
         template_lines = []
         if longtable:
@@ -632,21 +550,21 @@ class LatexTable(LatexBlock):
         # generate row formats
         r = 1
         for row in self.table_cell_matrix:
-            row_format_line = f"\t\t{row.row_format_latex(r, color_dict)}"
+            row_format_line = f"\t\t{row.row_format_odt(r, color_dict)}"
             table_lines.append(row_format_line)
             r = r + 1
 
         # generate cell formats
         r = 1
         for row in self.table_cell_matrix:
-            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_latex(r, color_dict)))
+            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_odt(r, color_dict)))
             table_lines = table_lines + cell_format_lines
             r = r + 1
 
         # generate vertical borders
         r = 1
         for row in self.table_cell_matrix:
-            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_latex(r, color_dict)))
+            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_odt(r, color_dict)))
             table_lines = table_lines + v_lines
             r = r + 1
 
@@ -655,21 +573,21 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_odt(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
         table_lines = list(map(lambda x: f"\t{x}", table_lines))
 
         if not strip_comments:
-            table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
+            table_lines = [f"% OdtTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
 
         return table_lines
 
 
-''' Latex Block object wrapper
+''' Odt Block object wrapper
 '''
-class LatexParagraph(LatexBlock):
+class OdtParagraph(OdtBlock):
 
     ''' constructor
     '''
@@ -677,16 +595,16 @@ class LatexParagraph(LatexBlock):
         self.data_row = data_row
         self.row_number = row_number
 
-    ''' generates the latex code
+    ''' generates the odt code
     '''
-    def to_latex(self, longtable, color_dict, strip_comments=False):
+    def to_odt(self, longtable, color_dict, strip_comments=False):
         block_lines = []
         if not strip_comments:
-            block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
+            block_lines.append(f"% OdtParagraph: row {self.row_number+1}")
 
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_latex(include_formatting=True, color_dict=color_dict)
+            row_text = self.data_row.get_cell(0).content_odt(include_formatting=True, color_dict=color_dict)
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
 

@@ -10,8 +10,7 @@ import argparse
 from pathlib import Path
 
 from helper.logger import *
-from helper.pandoc.pandoc_helper import Pandoc
-from helper.pandoc.pandoc_util import *
+from helper.odt.odt_helper import Odt
 
 class OdtFromJson(object):
 
@@ -28,10 +27,11 @@ class OdtFromJson(object):
 			self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
 			self.load_json()
 
-			# pandoc-helper
+			# odt-helper
 			self._CONFIG['files']['output-odt'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.odt"
-			pandoc = Pandoc()
-			pandoc.generate_pandoc(self._data['sections'], self._CONFIG, self._CONFIG['files']['pandoc-styles'], self._CONFIG['files']['document-header'], self._CONFIG['files']['output-pandoc'])
+			odt = Odt(self._CONFIG)
+			odt.generate_odt(self._data['sections'])
+
 			self.tear_down()
 
 	def set_up(self):

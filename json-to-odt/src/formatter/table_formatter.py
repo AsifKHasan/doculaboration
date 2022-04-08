@@ -3,9 +3,9 @@
 import importlib
 
 from helper.logger import *
-from helper.latex.latex_section import LatexTableSection
+from helper.odt.odt_section import OdtTableSection
 
-def generate(section_data, section_specs, context, section_index, color_dict, last_section_was_landscape):
+def generate(odt, config, section_data):
     if section_data['section'] != '':
         debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
     else:
@@ -21,16 +21,8 @@ def generate(section_data, section_specs, context, section_index, color_dict, la
                 content_type = 'table'
 
             module = importlib.import_module(f"formatter.{content_type}_formatter")
-            section_lines, last_section_was_landscape = module.generate(section, section_specs, context, section_index, color_dict, last_section_was_landscape)
+            module.generate(odt, config, section)
 
     else:
-        # it is a new section
-        section_spec = section_specs.get(section_data.get('section-break'))
-        if section_spec is None:
-            section_spec = section_specs.get('continuous_portrait')
-
-        latex_section = LatexTableSection(section_data, section_spec, section_index, last_section_was_landscape)
-        section_lines = latex_section.to_latex(color_dict)
-        last_section_was_landscape = latex_section.landscape
-
-    return section_lines, last_section_was_landscape
+        section = OdtTableSection(section_data, config)
+        section.to_odt(odt)
