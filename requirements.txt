@@ -10,3 +10,5 @@ pygsheets
 PyYAML
 termcolor
 yamllint
+odfpy
+OOoPy
