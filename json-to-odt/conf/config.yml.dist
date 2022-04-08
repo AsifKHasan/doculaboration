@@ -1,0 +1,23 @@
+# copy this file as config.yml and do not commit the copied file
+
+dirs:
+  # some stock files (images) that we do not want to download from outside
+  data-dir:              "../data"
+  # all outputs and temporary downloads go here
+  output-dir:            "../../out"
+
+files:
+  # the custom styles for the output odt
+  odt-styles:           "./styles-spectrum.yml"
+  # the odt template based on which the output odt is generated (should definitely be blank with some styles customized as preferred)
+  odt-template:         "./template-spectrum.odt"
+
+jsons:
+  # the json(s) that will be processed to generate output(s). One json outputs one odt
+  - "json-file-name"
+
+odt-related:
+  # whether the ToC will be updated in the output odt after generation (requires Openoffice installed)
+  update-toc:           true
+  # whether the pdf will be generated from the output odt after generation (requires Openoffice installed)
+  generate-pdf:         true

@@ -20,7 +20,7 @@ def copy_drive_file(service, origin_file_id, copy_title):
     try:
         return service.files().copy(fileId=origin_file_id, body=copied_file).execute()
     except(errors.HttpError, error):
-        error('An error occurred: {0}'.format(error))
+        error(f"An error occurred: {error}")
         return None
 
 def download_drive_file(param, destination, context):
@@ -32,10 +32,10 @@ def read_drive_file(drive_url, context):
 
     id = url.replace('https://drive.google.com/file/d/', '')
     id = id.split('/')[0]
-    # debug('drive file id to be read from is {0}'.format(id))
+    # debug(f"drive file id to be read from is {id}")
     f = context['drive'].CreateFile({'id': id})
     if f['mimeType'] != 'text/plain':
-        warn('drive url {0} mime-type is {1} which may not be readable as text'.format(url, f['mimeType']))
+        warn(f"drive url {url} mime-type is {f['mimeType']} which may not be readable as text")
 
     text = f.GetContentString()
     return text

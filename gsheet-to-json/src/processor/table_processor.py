@@ -8,7 +8,6 @@ import re
 import time
 import pprint
 import pygsheets
-# import pandas as pd
 
 import urllib.request
 
@@ -16,9 +15,6 @@ from helper.logger import *
 from helper.gsheet.gsheet_util import *
 from helper.gdrive.gdrive_util import *
 
-COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
-            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
 def process(sheet, section_data, context):
     ws_title = section_data['link']
@@ -27,14 +23,14 @@ def process(sheet, section_data, context):
     if ws_title in context['worksheet-cache'][sheet.title]:
         return context['worksheet-cache'][sheet.title][ws_title]
 
-    info('processing ... {0} : {1}'.format(sheet.title, ws_title))
+    info(f"processing ... {sheet.title} : {ws_title}")
     try:
         ws = sheet.worksheet('title', ws_title)
     except:
-        warn('No worksheet ... {0}'.format(ws_title))
+        warn(f"No worksheet ... {ws_title}")
         return {}
 
-    ranges = ['{0}!B3:{1}{2}'.format(ws_title, COLUMNS[ws.cols-1], ws.rows)]
+    ranges = [f"{ws_title}!B3:{COLUMNS[ws.cols - 1]}{ws.rows}"]
     include_grid_data = True
 
     wait_for = context['gsheet-read-wait-seconds']
@@ -46,11 +42,11 @@ def process(sheet, section_data, context):
             response = request.execute()
             break
         except:
-            warn('gsheet read request (attempt {0}) failed, waiting for {1} seconds before trying again'.format(i, wait_for))
+            warn(f"gsheet read request (attempt {o}) failed, waiting for {wait_for} seconds before trying again")
             time.sleep(float(wait_for))
 
     if response is None:
-        error('gsheet read request failed, quiting')
+        error(f"gsheet read request failed, quiting")
         sys.exit(1)
 
     # if any of the cells have userEnteredValue of IMAGE or HYPERLINK, process it
@@ -85,7 +81,7 @@ def process(sheet, section_data, context):
                         m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('link_url') is not None and m.group('link_title') is not None:
                             url = m.group('link_url')
-                            debug('found a link to [{0}] at [{1}]'. format(url, m.group('link_url')))
+                            debug(f"found a link to [{url}] at [{m.group('link_url')}]")
 
                             # this may be a drive file
                             if url.startswith('https://drive.google.com/file/d/'):
@@ -101,4 +97,5 @@ def process(sheet, section_data, context):
         row = row + 1
 
     context['worksheet-cache'][sheet.title][ws_title] = response
+    
     return response

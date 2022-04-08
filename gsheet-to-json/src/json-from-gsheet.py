@@ -28,7 +28,7 @@ class JsonFromGsheet(object):
 		for gsheet in self._CONFIG['gsheets']:
 			self._data = self._gsheethelper.process_gsheet(gsheet)
 
-			self._CONFIG['files']['output-json'] = '{0}/{1}.json'.format(self._CONFIG['dirs']['output-dir'], gsheet)
+			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet}.json"
 			self.save_json()
 
 			self.tear_down()
@@ -44,8 +44,7 @@ class JsonFromGsheet(object):
 
 		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
 		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
-		if not Path.exists(self._CONFIG['dirs']['temp-dir']):
-			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
+		self._CONFIG['dirs']['temp-dir'].mkdir(parents=True, exist_ok=True)
 
 		self._CONFIG['files']['google-cred'] = config_dir / self._CONFIG['files']['google-cred']
 
@@ -59,7 +58,7 @@ class JsonFromGsheet(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug("Script took {} seconds".format((self.end_time - self.start_time)/1000))
+		debug(f"Script took {(self.end_time - self.start_time)/1000} seconds")
 		# input("Press Enter to continue...")
 
 if __name__ == '__main__':

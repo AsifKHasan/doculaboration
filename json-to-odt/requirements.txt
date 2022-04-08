@@ -1,0 +1,7 @@
+argparse
+PyYAML
+yamllint
+odfpy
+OOoPy
+termcolor
+colorama
