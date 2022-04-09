@@ -48,7 +48,7 @@ def process_section(sheet, toc, context, parent=None):
         'page-spec'             : toc[6],
         'margin-spec'           : toc[7],
         'landscape'             : True if toc[8] == "Yes" else False,
-        'new-page'              : True if toc[9] == "Yes" else False,
+        'section-break'         : True if toc[9] == "Yes" else False,
         'hide-pageno'           : True if toc[10] == "Yes" else False,
         'hide-heading'          : True if toc[11] == "Yes" else False,
         'different-firstpage'   : True if toc[12] == "Yes" else False,

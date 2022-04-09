@@ -16,54 +16,30 @@ class OdtSectionBase(object):
     '''
     def __init__(self, section_data, config):
         self._config = config
-        self.section_spec = section_spec
-        self.section_break = section_data['section-break']
-
-        if self.section_break.startswith('newpage_'):
-            self.newpage = True
-        else:
-            self.newpage = False
-
-        if self.section_break.endswith('_landscape'):
-            self.landscape = True
-            if last_section_was_landscape:
-                self.orientation_changed = False
-            else:
-                self.orientation_changed = True
-        else:
-            self.landscape = False
-            if last_section_was_landscape:
-                self.orientation_changed = True
-            else:
-                self.orientation_changed = False
-
-
-        self.section_width = float(self.section_spec['page_width']) - float(self.section_spec['left_margin']) - float(self.section_spec['right_margin']) - float(self.section_spec['gutter'])
-
-        self.no_heading = section_data['no-heading']
-        self.section = section_data['section']
-        self.heading = section_data['heading']
-        self.level = section_data['level']
-        self.page_numbering = section_data['page-number']
-        self.title = f"{self.section} : {self.heading}"
-        self.section_index = section_index
-        self.page_style_name = f"pagestyle{self.section_index}"
-
-        # headers and footers
-        self.header_first = OdtPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
-        self.header_odd = OdtPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
-        self.header_even = OdtPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
-        self.footer_first = OdtPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
-        self.footer_odd = OdtPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
-        self.footer_even = OdtPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
-
-        self.section_contents = OdtContent(section_data.get('contents'), self.section_width, self.section_index)
+        self._section_data = section_data
+        self._page_spec = self._section_data['page-spec']
+        self._margin_spec = self._section_data['margin-spec']
+        self._orientation = 'landscape' if self._section_data['landscape'] else 'portrait'
+        self._page_layout_name = f"{self._page_spec}__{self._margin_spec}__{self._orientation}"
 
 
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        pass
+        master_page = get_or_create_master_page(odt, self._config['odt-specs'], self._page_layout_name, self._page_spec, self._margin_spec, self._orientation)
+        # Headings
+        if not self._section_data['hide-heading']:
+            heading_text = self._section_data['heading']
+            if self._section_data['section'] != '':
+                heading_text = f"{self._section_data['section']} {heading_text}"
+
+            if self._section_data['level'] == 0:
+                style_name = 'Title'
+            else:
+                style_name = f"Heading_20_{self._section_data['level']}"
+
+            debug(f"..... {style_name} - {heading_text}")
+            paragraph(odt, style_name, heading_text)
 
 
 ''' Odt table section object
@@ -79,7 +55,7 @@ class OdtTableSection(OdtSectionBase):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        pass
+        super().to_odt(odt)
 
 
 ''' Odt ToC section object
@@ -95,7 +71,7 @@ class OdtToCSection(OdtSectionBase):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        pass
+        super().to_odt(odt)
 
 
 ''' Odt LoT section object
@@ -111,7 +87,7 @@ class OdtLoTSection(OdtSectionBase):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        pass
+        super().to_odt(odt)
 
 
 ''' Odt LoF section object
@@ -127,7 +103,7 @@ class OdtLoFSection(OdtSectionBase):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        pass
+        super().to_odt(odt)
 
 
 ''' Odt section content base object

@@ -6,6 +6,8 @@
 import yaml
 import importlib
 
+from odf.opendocument import load
+
 from helper.odt.odt_util import *
 from helper.logger import *
 
@@ -20,7 +22,7 @@ class Odt(object):
 
     ''' generate and save the odt
     '''
-    def generate_odt(self, section_list, config):
+    def generate_odt(self, section_list):
         for section in section_list:
             content_type = section['content-type']
 
