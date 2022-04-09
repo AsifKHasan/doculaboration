@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # gsheet->json->pandoc->pdf pipeline
 
-set echo off
-
 # parameters
 DOCUMENT=$1
+
+# set echo off
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src

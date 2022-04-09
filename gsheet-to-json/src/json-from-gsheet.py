@@ -14,6 +14,7 @@ from pathlib import Path
 from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
 
+
 class JsonFromGsheet(object):
 
 	def __init__(self, config_path, gsheet=None):
@@ -22,16 +23,18 @@ class JsonFromGsheet(object):
 		self._data = {}
 		self._gsheet = gsheet
 
+
 	def run(self):
 		self.set_up()
+
 		# process gsheets one by one
 		for gsheet in self._CONFIG['gsheets']:
-			self._data = self._gsheethelper.process_gsheet(gsheet)
-
 			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet}.json"
+			self._data = self._gsheethelper.process_gsheet(gsheet)
 			self.save_json()
 
-			self.tear_down()
+		self.tear_down()
+
 
 	def set_up(self):
 		# configuration
@@ -52,14 +55,17 @@ class JsonFromGsheet(object):
 		self._gsheethelper = GsheetHelper()
 		self._gsheethelper.init(self._CONFIG)
 
+
 	def save_json(self):
 		with open(self._CONFIG['files']['output-json'], "w") as f:
 			f.write(json.dumps(self._data, sort_keys=False, indent=4))
+
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
 		debug(f"Script took {(self.end_time - self.start_time)/1000} seconds")
 		# input("Press Enter to continue...")
+
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments

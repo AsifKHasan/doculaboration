@@ -42,7 +42,7 @@ def process(sheet, section_data, context):
             response = request.execute()
             break
         except:
-            warn(f"gsheet read request (attempt {o}) failed, waiting for {wait_for} seconds before trying again")
+            warn(f"gsheet read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
             time.sleep(float(wait_for))
 
     if response is None:
@@ -97,5 +97,5 @@ def process(sheet, section_data, context):
         row = row + 1
 
     context['worksheet-cache'][sheet.title][ws_title] = response
-    
+
     return response

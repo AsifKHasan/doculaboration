@@ -7,8 +7,6 @@ dirs:
   output-dir:            "../../out"
 
 files:
-  # the custom styles for the output odt
-  odt-styles:           "./styles-spectrum.yml"
   # the odt template based on which the output odt is generated (should definitely be blank with some styles customized as preferred)
   odt-template:         "./template-spectrum.odt"
 

@@ -13,7 +13,6 @@ from pydrive.drive import GoogleDrive
 from helper.logger import *
 from helper.gsheet.gsheet_util import *
 from helper.gsheet.gsheet_reader import *
-from helper.gsheet.gsheet_writer import *
 
 class GsheetHelper(object):
 
@@ -30,17 +29,13 @@ class GsheetHelper(object):
         # as we go further we put everything inside a single dict _context
         self._context = {}
 
-        debug(1)
         _G = pygsheets.authorize(service_account_file=config['files']['google-cred'])
         self._context['_G'] = _G
-        debug(2)
 
         credentials = ServiceAccountCredentials.from_json_keyfile_name(config['files']['google-cred'], scopes=['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'])
         credentials.authorize(httplib2.Http())
-        debug(3)
 
         self._context['service'] = discovery.build('sheets', 'v4', credentials=credentials)
-        debug(4)
 
         gauth = GoogleAuth()
         gauth.credentials = credentials
@@ -60,7 +55,7 @@ class GsheetHelper(object):
                 gsheet = self._context['_G'].open(gsheet_name)
                 break
             except:
-                warn(f"gsheet read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
+                warn(f"gsheet {gsheet_name} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
                 time.sleep(float(wait_for))
 
         if gsheet is None:
