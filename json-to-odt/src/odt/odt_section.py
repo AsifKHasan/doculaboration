@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-from helper.odt.odt_cell import *
-from helper.odt.odt_util import *
+from odt.odt_cell import *
+from odt.odt_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   odt section objects wrappers
@@ -17,16 +17,11 @@ class OdtSectionBase(object):
     def __init__(self, section_data, config):
         self._config = config
         self._section_data = section_data
-        self._page_spec = self._section_data['page-spec']
-        self._margin_spec = self._section_data['margin-spec']
-        self._orientation = 'landscape' if self._section_data['landscape'] else 'portrait'
-        self._page_layout_name = f"{self._page_spec}__{self._margin_spec}__{self._orientation}"
 
 
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        master_page = get_or_create_master_page(odt, self._config['odt-specs'], self._page_layout_name, self._page_spec, self._margin_spec, self._orientation)
         # Headings
         if not self._section_data['hide-heading']:
             heading_text = self._section_data['heading']
@@ -39,7 +34,7 @@ class OdtSectionBase(object):
                 style_name = f"Heading_20_{self._section_data['level']}"
 
             debug(f"..... {style_name} - {heading_text}")
-            paragraph(odt, style_name, heading_text)
+            create_paragraph(odt, None, heading_text)
 
 
 ''' Odt table section object

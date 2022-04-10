@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import json
-from helper.odt.odt_util import *
+
+from odt.odt_util import *
+from helper.logger import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   gsheet cell wrappers

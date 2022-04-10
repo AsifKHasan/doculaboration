@@ -9,8 +9,8 @@ import datetime
 import argparse
 from pathlib import Path
 
+from odt.odt_helper import OdtHelper
 from helper.logger import *
-from helper.odt.odt_helper import Odt
 
 class OdtFromJson(object):
 
@@ -29,8 +29,8 @@ class OdtFromJson(object):
 
 			# odt-helper
 			self._CONFIG['files']['output-odt'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.odt"
-			odt = Odt(self._CONFIG)
-			odt.generate_odt(self._data['sections'])
+			odt_helper = OdtHelper(self._CONFIG)
+			odt_helper.generate_and_save(self._data['sections'])
 
 			self.tear_down()
 
@@ -65,7 +65,7 @@ class OdtFromJson(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"Script took {(self.end_time - self.start_time)/1000} seconds")
+		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments
