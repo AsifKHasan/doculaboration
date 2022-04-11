@@ -3,18 +3,49 @@
 ''' various utilities for generating an Openoffice odt document
 '''
 
-from odf.style import MasterPage, PageLayout, PageLayoutProperties
+from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties
 from odf.text import P
 
 from helper.logger import *
 
+
+''' update page-layout of Standard master-page with the given page-layout
+'''
+def update_standard_master_page(odt, new_page_layout):
+    # get the Standard master-page
+    standard_master_page_name = 'Standard'
+    standard_master_page = None
+    for master_page in odt.masterstyles.getElementsByType(MasterPage):
+        if master_page.getAttribute('name') == standard_master_page_name:
+            standard_master_page = master_page
+            break
+
+    if standard_master_page is not None:
+        debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+        standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')] = new_page_layout
+        debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+    else:
+        warn(f"master-page {standard_master_page_name} NOT found")
+
+
+''' create a new paragraph style
+'''
+def create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=None):
+    if master_page_name is not None:
+        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph", masterpagename=master_page_name)
+        odt.automaticstyles.addElement(paragraph_style)
+        return
+
+    if page_break:
+        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph")
+        paragraph_style.addElement(ParagraphProperties(breakbefore="page"))
+        odt.automaticstyles.addElement(paragraph_style)
+        return
+
 ''' write a paragraph in a given style
 '''
 def create_paragraph(odt, style_name, text):
-    style = None
-    if not style_name is None: 
-        style = odt.getStyleByName(style_name)
-
+    style = odt.getStyleByName(style_name)
     p = P(stylename=style, text=text)
     odt.text.addElement(p)
 

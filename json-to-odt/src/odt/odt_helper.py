@@ -27,8 +27,10 @@ class OdtHelper(object):
     '''
     def preprocess(self, section_list):
         first_section = True
+        section_index = 0
         for section in section_list:
             section['first-section'] = True if first_section else False
+            section['section-index'] = section_index
             section['landscape'] = 'landscape' if section['landscape'] else 'portrait'
 
             # force table formatter for gsheet content
@@ -42,8 +44,12 @@ class OdtHelper(object):
             section['master-page'] = f"{page_spec}__{margin_spec}__{orientation}"
             master_page = get_or_create_master_page(self._odt, self._config['odt-specs'], section['master-page'], page_spec, margin_spec, orientation)
 
-            first_section = False
+            # if it is the very first section, change the page-layout of the *Standard* master-page
+            if first_section:
+                update_standard_master_page(self._odt, section['master-page'])
 
+            first_section = False
+            section_index = section_index + 1
 
 
     ''' generate and save the odt

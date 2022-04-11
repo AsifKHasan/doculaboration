@@ -23,18 +23,38 @@ class OdtSectionBase(object):
     '''
     def to_odt(self, odt):
         # Headings
+        # identify what style the heading will be and its content
         if not self._section_data['hide-heading']:
             heading_text = self._section_data['heading']
             if self._section_data['section'] != '':
                 heading_text = f"{self._section_data['section']} {heading_text}"
 
             if self._section_data['level'] == 0:
-                style_name = 'Title'
+                parent_style_name = 'Title'
             else:
-                style_name = f"Heading_20_{self._section_data['level']}"
+                parent_style_name = f"Heading_20_{self._section_data['level']}"
 
-            debug(f"..... {style_name} - {heading_text}")
-            create_paragraph(odt, None, heading_text)
+            # debug(f"..... {style_name} - {heading_text}")
+        else:
+            heading_text = ''
+            parent_style_name = 'Text_20_body'
+
+        # handle section-break and page-break
+        if self._section_data['section-break']:
+            # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
+            style_name = f"{self._section_data['section-index']}-P0-with-section-break"
+            paragraph_style_name = create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=self._section_data['master-page'])
+            create_paragraph(odt, style_name, heading_text)
+        else:
+            if self._section_data['page-break']:
+                # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
+                style_name = f"{self._section_data['section-index']}-P0-with-page-break"
+                create_paragraph_style(odt, style_name, parent_style_name, page_break=True, master_page_name=None)
+                create_paragraph(odt, style_name, heading_text)
+            else:
+                # just write it
+                create_paragraph(odt, parent_style_name, heading_text)
+
 
 
 ''' Odt table section object
