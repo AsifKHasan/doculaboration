@@ -18,56 +18,10 @@ else:
     LIBREOFFICE_EXECUTABLE = 'soffice'
 
 
-''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
-'''
-def update_indexes(odt, odt_path):
-    document_url = Path(odt_path).as_uri()
-    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    debug(f"updating indexes for {odt_path}")
-    subprocess.call(command_line, shell=True);
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# paragraphs and styles
 
-
-''' given an odt file generates pdf in the given directory
-'''
-def generate_pdf(infile, outdir):
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
-    debug(f"generating pdf from {infile}")
-    subprocess.call(command_line, shell=True);
-
-
-'''
-'''
-def create_toc(odt):
-    name = 'Table of Content'
-    toc = TableOfContent(name=name)
-    toc_source = TableOfContentSource(outlinelevel=10)
-    toc_title_template = IndexTitleTemplate()
-    toc_source.addElement(toc_title_template)
-    toc.addElement(toc_source)
-    odt.text.addElement(toc)
-
-
-''' update page-layout of Standard master-page with the given page-layout
-'''
-def update_standard_master_page(odt, new_page_layout):
-    # get the Standard master-page
-    standard_master_page_name = 'Standard'
-    standard_master_page = None
-    for master_page in odt.masterstyles.getElementsByType(MasterPage):
-        if master_page.getAttribute('name') == standard_master_page_name:
-            standard_master_page = master_page
-            break
-
-    if standard_master_page is not None:
-        debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
-        standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')] = new_page_layout
-        debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
-    else:
-        warn(f"master-page {standard_master_page_name} NOT found")
-
-
-''' create a new paragraph style
+''' create style - family paragraph
 '''
 def create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=None):
     if master_page_name is not None:
@@ -92,6 +46,75 @@ def create_paragraph(odt, style_name, text):
     style = odt.getStyleByName(style_name)
     p = P(stylename=style, text=text)
     odt.text.addElement(p)
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# indexes and pdf generation
+
+''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
+'''
+def update_indexes(odt, odt_path):
+    document_url = Path(odt_path).as_uri()
+    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    debug(f"updating indexes for {odt_path}")
+    subprocess.call(command_line, shell=True);
+
+
+''' given an odt file generates pdf in the given directory
+'''
+def generate_pdf(infile, outdir):
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
+    debug(f"generating pdf from {infile}")
+    subprocess.call(command_line, shell=True);
+
+
+''' create table-of-contents
+'''
+def create_toc(odt):
+    name = 'Table of Content'
+    toc = TableOfContent(name=name)
+    toc_source = TableOfContentSource(outlinelevel=10)
+    toc_title_template = IndexTitleTemplate()
+    toc_source.addElement(toc_title_template)
+    toc.addElement(toc_source)
+    odt.text.addElement(toc)
+
+
+''' create illustration-index
+'''
+def create_lof(odt):
+    name = 'List of Figures'
+
+
+''' create Table-index
+'''
+def create_lot(odt):
+    name = 'List of Tables'
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# master-page and page-layout
+
+''' update page-layout of Standard master-page with the given page-layout
+'''
+def update_standard_master_page(odt, new_page_layout):
+    # get the Standard master-page
+    standard_master_page_name = 'Standard'
+    standard_master_page = None
+    for master_page in odt.masterstyles.getElementsByType(MasterPage):
+        if master_page.getAttribute('name') == standard_master_page_name:
+            standard_master_page = master_page
+            break
+
+    if standard_master_page is not None:
+        debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+        standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')] = new_page_layout
+        debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+    else:
+        warn(f"master-page {standard_master_page_name} NOT found")
 
 
 ''' gets the page-layout from odt if it is there, else create one
