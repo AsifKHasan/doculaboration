@@ -1,64 +1,11 @@
-TODO
-1. latex block
-2. verbatim block
-3. superscript
-4. subscript
-5. footnote
-
-TEXLive contains the otfinfo command line program, which can query this information; for example
-otfinfo -i `kpsewhich lmroman10-regular.otf`
+"C:/Program Files/LibreOffice/program/soffice.exe" --headless --invisible -o D:\projects\asif@github\doculaboration\out\NBR-NSW__functional-and-technical-report__PwC__v5.0.odt
 
 
-LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., ‘Latin Modern Roman’ instead of ‘ec-lmr10’), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
-luaotfload-tool
 
+Run LibreOffice headless to call a macro. The command line call should not specify the document to open, just a macro. For example (using the newer macro syntax):
 
-some fonts to use (Preferred Family Name)
-  Latin Modern Roman
-  Latin Modern Sans
-  Latin Modern Mono
+soffice -headless -invisible "vnd.sun.star.script:Standard.Module1.MySubroutine?language=Basic&location=application"
 
-  FreeSerif
+The macro calls loadComponentFromUrl with the Hidden property set to true. This will cause the document to not become visible.
 
-  Open Sans
-
-  Go Smallcaps
-
-links for json-to-odt
-https://mashupguide.net/1.0/html/ch17s04.xhtml
-https://github.com/eea/odfpy/tree/master/examples
-https://glot.io/snippets/f0nuzv7b8k
-
-cd D:\projects\asif@github
-
-pushd algorithms-with-games
-git pull
-popd
-
-pushd automatigo
-git pull
-popd
-
-pushd bangla-language
-git pull
-popd
-
-pushd code-snippets
-git pull
-popd
-
-pushd data-driven-documents
-git pull
-popd
-
-pushd doculaboration
-git pull
-popd
-
-pushd gsheet-to-docx
-git pull
-popd
-
-pushd visualization-explorations
-git pull
-popd
+Now the macro performs whatever it was going to do with the document.

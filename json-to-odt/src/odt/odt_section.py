@@ -53,6 +53,8 @@ class OdtSectionBase(object):
                 create_paragraph(odt, style_name, heading_text)
             else:
                 # just write it
+                style_name = f"{self._section_data['section-index']}-P0"
+                create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=None)
                 create_paragraph(odt, parent_style_name, heading_text)
 
 
@@ -87,6 +89,7 @@ class OdtToCSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
+        create_toc(odt)
 
 
 ''' Odt LoT section object

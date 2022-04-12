@@ -19,3 +19,9 @@ cd %DOCULABORATION_BASE%
 cd ./json-to-odt/src
 python odt-from-json.py --config "../conf/config.yml"
 ```
+
+
+links for json-to-odt
+https://mashupguide.net/1.0/html/ch17s04.xhtml
+https://github.com/eea/odfpy/tree/master/examples
+https://glot.io/snippets/f0nuzv7b8k

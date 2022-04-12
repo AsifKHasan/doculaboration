@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+# Copyright (C) 2005-20 Dr. Ralf Schlatterbeck Open Source Consulting.
+# Reichergasse 131, A-3411 Weidling.
+# Web: http://www.runtux.com Email: office@runtux.com
+# All rights reserved
+# ****************************************************************************
+#
+# This library is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Library General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+# ****************************************************************************
+
+from __future__        import print_function, unicode_literals
+import sys
+from argparse          import ArgumentParser
+from ooopy.OOoPy       import OOoPy
+from ooopy.Transformer import split_tag
+
+def cleantag (tag) :
+    return ':'.join (split_tag (tag))
+
+def pretty (n, indent = 0, with_text = False, ext_ns = False) :
+    s = ["    " * indent]
+    clean = cleantag
+    if ext_ns :
+        clean = lambda x : x
+    s.append (clean (n.tag))
+    attrkeys = n.attrib.keys ()
+    for a in sorted (attrkeys) :
+        s.append (' %s="%s"' % (clean (a), n.attrib [a]))
+    if with_text and n.text is not None :
+        s.append (' TEXT="%s"' % n.text)
+    if with_text and n.tail is not None :
+        s.append (' TAIL="%s"' % n.tail)
+    print (''.join (s))
+    for sub in n :
+        pretty (sub, indent + 1, with_text, ext_ns)
+
+if __name__ == '__main__' :
+    parser = ArgumentParser ()
+    parser.add_argument \
+        ( "file"
+        , help  = "Open Office file"
+        , nargs = '+'
+        )
+    parser.add_argument \
+        ( "-f", "--oofile"
+        , dest    = "ooofile"
+        , help    = "XML-File inside OOo File"
+        , default = 'content.xml'
+        )
+    parser.add_argument \
+        ( "-t", "--with-text"
+        , dest    = "with_text"
+        , action  = "store_true"
+        , help    = "Print text of xml nodes"
+        , default = False
+        )
+    parser.add_argument \
+        ( "-x", "--extend_namespaces"
+        , dest    = "ext_ns"
+        , action  = "store_true"
+        , help    = "Print full text of namespace name"
+        , default = False
+        )
+    args = parser.parse_args ()
+    for f in args.file :
+        o = OOoPy (infile = f)
+        e = o.read (args.ooofile)
+        pretty (e.getroot (), with_text = args.with_text, ext_ns = args.ext_ns)
+        o.close ()

@@ -10,6 +10,7 @@ import argparse
 from pathlib import Path
 
 from odt.odt_helper import OdtHelper
+from odt.odt_util import *
 from helper.logger import *
 
 class OdtFromJson(object):
@@ -31,6 +32,9 @@ class OdtFromJson(object):
 			self._CONFIG['files']['output-odt'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.odt"
 			odt_helper = OdtHelper(self._CONFIG)
 			odt_helper.generate_and_save(self._data['sections'])
+
+			if self._CONFIG['odt-related']['generate-pdf']:
+				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'])
 
 			self.tear_down()
 

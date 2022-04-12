@@ -2,11 +2,38 @@
 
 ''' various utilities for generating an Openoffice odt document
 '''
+import platform
+import subprocess
 
 from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties
-from odf.text import P
+from odf.text import P, TableOfContent, TableOfContentSource, IndexTitleTemplate
 
 from helper.logger import *
+
+
+if platform.system() == 'Windows':
+    LIBREOFFICE_EXECUTABLE = 'C:/Program Files/LibreOffice/program/soffice.exe'
+else:
+    LIBREOFFICE_EXECUTABLE = 'soffice'
+
+
+''' given an odt file generates pdf in the given directory
+'''
+def generate_pdf(infile, outdir):
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
+    subprocess.call(command_line, shell=True);
+
+
+'''
+'''
+def create_toc(odt):
+    name = 'Table of Content'
+    toc = TableOfContent(name=name)
+    toc_source = TableOfContentSource(outlinelevel=10)
+    toc_title_template = IndexTitleTemplate()
+    toc_source.addElement(toc_title_template)
+    toc.addElement(toc_source)
+    odt.text.addElement(toc)
 
 
 ''' update page-layout of Standard master-page with the given page-layout
@@ -41,6 +68,11 @@ def create_paragraph_style(odt, style_name, parent_style_name, page_break=False,
         paragraph_style.addElement(ParagraphProperties(breakbefore="page"))
         odt.automaticstyles.addElement(paragraph_style)
         return
+    else:
+        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph")
+        odt.automaticstyles.addElement(paragraph_style)
+        return
+
 
 ''' write a paragraph in a given style
 '''

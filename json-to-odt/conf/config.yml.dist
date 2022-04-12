@@ -15,7 +15,5 @@ jsons:
   - "json-file-name"
 
 odt-related:
-  # whether the ToC will be updated in the output odt after generation (requires Openoffice installed)
-  update-toc:           true
   # whether the pdf will be generated from the output odt after generation (requires Openoffice installed)
   generate-pdf:         true
