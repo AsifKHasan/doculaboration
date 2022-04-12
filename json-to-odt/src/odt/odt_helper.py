@@ -64,6 +64,9 @@ class OdtHelper(object):
         # save the odt document
         self._odt.save(self._config['files']['output-odt'])
 
+        # update indexes
+        update_indexes(self._odt, self._config['files']['output-odt'])
+
 
     ''' Table processor
     '''

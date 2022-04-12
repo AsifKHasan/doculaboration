@@ -1,11 +1,10 @@
-"C:/Program Files/LibreOffice/program/soffice.exe" --headless --invisible -o D:\projects\asif@github\doculaboration\out\NBR-NSW__functional-and-technical-report__PwC__v5.0.odt
+"C:/Program Files/LibreOffice/program/soffice.exe" --headless --invisible "vnd.sun.star.script:Standard.Module1.open_document?language=Basic&location=application"
+"C:/Program Files/LibreOffice/program/soffice.exe" --headless --invisible "macro:///Standard.Module1.open_document("file:///D:/projects/asif@github/doculaboration/out/NBR-NSW__functional-and-technical-report__PwC__v5.0.odt")"
 
-
-
-Run LibreOffice headless to call a macro. The command line call should not specify the document to open, just a macro. For example (using the newer macro syntax):
+1. Run LibreOffice headless to call a macro. The command line call should not specify the document to open, just a macro. For example (using the newer macro syntax):
 
 soffice -headless -invisible "vnd.sun.star.script:Standard.Module1.MySubroutine?language=Basic&location=application"
 
-The macro calls loadComponentFromUrl with the Hidden property set to true. This will cause the document to not become visible.
+2. The macro calls loadComponentFromUrl with the Hidden property set to true. This will cause the document to not become visible.
 
-Now the macro performs whatever it was going to do with the document.
+3. Now the macro performs whatever it was going to do with the document.

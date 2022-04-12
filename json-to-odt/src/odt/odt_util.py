@@ -4,6 +4,7 @@
 '''
 import platform
 import subprocess
+from pathlib import Path
 
 from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties
 from odf.text import P, TableOfContent, TableOfContentSource, IndexTitleTemplate
@@ -17,10 +18,21 @@ else:
     LIBREOFFICE_EXECUTABLE = 'soffice'
 
 
+''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
+'''
+def update_indexes(odt, odt_path):
+    document_url = Path(odt_path).as_uri()
+    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    debug(f"updating indexes for {odt_path}")
+    subprocess.call(command_line, shell=True);
+
+
 ''' given an odt file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
+    debug(f"generating pdf from {infile}")
     subprocess.call(command_line, shell=True);
 
 
