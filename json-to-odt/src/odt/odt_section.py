@@ -5,7 +5,7 @@ from odt.odt_cell import *
 from odt.odt_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
-#   odt section objects wrappers
+#   odt section (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
 
 ''' Odt section base object
@@ -17,6 +17,26 @@ class OdtSectionBase(object):
     def __init__(self, section_data, config):
         self._config = config
         self._section_data = section_data
+
+        # self.no_heading = section_data['no-heading']
+        # self.heading = section_data['heading']
+        # self.title = f"{self.section} : {self.heading}"
+        # self.page_style_name = f"pagestyle{self.section_index}"
+        self.section = section_data['section']
+        self.level = section_data['level']
+        self.page_numbering = section_data['hide-pageno']
+        self.section_index = section_data['section-index']
+        self.section_width = section_data['width']
+
+        # headers and footers
+        self.header_first = OdtPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
+        self.header_odd = OdtPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
+        self.header_even = OdtPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
+        self.footer_first = OdtPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
+        self.footer_odd = OdtPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
+        self.footer_even = OdtPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
+
+        self.section_contents = OdtContent(section_data.get('contents'), self.section_width, self.section_index)
 
 
     ''' generates the odt code
@@ -73,6 +93,8 @@ class OdtTableSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
+        self.section_contents.to_odt(odt)
+
 
 
 ''' Odt ToC section object
@@ -92,6 +114,7 @@ class OdtToCSection(OdtSectionBase):
         create_toc(odt)
 
 
+
 ''' Odt LoT section object
 '''
 class OdtLoTSection(OdtSectionBase):
@@ -106,6 +129,8 @@ class OdtLoTSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
+        create_lot(odt)
+
 
 
 ''' Odt LoF section object
@@ -122,6 +147,8 @@ class OdtLoFSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
+        create_lof(odt)
+
 
 
 ''' Odt section content base object
@@ -323,7 +350,7 @@ class OdtContent(object):
         return
 
 
-    ''' processes the cells to split the cells into tables and blocks nd ordering the tables and blocks properly
+    ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self):
         # we have a concept of in-cell content and out-of-cell content
@@ -364,29 +391,15 @@ class OdtContent(object):
 
     ''' generates the odt code
     '''
-    def to_odt(self, color_dict):
-        odt_lines = []
-
+    def to_odt(self, odt):
         # iterate through tables and blocks contents
-        last_block_is_a_paragraph = False
         for block in self.content_list:
-            # if current block is a paragraph and last block was also a paragraph, insert a newline
-            if isinstance(block, OdtParagraph) and last_block_is_a_paragraph:
-                odt_lines.append(f"\t\\\\[{10}pt]")
-
-            odt_lines = odt_lines + block.to_odt(longtable=True, color_dict=color_dict)
-
-            # keep track of the block as the previous block
-            if isinstance(block, OdtParagraph):
-                last_block_is_a_paragraph = True
-            else:
-                last_block_is_a_paragraph = False
-
-        odt_lines = mark_as_odt(odt_lines)
-
-        return odt_lines
+            block.to_odt(odt)
 
 
+
+''' Odt Page Header Footer object
+'''
 class OdtPageHeaderFooter(OdtContent):
 
     ''' constructor
@@ -401,23 +414,13 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' generates the odt code
     '''
-    def to_odt(self, color_dict):
-        odt_lines = []
-
-        odt_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
-
+    def to_odt(self, odt):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.to_odt(longtable=False, color_dict=color_dict, strip_comments=True, header_footer=self.header_footer)
-            # block_lines = list(map(lambda x: f"\t{x}", block_lines))
-            odt_lines = odt_lines + block_lines
-
+            block_lines = block.to_odt(odt, header_footer=self.header_footer)
             first_block = False
 
-        odt_lines.append(f"\t}}")
-
-        return odt_lines
 
 
 ''' Odt Block object wrapper base class (plain odt, table, header etc.)
@@ -426,57 +429,9 @@ class OdtBlock(object):
 
     ''' generates odt code
     '''
-    def to_odt(self, longtable, color_dict, strip_comments=False, header_footer=None):
+    def to_odt(self, odt, header_footer=None):
         pass
 
-
-''' Odt Header Block wrapper
-'''
-class OdtSectionHeader(OdtBlock):
-
-    ''' constructor
-    '''
-    def __init__(self, section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed):
-        self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed = section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed
-
-    ''' generates odt code
-    '''
-    def to_odt(self, color_dict, strip_comments=False, header_footer=None):
-        header_lines = []
-        paper = 'a4paper'
-        page_width = self.section_spec['page_width']
-        page_height = self.section_spec['page_height']
-        top_margin = self.section_spec['top_margin']
-        bottom_margin = self.section_spec['bottom_margin']
-        left_margin = self.section_spec['left_margin']
-        right_marhin = self.section_spec['right_margin']
-
-        if self.newpage:
-            header_lines.append(f"\t\\pagebreak")
-
-        if self.orientation_changed:
-            if self.landscape:
-                header_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_marhin}in, landscape}}")
-            else:
-                header_lines.append(f"\t\\restoregeometry")
-
-        # heading
-        heading_lines = []
-        if not self.no_heading:
-            if self.section != '':
-                heading_text = f"{'#' * self.level} {self.section} - {self.heading}".strip()
-            else:
-                heading_text = f"{'#' * self.level} {self.heading}".strip()
-
-            # headings are styles based on level
-            if self.level != 0:
-                heading_lines.append(heading_text)
-                heading_lines.append('\n')
-            else:
-                heading_lines.append(f"\\titlestyle{{{heading_text}}}")
-                heading_lines = mark_as_odt(heading_lines)
-
-        return header_lines, heading_lines
 
 
 ''' Odt Table object wrapper
@@ -497,86 +452,9 @@ class OdtTable(OdtBlock):
 
     ''' generates the odt code
     '''
-    def to_odt(self, longtable, color_dict, strip_comments=False, header_footer=None):
-        # table template
-        template_lines = []
-        if longtable:
-            template_lines.append(f"\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{conthead}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{contfoot}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
-            table_type = "longtblr"
-        else:
-            table_type = "tblr"
+    def to_odt(self, odt, header_footer=None):
+        pass
 
-        # optional inner keys
-        table_inner_keys = [f"caption=,", f"entry=none,", f"label=none,", f"presep={0}pt,", f"postsep={0}pt,"]
-        table_inner_keys = list(map(lambda x: f"\t\t{x}", table_inner_keys))
-
-        # table spec keys
-        table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
-        table_col_spec = f"colspec={{{table_col_spec}}},"
-        table_rulesep = f"rulesep={0}pt,"
-        table_stretch = f"stretch={1.0},"
-        table_vspan = f"vspan=even,"
-        table_hspan = f"hspan=minimal,"
-        table_rows = f"rows={{ht={12}pt}},"
-        table_rowhead = f"rowhead={self.header_row_count},"
-
-        # table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_rows]
-        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan]
-        if longtable:
-            table_spec_keys.append(table_rowhead)
-
-        table_spec_keys = list(map(lambda x: f"\t\t{x}", table_spec_keys))
-
-        table_lines = []
-        table_lines = table_lines + template_lines
-        table_lines.append(f"\\begin{{{table_type}}}[")
-        table_lines = table_lines + table_inner_keys
-        table_lines.append("\t]{")
-        table_lines = table_lines + table_spec_keys
-
-
-        # generate row formats
-        r = 1
-        for row in self.table_cell_matrix:
-            row_format_line = f"\t\t{row.row_format_odt(r, color_dict)}"
-            table_lines.append(row_format_line)
-            r = r + 1
-
-        # generate cell formats
-        r = 1
-        for row in self.table_cell_matrix:
-            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_odt(r, color_dict)))
-            table_lines = table_lines + cell_format_lines
-            r = r + 1
-
-        # generate vertical borders
-        r = 1
-        for row in self.table_cell_matrix:
-            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_odt(r, color_dict)))
-            table_lines = table_lines + v_lines
-            r = r + 1
-
-        # close the table definition
-        table_lines.append(f"\t}}")
-
-        # generate cell values
-        for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_odt(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer)))
-            table_lines = table_lines + row_lines
-
-        table_lines.append(f"\t\\end{{{table_type}}}")
-        table_lines = list(map(lambda x: f"\t{x}", table_lines))
-
-        if not strip_comments:
-            table_lines = [f"% OdtTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
-
-        return table_lines
 
 
 ''' Odt Block object wrapper
@@ -591,15 +469,7 @@ class OdtParagraph(OdtBlock):
 
     ''' generates the odt code
     '''
-    def to_odt(self, longtable, color_dict, strip_comments=False):
-        block_lines = []
-        if not strip_comments:
-            block_lines.append(f"% OdtParagraph: row {self.row_number+1}")
-
+    def to_odt(self, odt):
         # TODO 3: generate the block
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_odt(include_formatting=True, color_dict=color_dict)
-            row_lines = list(map(lambda x: f"\t{x}", row_text))
-            block_lines = block_lines + row_lines
-
-        return block_lines
+            row_text = self.data_row.get_cell(0).content_odt(odt)

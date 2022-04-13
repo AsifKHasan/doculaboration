@@ -42,6 +42,13 @@ Sub open_document(docUrl As String)
 End Sub
 ```
 
+## macro security
+For now, we need to allow macros in LibreOffice
+* From **Tools->Options menu**
+* Go to **LibreOffice->Security**
+* Go to **Macro Security**
+* Select **Low**
+
 ## Useful links
 some useful links for json-to-odt
 * https://mashupguide.net/1.0/html/ch17s04.xhtml

@@ -48,6 +48,11 @@ class OdtHelper(object):
             if first_section:
                 update_standard_master_page(self._odt, section['master-page'])
 
+            this_section_page_spec = self._config['odt-specs']['page-spec'][page_spec]
+            this_section_margin_spec = self._config['odt-specs']['margin-spec'][margin_spec]
+            section['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
+
+
             first_section = False
             section_index = section_index + 1
 
