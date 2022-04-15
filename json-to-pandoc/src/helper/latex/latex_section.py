@@ -113,6 +113,7 @@ class LatexSectionBase(object):
         return header_lines + heading_lines
 
 
+
 ''' Latex table section object
 '''
 class LatexTableSection(LatexSectionBase):
@@ -132,6 +133,7 @@ class LatexTableSection(LatexSectionBase):
         content_lines = self.section_contents.to_latex(color_dict)
 
         return section_lines + content_lines
+
 
 
 ''' Latex ToC section object
@@ -160,6 +162,7 @@ class LatexToCSection(LatexSectionBase):
         return section_lines + content_lines
 
 
+
 ''' Latex LoT section object
 '''
 class LatexLoTSection(LatexSectionBase):
@@ -186,6 +189,7 @@ class LatexLoTSection(LatexSectionBase):
         return section_lines + content_lines
 
 
+
 ''' Latex LoF section object
 '''
 class LatexLoFSection(LatexSectionBase):
@@ -210,6 +214,7 @@ class LatexLoFSection(LatexSectionBase):
         content_lines = mark_as_latex(content_lines)
 
         return section_lines + content_lines
+
 
 
 ''' Latex section content base object
@@ -399,14 +404,13 @@ class LatexContent(object):
 
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
-                        # pass
 
 
         # let us see how the cells look now
-        # for row in self.cell_matrix:
-        #     debug(row.row_name)
-        #     for cell in row.cells:
-        #         debug(f".. {cell}")
+        for row in self.cell_matrix:
+            debug(row.row_name)
+            for cell in row.cells:
+                debug(f".. {cell}")
 
         return
 
@@ -475,6 +479,8 @@ class LatexContent(object):
         return latex_lines
 
 
+'''
+'''
 class LatexPageHeaderFooter(LatexContent):
 
     ''' constructor
@@ -665,6 +671,7 @@ class LatexTable(LatexBlock):
             table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
 
         return table_lines
+
 
 
 ''' Latex Block object wrapper

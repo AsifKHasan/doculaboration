@@ -71,97 +71,66 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def content_odt(self, include_formatting, color_dict, strip_comments=False, left_hspace=None, right_hspace=None):
-        content_lines = []
+    def to_table_cell(self, odt):
+        if not self.is_empty:
+            # first let us get the cell content
+            paragraph = self.to_paragraph(odt)
 
-        if not strip_comments:
-            content_lines.append(f"% {self.merge_spec.to_string()}")
+            # then we wrap this into a table-cell
+            col_a1 = COLUMNS[self.col_num]
+            table_cell_style_attributes = {'name': f"self.table_name.{col_a1}{self.row_num}"}
+            table_cell_properties_attributes = {}
+            table_cell_attributes = {}
+
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
+
+            table_cell.addElement(paragraph)
+
+            return table_cell
+        else:
+            return None
+
+
+    ''' odt code for cell content
+    '''
+    def to_paragraph(self, odt):
+        style_attributes = self.note.style_attributes()
+        paragraph_attributes = self.note.paragraph_attributes() | self.effective_format.paragraph_attributes()
+        text_attributes = None
+        cell_value = None
+        paragraph = None
 
         # the content is not valid for multirow LastCell and InnerCell
-        if self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = None
-
-        elif self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            cell_value = None
-
-        else:
+        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             # textFormatRuns first
             if len(self.text_format_runs):
                 run_value_list = []
                 processed_idx = len(self.formatted_value)
                 for text_format_run in reversed(self.text_format_runs):
                     text = self.formatted_value[:processed_idx]
-                    run_value_list.insert(0, text_format_run.to_odt(text, color_dict))
+                    run_value_list.insert(0, text_format_run.text_attributes(text))
                     processed_idx = text_format_run.start_index
 
-                cell_value = ''.join(run_value_list)
+                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
+                paragraph = create_paragraph(odt, style_name, run_list=run_value_list)
 
             # userEnteredValue next, it can be either image or text
             elif self.user_entered_value:
                 # if image, userEnteredValue will have an image
                 # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                cell_value = self.user_entered_value.to_odt(self.cell_width, self.cell_height, self.effective_format.text_format, color_dict)
+                cell_value = self.user_entered_value.to_odt(odt, self.cell_width, self.cell_height, self.effective_format.text_format)
+                text_attributes = cell_value.get('text-attributes')
+                text = cell_value.get('text')
 
-            # there is a 3rd possibility, the cell has no values at all, quite an empty cell
-            else:
-                cell_value = None
+                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                paragraph = create_paragraph(odt, style_name, text=text)
 
-        if cell_value:
-            # paragraphs need formatting to be included, table cells do not need them
-            if include_formatting:
-                # alignments and bgcolor
-                if self.effective_format:
-                    halign = PARA_HALIGN.get(self.effective_format.halign.halign)
-                else:
-                    halign = PARA_HALIGN.get('LEFT')
-
-                cell_value = f"{halign}{{{cell_value}}}"
-
-
-            # the cell may have a left_hspace or right_hspace
-            if left_hspace:
-                cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
-
-            if right_hspace:
-                cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
-
-            # handle new-page defined in notes
-            if self.note.new_page:
-                content_lines.append(f"\\pagebreak")
-
-            # handle keep-with-previous defined in notes
-            if self.note.keep_with_previous:
-                content_lines.append(f"\\nopagebreak")
-
-            # the actual content
-            content_lines.append(cell_value)
-
-            # handle styles defined in notes
-            if self.note.style == 'Figure':
-                # caption for figure
-                # content_lines.append(f"\\neeedspace{{2em}}")
-                content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
-            elif self.note.style == 'Table':
-                # caption for table
-                # content_lines.append(f"\\neeedspace{{2em}}")
-                content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
-            elif self.note.style:
-                # some custom style needs to be applied
-                heading_tag = LATEX_HEADING_MAP.get(self.note.style)
-                if heading_tag:
-                    # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
-                else:
-                    warn(f"style : {self.note.style} not defined")
-
-        return content_lines
+        return paragraph
 
 
     ''' odt code for cell format
     '''
-    def format_odt(self, r, color_dict):
-        odt_lines = []
-
+    def format_odt(self, odt, r):
         # alignments and bgcolor
         if self.effective_format:
             halign = self.effective_format.halign.halign
@@ -366,147 +335,31 @@ class Row(object):
             return False
 
 
-    ''' generates the top borders
-    '''
-    def top_borders_odt(self, color_dict):
-        top_borders = []
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                t = cell.top_border_odt(color_dict)
-                if t is not None:
-                    # top_borders.append(f"\\SetHline{t}")
-                    top_borders.append(f"\\cline{t}")
-
-            c = c + 1
-
-        return top_borders
-
-
-    ''' generates the bottom borders
-    '''
-    def bottom_borders_odt(self, color_dict):
-        bottom_borders = []
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                b = cell.bottom_border_odt(color_dict)
-                if b is not None:
-                    # bottom_borders.append(f"\\SetHline{b}")
-                    bottom_borders.append(f"\\cline{b}")
-
-            c = c + 1
-
-        return bottom_borders
-
-
-    ''' generates the vertical borders
-    '''
-    def vertical_borders_odt(self, r, color_dict):
-        v_lines = []
-        c = 0
-        for cell in self.cells:
-            if cell is not None:
-                v_lines = v_lines + cell.cell_vertical_borders_odt(r, color_dict)
-
-            c = c + 1
-
-        return v_lines
-
-
-    ''' generates the odt code for row formats
-    '''
-    def row_format_odt(self, r, color_dict):
-        row_format_line = f"row{{{r}}} = {{ht={self.row_height}in}},"
-
-        return row_format_line
-
-
-    ''' generates the odt code for cell formats
-    '''
-    def cell_format_odt(self, r, color_dict):
-        cell_format_lines = []
-        for cell in self.cells:
-            if cell is not None:
-                if not cell.is_empty:
-                    cell_format_lines = cell_format_lines + cell.format_odt(r, color_dict)
-
-        return cell_format_lines
-
-
     ''' generates the odt code
     '''
-    def cell_content_odt(self, include_formatting, color_dict, strip_comments=False, header_footer=None):
+    def to_odt(self, odt):
         # debug(f"processing {self.row_name}")
 
-        row_lines = []
-        # if not strip_comments:
-        row_lines.append(f"% {self.row_name}")
+        # create table-row
+        table_row_style_attributes = {'name': f"self.table_name.{self.row_num}"}
+        table_row_properties_attributes = {}
+        table_row = create_table_row(odt, table_row_style_attributes, table_row_properties_attributes)
 
-        # borders
-        top_border_lines = self.top_borders_odt(color_dict)
-        top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
-
-        bottom_border_lines = self.bottom_borders_odt(color_dict)
-        bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
-
-        # left_border_lines = self.left_borders_odt(color_dict)
-        # left_border_lines = list(map(lambda x: f"\t{x}", left_border_lines))
-
-        # right_border_lines = self.right_borders_odt(color_dict)
-        # right_border_lines = list(map(lambda x: f"\t{x}", right_border_lines))
-
-        # gets the cell odt lines
-        all_cell_lines = []
-        first_cell = True
+        # iterate over the cells
         c = 0
         for cell in self.cells:
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
-                cell_lines = []
             else:
-                left_hspace = None
-                right_hspace = None
-                # if the cell is for a header/footer based on column add hspace
-                if header_footer in ['header', 'footer']:
-                    # first column has a left -ve hspace
-                    if c == 0:
-                        left_hspace = HEADER_FOOTER_FIRST_COL_HSPACE
+                # TODO
+                table_cell = cell.to_table_cell(odt)
+                if table_cell:
+                    table_row.addElement(table_cell)
 
-                    # first column has a left -ve hspace
-                    if c == len(self.cells) - 1:
-                        right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
-
-                cell_lines = cell.content_odt(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
-
-            if c > 0:
-                all_cell_lines.append('&')
-
-            all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
 
-        all_cell_lines.append(f"\\\\")
-        all_cell_lines = list(map(lambda x: f"\t{x}", all_cell_lines))
+        return table_row
 
-
-        # top border
-        row_lines = row_lines + top_border_lines
-        # row_lines = row_lines + left_border_lines
-        # row_lines = row_lines + right_border_lines
-
-        # all cells
-        row_lines = row_lines + all_cell_lines
-
-        # bottom border
-        row_lines = row_lines + bottom_border_lines
-
-        return row_lines
 
 
 ''' gsheet text format object wrapper
@@ -520,17 +373,7 @@ class TextFormat(object):
         if self.source:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
-                if not text_format_dict['fontFamily'] in FONT_MAP:
-                    self.font_family = DEFAULT_FONT
-                    warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
-                elif text_format_dict['fontFamily'] == DEFAULT_FONT:
-                    self.font_family = ''
-                else:
-                    self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'))
-                    if not self.font_family == text_format_dict['fontFamily']:
-                        warn(f"{text_format_dict['fontFamily']} is mapped to {FONT_MAP[text_format_dict['fontFamily']]}")
-            else:
-                self.font_family = ''
+                self.font_family = text_format_dict['fontFamily']
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
             self.is_bold = text_format_dict.get('bold')
@@ -547,38 +390,34 @@ class TextFormat(object):
             self.is_underline = False
 
 
-    def to_odt(self, text, color_dict):
-        color_dict[self.fgcolor.key()] = self.fgcolor.value()
-        content = f"{text}"
+    ''' attributes dict for TextProperties
+    '''
+    def text_attributes(self):
+        attributes = {}
 
-        styled = False
-        if self.is_underline:
-            content = f"\\underline{{{content}}}"
-            styled = True
+        attributes['color'] = self.fgcolor.value()
+        if self.font_family != '':
+            attributes['fontname'] = self.font_family
 
-        if self.is_strikethrough:
-            content = f"\\sout{{{content}}}"
-            styled = True
-
-        if self.is_italic:
-            content = f"\\textit{{{content}}}"
-            styled = True
+        attributes['fontsize'] = self.font_size
 
         if self.is_bold:
-            content = f"\\textbf{{{content}}}"
-            styled = True
+            attributes['fontweight'] = "bold"
 
-        if not styled:
-            content = f"{{{content}}}"
+        if self.is_italic:
+            attributes['fontstyle'] = "italic"
 
-        # color, font, font-size
-        if self.font_family != '':
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
-        else:
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
+        if self.is_underline:
+            attributes['textunderlinestyle'] = "solid"
+            attributes['textunderlinewidth'] = "auto"
+            attributes['textunderlinecolor'] = "font-color"
 
-        odt = f"{fontspec}{content}"
-        return odt
+        if self.is_strikethrough:
+            attributes['textlinethroughstyle'] = "solid"
+            attributes['textlinethroughtype'] = "single"
+
+        return attributes
+
 
 
 ''' gsheet cell value object wrapper
@@ -603,9 +442,12 @@ class CellValue(object):
 
     ''' generates the odt code
     '''
-    def to_odt(self, cell_width, cell_height, format, color_dict):
-        # if image
+    def to_odt(self, odt, cell_width, cell_height, format):
         if self.image:
+            # TODO
+            return {'text': 'MISSING', 'text-attributes': {}}
+
+            # it is an image
             # even now the width may exceed actual cell width, we need to adjust for that
             dpi_x = 96 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
             dpi_y = 96 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
@@ -639,13 +481,9 @@ class CellValue(object):
 
         # if text, formattedValue will contain the text
         else:
-            # print(self.string_value)
-            if self.verbatim:
-                odt = format.to_odt(self.string_value, color_dict)
-            else:
-                odt = format.to_odt(tex_escape(self.string_value), color_dict)
+            # it is text, create the style first
+            return {'text': self.string_value, 'text-attributes': format.text_attributes()}
 
-        return odt
 
 
 ''' gsheet cell format object wrapper
@@ -678,6 +516,16 @@ class CellFormat(object):
             self.text_format = None
 
 
+    ''' attributes dict for ParagraphProperties
+    '''
+    def paragraph_attributes(self):
+        attributes = {}
+
+        attributes['textalign'] = self.halign.halign
+
+        return attributes
+
+
     ''' override borders with the specified color
     '''
     def override_borders(self, color):
@@ -700,6 +548,7 @@ class CellFormat(object):
     '''
     def recolor_bottom_border(self, color):
         self.borders.override_bottom_border(color, forced=True)
+
 
 
 ''' gsheet cell borders object wrapper
@@ -810,6 +659,7 @@ class Borders(object):
         return r
 
 
+
 ''' gsheet cell border object wrapper
 '''
 class Border(object):
@@ -844,6 +694,7 @@ class Border(object):
         return odt
 
 
+
 ''' Cell Merge spec wrapper
 '''
 class CellMergeSpec(object):
@@ -858,6 +709,7 @@ class CellMergeSpec(object):
         return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
 
 
+
 ''' gsheet rowMetadata object wrapper
 '''
 class RowMetadata(object):
@@ -869,6 +721,7 @@ class RowMetadata(object):
         self.inches = row_height_in_inches(self.pixel_size)
 
 
+
 ''' gsheet columnMetadata object wrapper
 '''
 class ColumnMetadata(object):
@@ -877,6 +730,7 @@ class ColumnMetadata(object):
     '''
     def __init__(self, column_metadata_dict):
         self.pixel_size = int(column_metadata_dict['pixelSize'])
+
 
 
 ''' gsheet merge object wrapper
@@ -893,6 +747,7 @@ class Merge(object):
 
         self.row_span = self.end_row - self.start_row
         self.col_span = self.end_col - self.start_col
+
 
 
 ''' gsheet color object wrapper
@@ -927,7 +782,8 @@ class RgbColor(object):
     ''' color value for tabularray color
     '''
     def value(self):
-        return ''.join('{:02x}'.format(a) for a in [self.red, self.green, self.blue])
+        return '#' + ''.join('{:02x}'.format(a) for a in [self.red, self.green, self.blue])
+
 
 
 ''' gsheet cell padding object wrapper
@@ -949,6 +805,7 @@ class Padding(object):
             self.left = 0
 
 
+
 ''' gsheet text format run object wrapper
 '''
 class TextFormatRun(object):
@@ -968,27 +825,28 @@ class TextFormatRun(object):
 
     ''' generates the odt code
     '''
-    def to_odt(self, text, color_dict):
-        odt = self.format.to_odt(tex_escape(text[self.start_index:]), color_dict)
+    def text_attributes(self, text):
+        return {'text': text[self.start_index:], 'text-attributes': self.format.text_attributes()}
 
-        return odt
 
 
 ''' gsheet cell notes object wrapper
+    TODO: handle keep-with-previous defined in notes
 '''
 class CellNote(object):
 
     ''' constructor
     '''
     def __init__(self, note_json=None):
-        self.style = None
         self.out_of_table = False
         self.table_spacing = True
+        self.page_number = False
         self.header_rows = 0
+
+        self.style = None
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
-        self.page_number = False
 
         if note_json:
             try:
@@ -1013,6 +871,32 @@ class CellNote(object):
             self.page_number = note_dict.get('page-number') is not None
 
 
+    ''' style attributes dict to create Style
+    '''
+    def style_attributes(self):
+        attributes = {}
+
+        if self.style is not None:
+            attributes['parentstylename'] = self.style
+
+        return attributes
+
+
+    ''' paragraph attrubutes dict to craete ParagraphProperties
+    '''
+    def paragraph_attributes(self):
+        attributes = {}
+
+        if self.new_page:
+            attributes['breakbefore'] = 'page'
+
+        if self.keep_with_next:
+            attributes['keepwithnext'] = 'always'
+
+        return attributes
+
+
+
 ''' gsheet vertical alignment object wrapper
 '''
 class VerticalAlignment(object):
@@ -1021,9 +905,10 @@ class VerticalAlignment(object):
     '''
     def __init__(self, valign=None):
         if valign:
-            self.valign = TBLR_VALIGN.get(valign, 'p')
+            self.valign = TEXT_VALIGN_MAP.get(valign, 'top')
         else:
-            self.valign = TBLR_VALIGN.get('TOP')
+            self.valign = TEXT_VALIGN_MAP.get('TOP')
+
 
 
 ''' gsheet horizontal alignment object wrapper
@@ -1034,9 +919,10 @@ class HorizontalAlignment(object):
     '''
     def __init__(self, halign=None):
         if halign:
-            self.halign = TBLR_HALIGN.get(halign, 'LEFT')
+            self.halign = TEXT_HALIGN_MAP.get(halign, 'left')
         else:
-            self.halign = TBLR_HALIGN.get('LEFT')
+            self.halign = TEXT_HALIGN_MAP.get('LEFT')
+
 
 
 ''' Helper for cell span specification

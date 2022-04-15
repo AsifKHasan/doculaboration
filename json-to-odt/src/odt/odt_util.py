@@ -4,10 +4,13 @@
 '''
 import platform
 import subprocess
+import random
+import string
 from pathlib import Path
 
-from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties
-from odf.text import P, TableOfContent, TableOfContentSource, IndexTitleTemplate
+from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties
+from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate
+from odf.table import Table, TableColumns, TableColumn, TableRows, TableRow, TableCell
 
 from helper.logger import *
 
@@ -19,33 +22,130 @@ else:
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
+# table, table-row, table-column, table-cell
+
+''' create a Table
+'''
+def create_table(odt, table_style_attributes, table_properties_attributes):
+    if 'family' not in table_style_attributes:
+        table_style_attributes['family'] = 'table'
+
+    # create the style
+    table_style = Style(attributes=table_style_attributes)
+    table_style.addElement(TableProperties(attributes=table_properties_attributes))
+    odt.automaticstyles.addElement(table_style)
+
+    # create the table
+    table_properties = {'name': table_style.getAttribute('name'), 'stylename': table_style.getAttribute('name')}
+    table = Table(attributes=table_properties)
+
+    return table
+
+
+''' create TableColumn
+'''
+def create_table_column(odt, table_column_style_attributes, table_column_properties_attributes):
+    if 'family' not in table_column_style_attributes:
+        table_column_style_attributes['family'] = 'table-column'
+
+    # create the style
+    table_column_style = Style(attributes=table_column_style_attributes)
+    table_column_style.addElement(TableColumnProperties(attributes=table_column_properties_attributes))
+    odt.automaticstyles.addElement(table_column_style)
+
+    # create the table-column
+    table_column_properties = {'stylename': table_column_style.getAttribute('name')}
+    table_column = TableColumn(attributes=table_column_properties)
+
+    return table_column
+
+
+''' create TableRow
+'''
+def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
+    if 'family' not in table_row_style_attributes:
+        table_row_style_attributes['family'] = 'table-row'
+
+    # create the style
+    table_row_style = Style(attributes=table_row_style_attributes)
+    table_row_style.addElement(TableRowProperties(attributes=table_row_properties_attributes))
+    odt.automaticstyles.addElement(table_row_style)
+
+    # create the table-row
+    table_row_properties = {'stylename': table_row_style.getAttribute('name')}
+    table_row = TableRow(attributes=table_row_properties)
+
+    return table_row
+
+
+''' create TableCell
+'''
+def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes):
+    if 'family' not in table_cell_style_attributes:
+        table_cell_style_attributes['family'] = 'table-cell'
+
+    # create the style
+    table_cell_style = Style(attributes=table_cell_style_attributes)
+    table_cell_style.addElement(TableCellProperties(attributes=table_cell_properties_attributes))
+    odt.automaticstyles.addElement(table_cell_style)
+
+    # create the table-cell
+    table_cell_properties = {'stylename': table_cell_style.getAttribute('name')} | table_cell_attributes
+    table_cell = TableCell(attributes=table_cell_properties)
+
+    return table_cell
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
 ''' create style - family paragraph
 '''
-def create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=None):
-    if master_page_name is not None:
-        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph", masterpagename=master_page_name)
-        odt.automaticstyles.addElement(paragraph_style)
-        return
+def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None):
+    # we may need to create the style-name
+    if style_attributes == None:
+        style_attributes = {}
 
-    if page_break:
-        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph")
-        paragraph_style.addElement(ParagraphProperties(breakbefore="page"))
-        odt.automaticstyles.addElement(paragraph_style)
-        return
-    else:
-        paragraph_style = Style(name=style_name, parentstylename=parent_style_name, family="paragraph")
-        odt.automaticstyles.addElement(paragraph_style)
-        return
+    if 'family' not in style_attributes:
+        style_attributes['family'] = 'paragraph'
+
+    if 'name' not in style_attributes:
+        style_attributes['name'] = random_string()
+
+    if 'parentstylename' not in style_attributes:
+        style_attributes['parentstylename'] = 'Text_20_body'
+
+    # create the style
+    paragraph_style = Style(attributes=style_attributes)
+
+    if paragraph_attributes is not None:
+        paragraph_style.addElement(ParagraphProperties(attributes=paragraph_attributes))
+
+    if text_attributes is not None:
+        paragraph_style.addElement(TextProperties(attributes=text_attributes))
+
+    odt.automaticstyles.addElement(paragraph_style)
+
+    return paragraph_style.getAttribute('name')
+
 
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text):
+def create_paragraph(odt, style_name, text=None, run_list=None):
     style = odt.getStyleByName(style_name)
-    p = P(stylename=style, text=text)
-    odt.text.addElement(p)
+    if text is not None:
+        paragraph = P(stylename=style, text=text)
+        return paragraph
+
+    if run_list is not None:
+        paragraph = P(stylename=style)
+        for run in run_list:
+            style_attributes = {'family': 'text'}
+            text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
+            paragraph.addElement(Span(stylename=text_style_name, text=run['text']))
+
+        return paragraph
 
 
 
@@ -171,58 +271,6 @@ ROWSEP = (2/72)
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
-import re
-
-DEFAULT_FONT = 'Calibri'
-
-FONT_MAP = {
-    'Calibri': '',
-    'Arial': 'Arial',
-    'Consolas': 'Consolas',
-    'Bree Serif': 'FreeSerif',
-}
-
-CONV = {
-    '&': r'\&',
-    '%': r'\%',
-    '$': r'\$',
-    '#': r'\#',
-    '_': r'\_',
-    '{': r'\{',
-    '}': r'\}',
-    '~': r'\textasciitilde{}',
-    '^': r'\^{}',
-    '\\': r'\textbackslash{}',
-    '<': r'\textless{}',
-    '>': r'\textgreater{}',
-    '\n': r'\linebreak{}',
-}
-
-GSHEET_LATEX_BORDER_MAPPING = {
-    'DOTTED': 'dotted',
-    'DASHED': 'dashed',
-    'SOLID': 'solid'
-}
-
-TBLR_VALIGN = {'TOP': 'h', 'MIDDLE': 'm', 'BOTTOM': 'f'}
-PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
-TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
-PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
-
-COLSEP = (6/72)
-ROWSEP = (2/72)
-
-HEADER_FOOTER_FIRST_COL_HSPACE = -6
-HEADER_FOOTER_LAST_COL_HSPACE = -6
-
-LATEX_HEADING_MAP = {
-    'Heading 1' : 'section',
-    'Heading 2' : 'subsection',
-    'Heading 3' : 'subsubsection',
-    'Heading 4' : 'paragraph',
-    'Heading 5' : 'subparagraph',
-}
-
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
@@ -230,19 +278,35 @@ def row_height_in_inches(pixel_size):
     return (pixel_size - 9) / 72
 
 
-''' :param text: a plain text message
-    :return: the message escaped to appear correctly in LaTeX
+''' get a random string
 '''
-def tex_escape(text):
-    regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(CONV.keys(), key = lambda item: - len(item))))
-    return regex.sub(lambda match: CONV[match.group()], text)
+def random_string(length=6):
+    letters = string.ascii_uppercase
+    return ''.join(random.choice(letters) for i in range(length))
 
 
-'''
-'''
-def mark_as_latex(lines):
-    latex_lines = ["```{=latex}"]
-    latex_lines = latex_lines + lines
-    latex_lines.append("```\n\n")
 
-    return latex_lines
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# various utility data
+
+GSHEET_LATEX_BORDER_MAPPING = {
+    'DOTTED': 'dotted',
+    'DASHED': 'dashed',
+    'SOLID': 'solid'
+}
+
+
+TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
+TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
+# TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
+
+
+COLSEP = (6/72)
+ROWSEP = (2/72)
+
+HEADER_FOOTER_FIRST_COL_HSPACE = -6
+HEADER_FOOTER_LAST_COL_HSPACE = -6
+
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']

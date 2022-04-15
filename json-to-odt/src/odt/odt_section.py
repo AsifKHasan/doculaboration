@@ -42,7 +42,8 @@ class OdtSectionBase(object):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        # Headings
+        style_attributes = {}
+
         # identify what style the heading will be and its content
         if not self._section_data['hide-heading']:
             heading_text = self._section_data['heading']
@@ -59,23 +60,28 @@ class OdtSectionBase(object):
             heading_text = ''
             parent_style_name = 'Text_20_body'
 
+        style_attributes['parentstylename'] = parent_style_name
+
+        paragraph_attributes = None
         # handle section-break and page-break
         if self._section_data['section-break']:
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
             style_name = f"{self._section_data['section-index']}-P0-with-section-break"
-            paragraph_style_name = create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=self._section_data['master-page'])
-            create_paragraph(odt, style_name, heading_text)
+            style_attributes['masterpagename'] = self._section_data['master-page']
         else:
             if self._section_data['page-break']:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
+                paragraph_attributes = {'breakbefore': 'page'}
                 style_name = f"{self._section_data['section-index']}-P0-with-page-break"
-                create_paragraph_style(odt, style_name, parent_style_name, page_break=True, master_page_name=None)
-                create_paragraph(odt, style_name, heading_text)
             else:
-                # just write it
                 style_name = f"{self._section_data['section-index']}-P0"
-                create_paragraph_style(odt, style_name, parent_style_name, page_break=False, master_page_name=None)
-                create_paragraph(odt, parent_style_name, heading_text)
+
+        style_attributes['name'] = style_name
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
+        paragraph = create_paragraph(odt, style_name, heading_text)
+
+        return paragraph
 
 
 
@@ -429,7 +435,7 @@ class OdtBlock(object):
 
     ''' generates odt code
     '''
-    def to_odt(self, odt, header_footer=None):
+    def to_odt(self, odt):
         pass
 
 
@@ -444,7 +450,7 @@ class OdtTable(OdtBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
-        self.table_name = f"OdtTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
+        self.table_name = f"Table_{random_string()}"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
@@ -452,8 +458,30 @@ class OdtTable(OdtBlock):
 
     ''' generates the odt code
     '''
-    def to_odt(self, odt, header_footer=None):
-        pass
+    def to_odt(self, odt):
+        super().to_odt(odt)
+
+        # create the table with styles
+        table_style_attributes = {'name': self.table_name}
+        table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
+        table = create_table(odt, table_style_attributes=table_style_attributes, table_properties_attributes=table_properties_attributes)
+
+        # table-columns
+        for c in range(0, len(self.column_widths)):
+            col_a1 = COLUMNS[c]
+            col_width = self.column_widths[c]
+            table_column_style_attributes = {'name': f"self.table_name.{col_a1}"}
+            table_column_properties_attributes = {'columnwidth': f"{col_width}in"}
+            table_column = create_table_column(odt, table_column_style_attributes, table_column_properties_attributes)
+            table.addElement(table_column)
+
+        # iteraate rows and cells to render the table's contents
+        for row in self.table_cell_matrix:
+            table_row = row.to_odt(odt)
+            table.addElement(table_row)
+
+        # finally add the table into the document
+        odt.text.addElement(table)
 
 
 
@@ -470,6 +498,10 @@ class OdtParagraph(OdtBlock):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        # TODO 3: generate the block
+        super().to_odt(odt)
+
+        # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_odt(odt)
+            cell_to_produce = self.data_row.get_cell(0)
+            paragraph = cell_to_produce.to_paragraph(odt)
+            odt.text.addElement(paragraph)

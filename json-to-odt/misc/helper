@@ -1,0 +1,6 @@
+odt-from-gsheet.bat NBR-NSW__functional-and-technical-report__PwC__v5.0
+odt-from-gsheet.bat Tasnim.Kabir.Ratul__profile
+
+unzip -o NBR-NSW__functional-and-technical-report__PwC__v5.0.odt -d abc && atom abc
+unzip -o Tasnim.Kabir.Ratul__profile.odt -d abc && atom abc
+unzip -o template-spectrum.odt -d abc && atom abc
