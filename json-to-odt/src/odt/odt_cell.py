@@ -95,7 +95,7 @@ class Cell(object):
     '''
     def to_paragraph(self, odt):
         style_attributes = self.note.style_attributes()
-        paragraph_attributes = self.note.paragraph_attributes() | self.effective_format.paragraph_attributes()
+        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes()}
         text_attributes = None
         cell_value = None
         paragraph = None

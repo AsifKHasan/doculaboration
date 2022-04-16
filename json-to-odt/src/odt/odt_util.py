@@ -90,7 +90,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    table_cell_properties = {'stylename': table_cell_style.getAttribute('name')} | table_cell_attributes
+    table_cell_properties = {**{'stylename': table_cell_style.getAttribute('name')},  **table_cell_attributes}
     table_cell = TableCell(attributes=table_cell_properties)
 
     return table_cell
