@@ -55,7 +55,7 @@ class OdtSectionBase(object):
             else:
                 parent_style_name = f"Heading_20_{self._section_data['level']}"
 
-            debug(f"..... {parent_style_name} - {heading_text}")
+            # debug(f"..... {parent_style_name} - {heading_text}")
         else:
             heading_text = ''
             parent_style_name = 'Text_20_body'
@@ -228,7 +228,8 @@ class OdtContent(object):
                     # rowData
                     r = 0
                     for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
+                        # self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
+                        self.cell_matrix.append(Row(r, row_data, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
                         r = r + 1
 
             # process and split
@@ -260,14 +261,6 @@ class OdtContent(object):
                 warn(f"cell [{first_row},{first_col}] starts a span, but it is not there")
                 continue
 
-            # get the total width of the first_cell when merged
-            for c in range(first_col + 1, last_col):
-                first_cell.cell_width = first_cell.cell_width + first_cell.column_widths[c] + COLSEP * 2
-
-            # get the total height of the first_cell when merged
-            for r in range(first_row + 1, last_row):
-                first_cell.cell_height = first_cell.cell_height + self.cell_matrix[r].row_height + ROWSEP * 2
-
             if col_span > 1:
                 first_cell.merge_spec.multi_col = MultiSpan.FirstCell
             else:
@@ -297,14 +290,15 @@ class OdtContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
+                        # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
+                        # next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
+                        next_cell_in_row = Cell(r, c, None, first_cell.column_widths, row_height)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
                         # debug(f"..cell [{r+1},{c+1}] is empty")
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
-                        next_cell_in_row.copy_format_from(first_cell)
+                        # next_cell_in_row.copy_format_from(first_cell)
 
                         # mark cells for multicol only if it is multicol
                         if col_span > 1:
@@ -349,8 +343,6 @@ class OdtContent(object):
 
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
-                        # pass
-
 
         # let us see how the cells look now
         # for row in self.cell_matrix:
@@ -475,14 +467,14 @@ class OdtTable(OdtBlock):
         for c in range(0, len(self.column_widths)):
             col_a1 = COLUMNS[c]
             col_width = self.column_widths[c]
-            table_column_style_attributes = {'name': f"self.table_name.{col_a1}"}
+            table_column_style_attributes = {'name': f"{self.table_name}.{col_a1}"}
             table_column_properties_attributes = {'columnwidth': f"{col_width}in"}
             table_column = create_table_column(odt, table_column_style_attributes, table_column_properties_attributes)
             table.addElement(table_column)
 
         # iteraate rows and cells to render the table's contents
         for row in self.table_cell_matrix:
-            table_row = row.to_odt(odt)
+            table_row = row.to_odt(odt, self.table_name)
             table.addElement(table_row)
 
         # finally add the table into the document

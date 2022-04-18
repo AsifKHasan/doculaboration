@@ -9,7 +9,7 @@ import string
 from pathlib import Path
 
 from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties
-from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate
+from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate, TableOfContentEntryTemplate, IndexSourceStyles, IndexSourceStyle, IndexEntryLinkStart, IndexEntryChapter, IndexEntryText, IndexEntryTabStop, IndexEntryPageNumber, IndexEntryLinkEnd
 from odf.table import Table, TableColumns, TableColumn, TableRows, TableRow, TableCell
 
 from helper.logger import *
@@ -63,6 +63,7 @@ def create_table_column(odt, table_column_style_attributes, table_column_propert
 ''' create TableRow
 '''
 def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
+    # print(table_row_style_attributes)
     if 'family' not in table_row_style_attributes:
         table_row_style_attributes['family'] = 'table-row'
 
@@ -73,6 +74,7 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
     # create the table-row
     table_row_properties = {'stylename': table_row_style.getAttribute('name')}
+    # print(table_row_properties)
     table_row = TableRow(attributes=table_row_properties)
 
     return table_row
@@ -91,6 +93,24 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
 
     # create the table-cell
     table_cell_properties = {**{'stylename': table_cell_style.getAttribute('name')},  **table_cell_attributes}
+    table_cell = TableCell(attributes=table_cell_properties)
+
+    return table_cell
+
+
+''' create CoveredTableCell
+'''
+def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes):
+    if 'family' not in table_cell_style_attributes:
+        table_cell_style_attributes['family'] = 'table-cell'
+
+    # create the style
+    table_cell_style = Style(attributes=table_cell_style_attributes)
+    table_cell_style.addElement(TableCellProperties(attributes=table_cell_properties_attributes))
+    odt.automaticstyles.addElement(table_cell_style)
+
+    # create the table-cell
+    table_cell_properties = {'stylename': table_cell_style.getAttribute('name')}
     table_cell = TableCell(attributes=table_cell_properties)
 
     return table_cell
@@ -161,7 +181,7 @@ def update_indexes(odt, odt_path):
     document_url = Path(odt_path).as_uri()
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    debug(f"updating indexes for {odt_path}")
+    debug(f"updating indexes for {Path(odt_path).resolve()}")
     subprocess.call(command_line, shell=True);
 
 
@@ -169,7 +189,7 @@ def update_indexes(odt, odt_path):
 '''
 def generate_pdf(infile, outdir):
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
-    debug(f"generating pdf from {infile}")
+    debug(f"generating pdf from {Path(infile).resolve()}")
     subprocess.call(command_line, shell=True);
 
 
@@ -189,12 +209,68 @@ def create_toc(odt):
 '''
 def create_lof(odt):
     name = 'List of Figures'
+    toc = TableOfContent(name=name)
+    toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
+
+    index_entry_link_start = IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = IndexEntryChapter()
+    index_entry_text = IndexEntryText()
+    index_entry_tab_stop = IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = IndexEntryPageNumber()
+    index_entry_link_end = IndexEntryLinkEnd()
+
+    toc_entry_template.addElement(index_entry_link_start)
+    toc_entry_template.addElement(index_entry_chapter)
+    toc_entry_template.addElement(index_entry_text)
+    toc_entry_template.addElement(index_entry_tab_stop)
+    toc_entry_template.addElement(index_entry_page_number)
+    toc_entry_template.addElement(index_entry_link_end)
+
+    toc_title_template = IndexTitleTemplate()
+    toc_index_source_styles = IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = IndexSourceStyle(stylename='Figure')
+    toc_index_source_styles.addElement(toc_index_source_style)
+
+    toc_source.addElement(toc_entry_template)
+    toc_source.addElement(toc_title_template)
+    toc_source.addElement(toc_index_source_styles)
+    toc.addElement(toc_source)
+    odt.text.addElement(toc)
 
 
 ''' create Table-index
 '''
 def create_lot(odt):
     name = 'List of Tables'
+    toc = TableOfContent(name=name)
+    toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
+
+    index_entry_link_start = IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = IndexEntryChapter()
+    index_entry_text = IndexEntryText()
+    index_entry_tab_stop = IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = IndexEntryPageNumber()
+    index_entry_link_end = IndexEntryLinkEnd()
+
+    toc_entry_template.addElement(index_entry_link_start)
+    toc_entry_template.addElement(index_entry_chapter)
+    toc_entry_template.addElement(index_entry_text)
+    toc_entry_template.addElement(index_entry_tab_stop)
+    toc_entry_template.addElement(index_entry_page_number)
+    toc_entry_template.addElement(index_entry_link_end)
+
+    toc_title_template = IndexTitleTemplate()
+    toc_index_source_styles = IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = IndexSourceStyle(stylename='Table')
+    toc_index_source_styles.addElement(toc_index_source_style)
+
+    toc_source.addElement(toc_entry_template)
+    toc_source.addElement(toc_title_template)
+    toc_source.addElement(toc_index_source_styles)
+    toc.addElement(toc_source)
+    odt.text.addElement(toc)
 
 
 
@@ -213,9 +289,9 @@ def update_standard_master_page(odt, new_page_layout):
             break
 
     if standard_master_page is not None:
-        debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+        # debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
         standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')] = new_page_layout
-        debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
+        # debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
     else:
         warn(f"master-page {standard_master_page_name} NOT found")
 

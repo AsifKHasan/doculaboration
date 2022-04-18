@@ -15,8 +15,10 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, default_format, column_widths, row_height):
-        self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
+    # def __init__(self, row_num, col_num, value, default_format, column_widths, row_height):
+    def __init__(self, row_num, col_num, value, column_widths, row_height):
+        # self.row_num, self.col_num, self.column_widths, self.default_format = row_num, col_num, column_widths, default_format
+        self.row_num, self.col_num, self.column_widths = row_num, col_num, column_widths
         self.cell_name = f"cell: [{self.row_num},{self.col_num}]"
         self.value = value
         self.text_format_runs = []
@@ -29,7 +31,8 @@ class Cell(object):
             self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
             self.effective_value = CellValue(self.value.get('effectiveValue'))
             self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
+            # self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
+            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
             for text_format_run in self.value.get('textFormatRuns', []):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
@@ -72,24 +75,27 @@ class Cell(object):
     ''' odt code for cell content
     '''
     def to_table_cell(self, odt):
-        if not self.is_empty:
+        col_a1 = COLUMNS[self.col_num]
+        table_cell_style_attributes = {'name': f"self.table_name.{col_a1}{self.row_num}"}
 
-            # then we wrap this into a table-cell
-            col_a1 = COLUMNS[self.col_num]
-            table_cell_style_attributes = {'name': f"self.table_name.{col_a1}{self.row_num}"}
-
+        table_cell_properties_attributes = {}
+        if self.effective_format:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes()
 
-            table_cell_attributes = {}
-
+        if not self.is_empty:
+            # wrap this into a table-cell
+            table_cell_attributes = self.merge_spec.table_cell_attributes()
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
             # let us get the cell content
             paragraph = self.to_paragraph(odt)
             table_cell.addElement(paragraph)
-            return table_cell
         else:
-            return None
+            # wrap this into a covered-table-cell
+            # debug(self)
+            table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
+
+        return table_cell
 
 
     ''' odt code for cell content
@@ -153,92 +159,6 @@ class Cell(object):
         self.merge_spec.multi_row = span
 
 
-    ''' whether top border is allowed for the cell
-    '''
-    def top_border_allowed(self):
-        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-                return True
-
-        return False
-
-
-    ''' whether bottom border is allowed for the cell
-    '''
-    def bottom_border_allowed(self):
-        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.LastCell]:
-            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-                return True
-
-        return False
-
-
-    ''' whether left border is allowed for the cell
-    '''
-    def left_border_allowed(self):
-        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            return True
-
-        return False
-
-
-    ''' whether right border is allowed for the cell
-    '''
-    def right_border_allowed(self):
-        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.LastCell]:
-            return True
-
-        return False
-
-
-    ''' odt code for top border
-    '''
-    def top_border_odt(self, color_dict):
-        t = None
-        if self.effective_format and self.effective_format.borders:
-            if self.top_border_allowed():
-                t = self.effective_format.borders.to_odt_t(color_dict)
-                if t is not None:
-                    # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
-                    t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
-
-        return t
-
-
-    ''' odt code for bottom border
-    '''
-    def bottom_border_odt(self, color_dict):
-        b = None
-        if self.effective_format and self.effective_format.borders:
-            if self.bottom_border_allowed():
-                b = self.effective_format.borders.to_odt_b(color_dict)
-                if b is not None:
-                    # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
-                    b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
-
-        return b
-
-
-    ''' odt code for left and right borders
-        r is row numbner (1 based)
-    '''
-    def cell_vertical_borders_odt(self, r, color_dict):
-        lr_borders = []
-        if self.effective_format and self.effective_format.borders:
-            if self.left_border_allowed():
-                lb = self.effective_format.borders.to_odt_l(color_dict)
-                if lb is not None:
-                    lb = f"vline{{{self.col_num+1}}} = {{{r}}}{{{lb}}},"
-                    lr_borders.append(lb)
-
-            if self.right_border_allowed():
-                rb = self.effective_format.borders.to_odt_r(color_dict)
-                if rb is not None:
-                    rb = f"vline{{{self.col_num+2}}} = {{{r}}}{{{rb}}},"
-                    lr_borders.append(rb)
-
-        return lr_borders
-
 
 ''' gsheet Row object wrapper
 '''
@@ -246,14 +166,17 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, default_format, section_width, column_widths, row_height):
-        self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height = row_num, default_format, section_width, column_widths, row_height
+    # def __init__(self, row_num, row_data, default_format, section_width, column_widths, row_height):
+    def __init__(self, row_num, row_data, section_width, column_widths, row_height):
+        # self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height = row_num, default_format, section_width, column_widths, row_height
+        self.row_num, self.section_width, self.column_widths, self.row_height = row_num, section_width, column_widths, row_height
         self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, self.row_height))
+            # self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, self.row_height))
+            self.cells.append(Cell(self.row_num, c, value, self.column_widths, self.row_height))
             c = c + 1
 
 
@@ -316,11 +239,12 @@ class Row(object):
 
     ''' generates the odt code
     '''
-    def to_odt(self, odt):
+    def to_odt(self, odt, table_name):
+        self.table_name = table_name
         # debug(f"processing {self.row_name}")
 
         # create table-row
-        table_row_style_attributes = {'name': f"self.table_name.{self.row_num}"}
+        table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
         table_row_properties_attributes = {}
         table_row = create_table_row(odt, table_row_style_attributes, table_row_properties_attributes)
 
@@ -330,7 +254,6 @@ class Row(object):
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
             else:
-                # TODO
                 table_cell = cell.to_table_cell(odt)
                 if table_cell:
                     table_row.addElement(table_cell)
@@ -574,7 +497,7 @@ class Borders(object):
         return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
 
 
-    ''' string representation
+    ''' table-cell attributes
     '''
     def table_cell_attributes(self):
         attributes = {}
@@ -592,82 +515,6 @@ class Borders(object):
             attributes['borderleft'] = self.left.value()
 
         return attributes
-
-
-    ''' override top border with the specified color
-    '''
-    def override_top_border(self, border_color, forced=False):
-        if border_color:
-            if self.top is None:
-                self.top = Border(None, border_color)
-            elif forced:
-                self.top.color = border_color
-
-
-    ''' override bottom border with the specified color
-    '''
-    def override_bottom_border(self, border_color, forced=False):
-        if border_color:
-            if self.bottom is None:
-                self.bottom = Border(None, border_color)
-            elif forced:
-                self.bottom.color = border_color
-
-
-    ''' override left border with the specified color
-    '''
-    def override_left_border(self, border_color):
-        if border_color:
-            if self.left is None:
-                self.left = Border(None, border_color)
-
-
-    ''' override right border with the specified color
-    '''
-    def override_right_border(self, border_color):
-        if border_color:
-            if self.right is None:
-                self.right = Border(None, border_color)
-
-
-    ''' top border
-    '''
-    def to_odt_t(self, color_dict):
-        t = None
-        if self.top:
-            t = self.top.to_odt(color_dict)
-
-        return t
-
-
-    ''' bottom border
-    '''
-    def to_odt_b(self, color_dict):
-        b = None
-        if self.bottom:
-            b = self.bottom.to_odt(color_dict)
-
-        return b
-
-
-    ''' left border
-    '''
-    def to_odt_l(self, color_dict):
-        l = None
-        if self.left:
-            l = self.left.to_odt(color_dict)
-
-        return l
-
-
-    ''' right border
-    '''
-    def to_odt_r(self, color_dict):
-        r = None
-        if self.right:
-            r = self.right.to_odt(color_dict)
-
-        return r
 
 
 
@@ -714,8 +561,25 @@ class CellMergeSpec(object):
         self.col_span = 1
         self.row_span = 1
 
+
+    ''' string representation
+    '''
     def to_string(self):
         return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
+
+
+    ''' table-cell attributes
+    '''
+    def table_cell_attributes(self):
+        attributes = {}
+
+        if self.col_span > 1:
+            attributes['numbercolumnsspanned'] = self.col_span
+
+        if self.row_span:
+            attributes['numberrowsspanned'] = self.row_span
+
+        return attributes
 
 
 
