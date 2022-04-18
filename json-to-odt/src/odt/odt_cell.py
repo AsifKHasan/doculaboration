@@ -73,19 +73,20 @@ class Cell(object):
     '''
     def to_table_cell(self, odt):
         if not self.is_empty:
-            # first let us get the cell content
-            paragraph = self.to_paragraph(odt)
 
             # then we wrap this into a table-cell
             col_a1 = COLUMNS[self.col_num]
             table_cell_style_attributes = {'name': f"self.table_name.{col_a1}{self.row_num}"}
-            table_cell_properties_attributes = {}
+
+            table_cell_properties_attributes = self.effective_format.table_cell_attributes()
+
             table_cell_attributes = {}
 
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
+            # let us get the cell content
+            paragraph = self.to_paragraph(odt)
             table_cell.addElement(paragraph)
-
             return table_cell
         else:
             return None
@@ -126,28 +127,6 @@ class Cell(object):
                 paragraph = create_paragraph(odt, style_name, text=text)
 
         return paragraph
-
-
-    ''' odt code for cell format
-    '''
-    def format_odt(self, odt, r):
-        # alignments and bgcolor
-        if self.effective_format:
-            halign = self.effective_format.halign.halign
-            valign = self.effective_format.valign.valign
-            bgcolor = self.effective_format.bgcolor
-        else:
-            halign = TBLR_HALIGN.get('LEFT')
-            valign = TBLR_VALIGN.get('MIDDLE')
-            bgcolor = self.default_format.bgcolor
-
-        # finally build the cell content
-        color_dict[bgcolor.key()] = bgcolor.value()
-        if not self.is_empty:
-            cell_format_odt = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
-            odt_lines.append(cell_format_odt)
-
-        return odt_lines
 
 
     ''' Copy format from the cell passed
@@ -516,6 +495,18 @@ class CellFormat(object):
             self.text_format = None
 
 
+    ''' attributes dict for TableCellProperties
+    '''
+    def table_cell_attributes(self):
+        attributes = {}
+
+        attributes['verticalalign'] = self.valign.valign
+        attributes['backgroundcolor'] = self.bgcolor.value()
+        more_attributes = {**self.borders.table_cell_attributes(), **self.padding.table_cell_attributes()}
+
+        return {**attributes, **more_attributes}
+
+
     ''' attributes dict for ParagraphProperties
     '''
     def paragraph_attributes(self):
@@ -581,6 +572,26 @@ class Borders(object):
     '''
     def __repr__(self):
         return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
+
+
+    ''' string representation
+    '''
+    def table_cell_attributes(self):
+        attributes = {}
+
+        if self.top:
+            attributes['bordertop'] = self.top.value()
+
+        if self.right:
+            attributes['borderright'] = self.right.value()
+
+        if self.bottom:
+            attributes['borderbottom'] = self.bottom.value()
+
+        if self.left:
+            attributes['borderleft'] = self.left.value()
+
+        return attributes
 
 
     ''' override top border with the specified color
@@ -673,25 +684,23 @@ class Border(object):
 
         if border_dict:
             self.style = border_dict.get('style')
-            self.width = int(border_dict.get('width')) * 0.4
+            self.width = border_dict.get('width')
             self.color = RgbColor(border_dict.get('color'))
 
             # TODO: handle double
-            self.style = GSHEET_LATEX_BORDER_MAPPING.get(self.style, 'solid')
+            self.style = GSHEET_ODT_BORDER_MAPPING.get(self.style, 'solid')
 
 
     ''' string representation
     '''
     def __repr__(self):
-        return f"style: {self.style}, width: {self.width}, color: {self.color}"
+        return f"{self.width}pt {self.style} {self.color.value()}"
 
 
-    ''' border
+    ''' value
     '''
-    def to_odt(self, color_dict):
-        color_dict[self.color.key()] = self.color.value()
-        odt = f"fg={self.color.key()},wd={self.width}pt,dash={self.style}"
-        return odt
+    def value(self):
+        return f"{self.width}pt {self.style} {self.color.value()}"
 
 
 
@@ -804,6 +813,18 @@ class Padding(object):
             self.bottom = 0
             self.left = 0
 
+
+    ''' string representation
+    '''
+    def table_cell_attributes(self):
+        attributes = {}
+
+        attributes['paddingtop'] = f"{self.top}pt"
+        attributes['paddingright'] = f"{self.right}pt"
+        attributes['paddingbottom'] = f"{self.bottom}pt"
+        attributes['paddingleft'] = f"{self.left}pt"
+
+        return attributes
 
 
 ''' gsheet text format run object wrapper

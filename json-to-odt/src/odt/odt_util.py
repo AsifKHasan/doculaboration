@@ -103,7 +103,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
 '''
 def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None):
     # we may need to create the style-name
-    if style_attributes == None:
+    if style_attributes is None:
         style_attributes = {}
 
     if 'family' not in style_attributes:
@@ -134,8 +134,11 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 '''
 def create_paragraph(odt, style_name, text=None, run_list=None):
     style = odt.getStyleByName(style_name)
+    if style is None:
+        warn(f"style {style_name} not found")
+
     if text is not None:
-        paragraph = P(stylename=style, text=text)
+        paragraph = P(stylename=style_name, text=text)
         return paragraph
 
     if run_list is not None:
@@ -231,14 +234,19 @@ def get_or_create_page_layout(odt, odt_specs, page_layout_name, page_spec, margi
         # create one
         page_layout = PageLayout(name=page_layout_name)
         odt.automaticstyles.addElement(page_layout)
-        pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
-        pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
+        printorientation = orientation
+        if orientation == 'portrait':
+            pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
+            pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
+        else:
+            pageheight = f"{odt_specs['page-spec'][page_spec]['width']}in"
+            pagewidth = f"{odt_specs['page-spec'][page_spec]['height']}in"
+
         margintop = f"{odt_specs['margin-spec'][margin_spec]['top']}in"
         marginbottom = f"{odt_specs['margin-spec'][margin_spec]['bottom']}in"
         marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
         marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
         # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
-        printorientation = orientation
         page_layout.addElement(PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
 
     return page_layout
@@ -289,9 +297,9 @@ def random_string(length=6):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-GSHEET_LATEX_BORDER_MAPPING = {
+GSHEET_ODT_BORDER_MAPPING = {
     'DOTTED': 'dotted',
-    'DASHED': 'dashed',
+    'DASHED': 'dash',
     'SOLID': 'solid'
 }
 

@@ -55,7 +55,7 @@ class OdtSectionBase(object):
             else:
                 parent_style_name = f"Heading_20_{self._section_data['level']}"
 
-            # debug(f"..... {style_name} - {heading_text}")
+            debug(f"..... {parent_style_name} - {heading_text}")
         else:
             heading_text = ''
             parent_style_name = 'Text_20_body'
@@ -66,20 +66,25 @@ class OdtSectionBase(object):
         # handle section-break and page-break
         if self._section_data['section-break']:
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
-            style_name = f"{self._section_data['section-index']}-P0-with-section-break"
+            style_name = f"P{self._section_data['section-index']}-P0-with-section-break"
             style_attributes['masterpagename'] = self._section_data['master-page']
+            # debug(f"..... Section Break with MasterPage {self._section_data['master-page']}")
         else:
             if self._section_data['page-break']:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
                 paragraph_attributes = {'breakbefore': 'page'}
-                style_name = f"{self._section_data['section-index']}-P0-with-page-break"
+                style_name = f"P{self._section_data['section-index']}-P0-with-page-break"
+                # debug(f"..... Page Break with MasterPage {self._section_data['master-page']}")
             else:
-                style_name = f"{self._section_data['section-index']}-P0"
+                style_name = f"P{self._section_data['section-index']}-P0"
+                # debug(f"..... Continuous with MasterPage {self._section_data['master-page']}")
 
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(odt, style_name, heading_text)
+        # debug(f"..... Paragraph style {style_name} created")
+        paragraph = create_paragraph(odt, style_name, text=heading_text)
+        odt.text.addElement(paragraph)
 
         return paragraph
 
