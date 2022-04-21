@@ -77,9 +77,9 @@ class OdtHelper(object):
     '''
     def process_table(self, section_data):
         if section_data['section'] != '':
-            debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
         else:
-            debug(f"Writing ... {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['heading'].strip()}")
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if section_data['contents'] is not None and 'sections' in section_data['contents']:
@@ -102,9 +102,9 @@ class OdtHelper(object):
     '''
     def process_toc(self, section_data):
         if section_data['section'] != '':
-            debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
         else:
-            debug(f"Writing ... {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['heading'].strip()}")
 
         section = OdtToCSection(section_data, self._config)
         section.to_odt(self._odt)
@@ -114,9 +114,9 @@ class OdtHelper(object):
     '''
     def process_lof(self, section_data):
         if section_data['section'] != '':
-            debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
         else:
-            debug(f"Writing ... {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['heading'].strip()}")
 
         section = OdtLoFSection(section_data, self._config)
         section.to_odt(self._odt)
@@ -126,9 +126,9 @@ class OdtHelper(object):
     '''
     def process_lot(self, section_data):
         if section_data['section'] != '':
-            debug(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
         else:
-            debug(f"Writing ... {section_data['heading'].strip()}")
+            info(f"Writing ... {section_data['heading'].strip()}")
 
         section = OdtLoTSection(section_data, self._config)
         section.to_odt(self._odt)

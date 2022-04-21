@@ -364,7 +364,7 @@ def row_height_in_inches(pixel_size):
 
 ''' get a random string
 '''
-def random_string(length=6):
+def random_string(length=12):
     letters = string.ascii_uppercase
     return ''.join(random.choice(letters) for i in range(length))
 

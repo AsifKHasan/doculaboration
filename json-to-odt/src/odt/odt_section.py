@@ -344,12 +344,6 @@ class OdtContent(object):
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
 
-        # let us see how the cells look now
-        # for row in self.cell_matrix:
-        #     debug(row.row_name)
-        #     for cell in row.cells:
-        #         debug(f".. {cell}")
-
         return
 
 
@@ -456,6 +450,13 @@ class OdtTable(OdtBlock):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
+        # let us see how the cells look now
+        # debug(f"Table [{self.table_name}]")
+        # for row in self.table_cell_matrix:
+        #     debug(row.row_name)
+        #     for cell in row.cells:
+        #         debug(f".. {cell}")
+
         super().to_odt(odt)
 
         # create the table with styles

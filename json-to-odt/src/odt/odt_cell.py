@@ -27,7 +27,7 @@ class Cell(object):
         self.merge_spec = CellMergeSpec()
 
         if self.value:
-            self.formatted_value = self.value.get('formattedValue')
+            self.formatted_value = self.value.get('formattedValue', '')
             self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
             self.effective_value = CellValue(self.value.get('effectiveValue'))
             self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
@@ -63,7 +63,7 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty}, wd: {self.cell_width}in, ht: {self.cell_height}px, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
+        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty} {self.user_entered_value}, wd: {self.cell_width}in, ht: {self.cell_height}px, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
         if self.effective_format:
             b = f"{self.user_entered_format.borders}"
         else:
@@ -74,13 +74,16 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def to_table_cell(self, odt):
+    def to_table_cell(self, odt, table_name):
+        self.table_name = table_name
         col_a1 = COLUMNS[self.col_num]
-        table_cell_style_attributes = {'name': f"self.table_name.{col_a1}{self.row_num}"}
+        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}"}
+        # debug(f".... {self.cell_name} {table_cell_style_attributes}")
 
         table_cell_properties_attributes = {}
         if self.effective_format:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes()
+            # debug(f".... {self.cell_name} {self.effective_format.borders} {table_cell_properties_attributes}")
 
         if not self.is_empty:
             # wrap this into a table-cell
@@ -241,7 +244,7 @@ class Row(object):
     '''
     def to_odt(self, odt, table_name):
         self.table_name = table_name
-        # debug(f"processing {self.row_name}")
+        # debug(f".. row {self.row_name}")
 
         # create table-row
         table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
@@ -254,7 +257,7 @@ class Row(object):
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
             else:
-                table_cell = cell.to_table_cell(odt)
+                table_cell = cell.to_table_cell(odt, self.table_name)
                 if table_cell:
                     table_row.addElement(table_cell)
 
@@ -338,8 +341,19 @@ class CellValue(object):
 
             self.image = value_dict.get('image')
         else:
-            self.string_value = ''
+            if formatted_value:
+                self.string_value = formatted_value
+            else:
+                self.string_value = ''
+
             self.image = None
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"string [{self.string_value}], image [{self.image}]"
+        return s
 
 
     ''' generates the odt code
@@ -440,30 +454,6 @@ class CellFormat(object):
         return attributes
 
 
-    ''' override borders with the specified color
-    '''
-    def override_borders(self, color):
-        if self.borders is None:
-            self.borders = Borders(None, color)
-        else:
-            self.borders.override_top_border(color)
-            self.borders.override_bottom_border(color)
-            self.borders.override_left_border(color)
-            self.borders.override_right_border(color)
-
-
-    ''' recolor top border with the specified color
-    '''
-    def recolor_top_border(self, color):
-        self.borders.override_top_border(color, forced=True)
-
-
-    ''' recolor bottom border with the specified color
-    '''
-    def recolor_bottom_border(self, color):
-        self.borders.override_bottom_border(color, forced=True)
-
-
 
 ''' gsheet cell borders object wrapper
 '''
@@ -504,6 +494,7 @@ class Borders(object):
 
         if self.top:
             attributes['bordertop'] = self.top.value()
+            # attributes['borderlinewidthtop'] = f"{self.top.width}pt"
 
         if self.right:
             attributes['borderright'] = self.right.value()
@@ -530,7 +521,6 @@ class Border(object):
         self.color = None
 
         if border_dict:
-            self.style = border_dict.get('style')
             self.width = border_dict.get('width')
             self.color = RgbColor(border_dict.get('color'))
 
