@@ -36,14 +36,6 @@ def add_picture(odt, picture_path):
 '''
 def create_background_image_style(href, position):
     background_image_style = BackgroundImage(href=href, position=position, repeat='no-repeat', type='simple', actuate='onLoad')
-    if background_image_style is None:
-        warn("BackgroundImage {href} could not be created")
-
-    # background_image_style.attributes[('xlink', 'href')] = href
-    # background_image_style.attributes['href'] = href
-    # background_image_style.attributes['type'] = 'simple'
-    # background_image_style.attributes['actuate'] = 'onLoad'
-
     return background_image_style
 
 
