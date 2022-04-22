@@ -86,12 +86,21 @@ class Cell(object):
             # debug(f".... {self.cell_name} {self.effective_format.borders} {table_cell_properties_attributes}")
 
         if not self.is_empty:
+            # let us get the cell content
+            paragraph, image = self.to_paragraph(odt)
+
+            background_image_style = None
+            # if it is an image
+            if image:
+                href = add_picture(odt, image['image'])
+                position = f"{self.effective_format.valign.valign} {self.effective_format.halign.halign}"
+                position = 'center center'
+                background_image_style = create_background_image_style(href=href, position=position)
+
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style)
 
-            # let us get the cell content
-            paragraph = self.to_paragraph(odt)
             table_cell.addElement(paragraph)
         else:
             # wrap this into a covered-table-cell
@@ -108,6 +117,7 @@ class Cell(object):
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes()}
         text_attributes = None
         cell_value = None
+        image = None
         paragraph = None
 
         # the content is not valid for multirow LastCell and InnerCell
@@ -126,16 +136,22 @@ class Cell(object):
 
             # userEnteredValue next, it can be either image or text
             elif self.user_entered_value:
-                # if image, userEnteredValue will have an image
-                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
                 cell_value = self.user_entered_value.to_odt(odt, self.cell_width, self.cell_height, self.effective_format.text_format)
-                text_attributes = cell_value.get('text-attributes')
-                text = cell_value.get('text')
+
+                if 'image' in cell_value:
+                    # if image, userEnteredValue will have an image
+                    text = ''
+                    image = cell_value
+
+                else:
+                    # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
+                    text_attributes = cell_value.get('text-attributes')
+                    text = cell_value.get('text')
 
                 style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
                 paragraph = create_paragraph(odt, style_name, text=text)
 
-        return paragraph
+        return paragraph, image
 
 
     ''' Copy format from the cell passed
@@ -360,9 +376,6 @@ class CellValue(object):
     '''
     def to_odt(self, odt, cell_width, cell_height, format):
         if self.image:
-            # TODO
-            return {'text': 'MISSING', 'text-attributes': {}}
-
             # it is an image
             # even now the width may exceed actual cell width, we need to adjust for that
             dpi_x = 96 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
@@ -393,7 +406,7 @@ class CellValue(object):
                 # treat it as if image mode is 3
                 pass
 
-            odt = f"\includegraphics[width={image_width_in_inches}in]{{{os_specific_path(self.image['path'])}}}"
+            return {'image': Path(self.image['path']).resolve(), 'width': image_width_in_inches, 'height': image_height_in_inches}
 
         # if text, formattedValue will contain the text
         else:

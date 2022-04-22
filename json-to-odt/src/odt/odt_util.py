@@ -8,7 +8,7 @@ import random
 import string
 from pathlib import Path
 
-from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties
+from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties, BackgroundImage
 from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate, TableOfContentEntryTemplate, IndexSourceStyles, IndexSourceStyle, IndexEntryLinkStart, IndexEntryChapter, IndexEntryText, IndexEntryTabStop, IndexEntryPageNumber, IndexEntryLinkEnd
 from odf.table import Table, TableColumns, TableColumn, TableRows, TableRow, TableCell
 
@@ -19,6 +19,33 @@ if platform.system() == 'Windows':
     LIBREOFFICE_EXECUTABLE = 'C:/Program Files/LibreOffice/program/soffice.exe'
 else:
     LIBREOFFICE_EXECUTABLE = 'soffice'
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# pictures, background image
+
+''' add a picture to the document
+'''
+def add_picture(odt, picture_path):
+    href = odt.addPicture(picture_path)
+    return href
+
+
+''' create background-image-style
+    <style:background-image xlink:href="Pictures/1000000100000115000000DD077AD77C6D58F87D.png" xlink:type="simple" xlink:actuate="onLoad" style:position="center center" style:repeat="no-repeat"/>
+'''
+def create_background_image_style(href, position):
+    background_image_style = BackgroundImage(href=href, position=position, repeat='no-repeat', type='simple', actuate='onLoad')
+    if background_image_style is None:
+        warn("BackgroundImage {href} could not be created")
+
+    # background_image_style.attributes[('xlink', 'href')] = href
+    # background_image_style.attributes['href'] = href
+    # background_image_style.attributes['type'] = 'simple'
+    # background_image_style.attributes['actuate'] = 'onLoad'
+
+    return background_image_style
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -47,6 +74,8 @@ def create_table(odt, table_style_attributes, table_properties_attributes):
 def create_table_column(odt, table_column_style_attributes, table_column_properties_attributes):
     if 'family' not in table_column_style_attributes:
         table_column_style_attributes['family'] = 'table-column'
+
+    table_column_properties_attributes['useoptimalcolumnwidth'] = False
 
     # create the style
     table_column_style = Style(attributes=table_column_style_attributes)
@@ -82,18 +111,23 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
 ''' create TableCell
 '''
-def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes):
+def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=None):
     if 'family' not in table_cell_style_attributes:
         table_cell_style_attributes['family'] = 'table-cell'
 
     # create the style
     table_cell_style = Style(attributes=table_cell_style_attributes)
-    table_cell_style.addElement(TableCellProperties(attributes=table_cell_properties_attributes))
+    table_cell_properties = TableCellProperties(attributes=table_cell_properties_attributes)
+
+    if background_image_style:
+        table_cell_properties.addElement(background_image_style)
+
+    table_cell_style.addElement(table_cell_properties)
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    table_cell_properties = {**{'stylename': table_cell_style.getAttribute('name')},  **table_cell_attributes}
-    table_cell = TableCell(attributes=table_cell_properties)
+    table_cell_attributes['stylename'] = table_cell_style.getAttribute('name')
+    table_cell = TableCell(attributes=table_cell_attributes)
 
     return table_cell
 

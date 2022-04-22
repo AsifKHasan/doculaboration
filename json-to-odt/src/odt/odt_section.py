@@ -501,5 +501,5 @@ class OdtParagraph(OdtBlock):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             cell_to_produce = self.data_row.get_cell(0)
-            paragraph = cell_to_produce.to_paragraph(odt)
+            paragraph, _ = cell_to_produce.to_paragraph(odt)
             odt.text.addElement(paragraph)

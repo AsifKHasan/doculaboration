@@ -132,3 +132,4 @@ dmypy.json
 out/
 config.yml
 credential.json
+*.odt#
