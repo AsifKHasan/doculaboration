@@ -260,11 +260,12 @@ class Row(object):
     '''
     def to_odt(self, odt, table_name):
         self.table_name = table_name
-        # debug(f".. row {self.row_name}")
 
         # create table-row
         table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
-        table_row_properties_attributes = {}
+        row_height = f"{self.row_height}in"
+        # debug(f".. row {self.row_name} {row_height}")
+        table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
         table_row = create_table_row(odt, table_row_style_attributes, table_row_properties_attributes)
 
         # iterate over the cells

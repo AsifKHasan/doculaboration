@@ -385,7 +385,7 @@ ROWSEP = (2/72)
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
 def row_height_in_inches(pixel_size):
-    return (pixel_size - 9) / 72
+    return (pixel_size) / 72
 
 
 ''' get a random string
