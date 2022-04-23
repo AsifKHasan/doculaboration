@@ -430,6 +430,7 @@ class CellFormat(object):
             self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
+            self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
         elif default_format:
             self.bgcolor = default_format.bgcolor
             self.borders = default_format.borders
@@ -437,6 +438,7 @@ class CellFormat(object):
             self.halign = default_format.halign
             self.valign = default_format.valign
             self.text_format = default_format.text_format
+            self.wrapping = default_format.wrapping
         else:
             self.bgcolor = None
             self.borders = None
@@ -444,6 +446,7 @@ class CellFormat(object):
             self.halign = None
             self.valign = None
             self.text_format = None
+            self.wrapping = None
 
 
     ''' attributes dict for TableCellProperties
@@ -453,6 +456,7 @@ class CellFormat(object):
 
         attributes['verticalalign'] = self.valign.valign
         attributes['backgroundcolor'] = self.bgcolor.value()
+        attributes['wrapoption'] = self.wrapping.wrapping
         more_attributes = {**self.borders.table_cell_attributes(), **self.padding.table_cell_attributes()}
 
         return {**attributes, **more_attributes}
@@ -535,7 +539,7 @@ class Border(object):
         self.color = None
 
         if border_dict:
-            self.width = border_dict.get('width')
+            self.width = border_dict.get('width') / 2
             self.color = RgbColor(border_dict.get('color'))
 
             # TODO: handle double
@@ -671,10 +675,14 @@ class Padding(object):
     '''
     def __init__(self, padding_dict=None):
         if padding_dict:
-            self.top = int(padding_dict.get('top', 0))
-            self.right = int(padding_dict.get('right', 0))
-            self.bottom = int(padding_dict.get('bottom', 0))
-            self.left = int(padding_dict.get('left', 0))
+            # self.top = int(padding_dict.get('top', 0))
+            # self.right = int(padding_dict.get('right', 0))
+            # self.bottom = int(padding_dict.get('bottom', 0))
+            # self.left = int(padding_dict.get('left', 0))
+            self.top = 1
+            self.right = 2
+            self.bottom = 0
+            self.left = 2
         else:
             self.top = 0
             self.right = 0
@@ -693,6 +701,7 @@ class Padding(object):
         attributes['paddingleft'] = f"{self.left}pt"
 
         return attributes
+
 
 
 ''' gsheet text format run object wrapper
@@ -811,6 +820,20 @@ class HorizontalAlignment(object):
             self.halign = TEXT_HALIGN_MAP.get(halign, 'left')
         else:
             self.halign = TEXT_HALIGN_MAP.get('LEFT')
+
+
+
+''' gsheet wrapping object wrapper
+'''
+class Wrapping(object):
+
+    ''' constructor
+    '''
+    def __init__(self, wrap=None):
+        if wrap:
+            self.wrapping = WRAP_STRATEGY_MAP.get(wrap, 'WRAP')
+        else:
+            self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
 
 
 

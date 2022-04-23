@@ -18,10 +18,6 @@ class OdtSectionBase(object):
         self._config = config
         self._section_data = section_data
 
-        # self.no_heading = section_data['no-heading']
-        # self.heading = section_data['heading']
-        # self.title = f"{self.section} : {self.heading}"
-        # self.page_style_name = f"pagestyle{self.section_index}"
         self.section = section_data['section']
         self.level = section_data['level']
         self.page_numbering = section_data['hide-pageno']
@@ -469,7 +465,7 @@ class OdtTable(OdtBlock):
             col_a1 = COLUMNS[c]
             col_width = self.column_widths[c]
             table_column_style_attributes = {'name': f"{self.table_name}.{col_a1}"}
-            table_column_properties_attributes = {'columnwidth': f"{col_width}in"}
+            table_column_properties_attributes = {'columnwidth': f"{col_width}in", 'useoptimalcolumnwidth': False}
             table_column = create_table_column(odt, table_column_style_attributes, table_column_properties_attributes)
             table.addElement(table_column)
 
