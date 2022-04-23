@@ -18,26 +18,55 @@ class OdtSectionBase(object):
         self._config = config
         self._section_data = section_data
 
-        self.section = section_data['section']
-        self.level = section_data['level']
-        self.page_numbering = section_data['hide-pageno']
-        self.section_index = section_data['section-index']
-        self.section_width = section_data['width']
+        self.section = self._section_data['section']
+        self.level = self._section_data['level']
+        self.page_numbering = self._section_data['hide-pageno']
+        self.section_index = self._section_data['section-index']
+        self.section_width = self._section_data['width']
 
         # headers and footers
-        self.header_first = OdtPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
-        self.header_odd = OdtPageHeaderFooter(section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
-        self.header_even = OdtPageHeaderFooter(section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
-        self.footer_first = OdtPageHeaderFooter(section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
-        self.footer_odd = OdtPageHeaderFooter(section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
-        self.footer_even = OdtPageHeaderFooter(section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
+        self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
+        self.header_odd = OdtPageHeaderFooter(self._section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd')
+        self.header_even = OdtPageHeaderFooter(self._section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even')
+        self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first')
+        self.footer_odd = OdtPageHeaderFooter(self._section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd')
+        self.footer_even = OdtPageHeaderFooter(self._section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even')
 
         self.section_contents = OdtContent(section_data.get('contents'), self.section_width, self.section_index)
+
+
+    ''' Header/Footer processing
+    '''
+    def process_header_footer(self, odt, master_page, page_layout):
+        if self._section_data['header-odd']:
+            self.header_odd.to_odt(odt, master_page, page_layout)
+
+        if self._section_data['header-first']:
+            self.header_first.to_odt(odt, master_page, page_layout)
+
+        if self._section_data['header-even']:
+            self.header_even.to_odt(odt, master_page, page_layout)
+
+        if self._section_data['footer-odd']:
+            self.footer_odd.to_odt(odt, master_page, page_layout)
+
+        if self._section_data['footer-first']:
+            self.footer_first.to_odt(odt, master_page, page_layout)
+
+        if self._section_data['footer-even']:
+            self.footer_even.to_odt(odt, master_page, page_layout)
 
 
     ''' generates the odt code
     '''
     def to_odt(self, odt):
+        # master-page is created, decide on headers and footers
+        master_page = get_master_page(odt, self._section_data['master-page'])
+        page_layout = get_page_layout(odt, self._section_data['page-layout'])
+        if master_page and page_layout:
+            self.process_header_footer(odt, master_page, page_layout)
+
+
         style_attributes = {}
 
         # identify what style the heading will be and its content
@@ -165,6 +194,7 @@ class OdtContent(object):
     ''' constructor
     '''
     def __init__(self, content_data, section_width, section_index):
+        self.content_data = content_data
         self.section_width = section_width
         self.section_index = section_index
         self.title = None
@@ -397,7 +427,7 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' constructor
         header_footer : header/footer
-        odd_even      : first/odd/even
+        odd_even      : first/odd/even(left)
     '''
     def __init__(self, content_data, section_width, section_index, header_footer, odd_even):
         super().__init__(content_data, section_width, section_index)
@@ -407,12 +437,17 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' generates the odt code
     '''
-    def to_odt(self, odt):
-        # iterate through tables and blocks contents
-        first_block = True
-        for block in self.content_list:
-            block_lines = block.to_odt(odt, header_footer=self.header_footer)
-            first_block = False
+    def to_odt(self, odt, master_page, page_layout):
+        if self.content_data is None:
+            return
+
+        header_footer_style = create_header_footer(odt, master_page, page_layout, self.header_footer, self.odd_even)
+        if header_footer_style:
+            # iterate through tables and blocks contents
+            first_block = True
+            for block in self.content_list:
+                block_lines = block.to_odt(odt)
+                first_block = False
 
 
 

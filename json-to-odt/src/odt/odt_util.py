@@ -8,7 +8,8 @@ import random
 import string
 from pathlib import Path
 
-from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties, BackgroundImage
+from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, HeaderStyle, FooterStyle, HeaderFooterProperties, Header, HeaderLeft, Footer, FooterLeft
+from odf.style import TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties, BackgroundImage
 from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate, TableOfContentEntryTemplate, IndexSourceStyles, IndexSourceStyle, IndexEntryLinkStart, IndexEntryChapter, IndexEntryText, IndexEntryTabStop, IndexEntryPageNumber, IndexEntryLinkEnd
 from odf.table import Table, TableColumns, TableColumn, TableRows, TableRow, TableCell
 
@@ -142,6 +143,7 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     return table_cell
 
 
+
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
@@ -173,7 +175,6 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     odt.automaticstyles.addElement(paragraph_style)
 
     return paragraph_style.getAttribute('name')
-
 
 
 ''' write a paragraph in a given style
@@ -303,80 +304,114 @@ def create_lot(odt):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # master-page and page-layout
 
+''' get master-page by name
+'''
+def get_master_page(odt, master_page_name):
+    for master_page in odt.masterstyles.getElementsByType(MasterPage):
+        if master_page.getAttribute('name') == master_page_name:
+            return master_page
+
+    warn(f"master-page {master_page_name} NOT found")
+    return None
+
+
+''' get page-layout by name
+'''
+def get_page_layout(odt, page_layout_name):
+    for page_layout in odt.automaticstyles.getElementsByType(PageLayout):
+        if page_layout.getAttribute('name') == page_layout_name:
+            return page_layout
+
+    warn(f"page-layout {page_layout_name} NOT found")
+    return None
+
+
 ''' update page-layout of Standard master-page with the given page-layout
 '''
-def update_standard_master_page(odt, new_page_layout):
-    # get the Standard master-page
-    standard_master_page_name = 'Standard'
-    standard_master_page = None
-    for master_page in odt.masterstyles.getElementsByType(MasterPage):
-        if master_page.getAttribute('name') == standard_master_page_name:
-            standard_master_page = master_page
-            break
+def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
+    master_page = get_master_page(odt, master_page_name)
 
-    if standard_master_page is not None:
-        # debug(f"master-page {standard_master_page.getAttribute('name')} found; page-layout is {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
-        standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')] = new_page_layout
-        # debug(f"master-page {standard_master_page.getAttribute('name')}  page-layout changed to {standard_master_page.attributes[(standard_master_page.qname[0], 'page-layout-name')]}")
-    else:
-        warn(f"master-page {standard_master_page_name} NOT found")
+    if master_page is not None:
+        master_page.attributes[(master_page.qname[0], 'page-layout-name')] = new_page_layout_name
 
 
-''' gets the page-layout from odt if it is there, else create one
+''' create (section-specific) page-layout
 '''
-def get_or_create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation):
-    page_layout = None
+def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation):
+    # create one
+    page_layout = PageLayout(name=page_layout_name)
+    odt.automaticstyles.addElement(page_layout)
+    printorientation = orientation
+    if orientation == 'portrait':
+        pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
+        pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
+    else:
+        pageheight = f"{odt_specs['page-spec'][page_spec]['width']}in"
+        pagewidth = f"{odt_specs['page-spec'][page_spec]['height']}in"
 
-    for pl in odt.automaticstyles.getElementsByType(PageLayout):
-        if pl.getAttribute('name') == page_layout_name:
-            page_layout = pl
-            break
-
-    if page_layout is None:
-        # create one
-        page_layout = PageLayout(name=page_layout_name)
-        odt.automaticstyles.addElement(page_layout)
-        printorientation = orientation
-        if orientation == 'portrait':
-            pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
-            pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
-        else:
-            pageheight = f"{odt_specs['page-spec'][page_spec]['width']}in"
-            pagewidth = f"{odt_specs['page-spec'][page_spec]['height']}in"
-
-        margintop = f"{odt_specs['margin-spec'][margin_spec]['top']}in"
-        marginbottom = f"{odt_specs['margin-spec'][margin_spec]['bottom']}in"
-        marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
-        marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
-        # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
-        page_layout.addElement(PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
+    margintop = f"{odt_specs['margin-spec'][margin_spec]['top']}in"
+    marginbottom = f"{odt_specs['margin-spec'][margin_spec]['bottom']}in"
+    marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
+    marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
+    # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
+    page_layout.addElement(PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
 
     return page_layout
 
 
-''' new odt master-page
-    page layouts are saved with a name page-spec__margin-spec__[portrait|landscape]
+''' create (section-specific) master-page
+    page layouts are saved with a name mp-section-no
 '''
-def get_or_create_master_page(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation):
-    # see if the master-page already exists or not in the odt
-    master_page = None
-
-    for mp in odt.masterstyles.childNodes:
-        if mp.getAttribute('name') == page_layout_name:
-            master_page = mp
-            break
-
-    if master_page is None:
-        # create one, first get/create the page-layout
-        page_layout = get_or_create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation)
-        master_page = MasterPage(name=page_layout_name, pagelayoutname=page_layout_name)
-        odt.masterstyles.addElement(master_page)
+def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation):
+    # create one, first get/create the page-layout
+    page_layout = create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation)
+    master_page = MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
+    odt.masterstyles.addElement(master_page)
 
     return master_page
 
 
-COLSEP = (6/72)
-ROWSEP = (2/72)
+''' create header/footer
+    <style:header-style>
+        <style:header-footer-properties fo:min-height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-bottom="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
+    </style:header-style>
+    <style:footer-style>
+        <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
+    </style:footer-style>
+'''
+def create_header_footer(odt, master_page, page_layout, header_footer, odd_even):
+    header_footer_style = None
+    if header_footer == 'header':
+        if odd_even == 'odd':
+            header_footer_style = Header()
+        if odd_even == 'even':
+            header_footer_style = HeaderLeft()
+        if odd_even == 'first':
+            # header_footer_style = HeaderFirst()
+            pass
+
+    elif header_footer == 'footer':
+        if odd_even == 'odd':
+            header_footer_style = Header()
+        if odd_even == 'even':
+            header_footer_style = HeaderLeft()
+        if odd_even == 'first':
+            # header_footer_style = HeaderFirst()
+            pass
+
+    header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+    header_style = HeaderStyle()
+    header_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
+    footer_style = FooterStyle()
+    footer_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
+    page_layout.addElement(header_style)
+    page_layout.addElement(footer_style)
+
+    if header_footer_style:
+        master_page.addElement(header_footer_style)
+
+    return header_footer_style
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
@@ -398,6 +433,9 @@ def random_string(length=12):
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
+
+COLSEP = (0/72)
+# ROWSEP = (2/72)
 
 GSHEET_ODT_BORDER_MAPPING = {
     'DOTTED': 'dotted',
