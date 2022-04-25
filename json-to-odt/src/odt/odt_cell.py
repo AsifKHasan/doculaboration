@@ -93,8 +93,7 @@ class Cell(object):
             # if it is an image
             if image:
                 href = add_picture(odt, image['image'])
-                position = f"{self.effective_format.valign.valign} {self.effective_format.halign.halign}"
-                position = 'center center'
+                position = self.effective_format.image_position()
                 background_image_style = create_background_image_style(href=href, position=position)
 
             # wrap this into a table-cell
@@ -470,6 +469,12 @@ class CellFormat(object):
         attributes['textalign'] = self.halign.halign
 
         return attributes
+
+
+    ''' image position as required by BackgroundImage
+    '''
+    def image_position(self):
+        return f"{IMAGE_POSITION[self.valign.valign]} {IMAGE_POSITION[self.halign.halign]}"
 
 
 

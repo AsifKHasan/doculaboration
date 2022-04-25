@@ -395,11 +395,11 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
     elif header_footer == 'footer':
         if odd_even == 'odd':
-            header_footer_style = Header()
+            header_footer_style = Footer()
         if odd_even == 'even':
-            header_footer_style = HeaderLeft()
+            header_footer_style = FooterLeft()
         if odd_even == 'first':
-            # header_footer_style = HeaderFirst()
+            # header_footer_style = FooterFirst()
             pass
 
     if header_footer_style:
@@ -448,8 +448,10 @@ GSHEET_ODT_BORDER_MAPPING = {
 
 
 TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
-TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
-# TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
+# TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
+TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
+
+IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
 
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
