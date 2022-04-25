@@ -6,92 +6,67 @@ unzip -o Tasnim.Kabir.Ratul__profile.odt -d abc && atom abc
 unzip -o template-spectrum.odt -d abc && atom abc
 
 
-1. Registration
+1.	Registration
+1.1.	Application for Registration
+1.1.1.	Application through Web
+1.1.2.	Application through App
+1.1.3.	In-person Application
+1.2.	Application Verification
+1.2.1.	Eligibility Verification
+1.2.2.	Qualification Verification
+1.3.	Application Acceptance
+1.3.1.	Application Approval
+1.3.2.	Application Rejection
+1.4.	Registration Credential Generation
+1.5.	Payment Collection
+1.6.	Notification and Communication
 
-1.1. Application for Registration
-1.1.1. Application through Web
-1.1.2. Application through App
-1.1.3. In-person Application
+2.	Examination Planning
+2.1.	Registration Ordering
+2.1.1.	Ordering by Merit
+2.1.2.	Ordering by Other Criteria (if any)
+2.2.	Registration Filtering
+2.2.1.	Filtering by Capacity
+2.2.2.	Filtering by Other Criteria (if any)
+2.3.	Seat Planning
+2.3.1.	Seat Planning by Capacity
+2.3.2.	Seat Planning by Registration Choice
+2.4.	Admit Card Generation
+2.4.1.	Admit Card Repository
+2.4.2.	Admit Card Notification
+2.5.	Seat Plan and Label Generation
+2.5.1.	Seat Plan Publication
+2.5.2.	Seat Plan Distribution
+2.5.3.	Seat Plan Notification
+2.6.	Notification and Communication
 
-1.2. Application Verification
-1.2.1. Eligibility Verification
-1.2.2. Qualification Verification
+3.	Examination
 
-1.3. Application Acceptance
-1.3.1. Application Approval
-1.3.2. Application Rejection
+4.	Result Processing
+4.1.	Examination Mark Acquisition
+4.2.	Combined Marks Calculation
+4.3.	Merit List Generation
+4.3.1.	Merit List Based on Combined Marks
+4.3.2.	Merit List Based on Other Criteria (if any)
+4.4.	Admission List Processing
+4.4.1.	University and Subject Assignment based on Merit List
+4.4.2.	University and Subject Assignment based on Other Criteria (if any)
+4.5.	Admission List Preparation
+4.5.1.	Admission List Publication
+4.5.2.	Admission List Distribution
+4.5.3.	Admission List Notification
+4.6.	Notification and Communication
 
-1.4. Registration Credential Generation
+5.	Result Publication
 
-1.5. Payment Collection
+6.	Admission
 
-1.6. Notification and Communication
-
-
-2. Examination Planning
-
-2.1. Registration Ordering
-2.1.1. Ordering by Merit
-2.1.2. Ordering by Other Criteria (if any)
-
-2.2. Registration Filtering
-2.2.1. Filtering by Capacity
-2.2.2. Filtering by Other Criteria (if any)
-
-2.3. Seat Planning
-2.3.1. Seat Planning by Capacity
-2.3.2. Seat Planning by Registration Choice
-
-2.4. Admit Card Generation
-2.4.1. Admit Card Repository
-2.4.2. Admit Card Notification
-
-2.5. Seat Plan and Label Generation
-2.5.1. Seat Plan Publication
-2.5.2. Seat Plan Distribution
-2.5.3. Seat Plan Notification
-
-2.6. Notification and Communication
-
-
-3. Examination
-
-
-4. Result Processing
-
-4.1. Examination Mark Acquisition
-
-4.2. Combined Marks Calculation
-
-4.3. Merit List Generation
-4.3.1. Merit List Based on Combined Marks
-4.3.2. Merit List Based on Other Criteria (if any)
-
-4.4. Admission List Processing
-4.4.1. University and Subject Assignment based on Merit List
-4.4.2. University and Subject Assignment based on Other Criteria (if any)
-
-4.5. Admission List Preparation
-4.5.1. Admission List Publication
-4.5.2. Admission List Distribution
-4.5.3. Admission List Notification
-
-4.6. Notification and Communication
-
-
-5. Admission
-
-
-6. Waiting List Preparation
-
-6.1. Admission Data Collection
-
-6.2. Waiting List Generation
-6.2.1. Vacancy and Capacity Recalculation
-
-6.3. Waiting List Preparation
-6.3.1. Waiting List Publication
-6.3.2. Waiting List Distribution
-6.3.3. Waiting List Notification
-
-6.4. Notification and Communication
+7.	Waiting List Preparation
+7.1.	Admission Data Collection
+7.2.	Waiting List Generation
+7.2.1.	Vacancy and Capacity Recalculation
+7.3.	Waiting List Preparation
+7.3.1.	Waiting List Publication
+7.3.2.	Waiting List Distribution
+7.3.3.	Waiting List Notification
+7.4.	Notification and Communication
