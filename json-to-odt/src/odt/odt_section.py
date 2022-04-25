@@ -23,6 +23,8 @@ class OdtSectionBase(object):
         self.page_numbering = self._section_data['hide-pageno']
         self.section_index = self._section_data['section-index']
         self.section_width = self._section_data['width']
+        self.section_break = self._section_data['section-break']
+        self.page_break = self._section_data['page-break']
 
         # headers and footers
         self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
@@ -63,6 +65,7 @@ class OdtSectionBase(object):
         # master-page is created, decide on headers and footers
         master_page = get_master_page(odt, self._section_data['master-page'])
         page_layout = get_page_layout(odt, self._section_data['page-layout'])
+
         if master_page and page_layout:
             self.process_header_footer(odt, master_page, page_layout)
 
@@ -147,7 +150,10 @@ class OdtToCSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
-        create_toc(odt)
+        toc = create_toc()
+        if toc:
+            odt.text.addElement(toc)
+
 
 
 
@@ -165,7 +171,9 @@ class OdtLoTSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
-        create_lot(odt)
+        toc = create_lot()
+        if toc:
+            odt.text.addElement(toc)
 
 
 
@@ -183,7 +191,9 @@ class OdtLoFSection(OdtSectionBase):
     '''
     def to_odt(self, odt):
         super().to_odt(odt)
-        create_lof(odt)
+        toc = create_lof()
+        if toc:
+            odt.text.addElement(toc)
 
 
 
@@ -417,7 +427,9 @@ class OdtContent(object):
     def to_odt(self, odt):
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.to_odt(odt)
+            odt_element = block.to_odt(odt)
+            if odt_element:
+                odt.text.addElement(odt_element)
 
 
 
@@ -441,12 +453,15 @@ class OdtPageHeaderFooter(OdtContent):
         if self.content_data is None:
             return
 
-        header_footer_style = create_header_footer(odt, master_page, page_layout, self.header_footer, self.odd_even)
+        header_footer_style = create_header_footer(master_page, page_layout, self.header_footer, self.odd_even)
         if header_footer_style:
             # iterate through tables and blocks contents
             first_block = True
             for block in self.content_list:
-                block_lines = block.to_odt(odt)
+                odt_element = block.to_odt(odt)
+                if odt_element:
+                    header_footer_style.addElement(odt_element)
+
                 first_block = False
 
 
@@ -455,9 +470,9 @@ class OdtPageHeaderFooter(OdtContent):
 '''
 class OdtBlock(object):
 
-    ''' generates odt code
+    ''' constructor
     '''
-    def to_odt(self, odt):
+    def __init__(self):
         pass
 
 
@@ -488,8 +503,6 @@ class OdtTable(OdtBlock):
         #     for cell in row.cells:
         #         debug(f".. {cell}")
 
-        super().to_odt(odt)
-
         # create the table with styles
         table_style_attributes = {'name': self.table_name}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
@@ -509,8 +522,7 @@ class OdtTable(OdtBlock):
             table_row = row.to_odt(odt, self.table_name)
             table.addElement(table_row)
 
-        # finally add the table into the document
-        odt.text.addElement(table)
+        return table
 
 
 
@@ -527,10 +539,10 @@ class OdtParagraph(OdtBlock):
     ''' generates the odt code
     '''
     def to_odt(self, odt):
-        super().to_odt(odt)
-
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             cell_to_produce = self.data_row.get_cell(0)
             paragraph, _ = cell_to_produce.to_paragraph(odt)
-            odt.text.addElement(paragraph)
+            return paragraph
+
+        return None

@@ -222,19 +222,20 @@ def generate_pdf(infile, outdir):
 
 ''' create table-of-contents
 '''
-def create_toc(odt):
+def create_toc():
     name = 'Table of Content'
     toc = TableOfContent(name=name)
     toc_source = TableOfContentSource(outlinelevel=10)
     toc_title_template = IndexTitleTemplate()
     toc_source.addElement(toc_title_template)
     toc.addElement(toc_source)
-    odt.text.addElement(toc)
+
+    return toc
 
 
 ''' create illustration-index
 '''
-def create_lof(odt):
+def create_lof():
     name = 'List of Figures'
     toc = TableOfContent(name=name)
     toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
@@ -263,12 +264,13 @@ def create_lof(odt):
     toc_source.addElement(toc_title_template)
     toc_source.addElement(toc_index_source_styles)
     toc.addElement(toc_source)
-    odt.text.addElement(toc)
+
+    return toc
 
 
 ''' create Table-index
 '''
-def create_lot(odt):
+def create_lot():
     name = 'List of Tables'
     toc = TableOfContent(name=name)
     toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
@@ -297,7 +299,8 @@ def create_lot(odt):
     toc_source.addElement(toc_title_template)
     toc_source.addElement(toc_index_source_styles)
     toc.addElement(toc_source)
-    odt.text.addElement(toc)
+
+    return toc
 
 
 
@@ -379,7 +382,7 @@ def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_
         <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
     </style:footer-style>
 '''
-def create_header_footer(odt, master_page, page_layout, header_footer, odd_even):
+def create_header_footer(master_page, page_layout, header_footer, odd_even):
     header_footer_style = None
     if header_footer == 'header':
         if odd_even == 'odd':
@@ -399,15 +402,15 @@ def create_header_footer(odt, master_page, page_layout, header_footer, odd_even)
             # header_footer_style = HeaderFirst()
             pass
 
-    header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
-    header_style = HeaderStyle()
-    header_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
-    footer_style = FooterStyle()
-    footer_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
-    page_layout.addElement(header_style)
-    page_layout.addElement(footer_style)
-
     if header_footer_style:
+        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+        header_style = HeaderStyle()
+        header_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
+        footer_style = FooterStyle()
+        footer_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
+        page_layout.addElement(header_style)
+        page_layout.addElement(footer_style)
+
         master_page.addElement(header_footer_style)
 
     return header_footer_style
