@@ -8,10 +8,7 @@ import random
 import string
 from pathlib import Path
 
-from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, HeaderStyle, FooterStyle, HeaderFooterProperties, Header, HeaderLeft, Footer, FooterLeft
-from odf.style import TextProperties, ParagraphProperties, TableProperties, TableColumnProperties, TableRowProperties, TableCellProperties, BackgroundImage
-from odf.text import P, Span, TableOfContent, TableOfContentSource, IndexTitleTemplate, TableOfContentEntryTemplate, IndexSourceStyles, IndexSourceStyle, IndexEntryLinkStart, IndexEntryChapter, IndexEntryText, IndexEntryTabStop, IndexEntryPageNumber, IndexEntryLinkEnd
-from odf.table import Table, TableColumns, TableColumn, TableRows, TableRow, TableCell
+from odf import style, text, draw, table
 
 from helper.logger import *
 
@@ -25,19 +22,55 @@ else:
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
-''' add a picture to the document
+''' graphic-style
+    <style:style style:name="fr1" style:family="graphic" style:parent-style-name="Graphics">
+      <style:graphic-properties style:wrap="none" style:vertical-pos="top" style:vertical-rel="paragraph" style:horizontal-pos="center" style:horizontal-rel="page" style:mirror="none" fo:clip="rect(0in, 0in, 0in, 0in)" draw:luminance="0%" draw:contrast="0%" draw:red="0%" draw:green="0%" draw:blue="0%" draw:gamma="100%" draw:color-inversion="false" draw:image-opacity="100%" draw:color-mode="standard" draw:wrap-influence-on-position="once-concurrent" loext:allow-overlap="true"/>
+    </style:style>
 '''
-def add_picture(odt, picture_path):
+def create_graphic_style(odt, valign, halign):
+    style_name = f"fr-{random_string()}"
+
+    graphic_properties_attributes = {'verticalpos': valign, 'horizontalpos': halign}
+    graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
+
+    graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
+    graphic_style = style.Style(attributes=graphic_style_attributes)
+
+    graphic_style.addElement(graphic_properties)
+    odt.automaticstyles.addElement(graphic_style)
+
+    return style_name
+
+
+''' frame and image
+    <draw:frame draw:style-name="fr1" draw:name="Image1" text:anchor-type="paragraph" svg:width="1.5in" svg:height="1.9in" draw:z-index="0">
+      <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
+    </draw:frame>
+'''
+def create_image_frame(odt, picture_path, valign, halign, width, height):
+    # THIS IS THE Draw:Frame object to return
+    draw_frame = None
+
+    # first the image to be added into the document
     href = odt.addPicture(picture_path)
-    return href
+    if href:
+        # next we need the Draw:Image object
+        image_attributes = {'href': href}
+        # image_attributes[('draw', 'mimetype')] = 'image/png'
+        draw_image = draw.Image(attributes=image_attributes)
 
+        frame_style_name = create_graphic_style(odt, valign, halign)
 
-''' create background-image-style
-    <style:background-image xlink:href="Pictures/1000000100000115000000DD077AD77C6D58F87D.png" xlink:type="simple" xlink:actuate="onLoad" style:position="center center" style:repeat="no-repeat"/>
-'''
-def create_background_image_style(href, position):
-    background_image_style = BackgroundImage(href=href, position=position, repeat='no-repeat', type='simple', actuate='onLoad')
-    return background_image_style
+        # finally we need the Draw:Frame object
+        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'paragraph', 'width': f"{width}in", 'height': f"{height}in"}
+        draw_frame = draw.Frame(attributes=frame_attributes)
+
+        draw_frame.addElement(draw_image)
+
+    else:
+        warn(f"image {picture_path} copuld not be added into the document")
+
+    return draw_frame
 
 
 
@@ -51,15 +84,15 @@ def create_table(odt, table_style_attributes, table_properties_attributes):
         table_style_attributes['family'] = 'table'
 
     # create the style
-    table_style = Style(attributes=table_style_attributes)
-    table_style.addElement(TableProperties(attributes=table_properties_attributes))
+    table_style = style.Style(attributes=table_style_attributes)
+    table_style.addElement(style.TableProperties(attributes=table_properties_attributes))
     odt.automaticstyles.addElement(table_style)
 
     # create the table
     table_properties = {'name': table_style.getAttribute('name'), 'stylename': table_style.getAttribute('name')}
-    table = Table(attributes=table_properties)
+    tbl = table.Table(attributes=table_properties)
 
-    return table
+    return tbl
 
 
 ''' create TableColumn
@@ -71,13 +104,13 @@ def create_table_column(odt, table_column_style_attributes, table_column_propert
     table_column_properties_attributes['useoptimalcolumnwidth'] = False
 
     # create the style
-    table_column_style = Style(attributes=table_column_style_attributes)
-    table_column_style.addElement(TableColumnProperties(attributes=table_column_properties_attributes))
+    table_column_style = style.Style(attributes=table_column_style_attributes)
+    table_column_style.addElement(style.TableColumnProperties(attributes=table_column_properties_attributes))
     odt.automaticstyles.addElement(table_column_style)
 
     # create the table-column
     table_column_properties = {'stylename': table_column_style.getAttribute('name')}
-    table_column = TableColumn(attributes=table_column_properties)
+    table_column = table.TableColumn(attributes=table_column_properties)
 
     return table_column
 
@@ -90,14 +123,14 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
         table_row_style_attributes['family'] = 'table-row'
 
     # create the style
-    table_row_style = Style(attributes=table_row_style_attributes)
-    table_row_style.addElement(TableRowProperties(attributes=table_row_properties_attributes))
+    table_row_style = style.Style(attributes=table_row_style_attributes)
+    table_row_style.addElement(style.TableRowProperties(attributes=table_row_properties_attributes))
     odt.automaticstyles.addElement(table_row_style)
 
     # create the table-row
     table_row_properties = {'stylename': table_row_style.getAttribute('name')}
     # print(table_row_properties)
-    table_row = TableRow(attributes=table_row_properties)
+    table_row = table.TableRow(attributes=table_row_properties)
 
     return table_row
 
@@ -109,8 +142,8 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
         table_cell_style_attributes['family'] = 'table-cell'
 
     # create the style
-    table_cell_style = Style(attributes=table_cell_style_attributes)
-    table_cell_properties = TableCellProperties(attributes=table_cell_properties_attributes)
+    table_cell_style = style.Style(attributes=table_cell_style_attributes)
+    table_cell_properties = style.TableCellProperties(attributes=table_cell_properties_attributes)
 
     if background_image_style:
         table_cell_properties.addElement(background_image_style)
@@ -120,7 +153,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
 
     # create the table-cell
     table_cell_attributes['stylename'] = table_cell_style.getAttribute('name')
-    table_cell = TableCell(attributes=table_cell_attributes)
+    table_cell = table.TableCell(attributes=table_cell_attributes)
 
     return table_cell
 
@@ -132,13 +165,13 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
         table_cell_style_attributes['family'] = 'table-cell'
 
     # create the style
-    table_cell_style = Style(attributes=table_cell_style_attributes)
-    table_cell_style.addElement(TableCellProperties(attributes=table_cell_properties_attributes))
+    table_cell_style = style.Style(attributes=table_cell_style_attributes)
+    table_cell_style.addElement(style.TableCellProperties(attributes=table_cell_properties_attributes))
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
     table_cell_properties = {'stylename': table_cell_style.getAttribute('name')}
-    table_cell = TableCell(attributes=table_cell_properties)
+    table_cell = table.TableCell(attributes=table_cell_properties)
 
     return table_cell
 
@@ -164,13 +197,13 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
         style_attributes['parentstylename'] = 'Text_20_body'
 
     # create the style
-    paragraph_style = Style(attributes=style_attributes)
+    paragraph_style = style.Style(attributes=style_attributes)
 
     if paragraph_attributes is not None:
-        paragraph_style.addElement(ParagraphProperties(attributes=paragraph_attributes))
+        paragraph_style.addElement(style.ParagraphProperties(attributes=paragraph_attributes))
 
     if text_attributes is not None:
-        paragraph_style.addElement(TextProperties(attributes=text_attributes))
+        paragraph_style.addElement(style.TextProperties(attributes=text_attributes))
 
     odt.automaticstyles.addElement(paragraph_style)
 
@@ -179,21 +212,21 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text=None, run_list=None):
+def create_paragraph(odt, style_name, text_content=None, run_list=None):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
 
     if text is not None:
-        paragraph = P(stylename=style_name, text=text)
+        paragraph = text.P(stylename=style_name, text=text_content)
         return paragraph
 
     if run_list is not None:
-        paragraph = P(stylename=style)
+        paragraph = text.P(stylename=style)
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            paragraph.addElement(Span(stylename=text_style_name, text=run['text']))
+            paragraph.addElement(text.Span(stylename=text_style_name, text=run['text']))
 
         return paragraph
 
@@ -224,9 +257,9 @@ def generate_pdf(infile, outdir):
 '''
 def create_toc():
     name = 'Table of Content'
-    toc = TableOfContent(name=name)
-    toc_source = TableOfContentSource(outlinelevel=10)
-    toc_title_template = IndexTitleTemplate()
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=10)
+    toc_title_template = text.IndexTitleTemplate()
     toc_source.addElement(toc_title_template)
     toc.addElement(toc_source)
 
@@ -237,16 +270,16 @@ def create_toc():
 '''
 def create_lof():
     name = 'List of Figures'
-    toc = TableOfContent(name=name)
-    toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
 
-    index_entry_link_start = IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = IndexEntryChapter()
-    index_entry_text = IndexEntryText()
-    index_entry_tab_stop = IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = IndexEntryPageNumber()
-    index_entry_link_end = IndexEntryLinkEnd()
+    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = text.IndexEntryChapter()
+    index_entry_text = text.IndexEntryText()
+    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = text.IndexEntryPageNumber()
+    index_entry_link_end = text.IndexEntryLinkEnd()
 
     toc_entry_template.addElement(index_entry_link_start)
     toc_entry_template.addElement(index_entry_chapter)
@@ -255,9 +288,9 @@ def create_lof():
     toc_entry_template.addElement(index_entry_page_number)
     toc_entry_template.addElement(index_entry_link_end)
 
-    toc_title_template = IndexTitleTemplate()
-    toc_index_source_styles = IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = IndexSourceStyle(stylename='Figure')
+    toc_title_template = text.IndexTitleTemplate()
+    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = text.IndexSourceStyle(stylename='Figure')
     toc_index_source_styles.addElement(toc_index_source_style)
 
     toc_source.addElement(toc_entry_template)
@@ -272,16 +305,16 @@ def create_lof():
 '''
 def create_lot():
     name = 'List of Tables'
-    toc = TableOfContent(name=name)
-    toc_source = TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
 
-    index_entry_link_start = IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = IndexEntryChapter()
-    index_entry_text = IndexEntryText()
-    index_entry_tab_stop = IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = IndexEntryPageNumber()
-    index_entry_link_end = IndexEntryLinkEnd()
+    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = text.IndexEntryChapter()
+    index_entry_text = text.IndexEntryText()
+    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = text.IndexEntryPageNumber()
+    index_entry_link_end = text.IndexEntryLinkEnd()
 
     toc_entry_template.addElement(index_entry_link_start)
     toc_entry_template.addElement(index_entry_chapter)
@@ -290,9 +323,9 @@ def create_lot():
     toc_entry_template.addElement(index_entry_page_number)
     toc_entry_template.addElement(index_entry_link_end)
 
-    toc_title_template = IndexTitleTemplate()
-    toc_index_source_styles = IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = IndexSourceStyle(stylename='Table')
+    toc_title_template = text.IndexTitleTemplate()
+    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = text.IndexSourceStyle(stylename='Table')
     toc_index_source_styles.addElement(toc_index_source_style)
 
     toc_source.addElement(toc_entry_template)
@@ -310,7 +343,7 @@ def create_lot():
 ''' get master-page by name
 '''
 def get_master_page(odt, master_page_name):
-    for master_page in odt.masterstyles.getElementsByType(MasterPage):
+    for master_page in odt.masterstyles.getElementsByType(style.MasterPage):
         if master_page.getAttribute('name') == master_page_name:
             return master_page
 
@@ -321,7 +354,7 @@ def get_master_page(odt, master_page_name):
 ''' get page-layout by name
 '''
 def get_page_layout(odt, page_layout_name):
-    for page_layout in odt.automaticstyles.getElementsByType(PageLayout):
+    for page_layout in odt.automaticstyles.getElementsByType(style.PageLayout):
         if page_layout.getAttribute('name') == page_layout_name:
             return page_layout
 
@@ -342,7 +375,7 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
 '''
 def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation):
     # create one
-    page_layout = PageLayout(name=page_layout_name)
+    page_layout = style.PageLayout(name=page_layout_name)
     odt.automaticstyles.addElement(page_layout)
     printorientation = orientation
     if orientation == 'portrait':
@@ -357,7 +390,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
     marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
     # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
-    page_layout.addElement(PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
+    page_layout.addElement(style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
 
     return page_layout
 
@@ -368,7 +401,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation):
     # create one, first get/create the page-layout
     page_layout = create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation)
-    master_page = MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
+    master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
     odt.masterstyles.addElement(master_page)
 
     return master_page
@@ -386,28 +419,28 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
     header_footer_style = None
     if header_footer == 'header':
         if odd_even == 'odd':
-            header_footer_style = Header()
+            header_footer_style = style.Header()
         if odd_even == 'even':
-            header_footer_style = HeaderLeft()
+            header_footer_style = style.HeaderLeft()
         if odd_even == 'first':
             # header_footer_style = HeaderFirst()
             pass
 
     elif header_footer == 'footer':
         if odd_even == 'odd':
-            header_footer_style = Footer()
+            header_footer_style = style.Footer()
         if odd_even == 'even':
-            header_footer_style = FooterLeft()
+            header_footer_style = style.FooterLeft()
         if odd_even == 'first':
             # header_footer_style = FooterFirst()
             pass
 
     if header_footer_style:
         header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
-        header_style = HeaderStyle()
-        header_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
-        footer_style = FooterStyle()
-        footer_style.addElement(HeaderFooterProperties(attributes=header_footer_properties_attributes))
+        header_style = style.HeaderStyle()
+        header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
+        footer_style = style.FooterStyle()
+        footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
         page_layout.addElement(header_style)
         page_layout.addElement(footer_style)
 

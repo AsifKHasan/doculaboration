@@ -92,13 +92,16 @@ class Cell(object):
             background_image_style = None
             # if it is an image
             if image:
-                href = add_picture(odt, image['image'])
-                position = self.effective_format.image_position()
-                background_image_style = create_background_image_style(href=href, position=position)
+                picture_path = image['image']
+                width = image['width']
+                height = image['height']
+
+                draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], width, height)
+                paragraph.addElement(draw_frame)
 
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style)
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
             table_cell.addElement(paragraph)
         else:
@@ -142,13 +145,17 @@ class Cell(object):
                     text = ''
                     image = cell_value
 
+                    # create an empty paragraph
+                    style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                    paragraph = create_paragraph(odt, style_name, text_content='')
+
                 else:
                     # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
                     text_attributes = cell_value.get('text-attributes')
                     text = cell_value.get('text')
 
                 style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                paragraph = create_paragraph(odt, style_name, text=text)
+                paragraph = create_paragraph(odt, style_name, text_content=text)
 
         return paragraph, image
 

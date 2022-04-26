@@ -111,7 +111,7 @@ class OdtSectionBase(object):
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
         # debug(f"..... Paragraph style {style_name} created")
-        paragraph = create_paragraph(odt, style_name, text=heading_text)
+        paragraph = create_paragraph(odt, style_name, text_content=heading_text)
         odt.text.addElement(paragraph)
 
         return paragraph

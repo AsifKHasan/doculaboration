@@ -5,9 +5,7 @@
 
 import yaml
 
-from odf.opendocument import OpenDocumentText, load
-from odf.style import MasterPage, PageLayout, PageLayoutProperties
-from odf.text import P
+from odf import opendocument, style, text
 
 from odt.odt_section import OdtTableSection, OdtToCSection, OdtLoFSection, OdtLoTSection
 from odt.odt_util import *
@@ -19,8 +17,7 @@ class OdtHelper(object):
     '''
     def __init__(self, config):
         self._config = config
-        self._odt = load(self._config['files']['odt-template'])
-        # self._odt = OpenDocumentText()
+        self._odt = opendocument.load(self._config['files']['odt-template'])
 
 
     ''' preprocess document
