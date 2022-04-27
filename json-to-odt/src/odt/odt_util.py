@@ -30,7 +30,7 @@ else:
 def create_graphic_style(odt, valign, halign):
     style_name = f"fr-{random_string()}"
 
-    graphic_properties_attributes = {'verticalpos': valign, 'horizontalpos': halign}
+    graphic_properties_attributes = {'wrap': 'none', 'verticalpos': valign, 'horizontalpos': halign}
     graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
 
     graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
@@ -199,6 +199,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     paragraph_style = style.Style(attributes=style_attributes)
 
     if paragraph_attributes is not None:
+        # print(paragraph_attributes)
         paragraph_style.addElement(style.ParagraphProperties(attributes=paragraph_attributes))
 
     if text_attributes is not None:

@@ -542,7 +542,15 @@ class OdtParagraph(OdtBlock):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             cell_to_produce = self.data_row.get_cell(0)
-            paragraph, _ = cell_to_produce.to_paragraph(odt)
+            paragraph, image = cell_to_produce.to_paragraph(odt, for_table_cell=False)
+            if image:
+                picture_path = image['image']
+                width = image['width']
+                height = image['height']
+
+                draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[cell_to_produce.effective_format.valign.valign], IMAGE_POSITION[cell_to_produce.effective_format.halign.halign], width, height)
+                paragraph.addElement(draw_frame)
+
             return paragraph
 
         return None

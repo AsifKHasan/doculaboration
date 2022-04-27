@@ -83,11 +83,10 @@ class Cell(object):
         table_cell_properties_attributes = {}
         if self.effective_format:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes()
-            # debug(f".... {self.cell_name} {self.effective_format.borders} {table_cell_properties_attributes}")
 
         if not self.is_empty:
             # let us get the cell content
-            paragraph, image = self.to_paragraph(odt)
+            paragraph, image = self.to_paragraph(odt, for_table_cell=True)
 
             # if it is an image
             if image:
@@ -113,9 +112,10 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def to_paragraph(self, odt):
+    def to_paragraph(self, odt, for_table_cell):
         style_attributes = self.note.style_attributes()
-        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes()}
+        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell)}
+
         text_attributes = None
         cell_value = None
         image = None
@@ -129,7 +129,7 @@ class Cell(object):
             if self.note.page_number:
                 text_attributes = cell_value.get('text-attributes')
                 style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                paragraph = create_page_number(style_name=style_name, short=True)
+                paragraph = create_page_number(style_name=style_name, short=False)
 
                 return paragraph, None
 
@@ -152,10 +152,6 @@ class Cell(object):
                     # if image, userEnteredValue will have an image
                     text = ''
                     image = cell_value
-
-                    # create an empty paragraph
-                    style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                    paragraph = create_paragraph(odt, style_name, text_content='')
 
                 else:
                     # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
@@ -393,8 +389,8 @@ class CellValue(object):
         if self.image:
             # it is an image
             # even now the width may exceed actual cell width, we need to adjust for that
-            dpi_x = 96 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
-            dpi_y = 96 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
+            dpi_x = 72 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
+            dpi_y = 72 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
             image_width_in_pixel = self.image['size'][0]
             image_height_in_pixel = self.image['size'][1]
             image_width_in_inches =  image_width_in_pixel / dpi_x
@@ -478,10 +474,16 @@ class CellFormat(object):
 
     ''' attributes dict for ParagraphProperties
     '''
-    def paragraph_attributes(self):
-        attributes = {}
+    def paragraph_attributes(self, for_table_cell):
+        attributes = {'textalign': self.halign.halign}
 
-        attributes['textalign'] = self.halign.halign
+        if not for_table_cell:
+            attributes['verticalalign'] = self.valign.valign
+            attributes['backgroundcolor'] = self.bgcolor.value()
+            # attributes['wrapoption'] = self.wrapping.wrapping
+            more_attributes = {**self.borders.table_cell_attributes(), **self.padding.table_cell_attributes()}
+
+            return {**attributes, **more_attributes}
 
         return attributes
 
@@ -704,10 +706,10 @@ class Padding(object):
             self.bottom = 0
             self.left = 2
         else:
-            self.top = 0
-            self.right = 0
+            self.top = 1
+            self.right = 2
             self.bottom = 0
-            self.left = 0
+            self.left = 2
 
 
     ''' string representation
