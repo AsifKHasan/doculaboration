@@ -129,7 +129,6 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
     # create the table-row
     table_row_properties = {'stylename': table_row_style.getAttribute('name')}
-    # print(table_row_properties)
     table_row = table.TableRow(attributes=table_row_properties)
 
     return table_row
@@ -208,6 +207,31 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     odt.automaticstyles.addElement(paragraph_style)
 
     return paragraph_style.getAttribute('name')
+
+
+''' page number
+    <text:p text:style-name="MP1">Page <text:page-number text:select-page="current">1</text:page-number>
+        <text:s/>of <text:page-count>1</text:page-count>
+    </text:p>
+'''
+def create_page_number(style_name, short=False):
+    paragraph = text.P(stylename=style_name)
+    page_number = text.PageNumber(selectpage='current')
+
+    if short:
+        paragraph.addText("Page ")
+        paragraph.addElement(page_number)
+    else:
+        s = text.S()
+        page_count = text.PageCount()
+
+        paragraph.addText("Page ")
+        paragraph.addElement(page_number)
+        paragraph.addElement(s)
+        paragraph.addText("of ")
+        paragraph.addElement(page_count)
+
+    return paragraph
 
 
 ''' write a paragraph in a given style
@@ -456,7 +480,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
 def row_height_in_inches(pixel_size):
-    return (pixel_size) / 72
+    return float((pixel_size-5) / 72)
 
 
 ''' get a random string

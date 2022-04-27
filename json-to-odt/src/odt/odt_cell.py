@@ -89,7 +89,6 @@ class Cell(object):
             # let us get the cell content
             paragraph, image = self.to_paragraph(odt)
 
-            background_image_style = None
             # if it is an image
             if image:
                 picture_path = image['image']
@@ -124,6 +123,16 @@ class Cell(object):
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+            cell_value = self.user_entered_value.to_odt(odt, self.cell_width, self.cell_height, self.effective_format.text_format)
+
+            # it may be a page-number
+            if self.note.page_number:
+                text_attributes = cell_value.get('text-attributes')
+                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                paragraph = create_page_number(style_name=style_name, short=True)
+
+                return paragraph, None
+
             # textFormatRuns first
             if len(self.text_format_runs):
                 run_value_list = []
@@ -138,7 +147,6 @@ class Cell(object):
 
             # userEnteredValue next, it can be either image or text
             elif self.user_entered_value:
-                cell_value = self.user_entered_value.to_odt(odt, self.cell_width, self.cell_height, self.effective_format.text_format)
 
                 if 'image' in cell_value:
                     # if image, userEnteredValue will have an image
