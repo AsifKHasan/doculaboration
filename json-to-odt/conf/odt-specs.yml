@@ -13,35 +13,21 @@ page-spec:
     height: 14.00
 
 margin-spec:
-  ms-1.00-in:
+  wide:
     left  : 1.00
     right : 1.00
     top   : 1.00
     bottom: 1.00
     gutter: 0
-    header: 0.50
-    footer: 0.50
-  ms-0.75-in:
-    left  : 0.75
-    right : 0.75
-    top   : 0.75
-    bottom: 0.75
-    gutter: 0
-    header: 0.25
-    footer: 0.25
-  ms-0.50-in:
+  medium:
     left  : 0.50
     right : 0.50
     top   : 0.50
     bottom: 0.50
     gutter: 0
-    header: 0.25
-    footer: 0.25
-  ms-0.25-in:
-    left  : 0.25
-    right : 0.25
+  narrow:
+    left  : 0.50
+    right : 0.50
     top   : 0.25
     bottom: 0.25
     gutter: 0
-    header: 0.00
-    footer: 0.00

@@ -95,6 +95,12 @@ def create_table(odt, table_style_attributes, table_properties_attributes):
     return tbl
 
 
+''' create table-header-rows
+'''
+def create_table_header_rows():
+    return table.TableHeaderRows()
+
+
 ''' create TableColumn
 '''
 def create_table_column(odt, table_column_style_attributes, table_column_properties_attributes):
@@ -481,7 +487,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
 def row_height_in_inches(pixel_size):
-    return float((pixel_size-5) / 72)
+    return float((pixel_size) / 96)
 
 
 ''' get a random string

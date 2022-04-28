@@ -268,7 +268,7 @@ class Row(object):
 
     ''' generates the odt code
     '''
-    def to_odt(self, odt, table_name):
+    def to_table_row(self, odt, table_name):
         self.table_name = table_name
 
         # create table-row

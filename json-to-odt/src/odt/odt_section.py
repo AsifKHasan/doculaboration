@@ -257,9 +257,8 @@ class OdtContent(object):
                     for merge in sheets[0].get('merges', []):
                         self.merge_list.append(Merge(merge, self.start_row, self.start_column))
 
-                    # column width needs adjustment as \tabcolsep is COLSEPin. This means each column has a COLSEP inch on left and right as space which needs to be removed from column width
                     all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list)
-                    self.column_widths = [ (x.pixel_size * self.section_width / all_column_widths_in_pixel) - (COLSEP * 2) for x in self.column_metadata_list ]
+                    self.column_widths = [ (x.pixel_size * self.section_width / all_column_widths_in_pixel) for x in self.column_metadata_list ]
 
                     # rowData
                     r = 0
@@ -517,9 +516,17 @@ class OdtTable(OdtBlock):
             table_column = create_table_column(odt, table_column_style_attributes, table_column_properties_attributes)
             table.addElement(table_column)
 
+        table_header_rows = create_table_header_rows()
+        # iteraate header rows render the table's contents
+        for row in self.table_cell_matrix[0:self.header_row_count]:
+            table_row = row.to_table_row(odt, self.table_name)
+            table_header_rows.addElement(table_row)
+
+        table.addElement(table_header_rows)
+
         # iteraate rows and cells to render the table's contents
-        for row in self.table_cell_matrix:
-            table_row = row.to_odt(odt, self.table_name)
+        for row in self.table_cell_matrix[self.header_row_count:]:
+            table_row = row.to_table_row(odt, self.table_name)
             table.addElement(table_row)
 
         return table
@@ -541,7 +548,10 @@ class OdtParagraph(OdtBlock):
     def to_odt(self, odt):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
+            # We take the first cell, the cell will take the whole row width
             cell_to_produce = self.data_row.get_cell(0)
+            cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
+
             paragraph, image = cell_to_produce.to_paragraph(odt, for_table_cell=False)
             if image:
                 picture_path = image['image']
