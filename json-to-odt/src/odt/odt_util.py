@@ -79,7 +79,7 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
 
 ''' create a Table
 '''
-def create_table(odt, table_style_attributes, table_properties_attributes):
+def create_table(odt, table_name, table_style_attributes, table_properties_attributes):
     if 'family' not in table_style_attributes:
         table_style_attributes['family'] = 'table'
 
@@ -89,7 +89,8 @@ def create_table(odt, table_style_attributes, table_properties_attributes):
     odt.automaticstyles.addElement(table_style)
 
     # create the table
-    table_properties = {'name': table_style.getAttribute('name'), 'stylename': table_style.getAttribute('name')}
+    # table_properties = {'name': table_style.getAttribute('name'), 'stylename': table_style.getAttribute('name')}
+    table_properties = {'name': table_name, 'stylename': table_style_attributes['name']}
     tbl = table.Table(attributes=table_properties)
 
     return tbl
@@ -103,11 +104,11 @@ def create_table_header_rows():
 
 ''' create TableColumn
 '''
-def create_table_column(odt, table_column_style_attributes, table_column_properties_attributes):
+def create_table_column(odt, table_column_name, table_column_style_attributes, table_column_properties_attributes):
     if 'family' not in table_column_style_attributes:
         table_column_style_attributes['family'] = 'table-column'
 
-    table_column_properties_attributes['useoptimalcolumnwidth'] = False
+    # table_column_properties_attributes['useoptimalcolumnwidth'] = False
 
     # create the style
     table_column_style = style.Style(attributes=table_column_style_attributes)
@@ -115,7 +116,8 @@ def create_table_column(odt, table_column_style_attributes, table_column_propert
     odt.automaticstyles.addElement(table_column_style)
 
     # create the table-column
-    table_column_properties = {'stylename': table_column_style.getAttribute('name')}
+    # table_column_properties = {'stylename': table_column_style.getAttribute('name')}
+    table_column_properties = {'stylename': table_column_style_attributes['name']}
     table_column = table.TableColumn(attributes=table_column_properties)
 
     return table_column
@@ -134,7 +136,8 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
     odt.automaticstyles.addElement(table_row_style)
 
     # create the table-row
-    table_row_properties = {'stylename': table_row_style.getAttribute('name')}
+    # table_row_properties = {'stylename': table_row_style.getAttribute('name')}
+    table_row_properties = {'stylename': table_row_style_attributes['name']}
     table_row = table.TableRow(attributes=table_row_properties)
 
     return table_row
@@ -157,7 +160,8 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    table_cell_attributes['stylename'] = table_cell_style.getAttribute('name')
+    # table_cell_attributes['stylename'] = table_cell_style.getAttribute('name')
+    table_cell_attributes['stylename'] = table_cell_style_attributes['name']
     table_cell = table.TableCell(attributes=table_cell_attributes)
 
     return table_cell
@@ -175,8 +179,9 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    table_cell_properties = {'stylename': table_cell_style.getAttribute('name')}
-    table_cell = table.TableCell(attributes=table_cell_properties)
+    # table_cell_attributes = {'stylename': table_cell_style.getAttribute('name')}
+    table_cell_attributes = {'stylename': table_cell_style_attributes['name']}
+    table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
 
     return table_cell
 
@@ -467,7 +472,8 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
             pass
 
     if header_footer_style:
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+        # TODO: the height should come from actual header content height
+        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': '0.5in'}
         header_style = style.HeaderStyle()
         header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
         footer_style = style.FooterStyle()

@@ -61,6 +61,11 @@ class OdtHelper(object):
         self.preprocess(section_list)
 
         for section in section_list:
+            if section['section'] != '':
+                info(f"writing ... {section['section'].strip()} {section['heading'].strip()}")
+            else:
+                info(f"writing ... {section['heading'].strip()}")
+
             func = getattr(self, f"process_{section['content-type']}")
             func(section)
 
@@ -74,11 +79,6 @@ class OdtHelper(object):
     ''' Table processor
     '''
     def process_table(self, section_data):
-        if section_data['section'] != '':
-            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
-        else:
-            info(f"Writing ... {section_data['heading'].strip()}")
-
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if section_data['contents'] is not None and 'sections' in section_data['contents']:
             for section in section_data['contents']['sections']:
@@ -99,11 +99,6 @@ class OdtHelper(object):
     ''' Table of Content processor
     '''
     def process_toc(self, section_data):
-        if section_data['section'] != '':
-            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
-        else:
-            info(f"Writing ... {section_data['heading'].strip()}")
-
         section = OdtToCSection(section_data, self._config)
         section.to_odt(self._odt)
 
@@ -111,11 +106,6 @@ class OdtHelper(object):
     ''' List of Figure processor
     '''
     def process_lof(self, section_data):
-        if section_data['section'] != '':
-            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
-        else:
-            info(f"Writing ... {section_data['heading'].strip()}")
-
         section = OdtLoFSection(section_data, self._config)
         section.to_odt(self._odt)
 
@@ -123,11 +113,6 @@ class OdtHelper(object):
     ''' List of Table processor
     '''
     def process_lot(self, section_data):
-        if section_data['section'] != '':
-            info(f"Writing ... {section_data['section'].strip()} {section_data['heading'].strip()}")
-        else:
-            info(f"Writing ... {section_data['heading'].strip()}")
-
         section = OdtLoTSection(section_data, self._config)
         section.to_odt(self._odt)
 
@@ -135,16 +120,16 @@ class OdtHelper(object):
     ''' pdf processor
     '''
     def process_pdf(self, section_data):
-        error(f"content type [pdf] not supported")
+        warn(f"content type [pdf] not supported")
 
 
     ''' odt processor
     '''
     def process_odt(self, section_data):
-        error(f"content type [odt] not supported")
+        warn(f"content type [odt] not supported")
 
 
     ''' docx processor
     '''
     def process_docx(self, section_data):
-        error(f"content type [docx] not supported")
+        warn(f"content type [docx] not supported")

@@ -63,7 +63,7 @@ class JsonFromGsheet(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"Script took {(self.end_time - self.start_time)/1000} seconds")
+		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
 		# input("Press Enter to continue...")
 
 

@@ -63,13 +63,16 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty} {self.user_entered_value}, wd: {self.cell_width}in, ht: {self.cell_height}px, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
-        if self.effective_format:
-            b = f"{self.user_entered_format.borders}"
-        else:
-            b = f"No Border"
+        # s = f"[{self.row_num+1},{self.col_num+1}], value: {not self.is_empty} {self.user_entered_value}, wd: {self.cell_width}in, ht: {self.cell_height}px, mr: {self.merge_spec.multi_row}, mc: {self.merge_spec.multi_col}"
+        # if self.effective_format:
+        #     b = f"{self.user_entered_format.borders}"
+        # else:
+        #     b = f"No Border"
+        #
+        # return f"{s}....{b}"
 
-        return f"{s}....{b}"
+        s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} : {self.user_entered_value}"
+        return f"{s}"
 
 
     ''' odt code for cell content
@@ -77,7 +80,7 @@ class Cell(object):
     def to_table_cell(self, odt, table_name):
         self.table_name = table_name
         col_a1 = COLUMNS[self.col_num]
-        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}"}
+        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
         # debug(f".... {self.cell_name} {table_cell_style_attributes}")
 
         table_cell_properties_attributes = {}

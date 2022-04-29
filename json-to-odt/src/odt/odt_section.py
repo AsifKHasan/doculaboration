@@ -503,17 +503,19 @@ class OdtTable(OdtBlock):
         #         debug(f".. {cell}")
 
         # create the table with styles
-        table_style_attributes = {'name': self.table_name}
+        table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
-        table = create_table(odt, table_style_attributes=table_style_attributes, table_properties_attributes=table_properties_attributes)
+        table = create_table(odt, self.table_name, table_style_attributes=table_style_attributes, table_properties_attributes=table_properties_attributes)
 
         # table-columns
         for c in range(0, len(self.column_widths)):
             col_a1 = COLUMNS[c]
             col_width = self.column_widths[c]
-            table_column_style_attributes = {'name': f"{self.table_name}.{col_a1}"}
+            table_column_name = f"{self.table_name}.{col_a1}"
+            # print(f"{col_a1:>2} : {col_width:1.4f}in")
+            table_column_style_attributes = {'name': f"{table_column_name}_style"}
             table_column_properties_attributes = {'columnwidth': f"{col_width}in", 'useoptimalcolumnwidth': False}
-            table_column = create_table_column(odt, table_column_style_attributes, table_column_properties_attributes)
+            table_column = create_table_column(odt, table_column_name, table_column_style_attributes, table_column_properties_attributes)
             table.addElement(table_column)
 
         table_header_rows = create_table_header_rows()
