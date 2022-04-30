@@ -253,10 +253,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None):
     if style is None:
         warn(f"style {style_name} not found")
 
-    if text is not None:
-        paragraph = text.P(stylename=style_name, text=text_content)
-        return paragraph
-
     if run_list is not None:
         paragraph = text.P(stylename=style)
         for run in run_list:
@@ -265,6 +261,14 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None):
             paragraph.addElement(text.Span(stylename=text_style_name, text=run['text']))
 
         return paragraph
+
+    if text_content is not None:
+        paragraph = text.P(stylename=style_name, text=text_content)
+        return paragraph
+    else:
+        paragraph = text.P(stylename=style_name)
+        return paragraph
+
 
 
 

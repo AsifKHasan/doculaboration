@@ -26,6 +26,10 @@ class Cell(object):
         self.cell_height = row_height
         self.merge_spec = CellMergeSpec()
 
+        # considering merges, we have effective cell width and height
+        self.effective_cell_width = self.cell_width
+        self.effective_cell_height = self.cell_height
+
         if self.value:
             self.formatted_value = self.value.get('formattedValue', '')
             self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
@@ -81,7 +85,6 @@ class Cell(object):
         self.table_name = table_name
         col_a1 = COLUMNS[self.col_num]
         table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
-        # debug(f".... {self.cell_name} {table_cell_style_attributes}")
 
         table_cell_properties_attributes = {}
         if self.effective_format:
@@ -90,6 +93,7 @@ class Cell(object):
         if not self.is_empty:
             # let us get the cell content
             paragraph, image = self.to_paragraph(odt, for_table_cell=True)
+            # debug(f".... {self.cell_name} {table_cell_style_attributes} {paragraph}")
 
             # if it is an image
             if image:
@@ -107,7 +111,6 @@ class Cell(object):
             table_cell.addElement(paragraph)
         else:
             # wrap this into a covered-table-cell
-            # debug(self)
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell
@@ -126,7 +129,8 @@ class Cell(object):
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            cell_value = self.user_entered_value.to_odt(odt, self.cell_width, self.cell_height, self.effective_format.text_format)
+            cell_value = self.user_entered_value.to_odt(odt, self.effective_cell_width, self.effective_cell_height, self.effective_format.text_format)
+            # debug(cell_value)
 
             # it may be a page-number
             if self.note.page_number:
@@ -159,7 +163,17 @@ class Cell(object):
                 else:
                     # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
                     text_attributes = cell_value.get('text-attributes')
-                    text = cell_value.get('text')
+                    text = cell_value.get('text', '')
+
+                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                paragraph = create_paragraph(odt, style_name, text_content=text)
+
+            # it may be formula field
+            else:
+
+                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
+                text_attributes = cell_value.get('text-attributes')
+                text = cell_value.get('text', '')
 
                 style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
                 paragraph = create_paragraph(odt, style_name, text_content=text)
@@ -401,13 +415,13 @@ class CellValue(object):
 
             if self.image['mode'] == 1:
                 # image is to be scaled within the cell width and height
+                # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
                 if image_width_in_inches > cell_width:
                     adjust_ratio = (cell_width / image_width_in_inches)
                     image_width_in_inches = image_width_in_inches * adjust_ratio
                     image_height_in_inches = image_height_in_inches * adjust_ratio
 
                 if image_height_in_inches > cell_height:
-                    # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
                     adjust_ratio = (cell_height / image_height_in_inches)
                     image_width_in_inches = image_width_in_inches * adjust_ratio
                     image_height_in_inches = image_height_in_inches * adjust_ratio

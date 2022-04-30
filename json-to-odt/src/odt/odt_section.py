@@ -309,6 +309,9 @@ class OdtContent(object):
             first_cell.merge_spec.col_span = col_span
             first_cell.merge_spec.row_span = row_span
 
+            # considering merges, we have effective cell width and height
+            first_cell.effective_cell_width = sum(first_cell.column_widths[first_cell.col_num:first_cell.col_num + col_span])
+
             # for row spans, subsequent cells in the same column of the FirstCell will be either empty or missing, iterate through the next rows
             for r in range(first_row, last_row):
                 next_row_object = self.cell_matrix[r]
