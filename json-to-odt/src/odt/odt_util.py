@@ -132,6 +132,7 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
     # create the style
     table_row_style = style.Style(attributes=table_row_style_attributes)
+    table_row_properties_attributes['keeptogether'] = 'always'
     table_row_style.addElement(style.TableRowProperties(attributes=table_row_properties_attributes))
     odt.automaticstyles.addElement(table_row_style)
 
