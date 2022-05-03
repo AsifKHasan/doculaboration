@@ -76,6 +76,7 @@ class Cell(object):
         # return f"{s}....{b}"
 
         s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} : {self.user_entered_value}"
+        # s = f"[{self.row_num+1:>2},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}, {self.effective_format.borders} : {self.user_entered_value}"
         return f"{s}"
 
 
@@ -89,6 +90,8 @@ class Cell(object):
         table_cell_properties_attributes = {}
         if self.effective_format:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes()
+        else:
+            warn(f"{self} : NO effective_format")
 
         if not self.is_empty:
             # let us get the cell content
@@ -111,6 +114,7 @@ class Cell(object):
             table_cell.addElement(paragraph)
         else:
             # wrap this into a covered-table-cell
+            # print(self)
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell
@@ -122,7 +126,7 @@ class Cell(object):
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell)}
 
-        text_attributes = None
+        text_attributes = {}
         cell_value = None
         image = None
         paragraph = None
@@ -160,6 +164,8 @@ class Cell(object):
                     text = ''
                     image = cell_value
 
+                    text_attributes['fontsize'] = 2
+
                 else:
                     # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
                     text_attributes = cell_value.get('text-attributes')
@@ -187,10 +193,10 @@ class Cell(object):
         self.user_entered_format = from_cell.user_entered_format
         self.effective_format = from_cell.effective_format
 
-        self.merge_spec.multi_col = from_cell.merge_spec.multi_col
-        self.merge_spec.col_span = from_cell.merge_spec.col_span
-        self.merge_spec.row_span = from_cell.merge_spec.row_span
-        self.cell_width = from_cell.cell_width
+        # self.merge_spec.multi_col = from_cell.merge_spec.multi_col
+        # self.merge_spec.col_span = from_cell.merge_spec.col_span
+        # self.merge_spec.row_span = from_cell.merge_spec.row_span
+        # self.cell_width = from_cell.cell_width
 
 
     ''' mark the cell multi_col
@@ -551,7 +557,6 @@ class Borders(object):
 
         if self.top:
             attributes['bordertop'] = self.top.value()
-            # attributes['borderlinewidthtop'] = f"{self.top.width}pt"
 
         if self.right:
             attributes['borderright'] = self.right.value()

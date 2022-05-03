@@ -311,6 +311,11 @@ class OdtContent(object):
 
             # considering merges, we have effective cell width and height
             first_cell.effective_cell_width = sum(first_cell.column_widths[first_cell.col_num:first_cell.col_num + col_span])
+            effective_row_height = 0
+            for r in range(first_row, last_row):
+                effective_row_height = effective_row_height + self.cell_matrix[r].row_height
+
+            first_cell.effective_cell_height = effective_row_height
 
             # for row spans, subsequent cells in the same column of the FirstCell will be either empty or missing, iterate through the next rows
             for r in range(first_row, last_row):
@@ -336,7 +341,7 @@ class OdtContent(object):
                     if next_cell_in_row.is_empty:
                         # debug(f"..cell [{r+1},{c+1}] is empty")
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
-                        # next_cell_in_row.copy_format_from(first_cell)
+                        next_cell_in_row.copy_format_from(first_cell)
 
                         # mark cells for multicol only if it is multicol
                         if col_span > 1:

@@ -174,6 +174,9 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     if 'family' not in table_cell_style_attributes:
         table_cell_style_attributes['family'] = 'table-cell'
 
+    # print(table_cell_style_attributes)
+    # print(table_cell_properties_attributes)
+
     # create the style
     table_cell_style = style.Style(attributes=table_cell_style_attributes)
     table_cell_style.addElement(style.TableCellProperties(attributes=table_cell_properties_attributes))
@@ -190,6 +193,12 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
+
+''' change style of a paragraph
+'''
+def change_paragraph_style():
+    pass
+
 
 ''' create style - family paragraph
 '''
