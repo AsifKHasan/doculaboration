@@ -75,9 +75,11 @@ class Cell(object):
         #
         # return f"{s}....{b}"
 
-        s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} : {self.user_entered_value}"
+        # s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}"
+        s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}"
+        s = f"{s}\n{self.effective_format.borders.table_cell_attributes(self.merge_spec)}\n{self.user_entered_value}"
         # s = f"[{self.row_num+1:>2},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}, {self.effective_format.borders} : {self.user_entered_value}"
-        return f"{s}"
+        return s
 
 
     ''' odt code for cell content
@@ -89,7 +91,7 @@ class Cell(object):
 
         table_cell_properties_attributes = {}
         if self.effective_format:
-            table_cell_properties_attributes = self.effective_format.table_cell_attributes()
+            table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
         else:
             warn(f"{self} : NO effective_format")
 
@@ -111,10 +113,11 @@ class Cell(object):
             table_cell_attributes = self.merge_spec.table_cell_attributes()
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
+            print(self)
             table_cell.addElement(paragraph)
         else:
             # wrap this into a covered-table-cell
-            # print(self)
+            print(self)
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell
@@ -124,7 +127,7 @@ class Cell(object):
     '''
     def to_paragraph(self, odt, for_table_cell):
         style_attributes = self.note.style_attributes()
-        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell)}
+        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell, self.merge_spec)}
 
         text_attributes = {}
         cell_value = None
@@ -484,27 +487,27 @@ class CellFormat(object):
 
     ''' attributes dict for TableCellProperties
     '''
-    def table_cell_attributes(self):
+    def table_cell_attributes(self, cell_merge_spec):
         attributes = {}
 
         attributes['verticalalign'] = self.valign.valign
         attributes['backgroundcolor'] = self.bgcolor.value()
         attributes['wrapoption'] = self.wrapping.wrapping
-        more_attributes = {**self.borders.table_cell_attributes(), **self.padding.table_cell_attributes()}
+        more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
         return {**attributes, **more_attributes}
 
 
     ''' attributes dict for ParagraphProperties
     '''
-    def paragraph_attributes(self, for_table_cell):
+    def paragraph_attributes(self, for_table_cell, cell_merge_spec):
         attributes = {'textalign': self.halign.halign}
 
         if not for_table_cell:
             attributes['verticalalign'] = self.valign.valign
             attributes['backgroundcolor'] = self.bgcolor.value()
             # attributes['wrapoption'] = self.wrapping.wrapping
-            more_attributes = {**self.borders.table_cell_attributes(), **self.padding.table_cell_attributes()}
+            more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
             return {**attributes, **more_attributes}
 
@@ -552,20 +555,34 @@ class Borders(object):
 
     ''' table-cell attributes
     '''
-    def table_cell_attributes(self):
+    def table_cell_attributes(self, cell_merge_spec):
         attributes = {}
 
-        if self.top:
-            attributes['bordertop'] = self.top.value()
+        # top and bottom
+        if cell_merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
+            if self.top:
+                attributes['bordertop'] = self.top.value()
 
-        if self.right:
-            attributes['borderright'] = self.right.value()
+            if self.bottom:
+                attributes['borderbottom'] = self.bottom.value()
 
-        if self.bottom:
-            attributes['borderbottom'] = self.bottom.value()
+        if cell_merge_spec.multi_row in [MultiSpan.LastCell]:
+            if self.bottom:
+                attributes['borderbottom'] = self.bottom.value()
 
-        if self.left:
-            attributes['borderleft'] = self.left.value()
+
+        # left and right
+        if cell_merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+            if self.left:
+                attributes['borderleft'] = self.left.value()
+
+            if self.right:
+                attributes['borderright'] = self.right.value()
+
+        if cell_merge_spec.multi_col in [MultiSpan.LastCell]:
+            if self.right:
+                attributes['borderright'] = self.right.value()
+
 
         return attributes
 
