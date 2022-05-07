@@ -15,38 +15,30 @@ class LatexSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        self.section_spec = section_spec
-        self.section_break = section_data['section-break']
+    def __init__(self, section_data, config, last_section_was_landscape):
+        self._config = config
+        self._section_data = section_data
 
-        if self.section_break.startswith('newpage_'):
-            self.newpage = True
-        else:
-            self.newpage = False
-
-        if self.section_break.endswith('_landscape'):
-            self.landscape = True
-            if last_section_was_landscape:
-                self.orientation_changed = False
-            else:
-                self.orientation_changed = True
-        else:
-            self.landscape = False
-            if last_section_was_landscape:
-                self.orientation_changed = True
-            else:
-                self.orientation_changed = False
-
-
-        self.section_width = float(self.section_spec['page_width']) - float(self.section_spec['left_margin']) - float(self.section_spec['right_margin']) - float(self.section_spec['gutter'])
-
-        self.no_heading = section_data['no-heading']
-        self.section = section_data['section']
+        self.section = self._section_data['section']
         self.heading = section_data['heading']
-        self.level = section_data['level']
-        self.page_numbering = section_data['page-number']
-        self.title = f"{self.section} : {self.heading}"
-        self.section_index = section_index
+        self.level = self._section_data['level']
+        self.page_numbering = self._section_data['hide-pageno']
+        self.section_index = self._section_data['section-index']
+        self.section_width = self._section_data['width']
+        self.section_break = self._section_data['section-break']
+        self.page_break = self._section_data['page-break']
+
+        if self.landscape:
+            if last_section_was_landscape:
+                self.orientation_changed = False
+            else:
+                self.orientation_changed = True
+        else:
+            if last_section_was_landscape:
+                self.orientation_changed = True
+            else:
+                self.orientation_changed = False
+
         self.page_style_name = f"pagestyle{self.section_index}"
 
         # headers and footers
@@ -120,8 +112,8 @@ class LatexTableSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config, last_section_was_landscape):
+        super().__init__(section_data, config, last_section_was_landscape)
 
 
     ''' generates the latex code
@@ -142,8 +134,8 @@ class LatexToCSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config, last_section_was_landscape):
+        super().__init__(section_data, config, last_section_was_landscape)
 
 
     ''' generates the latex code
@@ -169,8 +161,8 @@ class LatexLoTSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config, last_section_was_landscape):
+        super().__init__(section_data, config, last_section_was_landscape)
 
 
     ''' generates the latex code
@@ -196,8 +188,8 @@ class LatexLoFSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, section_spec, section_index, last_section_was_landscape):
-        super().__init__(section_data, section_spec, section_index, last_section_was_landscape)
+    def __init__(self, section_data, config, last_section_was_landscape):
+        super().__init__(section_data, config, last_section_was_landscape)
 
 
     ''' generates the latex code

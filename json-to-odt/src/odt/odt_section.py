@@ -263,7 +263,6 @@ class OdtContent(object):
                     # rowData
                     r = 0
                     for row_data in data.get('rowData', []):
-                        # self.cell_matrix.append(Row(r, row_data, self.default_format, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
                         self.cell_matrix.append(Row(r, row_data, self.section_width, self.column_widths, self.row_metadata_list[r].inches))
                         r = r + 1
 
