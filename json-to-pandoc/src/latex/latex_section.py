@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import json
-from helper.pandoc.pandoc_util import *
-from helper.latex.latex_cell import *
-from helper.latex.latex_util import *
+from pprint import pprint
+
+from pandoc.pandoc_util import *
+from latex.latex_cell import *
+from latex.latex_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   latex section objects wrappers
@@ -22,11 +24,17 @@ class LatexSectionBase(object):
         self.section = self._section_data['section']
         self.heading = section_data['heading']
         self.level = self._section_data['level']
+        self.landscape = self._section_data['landscape']
         self.page_numbering = self._section_data['hide-pageno']
         self.section_index = self._section_data['section-index']
         self.section_width = self._section_data['width']
         self.section_break = self._section_data['section-break']
         self.page_break = self._section_data['page-break']
+        self.hide_heading = self._section_data['hide-heading']
+        self.hide_pageno = self._section_data['hide-pageno']
+
+        self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
+        self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
 
         if self.landscape:
             if last_section_was_landscape:
@@ -55,52 +63,78 @@ class LatexSectionBase(object):
     ''' generates the latex code
     '''
     def to_latex(self, color_dict):
-        # generate the header block
-        header_block = LatexSectionHeader(self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed)
-        header_lines, heading_lines = header_block.to_latex(color_dict)
+        header_lines = []
+        # section header/footer is only applicable for first section and on section-breaks
+        if not self.section_break:
+            if self.section_index != 0:
+                if self.page_break:
+                    header_lines.append(f"\t\\pagebreak")
 
-        # get headers and footers
-        if self.header_first.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t\{x}", self.header_first.to_latex(color_dict)))
+        else:
+            # generate the header block
+            header_block = LatexSectionHeader(self.page_spec, self.margin_spec, self.level, self.section, self.heading, self.hide_heading, self.landscape, self.orientation_changed)
+            header_lines = header_lines + header_block.to_latex(color_dict)
 
-        if self.header_odd.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
+            # get headers and footers
+            if self.header_first.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t\{x}", self.header_first.to_latex(color_dict)))
 
-        if self.header_even.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
+            if self.header_odd.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
 
-        if self.footer_first.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
+            if self.header_even.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
 
-        if self.footer_odd.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
+            if self.footer_first.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
 
-        if self.footer_even.has_content:
-            header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
+            if self.footer_odd.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
 
-        # now the pagestyle
-        header_lines.append(f"\t\\fancypagestyle{{{self.page_style_name}}}{{")
-        header_lines.append(f"\t\t\\fancyhf{{}}")
-        header_lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
-        header_lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
-        if self.header_odd.has_content:
-            header_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
+            if self.footer_even.has_content:
+                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
 
-        if self.header_even.has_content:
-            header_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
+            # now the pagestyle
+            header_lines.append(f"\t\\fancypagestyle{{{self.page_style_name}}}{{")
+            header_lines.append(f"\t\t\\fancyhf{{}}")
+            header_lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
+            header_lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
+            if self.header_odd.has_content:
+                header_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
 
-        if self.footer_odd.has_content:
-            header_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
+            if self.header_even.has_content:
+                header_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
 
-        if self.footer_even.has_content:
-            header_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
+            if self.footer_odd.has_content:
+                header_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
 
-        header_lines.append(f"\t\t}}")
-        header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
+            if self.footer_even.has_content:
+                header_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
 
-        header_lines = [f"% PageStyle - [{self.title}]"] + header_lines
+            header_lines.append(f"\t\t}}")
+            header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
+
+            # TODO
+            header_lines = [f"% PageStyle - [{self.page_style_name}]"] + header_lines
 
         header_lines = mark_as_latex(header_lines)
+
+        # heading
+        heading_lines = []
+        if not self.hide_heading:
+            hashes = '#' * self.level
+            if self.section != '':
+                heading_text = f"{hashes} {self.section} {self.heading}".strip()
+            else:
+                heading_text = f"{hashes} {self.heading}".strip()
+
+            # headings are styles based on level
+            if self.level != 0:
+                heading_lines.append(heading_text)
+                heading_lines.append('\n')
+            else:
+                heading_lines.append(f"\\titlestyle{{{heading_text}}}")
+                heading_lines = mark_as_latex(heading_lines)
 
         return header_lines + heading_lines
 
@@ -344,7 +378,7 @@ class LatexContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
+                        # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
                         next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
@@ -399,10 +433,10 @@ class LatexContent(object):
 
 
         # let us see how the cells look now
-        for row in self.cell_matrix:
-            debug(row.row_name)
-            for cell in row.cells:
-                debug(f".. {cell}")
+        # for row in self.cell_matrix:
+        #     debug(row.row_name)
+        #     for cell in row.cells:
+        #         debug(f".. {cell}")
 
         return
 
@@ -522,23 +556,30 @@ class LatexSectionHeader(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed):
-        self.section_spec, self.level, self.no_heading, self.section, self.heading, self.newpage, self.landscape, self.orientation_changed = section_spec, level, no_heading, section, heading, newpage, landscape, orientation_changed
+    def __init__(self, page_spec, margin_spec, level, section, heading, hide_heading, landscape, orientation_changed):
+        self.page_spec =page_spec
+        self.margin_spec = margin_spec
+        self.level = level
+        self.section = section
+        self.heading = heading
+        self.hide_heading = hide_heading
+        self.landscape = landscape
+        self.orientation_changed = orientation_changed
+
 
     ''' generates latex code
     '''
     def to_latex(self, color_dict, strip_comments=False, header_footer=None):
         header_lines = []
-        paper = 'a4paper'
-        page_width = self.section_spec['page_width']
-        page_height = self.section_spec['page_height']
-        top_margin = self.section_spec['top_margin']
-        bottom_margin = self.section_spec['bottom_margin']
-        left_margin = self.section_spec['left_margin']
-        right_marhin = self.section_spec['right_margin']
+        paper = self.page_spec['name']
+        page_width = self.page_spec['width']
+        page_height = self.page_spec['height']
+        top_margin = self.margin_spec['top']
+        bottom_margin = self.margin_spec['bottom']
+        left_margin = self.margin_spec['left']
+        right_marhin = self.margin_spec['right']
 
-        if self.newpage:
-            header_lines.append(f"\t\\pagebreak")
+        header_lines.append(f"\t\\pagebreak")
 
         if self.orientation_changed:
             if self.landscape:
@@ -546,23 +587,7 @@ class LatexSectionHeader(LatexBlock):
             else:
                 header_lines.append(f"\t\\restoregeometry")
 
-        # heading
-        heading_lines = []
-        if not self.no_heading:
-            if self.section != '':
-                heading_text = f"{'#' * self.level} {self.section} - {self.heading}".strip()
-            else:
-                heading_text = f"{'#' * self.level} {self.heading}".strip()
-
-            # headings are styles based on level
-            if self.level != 0:
-                heading_lines.append(heading_text)
-                heading_lines.append('\n')
-            else:
-                heading_lines.append(f"\\titlestyle{{{heading_text}}}")
-                heading_lines = mark_as_latex(heading_lines)
-
-        return header_lines, heading_lines
+        return header_lines
 
 
 ''' Latex Table object wrapper

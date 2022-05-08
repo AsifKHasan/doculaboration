@@ -9,9 +9,9 @@ import datetime
 import argparse
 from pathlib import Path
 
+from pandoc.pandoc_helper import PandocHelper
+from pandoc.pandoc_util import *
 from helper.logger import *
-from helper.pandoc.pandoc_helper import Pandoc
-from helper.pandoc.pandoc_util import *
 
 class PandocFromJson(object):
 
@@ -25,19 +25,23 @@ class PandocFromJson(object):
 		self.set_up()
 		# process jsons one by one
 		for json in self._CONFIG['jsons']:
-			self._CONFIG['files']['input-json'] = '{0}/{1}.json'.format(self._CONFIG['dirs']['output-dir'], json)
+			self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
 			self.load_json()
 
 			# pandoc-helper
-			self._CONFIG['files']['output-pandoc'] = '{0}/{1}.mkd'.format(self._CONFIG['dirs']['output-dir'], json)
-			pandoc = Pandoc()
-			pandoc.generate_pandoc(self._data['sections'], self._CONFIG, self._CONFIG['files']['pandoc-styles'], self._CONFIG['files']['document-header'], self._CONFIG['files']['output-pandoc'])
+			self._CONFIG['files']['output-pandoc'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.mkd"
+			pandoc = PandocHelper(self._CONFIG)
+			pandoc.generate_pandoc(self._data['sections'])
 			self.tear_down()
 
 	def set_up(self):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		# page specs
+		page_spec_file = config_dir / 'page-specs.yml'
+		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
 		# if json name was provided as parameter, override the configuration
 		if self._json:
@@ -50,7 +54,6 @@ class PandocFromJson(object):
 
 		self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
 
-		self._CONFIG['files']['pandoc-styles'] = config_dir / self._CONFIG['files']['pandoc-styles']
 		self._CONFIG['files']['document-header'] = config_dir / self._CONFIG['files']['document-header']
 
 		if not 'files' in self._CONFIG:
@@ -62,7 +65,7 @@ class PandocFromJson(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug("Script took {} seconds".format((self.end_time - self.start_time)/1000))
+		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments

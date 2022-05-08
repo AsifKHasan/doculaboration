@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import json
-from helper.pandoc.pandoc_util import *
-from helper.latex.latex_util import *
+from pandoc.pandoc_util import *
+from latex.latex_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   gsheet cell wrappers

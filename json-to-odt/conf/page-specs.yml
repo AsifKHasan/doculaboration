@@ -2,15 +2,19 @@ page-spec:
   A4:
     width : 8.27
     height: 11.69
+    name  : a4paper
   A3:
     width : 11.69
     height: 16.54
+    name  : a3paper
   Letter:
     width : 8.50
     height: 11.00
+    name  : letterpaper
   Legal:
     width : 8.50
     height: 14.00
+    name  : legalpaper
 
 margin-spec:
   wide:

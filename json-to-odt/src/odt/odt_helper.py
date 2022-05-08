@@ -40,14 +40,14 @@ class OdtHelper(object):
             orientation = section['landscape']
             section['master-page'] = f"mp-{section['section-index']}"
             section['page-layout'] = f"pl-{section['section-index']}"
-            master_page = create_master_page(self._odt, self._config['odt-specs'], section['master-page'], section['page-layout'], page_spec, margin_spec, orientation)
+            master_page = create_master_page(self._odt, self._config['page-specs'], section['master-page'], section['page-layout'], page_spec, margin_spec, orientation)
 
             # if it is the very first section, change the page-layout of the *Standard* master-page
             if first_section:
                 update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=section['page-layout'])
 
-            this_section_page_spec = self._config['odt-specs']['page-spec'][page_spec]
-            this_section_margin_spec = self._config['odt-specs']['margin-spec'][margin_spec]
+            this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
+            this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
             section['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
 
 

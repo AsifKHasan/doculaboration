@@ -43,9 +43,9 @@ class OdtFromJson(object):
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
 
-		# odt specs
-		odt_spec_file = config_dir / 'odt-specs.yml'
-		self._CONFIG['odt-specs'] = yaml.load(open(odt_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+		# page specs
+		page_spec_file = config_dir / 'page-specs.yml'
+		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
 		# if json name was provided as parameter, override the configuration
 		if self._json:

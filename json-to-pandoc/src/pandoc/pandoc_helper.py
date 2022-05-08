@@ -5,11 +5,11 @@
 
 import yaml
 
-from helper.pandoc.pandoc_util import *
-from helper.latex.latex_section import LatexTableSection, LatexToCSection, LatexLoFSection, LatexLoTSection
+from pandoc.pandoc_util import *
+from latex.latex_section import LatexTableSection, LatexToCSection, LatexLoFSection, LatexLoTSection
 from helper.logger import *
 
-class Pandoc(object):
+class PandocHelper(object):
 
     ''' constructor
     '''
@@ -32,8 +32,11 @@ class Pandoc(object):
             if section['content-type'] == 'gsheet':
                 section['content-type'] = 'table'
 
-            this_section_page_spec = self._config['odt-specs']['page-spec'][page_spec]
-            this_section_margin_spec = self._config['odt-specs']['margin-spec'][margin_spec]
+            page_spec = section['page-spec']
+            margin_spec = section['margin-spec']
+
+            this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
+            this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
             section['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
 
             first_section = False
@@ -42,13 +45,9 @@ class Pandoc(object):
 
     ''' generate and save the pandoc
     '''
-    def generate_pandoc(self, section_list, config, style_path, header_path, pandoc_path):
-        # load custom styles for sections, etc.
-        sd = yaml.load(open(style_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-        section_specs = sd['sections']
-
+    def generate_pandoc(self, section_list):
         # load header and initialize document
-        with open(header_path, "r") as f:
+        with open(self._config['files']['document-header'], "r") as f:
             self.header_lines = [line.rstrip() for line in f]
 
 
@@ -74,8 +73,9 @@ class Pandoc(object):
         self.header_lines.append("```\n\n")
 
         # save the markdown document string in a file
-        with open(pandoc_path, "w", encoding="utf-8") as f:
+        with open(self._config['files']['output-pandoc'], "w", encoding="utf-8") as f:
             f.write('\n'.join(self.header_lines + self.document_lines))
+
 
 
     ''' Table processor
@@ -100,3 +100,51 @@ class Pandoc(object):
             self.last_section_was_landscape = latex_section.landscape
 
         return section_lines, self.last_section_was_landscape
+
+
+
+    ''' Table of Content processor
+    '''
+    def process_toc(self, section_data):
+        latex_section = LatexToCSection(section_data, self._config, self.last_section_was_landscape)
+        toc_lines = latex_section.to_latex(self.color_dict)
+
+        return toc_lines, latex_section.landscape
+
+    ''' List of Figure processor
+    '''
+    def process_lof(self, section_data):
+        latex_section = LatexLoFSection(section_data, self._config, self.last_section_was_landscape)
+        toc_lines = latex_section.to_latex(self.color_dict)
+
+        return toc_lines, latex_section.landscape
+
+
+    ''' List of Table processor
+    '''
+    def process_lot(self, section_data):
+        latex_section = LatexLoTSection(section_data, self._config, self.last_section_was_landscape)
+        toc_lines = latex_section.to_latex(self.color_dict)
+
+        return toc_lines, latex_section.landscape
+
+
+    ''' pdf processor
+    '''
+    def process_pdf(self, section_data):
+        warn(f"content type [pdf] not supported")
+        return [], self.last_section_was_landscape
+
+
+    ''' odt processor
+    '''
+    def process_odt(self, section_data):
+        warn(f"content type [odt] not supported")
+        return [], self.last_section_was_landscape
+
+
+    ''' docx processor
+    '''
+    def process_docx(self, section_data):
+        warn(f"content type [docx] not supported")
+        return [], self.last_section_was_landscape
