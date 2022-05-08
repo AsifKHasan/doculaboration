@@ -69,7 +69,6 @@ class LatexSectionBase(object):
             if self.section_index != 0:
                 if self.page_break:
                     header_lines.append(f"\t\\pagebreak")
-
         else:
             # generate the header block
             header_block = LatexSectionHeader(self.page_spec, self.margin_spec, self.level, self.section, self.heading, self.hide_heading, self.landscape, self.orientation_changed)
@@ -95,10 +94,7 @@ class LatexSectionBase(object):
                 header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
 
             # now the pagestyle
-            header_lines.append(f"\t\\fancypagestyle{{{self.page_style_name}}}{{")
-            header_lines.append(f"\t\t\\fancyhf{{}}")
-            header_lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
-            header_lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
+            header_lines = header_lines + fancy_pagestyle_header(self.page_style_name)
             if self.header_odd.has_content:
                 header_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
 
@@ -133,7 +129,7 @@ class LatexSectionBase(object):
                 heading_lines.append(heading_text)
                 heading_lines.append('\n')
             else:
-                heading_lines.append(f"\\titlestyle{{{heading_text}}}")
+                heading_lines.append(f"\\titlestyle{{ {heading_text} }}")
                 heading_lines = mark_as_latex(heading_lines)
 
         return header_lines + heading_lines
@@ -505,7 +501,8 @@ class LatexContent(object):
         return latex_lines
 
 
-'''
+
+''' Page Header/Footer
 '''
 class LatexPageHeaderFooter(LatexContent):
 
@@ -540,6 +537,7 @@ class LatexPageHeaderFooter(LatexContent):
         return latex_lines
 
 
+
 ''' Latex Block object wrapper base class (plain latex, table, header etc.)
 '''
 class LatexBlock(object):
@@ -548,6 +546,7 @@ class LatexBlock(object):
     '''
     def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
         pass
+
 
 
 ''' Latex Header Block wrapper
@@ -588,6 +587,7 @@ class LatexSectionHeader(LatexBlock):
                 header_lines.append(f"\t\\restoregeometry")
 
         return header_lines
+
 
 
 ''' Latex Table object wrapper

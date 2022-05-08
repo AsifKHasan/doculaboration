@@ -79,3 +79,15 @@ def mark_as_latex(lines):
     latex_lines.append("```\n\n")
 
     return latex_lines
+
+
+'''
+'''
+def fancy_pagestyle_header(page_style_name):
+    lines = []
+    lines.append(f"\t\\fancypagestyle{{{page_style_name}}}{{")
+    lines.append(f"\t\t\\fancyhf{{}}")
+    lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
+    lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
+
+    return lines
