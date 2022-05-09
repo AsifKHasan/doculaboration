@@ -37,7 +37,7 @@ class LatexSectionBase(object):
         self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
         self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
 
-        self.page_style_name = f"pagestyle{self.section_index}"
+        self.page_style_name = f"pagestyle{LETTERS[self.section_index]}"
 
         # headers and footers
         self.header_first = LatexPageHeaderFooter(section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first')
@@ -552,7 +552,7 @@ class LatexPageHeaderFooter(LatexContent):
     def __init__(self, content_data, section_width, section_index, header_footer, odd_even):
         super().__init__(content_data, section_width, section_index)
         self.header_footer, self.odd_even = header_footer, odd_even
-        self.id = f"{self.header_footer}{self.odd_even}{section_index}"
+        self.id = f"{self.header_footer}{self.odd_even}{LETTERS[section_index]}"
 
 
     ''' generates the latex code

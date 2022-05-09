@@ -1,0 +1,580 @@
+```{=latex}
+% Title Style - used for Level 0 heading
+\newcommand\titlestyle[1]{\vspace{0.0cm}\begin{center}\fontspec{Go Smallcaps}\Large\textsc{#1}\end{center}\vspace{0.0cm}}
+
+\titleformat*{\section}{\fontspec{Go Smallcaps}\LARGE\raggedright\color[rgb]{0.7,0,0}\scshape}
+\titleformat*{\subsection}{\fontspec{Arial}\Large\sf\bfseries\raggedright\color[rgb]{0.7,0,0}}
+\titleformat*{\subsubsection}{\fontspec{Arial}\large\sf\bfseries\raggedright\color[rgb]{0.7,0,0}}
+\titlespacing{\section}{0pt}{2ex}{.5ex}
+\titlespacing{\subsection}{0pt}{1.5ex}{0ex}
+\titlespacing{\subsubsection}{0pt}{.5ex}{0ex}
+
+% \renewcommand{\thetable}{}
+% \renewcommand{\thefigure}{}
+
+\makeatletter
+\def\ifGm@preamble#1{\@firstofone}
+\appto\restoregeometry{%
+  \pdfpagewidth=\paperwidth
+  \pdfpageheight=\paperheight}
+\apptocmd\newgeometry{%
+  \pdfpagewidth=\paperwidth
+  \pdfpageheight=\paperheight}{}{}
+\makeatother
+
+\pagestyle{fancy}
+
+% define colors for tabularray
+	\definecolor{ffffff}{HTML}{ffffff}
+	\definecolor{000000}{HTML}{000000}
+	\definecolor{666666}{HTML}{666666}
+	\definecolor{b7b7b7}{HTML}{b7b7b7}
+	\definecolor{999999}{HTML}{999999}
+	\definecolor{434343}{HTML}{434343}
+	\definecolor{ead1dc}{HTML}{ead1dc}
+```
+
+
+```{=latex}
+% PageStyle - [ : Coverpage]
+	\restoregeometry
+	\fancypagestyle{pagestyleA}{
+		\fancyhf{}
+		\renewcommand{\headrulewidth}{0pt}
+		\renewcommand{\footrulewidth}{0pt}
+		}
+	\pagestyle{pagestyleA}
+```
+
+
+```{=latex}
+% LatexTable: (1-8) : 8 rows
+	\DefTblrTemplate{caption-tag}{default}{}
+	\DefTblrTemplate{caption-sep}{default}{}
+	\DefTblrTemplate{caption-text}{default}{}
+	\DefTblrTemplate{conthead}{default}{}
+	\DefTblrTemplate{contfoot}{default}{}
+	\DefTblrTemplate{conthead-text}{default}{}
+	\DefTblrTemplate{contfoot-text}{default}{}
+	\begin{longtblr}[
+			caption=,
+			entry=none,
+			label=none,
+			presep=0pt,
+			postsep=0pt,
+		]{
+			colspec={p{1.2650553877139978in}p{3.3410523665659615in}p{1.66389224572004in}},
+			rulesep=0pt,
+			stretch=1.0,
+			vspan=even,
+			hspan=minimal,
+			rowhead=0,
+			row{1} = {ht=2.4166666666666665in},
+			row{2} = {ht=0.16666666666666666in},
+			row{3} = {ht=0.16666666666666666in},
+			row{4} = {ht=0.16666666666666666in},
+			row{5} = {ht=0.16666666666666666in},
+			row{6} = {ht=0.16666666666666666in},
+			row{7} = {ht=0.16666666666666666in},
+			row{8} = {ht=0.16666666666666666in},
+			cell{1}{1} = {r=1,c=1}{valign=m,halign=c,bg=ffffff,wd=1.2650553877139978in},
+			cell{1}{2} = {r=1,c=1}{valign=m,halign=c,bg=ffffff,wd=3.3410523665659615in},
+			cell{1}{3} = {r=1,c=1}{valign=m,halign=c,bg=ffffff,wd=1.66389224572004in},
+			cell{2}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{3}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{4}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{5}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{6}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{7}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+			cell{8}{1} = {r=1,c=3}{valign=m,halign=c,bg=ffffff,wd=6.603333333333333in},
+		}
+		% row: [1]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			&
+			% multicolumn: No, multirow: No
+			\includegraphics[width=3.3410523665659615in]{D:/projects/tmp/doculaboration/gsheet-to-json/conf/../../out/tmp/nbr-logo-327x63.png}
+			&
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [2]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{15pt}{15pt}\fontspec{Calibri}\color{666666}\textbf{}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+			\cline[fg=000000,wd=0.4pt,dash=solid]{1-3}
+		% row: [3]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{14pt}{14pt}\fontspec{Calibri}\color{000000}\textbf{}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+		% row: [4]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{18pt}{18pt}\fontspec{Calibri}\color{999999}\textbf{Project Management and Quality Assurance (PMQA) Consultancy Services for Bangladesh National Single Window}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+			\cline[fg=b7b7b7,wd=0.4pt,dash=solid]{1-3}
+		% row: [5]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{14pt}{14pt}\fontspec{Calibri}\color{434343}\textbf{}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+		% row: [6]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{14pt}{14pt}\fontspec{Calibri}\color{434343}\textbf{Functional and Technical Report}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+		% row: [7]
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{12pt}{12pt}\fontspec{Calibri}\color{666666}\textbf{version 5.0}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+		% row: [8]
+			\cline[fg=b7b7b7,wd=0.4pt,dash=solid]{1-3}
+			% multicolumn: FirstCell, multirow: No
+			\fontsize{12pt}{12pt}\fontspec{Calibri}\color{666666}\textbf{January 2022}
+			&
+			% multicolumn: InnerCell, multirow: No
+			&
+			% multicolumn: LastCell, multirow: No
+			\\
+		\end{longtblr}
+```
+
+
+```{=latex}
+% PageStyle - [ : Executive Summary]
+	\pagebreak
+	\newcommand{\headeroddB}{%
+		\begin{tblr}[
+				caption=,
+				entry=none,
+				label=none,
+				presep=0pt,
+				postsep=0pt,
+			]{
+				colspec={p{3.2183333333333333in}p{3.2183333333333333in}},
+				rulesep=0pt,
+				stretch=1.0,
+				vspan=even,
+				hspan=minimal,
+				row{1} = {ht=0.16666666666666666in},
+				cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=ffffff,wd=3.2183333333333333in},
+				cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=ffffff,wd=3.2183333333333333in},
+			}
+			% row: [1]
+				\hspace{-6pt}\fontsize{9pt}{9pt}\color{666666}{}
+				&
+				\fontsize{9pt}{9pt}\color{000000}{Functional and Technical Report version 5.0}\hspace{-6pt}
+				\\
+				\cline[fg=ead1dc,wd=0.4pt,dash=solid]{1-1}
+				\cline[fg=ead1dc,wd=0.4pt,dash=solid]{2-2}
+			\end{tblr}
+		}
+	\newcommand{\headerevenB}{%
+		\begin{tblr}[
+				caption=,
+				entry=none,
+				label=none,
+				presep=0pt,
+				postsep=0pt,
+			]{
+				colspec={p{3.2183333333333333in}p{3.2183333333333333in}},
+				rulesep=0pt,
+				stretch=1.0,
+				vspan=even,
+				hspan=minimal,
+				row{1} = {ht=0.16666666666666666in},
+				cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=ffffff,wd=3.2183333333333333in},
+				cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=ffffff,wd=3.2183333333333333in},
+			}
+			% row: [1]
+				\hspace{-6pt}\fontsize{9pt}{9pt}\color{666666}{}
+				&
+				\fontsize{9pt}{9pt}\color{000000}{Functional and Technical Report version 5.0}\hspace{-6pt}
+				\\
+				\cline[fg=ead1dc,wd=0.4pt,dash=solid]{1-1}
+				\cline[fg=ead1dc,wd=0.4pt,dash=solid]{2-2}
+			\end{tblr}
+		}
+	\newcommand{\footeroddB}{%
+		\begin{tblr}[
+				caption=,
+				entry=none,
+				label=none,
+				presep=0pt,
+				postsep=0pt,
+			]{
+				colspec={p{5.757083333333333in}p{0.6795833333333333in}},
+				rulesep=0pt,
+				stretch=1.0,
+				vspan=even,
+				hspan=minimal,
+				row{1} = {ht=0.16666666666666666in},
+				cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=ffffff,wd=5.757083333333333in},
+				cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=ffffff,wd=0.6795833333333333in},
+			}
+			% row: [1]
+				\cline[fg=999999,wd=0.4pt,dash=solid]{1-1}
+				\cline[fg=999999,wd=0.4pt,dash=solid]{2-2}
+				\hspace{-6pt}\fontsize{8pt}{8pt}\color{666666}{Project Management and Quality Assurance (PMQA) Consultancy Services for Bangladesh National Single Window\linebreak{}PwC}
+				&
+				\fontsize{9pt}{9pt}\color{666666}{\thepage\ of \pageref{LastPage}}\hspace{-6pt}
+				\\
+			\end{tblr}
+		}
+	\newcommand{\footerevenB}{%
+		\begin{tblr}[
+				caption=,
+				entry=none,
+				label=none,
+				presep=0pt,
+				postsep=0pt,
+			]{
+				colspec={p{5.757083333333333in}p{0.6795833333333333in}},
+				rulesep=0pt,
+				stretch=1.0,
+				vspan=even,
+				hspan=minimal,
+				row{1} = {ht=0.16666666666666666in},
+				cell{1}{1} = {r=1,c=1}{valign=m,halign=l,bg=ffffff,wd=5.757083333333333in},
+				cell{1}{2} = {r=1,c=1}{valign=m,halign=r,bg=ffffff,wd=0.6795833333333333in},
+			}
+			% row: [1]
+				\cline[fg=999999,wd=0.4pt,dash=solid]{1-1}
+				\cline[fg=999999,wd=0.4pt,dash=solid]{2-2}
+				\hspace{-6pt}\fontsize{8pt}{8pt}\color{666666}{Project Management and Quality Assurance (PMQA) Consultancy Services for Bangladesh National Single Window\linebreak{}PwC}
+				&
+				\fontsize{9pt}{9pt}\color{666666}{\thepage\ of \pageref{LastPage}}\hspace{-6pt}
+				\\
+			\end{tblr}
+		}
+	\fancypagestyle{pagestyleB}{
+		\fancyhf{}
+		\renewcommand{\headrulewidth}{0pt}
+		\renewcommand{\footrulewidth}{0pt}
+			\fancyhead[O]{\headeroddB}
+			\fancyhead[E]{\headerevenB}
+			\fancyfoot[O]{\footeroddB}
+			\fancyfoot[E]{\footerevenB}
+		}
+	\pagestyle{pagestyleB}
+```
+
+
+```{=latex}
+\titlestyle{Executive Summary}
+```
+
+
+```{=latex}
+% LatexTable: (1-15) : 15 rows
+	\DefTblrTemplate{caption-tag}{default}{}
+	\DefTblrTemplate{caption-sep}{default}{}
+	\DefTblrTemplate{caption-text}{default}{}
+	\DefTblrTemplate{conthead}{default}{}
+	\DefTblrTemplate{contfoot}{default}{}
+	\DefTblrTemplate{conthead-text}{default}{}
+	\DefTblrTemplate{contfoot-text}{default}{}
+	\begin{longtblr}[
+			caption=,
+			entry=none,
+			label=none,
+			presep=0pt,
+			postsep=0pt,
+		]{
+			colspec={p{6.603333333333333in}},
+			rulesep=0pt,
+			stretch=1.0,
+			vspan=even,
+			hspan=minimal,
+			rowhead=0,
+			row{1} = {ht=0.16666666666666666in},
+			row{2} = {ht=0.16666666666666666in},
+			row{3} = {ht=0.16666666666666666in},
+			row{4} = {ht=0.16666666666666666in},
+			row{5} = {ht=0.16666666666666666in},
+			row{6} = {ht=0.16666666666666666in},
+			row{7} = {ht=0.16666666666666666in},
+			row{8} = {ht=0.16666666666666666in},
+			row{9} = {ht=0.16666666666666666in},
+			row{10} = {ht=0.16666666666666666in},
+			row{11} = {ht=0.16666666666666666in},
+			row{12} = {ht=0.16666666666666666in},
+			row{13} = {ht=0.16666666666666666in},
+			row{14} = {ht=0.16666666666666666in},
+			row{15} = {ht=0.16666666666666666in},
+			cell{1}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{2}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{3}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{4}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{5}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{6}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{7}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{8}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{9}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{10}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{11}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{12}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{13}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{14}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{15}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+		}
+		% row: [1]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}\textbf{Introduction and Context of the Assignment}
+			\\
+		% row: [2]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The overarching goal of Bangladesh is to achieve middle income status by 2031 and achieve the Sustainable Development Goals by 2030. Under these development objectives, the focus is on inclusive growth and sustainable development. Trade objectives are considered as the prime means to achieve these broader development objectives. In accordance with these goals, the import, export and other trade related policies of the country have continuously been simplified over the last two decades by minimizing prohibitions and restrictions to the greatest possible extent so as to be in line with international efforts aimed at the liberalization of trade.}
+			\\
+		% row: [3]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [4]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{From the very inception of the World Trade Organization (WTO), Bangladesh has been advocating for the globalization and liberalization of trade. In July 2014, the WTO announced the launch of the Trade Facilitation Agreement (TFA) Facility aimed at assisting developing and least developed countries in implementing the Trade Facilitation Agreement.}
+			\\
+		% row: [5]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [6]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{Implementation of the National Single Window (NSW) is a necessary step for meeting the requirements of the Trade Facilitation Agreement with World Trade Organization. In line with the WTO TFA, the Government of Bangladesh has committed to the implementation of a NSW system and the associated reform and modernization of Customs and trade related activities of other border management agencies. Towards this end, the }\fontsize{10pt}{10pt}\color{000000}\textbf{Bangladesh Regional Connectivity Project 1 (BRCP-1)}\fontsize{10pt}{10pt}\color{000000}{, National Single Window Implementation and Strengthening Customs Modernization project provides the basic framework for the fulfilment of other TFA commitments, such as the use of risk management, pre arrival processing, publication of release times, border agency cooperation and the review of formalities and documentation requirements. The NSW will not only provide a single focal point for the trade community, but also allow for a smooth implementation of other trade facilitation tools in the Bangladesh trade facilitation policy.}
+			\\
+		% row: [7]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [8]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The lead implementation agency, National Board of Revenue (NBR), under the Ministry of Finance is responsible for the overall implementation, management and monitoring of the Component 3 of BRCP-1.}
+			\\
+		% row: [9]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [10]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{PricewaterhouseCoopers Pvt. Ltd. (PwC) has been engaged by NBR as the Project Management and Quality Assurance (PQMA) consultant to oversee the implementation of the Component 3, which includes two parts - NSW Implementation and Customs Modernization. Under “}\fontsize{10pt}{10pt}\color{000000}\textbf{Strengthening Customs Modernization}\fontsize{10pt}{10pt}\color{000000}{”, the following are included - }\fontsize{10pt}{10pt}\color{000000}\textbf{Automated Risk Management System, Valuation Database solution and other allied Customs modules}\fontsize{10pt}{10pt}\color{000000}{. The scope of the PMQA includes the As-Is, and To-Be studies, Business Process Re-Engineering, Functional and Technical Requirements specifications for BSW and ARMS, Capacity Building Needs, and as well as developing an appropriate Legal And Regulatory Framework for BSW implementation.}
+			\\
+		% row: [11]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}\textbf{}
+			\\
+		% row: [12]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}\textbf{Our Approach}
+			\\
+		% row: [13]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{In view of the stringent delivery timelines, we prioritized the preparation of the F\&T document while the As-Is assessment was still underway. The core premise of this Functional and Technical document is that the Bangladesh Single Window (BSW) act as the single-entry point for all the stakeholders associated with international trade as enshrined in the latest amendment of the Bangladesh Customs Act. As for the Strengthening Customs Modernization, the PMQA team was guided by the earlier Initial Selection Document (ISD) which includes the integrated risk management, valuation database, and other “}\fontsize{10pt}{10pt}\color{000000}\textbf{allied}\fontsize{10pt}{10pt}\color{000000}{” customs modules such as the authorized economic operator, customs laboratory requirements. Further, as part of the As-Is study, and requirements from PIU, the PMQA has recommended two further modules as part of the Strengthening Customs Modernization.}
+			\\
+		% row: [14]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [15]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The key facets of our approach for designing the functional and technical architecture of proposed BSW ICT solution have been outlined in the figure below:-}
+			\\
+		\end{longtblr}
+% LatexParagraph: row 16
+	% multicolumn: No, multirow: No
+	\centering{\fontsize{10pt}{10pt}\color{000000}\textbf{Figure 1: Approach to design the functional and technical specifications for BSW}}
+	\addcontentsline{lof}{figure}{Figure 1: Approach to design the functional and technical specifications for BSW}
+	\\[10pt]
+% LatexParagraph: row 17
+	% multicolumn: No, multirow: No
+	\centering{\includegraphics[width=6.603333333333333in]{D:/projects/tmp/doculaboration/gsheet-to-json/conf/../../out/tmp/approach-to-design-functional-technical-spec-bsw.png}}
+% LatexTable: (18-18) : 1 rows
+	\DefTblrTemplate{caption-tag}{default}{}
+	\DefTblrTemplate{caption-sep}{default}{}
+	\DefTblrTemplate{caption-text}{default}{}
+	\DefTblrTemplate{conthead}{default}{}
+	\DefTblrTemplate{contfoot}{default}{}
+	\DefTblrTemplate{conthead-text}{default}{}
+	\DefTblrTemplate{contfoot-text}{default}{}
+	\begin{longtblr}[
+			caption=,
+			entry=none,
+			label=none,
+			presep=0pt,
+			postsep=0pt,
+		]{
+			colspec={p{6.603333333333333in}},
+			rulesep=0pt,
+			stretch=1.0,
+			vspan=even,
+			hspan=minimal,
+			rowhead=0,
+			row{1} = {ht=0.16666666666666666in},
+			cell{1}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+		}
+		% row: [18]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The following modules/functions shall be under BSW:}
+			\\
+		\end{longtblr}
+% LatexParagraph: row 19
+	% multicolumn: No, multirow: No
+	\centering{\fontsize{10pt}{10pt}\color{000000}\textbf{Figure 2a: Modules under BSW}}
+	\addcontentsline{lof}{figure}{Figure 2a: Modules under BSW}
+	\\[10pt]
+% LatexParagraph: row 20
+	% multicolumn: No, multirow: No
+	\centering{\includegraphics[width=6.603333333333333in]{D:/projects/tmp/doculaboration/gsheet-to-json/conf/../../out/tmp/modules-under-bsw.png}}
+% LatexTable: (21-22) : 2 rows
+	\DefTblrTemplate{caption-tag}{default}{}
+	\DefTblrTemplate{caption-sep}{default}{}
+	\DefTblrTemplate{caption-text}{default}{}
+	\DefTblrTemplate{conthead}{default}{}
+	\DefTblrTemplate{contfoot}{default}{}
+	\DefTblrTemplate{conthead-text}{default}{}
+	\DefTblrTemplate{contfoot-text}{default}{}
+	\begin{longtblr}[
+			caption=,
+			entry=none,
+			label=none,
+			presep=0pt,
+			postsep=0pt,
+		]{
+			colspec={p{6.603333333333333in}},
+			rulesep=0pt,
+			stretch=1.0,
+			vspan=even,
+			hspan=minimal,
+			rowhead=0,
+			row{1} = {ht=0.16666666666666666in},
+			row{2} = {ht=0.16666666666666666in},
+			cell{1}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{2}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+		}
+		% row: [21]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [22]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The following modules shall be under the ASYCUDA World (AW) System of NBR:}
+			\\
+		\end{longtblr}
+% LatexParagraph: row 23
+	% multicolumn: No, multirow: No
+	\centering{\fontsize{10pt}{10pt}\color{000000}\textbf{Figure 2b: Modules under AW}}
+	\addcontentsline{lof}{figure}{Figure 2b: Modules under AW}
+	\\[10pt]
+% LatexParagraph: row 24
+	% multicolumn: No, multirow: No
+	\centering{\includegraphics[width=6.603333333333333in]{D:/projects/tmp/doculaboration/gsheet-to-json/conf/../../out/tmp/modules-under-aw.png}}
+% LatexTable: (25-35) : 11 rows
+	\DefTblrTemplate{caption-tag}{default}{}
+	\DefTblrTemplate{caption-sep}{default}{}
+	\DefTblrTemplate{caption-text}{default}{}
+	\DefTblrTemplate{conthead}{default}{}
+	\DefTblrTemplate{contfoot}{default}{}
+	\DefTblrTemplate{conthead-text}{default}{}
+	\DefTblrTemplate{contfoot-text}{default}{}
+	\begin{longtblr}[
+			caption=,
+			entry=none,
+			label=none,
+			presep=0pt,
+			postsep=0pt,
+		]{
+			colspec={p{6.603333333333333in}},
+			rulesep=0pt,
+			stretch=1.0,
+			vspan=even,
+			hspan=minimal,
+			rowhead=0,
+			row{1} = {ht=0.16666666666666666in},
+			row{2} = {ht=0.16666666666666666in},
+			row{3} = {ht=0.16666666666666666in},
+			row{4} = {ht=0.16666666666666666in},
+			row{5} = {ht=0.16666666666666666in},
+			row{6} = {ht=0.16666666666666666in},
+			row{7} = {ht=0.16666666666666666in},
+			row{8} = {ht=0.16666666666666666in},
+			row{9} = {ht=0.16666666666666666in},
+			row{10} = {ht=0.16666666666666666in},
+			row{11} = {ht=0.16666666666666666in},
+			cell{1}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{2}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{3}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{4}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{5}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{6}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{7}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{8}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{9}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{10}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+			cell{11}{1} = {r=1,c=1}{valign=h,halign=l,bg=ffffff,wd=6.603333333333333in},
+		}
+		% row: [25]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{In addition, the Automated Risk Management System (ARMS) shall be developed as a separate system.}
+			\\
+		% row: [26]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [27]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{The functional specifications for the modules under BSW and AW system, and the ARMS are spelt out in this document. Also, the technical specifications for the BSW and ARMS have been detailed out in this document.}
+			\\
+		% row: [28]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [29]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{It is important to note here that the modules under the AW system shall be out of the scope of the BSW ICT vendor.}
+			\\
+		% row: [30]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [31]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{To cater to the technical specification and designing of an integrated NSW Architecture, the technical architecture of the envisaged system has been proposed that integrates the NSW application with ASYCUDA, Core banking applications and other applications of CLPIAs to deliver paperless and time-bound services in a seamless manner. This will also ensure technical integrity and consistency of the overall solution at every stage starting from stakeholder engagement and requirements engineering through the end-to-end support. This has been designed with due consideration to leverage the existing ICT applications and systems. With regard to the RMS system, security features have been significantly prioritized.}
+			\\
+		% row: [32]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [33]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{Following this, the Implementation and Deployment Plan has been detailed out which will be fundamental to designing the lifecycle of the solution and help in assessment of the system as a whole.}
+			\\
+		% row: [34]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{}
+			\\
+		% row: [35]
+			% multicolumn: No, multirow: No
+			\fontsize{10pt}{10pt}\color{000000}{Further, a Capacity Building plan has also been included to support a smooth transition and assist in stakeholder adoption of the new system more effectively. The associated training program is proposed to enable different stakeholders to strengthen their capabilities to develop, implement and maintain the BSW services.}
+			\\
+		\end{longtblr}
+```

@@ -24,14 +24,14 @@ margin-spec:
     bottom: 1.00
     gutter: 0
   medium:
-    left  : 0.50
-    right : 0.50
-    top   : 0.50
-    bottom: 0.50
+    left  : 0.75
+    right : 0.75
+    top   : 0.75
+    bottom: 0.75
     gutter: 0
   narrow:
     left  : 0.50
     right : 0.50
-    top   : 0.50
-    bottom: 0.50
+    top   : 0.75
+    bottom: 0.75
     gutter: 0
