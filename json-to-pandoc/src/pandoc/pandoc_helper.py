@@ -55,7 +55,6 @@ class PandocHelper(object):
 
         self.document_lines = []
         self.color_dict = {}
-        self.last_section_was_landscape = True
         for section in section_list:
             if section['section'] != '':
                 info(f"writing ... {section['section'].strip()} {section['heading'].strip()}")
@@ -63,7 +62,7 @@ class PandocHelper(object):
                 info(f"writing ... {section['heading'].strip()}")
 
             func = getattr(self, f"process_{section['content-type']}")
-            section_lines, self.last_section_was_landscape = func(section)
+            section_lines = func(section)
             self.document_lines = self.document_lines + section_lines
 
         # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
@@ -91,60 +90,59 @@ class PandocHelper(object):
                     content_type = 'table'
 
                 func = getattr(self, f"process_{content_type}")
-                section_lines, self.last_section_was_landscape = func(section)
+                section_lines = func(section)
                 self.document_lines = self.document_lines + section_lines
 
         else:
-            latex_section = LatexTableSection(section_data, self._config, self.last_section_was_landscape)
+            latex_section = LatexTableSection(section_data, self._config)
             section_lines = latex_section.to_latex(self.color_dict)
-            self.last_section_was_landscape = latex_section.landscape
 
-        return section_lines, self.last_section_was_landscape
+        return section_lines
 
 
 
     ''' Table of Content processor
     '''
     def process_toc(self, section_data):
-        latex_section = LatexToCSection(section_data, self._config, self.last_section_was_landscape)
+        latex_section = LatexToCSection(section_data, self._config)
         toc_lines = latex_section.to_latex(self.color_dict)
 
-        return toc_lines, latex_section.landscape
+        return toc_lines
 
     ''' List of Figure processor
     '''
     def process_lof(self, section_data):
-        latex_section = LatexLoFSection(section_data, self._config, self.last_section_was_landscape)
+        latex_section = LatexLoFSection(section_data, self._config)
         toc_lines = latex_section.to_latex(self.color_dict)
 
-        return toc_lines, latex_section.landscape
+        return toc_lines
 
 
     ''' List of Table processor
     '''
     def process_lot(self, section_data):
-        latex_section = LatexLoTSection(section_data, self._config, self.last_section_was_landscape)
+        latex_section = LatexLoTSection(section_data, self._config)
         toc_lines = latex_section.to_latex(self.color_dict)
 
-        return toc_lines, latex_section.landscape
+        return toc_lines
 
 
     ''' pdf processor
     '''
     def process_pdf(self, section_data):
         warn(f"content type [pdf] not supported")
-        return [], self.last_section_was_landscape
+        return []
 
 
     ''' odt processor
     '''
     def process_odt(self, section_data):
         warn(f"content type [odt] not supported")
-        return [], self.last_section_was_landscape
+        return []
 
 
     ''' docx processor
     '''
     def process_docx(self, section_data):
         warn(f"content type [docx] not supported")
-        return [], self.last_section_was_landscape
+        return []

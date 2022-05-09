@@ -17,7 +17,7 @@ class LatexSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config, last_section_was_landscape):
+    def __init__(self, section_data, config):
         self._config = config
         self._section_data = section_data
 
@@ -25,27 +25,17 @@ class LatexSectionBase(object):
         self.heading = section_data['heading']
         self.level = self._section_data['level']
         self.landscape = self._section_data['landscape']
-        self.page_numbering = self._section_data['hide-pageno']
-        self.section_index = self._section_data['section-index']
-        self.section_width = self._section_data['width']
         self.section_break = self._section_data['section-break']
         self.page_break = self._section_data['page-break']
         self.hide_heading = self._section_data['hide-heading']
         self.hide_pageno = self._section_data['hide-pageno']
 
+        self.section_width = self._section_data['width']
+        self.section_index = self._section_data['section-index']
+        self.first_section = self._section_data['first-section']
+
         self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
         self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
-
-        if self.landscape:
-            if last_section_was_landscape:
-                self.orientation_changed = False
-            else:
-                self.orientation_changed = True
-        else:
-            if last_section_was_landscape:
-                self.orientation_changed = True
-            else:
-                self.orientation_changed = False
 
         self.page_style_name = f"pagestyle{self.section_index}"
 
@@ -60,62 +50,9 @@ class LatexSectionBase(object):
         self.section_contents = LatexContent(section_data.get('contents'), self.section_width, self.section_index)
 
 
-    ''' generates the latex code
+    ''' generates section heading
     '''
-    def to_latex(self, color_dict):
-        header_lines = []
-        # section header/footer is only applicable for first section and on section-breaks
-        if not self.section_break:
-            if self.section_index != 0:
-                if self.page_break:
-                    header_lines.append(f"\t\\pagebreak")
-        else:
-            # generate the header block
-            header_block = LatexSectionHeader(self.page_spec, self.margin_spec, self.level, self.section, self.heading, self.hide_heading, self.landscape, self.orientation_changed)
-            header_lines = header_lines + header_block.to_latex(color_dict)
-
-            # get headers and footers
-            if self.header_first.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t\{x}", self.header_first.to_latex(color_dict)))
-
-            if self.header_odd.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
-
-            if self.header_even.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
-
-            if self.footer_first.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
-
-            if self.footer_odd.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
-
-            if self.footer_even.has_content:
-                header_lines = header_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
-
-            # now the pagestyle
-            header_lines = header_lines + fancy_pagestyle_header(self.page_style_name)
-            if self.header_odd.has_content:
-                header_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
-
-            if self.header_even.has_content:
-                header_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
-
-            if self.footer_odd.has_content:
-                header_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
-
-            if self.footer_even.has_content:
-                header_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
-
-            header_lines.append(f"\t\t}}")
-            header_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
-
-            # TODO
-            header_lines = [f"% PageStyle - [{self.page_style_name}]"] + header_lines
-
-        header_lines = mark_as_latex(header_lines)
-
-        # heading
+    def get_heading(self):
         heading_lines = []
         if not self.hide_heading:
             hashes = '#' * self.level
@@ -132,7 +69,109 @@ class LatexSectionBase(object):
                 heading_lines.append(f"\\titlestyle{{ {heading_text} }}")
                 heading_lines = mark_as_latex(heading_lines)
 
-        return header_lines + heading_lines
+        return heading_lines
+
+
+
+    ''' generates section geometry
+    '''
+    def get_geometry(self):
+        geometry_lines = []
+
+        paper = self.page_spec['name']
+        page_width = self.page_spec['width']
+        page_height = self.page_spec['height']
+        top_margin = self.margin_spec['top']
+        bottom_margin = self.margin_spec['bottom']
+        left_margin = self.margin_spec['left']
+        right_margin = self.margin_spec['right']
+
+        geometry_lines.append(f"\t\\pagebreak")
+
+        geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
+
+        geometry_lines = mark_as_latex(geometry_lines)
+
+        return geometry_lines
+
+
+
+    ''' get header/fotter contents
+    '''
+    def get_header_footer(self, color_dict):
+        hf_lines = []
+
+        # get headers and footers
+        if self.header_first.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t\{x}", self.header_first.to_latex(color_dict)))
+
+        if self.header_odd.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_odd.to_latex(color_dict)))
+
+        if self.header_even.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_even.to_latex(color_dict)))
+
+        if self.footer_first.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_first.to_latex(color_dict)))
+
+        if self.footer_odd.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.to_latex(color_dict)))
+
+        if self.footer_even.has_content:
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_even.to_latex(color_dict)))
+
+        # now the pagestyle
+        hf_lines = hf_lines + fancy_pagestyle_header(self.page_style_name)
+        if self.header_odd.has_content:
+            hf_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
+
+        if self.header_even.has_content:
+            hf_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
+
+        if self.footer_odd.has_content:
+            hf_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
+
+        if self.footer_even.has_content:
+            hf_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
+
+        hf_lines.append(f"\t\t}}")
+        hf_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
+
+        # TODO
+        hf_lines = [f"% PageStyle - [{self.page_style_name}]"] + hf_lines
+
+        hf_lines = mark_as_latex(hf_lines)
+
+        return hf_lines
+
+
+
+    ''' generates the latex code
+    '''
+    def to_latex(self, color_dict):
+
+        geometry_lines = []
+        # page geometry changes only when a new section starts or if it is the first section
+        if self.section_break or self.first_section:
+            geometry_lines = self.get_geometry()
+
+
+        # header/footer lines
+        hf_lines = self.get_header_footer(color_dict)
+
+
+        content_lines = []
+        # the section may have a page-break
+        if self.page_break:
+            content_lines.append(f"\t\\pagebreak")
+
+        content_lines = mark_as_latex(content_lines)
+
+
+        # section heading is always applicable
+        heading_lines = self.get_heading()
+
+        return geometry_lines + hf_lines + content_lines + heading_lines
 
 
 
@@ -142,8 +181,8 @@ class LatexTableSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config, last_section_was_landscape):
-        super().__init__(section_data, config, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
     ''' generates the latex code
@@ -164,8 +203,8 @@ class LatexToCSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config, last_section_was_landscape):
-        super().__init__(section_data, config, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
     ''' generates the latex code
@@ -191,8 +230,8 @@ class LatexLoTSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config, last_section_was_landscape):
-        super().__init__(section_data, config, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
     ''' generates the latex code
@@ -218,8 +257,8 @@ class LatexLoFSection(LatexSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config, last_section_was_landscape):
-        super().__init__(section_data, config, last_section_was_landscape)
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
 
 
     ''' generates the latex code
@@ -546,47 +585,6 @@ class LatexBlock(object):
     '''
     def to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
         pass
-
-
-
-''' Latex Header Block wrapper
-'''
-class LatexSectionHeader(LatexBlock):
-
-    ''' constructor
-    '''
-    def __init__(self, page_spec, margin_spec, level, section, heading, hide_heading, landscape, orientation_changed):
-        self.page_spec =page_spec
-        self.margin_spec = margin_spec
-        self.level = level
-        self.section = section
-        self.heading = heading
-        self.hide_heading = hide_heading
-        self.landscape = landscape
-        self.orientation_changed = orientation_changed
-
-
-    ''' generates latex code
-    '''
-    def to_latex(self, color_dict, strip_comments=False, header_footer=None):
-        header_lines = []
-        paper = self.page_spec['name']
-        page_width = self.page_spec['width']
-        page_height = self.page_spec['height']
-        top_margin = self.margin_spec['top']
-        bottom_margin = self.margin_spec['bottom']
-        left_margin = self.margin_spec['left']
-        right_marhin = self.margin_spec['right']
-
-        header_lines.append(f"\t\\pagebreak")
-
-        if self.orientation_changed:
-            if self.landscape:
-                header_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_marhin}in, landscape}}")
-            else:
-                header_lines.append(f"\t\\restoregeometry")
-
-        return header_lines
 
 
 

@@ -32,6 +32,6 @@ margin-spec:
   narrow:
     left  : 0.50
     right : 0.50
-    top   : 0.25
-    bottom: 0.25
+    top   : 0.50
+    bottom: 0.50
     gutter: 0
