@@ -1,2 +1,10 @@
 pdf-from-gsheet.bat NBR-NSW__functional-and-technical-report__PwC__v5.0
 ./pdf-from-gsheet.sh NBR-NSW__functional-and-technical-report__PwC__v5.0
+
+
+TODO:
+1. Minipage to keep image caption and image together
+\begin{minipage}{\textwidth}
+\end{minipage}
+
+2. LoF *Page* text is shifted downwards

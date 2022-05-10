@@ -7,11 +7,13 @@ various utilities for generating latex code
 import re
 
 DEFAULT_FONT = 'Calibri'
+# DEFAULT_FONT = 'LiberationSerif'
 
 FONT_MAP = {
     'Calibri': '',
     'Arial': 'Arial',
     'Consolas': 'Consolas',
+    'Cambria': 'Cambria',
     'Bree Serif': 'FreeSerif',
 }
 
@@ -81,7 +83,7 @@ def mark_as_latex(lines):
     return latex_lines
 
 
-'''
+''' fancy pagestyle
 '''
 def fancy_pagestyle_header(page_style_name):
     lines = []

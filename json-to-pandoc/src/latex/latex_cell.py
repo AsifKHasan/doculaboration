@@ -139,17 +139,17 @@ class Cell(object):
             if self.note.style == 'Figure':
                 # caption for figure
                 # content_lines.append(f"\\neeedspace{{2em}}")
-                content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{self.user_entered_value.string_value}}}")
+                content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.user_entered_value.string_value)}}}")
             elif self.note.style == 'Table':
                 # caption for table
                 # content_lines.append(f"\\neeedspace{{2em}}")
-                content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{self.user_entered_value.string_value}}}")
+                content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.user_entered_value.string_value)}}}")
             elif self.note.style:
                 # some custom style needs to be applied
                 heading_tag = LATEX_HEADING_MAP.get(self.note.style)
                 if heading_tag:
                     # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{self.user_entered_value.string_value}}}")
+                    content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.user_entered_value.string_value)}}}")
                 else:
                     warn(f"style : {self.note.style} not defined")
 
@@ -289,6 +289,7 @@ class Cell(object):
                     lr_borders.append(rb)
 
         return lr_borders
+
 
 
 ''' gsheet Row object wrapper
@@ -508,6 +509,7 @@ class Row(object):
         return row_lines
 
 
+
 ''' gsheet text format object wrapper
 '''
 class TextFormat(object):
@@ -572,12 +574,14 @@ class TextFormat(object):
 
         # color, font, font-size
         if self.font_family != '':
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
         else:
-            fontspec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
+            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{DEFAULT_FONT}}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
 
-        latex = f"{fontspec}{content}"
+        latex = f"{font_spec}{content}"
         return latex
+
 
 
 ''' gsheet cell value object wrapper
@@ -647,6 +651,7 @@ class CellValue(object):
         return latex
 
 
+
 ''' gsheet cell format object wrapper
 '''
 class CellFormat(object):
@@ -699,6 +704,7 @@ class CellFormat(object):
     '''
     def recolor_bottom_border(self, color):
         self.borders.override_bottom_border(color, forced=True)
+
 
 
 ''' gsheet cell borders object wrapper
@@ -809,6 +815,7 @@ class Borders(object):
         return r
 
 
+
 ''' gsheet cell border object wrapper
 '''
 class Border(object):
@@ -843,6 +850,7 @@ class Border(object):
         return latex
 
 
+
 ''' Cell Merge spec wrapper
 '''
 class CellMergeSpec(object):
@@ -857,6 +865,7 @@ class CellMergeSpec(object):
         return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
 
 
+
 ''' gsheet rowMetadata object wrapper
 '''
 class RowMetadata(object):
@@ -868,6 +877,7 @@ class RowMetadata(object):
         self.inches = row_height_in_inches(self.pixel_size)
 
 
+
 ''' gsheet columnMetadata object wrapper
 '''
 class ColumnMetadata(object):
@@ -876,6 +886,7 @@ class ColumnMetadata(object):
     '''
     def __init__(self, column_metadata_dict):
         self.pixel_size = int(column_metadata_dict['pixelSize'])
+
 
 
 ''' gsheet merge object wrapper
@@ -892,6 +903,7 @@ class Merge(object):
 
         self.row_span = self.end_row - self.start_row
         self.col_span = self.end_col - self.start_col
+
 
 
 ''' gsheet color object wrapper
@@ -929,6 +941,7 @@ class RgbColor(object):
         return ''.join('{:02x}'.format(a) for a in [self.red, self.green, self.blue])
 
 
+
 ''' gsheet cell padding object wrapper
 '''
 class Padding(object):
@@ -946,6 +959,7 @@ class Padding(object):
             self.right = 0
             self.bottom = 0
             self.left = 0
+
 
 
 ''' gsheet text format run object wrapper
@@ -971,6 +985,7 @@ class TextFormatRun(object):
         latex = self.format.to_latex(tex_escape(text[self.start_index:]), color_dict)
 
         return latex
+
 
 
 ''' gsheet cell notes object wrapper
@@ -1012,6 +1027,7 @@ class CellNote(object):
             self.page_number = note_dict.get('page-number') is not None
 
 
+
 ''' gsheet vertical alignment object wrapper
 '''
 class VerticalAlignment(object):
@@ -1025,6 +1041,7 @@ class VerticalAlignment(object):
             self.valign = TBLR_VALIGN.get('TOP')
 
 
+
 ''' gsheet horizontal alignment object wrapper
 '''
 class HorizontalAlignment(object):
@@ -1036,6 +1053,7 @@ class HorizontalAlignment(object):
             self.halign = TBLR_HALIGN.get(halign, 'LEFT')
         else:
             self.halign = TBLR_HALIGN.get('LEFT')
+
 
 
 ''' Helper for cell span specification
