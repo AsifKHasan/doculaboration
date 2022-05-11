@@ -524,8 +524,8 @@ class LatexContent(object):
         last_block_is_a_paragraph = False
         for block in self.content_list:
             # if current block is a paragraph and last block was also a paragraph, insert a newline
-            # if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
-            #     latex_lines.append(f"\t\\\\[{10}pt]")
+            if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
+                latex_lines.append(f"\t\\\\[{0}pt]")
 
             latex_lines = latex_lines + block.to_latex(longtable=True, color_dict=color_dict)
 

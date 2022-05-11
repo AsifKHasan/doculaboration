@@ -113,11 +113,11 @@ class Cell(object):
             table_cell_attributes = self.merge_spec.table_cell_attributes()
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
-            print(self)
+            # print(self)
             table_cell.addElement(paragraph)
         else:
             # wrap this into a covered-table-cell
-            print(self)
+            # print(self)
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell

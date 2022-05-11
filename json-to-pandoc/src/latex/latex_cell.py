@@ -574,10 +574,10 @@ class TextFormat(object):
 
         # color, font, font-size
         if self.font_family != '':
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
         else:
-            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\fontspec{{{DEFAULT_FONT}}}\\color{{{self.fgcolor.key()}}}"
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{DEFAULT_FONT}}}\\color{{{self.fgcolor.key()}}}"
+            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
 
         latex = f"{font_spec}{content}"
         return latex

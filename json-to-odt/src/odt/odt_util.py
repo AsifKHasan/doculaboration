@@ -427,7 +427,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     # create one
     page_layout = style.PageLayout(name=page_layout_name)
     odt.automaticstyles.addElement(page_layout)
-    printorientation = orientation
+
     if orientation == 'portrait':
         pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
         pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
