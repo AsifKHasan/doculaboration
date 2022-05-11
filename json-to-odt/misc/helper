@@ -10,4 +10,7 @@ unzip -o Tasnim.Kabir.Ratul__profile.odt -d abc && atom abc
 odt-from-gsheet.bat SAU-CAS__functional-requirement-specification
 unzip -o SAU-CAS__functional-requirement-specification.odt -d abc && atom abc
 
+
+./odt-from-gsheet.sh CAAB-ATMS__résumé-index
+
 unzip -o template-spectrum.odt -d abc && atom abc

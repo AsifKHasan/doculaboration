@@ -81,6 +81,7 @@ class OdtHelper(object):
     def process_table(self, section_data):
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if section_data['contents'] is not None and 'sections' in section_data['contents']:
+            self.preprocess(section_data['contents']['sections'])
             for section in section_data['contents']['sections']:
                 content_type = section['content-type']
 
