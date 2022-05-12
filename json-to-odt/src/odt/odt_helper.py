@@ -50,7 +50,6 @@ class OdtHelper(object):
             this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
             section['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
 
-
             first_section = False
             section_index = section_index + 1
 
@@ -89,33 +88,35 @@ class OdtHelper(object):
                 if content_type == 'gsheet':
                     content_type = 'table'
 
+                debug(f"child content  : index [{section['section-index']}] - [{section['heading']}]")
                 func = getattr(self, f"process_{content_type}")
                 func(section)
 
         else:
+            debug(f"parent content : index [{section_data['section-index']}] - [{section_data['heading']}]")
             section = OdtTableSection(section_data, self._config)
-            section.to_odt(self._odt)
+            section.section_to_odt(self._odt)
 
 
     ''' Table of Content processor
     '''
     def process_toc(self, section_data):
         section = OdtToCSection(section_data, self._config)
-        section.to_odt(self._odt)
+        section.section_to_odt(self._odt)
 
 
     ''' List of Figure processor
     '''
     def process_lof(self, section_data):
         section = OdtLoFSection(section_data, self._config)
-        section.to_odt(self._odt)
+        section.section_to_odt(self._odt)
 
 
     ''' List of Table processor
     '''
     def process_lot(self, section_data):
         section = OdtLoTSection(section_data, self._config)
-        section.to_odt(self._odt)
+        section.section_to_odt(self._odt)
 
 
     ''' pdf processor

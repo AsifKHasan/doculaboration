@@ -7,8 +7,8 @@ colorama.init()
 
 log_color = {
     '[ERROR]': {'color': 'red',    'highlight': None, 'attrs': ['bold']},
-    '[WARN]':  {'color': 'yellow', 'highlight': None, 'attrs': ['bold']},
-    '[INFO]':  {'color': 'white',  'highlight': None, 'attrs': None},
+    '[ WARN]':  {'color': 'yellow', 'highlight': None, 'attrs': ['bold']},
+    '[ INFO]':  {'color': 'white',  'highlight': None, 'attrs': None},
     '[DEBUG]': {'color': 'green',  'highlight': None, 'attrs': None}
 }
 
@@ -16,10 +16,10 @@ def debug(msg, console=True):
     log('[DEBUG]', msg, console)
 
 def info(msg, console=True):
-    log('[INFO]', msg, console)
+    log('[ INFO]', msg, console)
 
 def warn(msg, console=True):
-    log('[WARN]', msg, console)
+    log('[ WARN]', msg, console)
 
 def error(msg, console=True):
     log('[ERROR]', msg, console)

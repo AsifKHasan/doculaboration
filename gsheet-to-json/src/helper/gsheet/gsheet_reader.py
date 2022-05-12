@@ -68,10 +68,8 @@ def process_section(sheet, toc, context, parent=None):
 
     # the gsheet is a child gsheet, called from a parent gsheet, so header processing depends on override flags
     if parent:
-        warn(f"This is a child gsheet")
-
         if parent['override-header']:
-            warn(f"child gsheet's header is OVERRIDDEN")
+            warn(f"This is a child gsheet : header OVERRIDDEN")
             d['different-firstpage'] = parent['different-firstpage']
             d['header-first'] = parent['header-first']
             d['header-odd'] = parent['header-odd']
@@ -98,7 +96,7 @@ def process_section(sheet, toc, context, parent=None):
                 d['header-even'] = d['header-odd']
 
         if parent['override-footer']:
-            warn(f"child gsheet's footer is OVERRIDDEN")
+            warn(f"This is a child gsheet : footer OVERRIDDEN")
             d['different-firstpage'] = parent['different-firstpage']
             d['footer-first'] = parent['footer-first']
             d['footer-odd'] = parent['footer-odd']

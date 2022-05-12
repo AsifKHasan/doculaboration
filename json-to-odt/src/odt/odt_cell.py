@@ -31,36 +31,50 @@ class Cell(object):
         self.effective_cell_height = self.cell_height
 
         if self.value:
+            self.note = CellNote(value.get('note'))
             self.formatted_value = self.value.get('formattedValue', '')
-            self.user_entered_value = CellValue(self.value.get('userEnteredValue'), self.formatted_value)
-            self.effective_value = CellValue(self.value.get('effectiveValue'))
-            self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
+
             # self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
             self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+
             for text_format_run in self.value.get('textFormatRuns', []):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
-            self.note = CellNote(value.get('note'))
+            # we need to identify exactly what kind of value the cell contains
+            if 'contents' in self.value:
+                self.cell_value = ContentValue(self.effective_format, self.value['contents'])
+
+            elif 'userEnteredValue' in self.value:
+                if 'image' in self.value['userEnteredValue']:
+                    self.cell_value = ImageValue(self.effective_format, self.value['userEnteredValue']['image'])
+
+                else:
+                    if len(self.text_format_runs):
+                        self.cell_value = TextRunValue(self.effective_format, self.text_format_runs, self.formatted_value)
+
+                    elif self.note.page_number:
+                        self.cell_value = PageNumberValue(self.effective_format, short=False)
+
+                    else:
+                        self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value)
+
+            else:
+                self.cell_value = None
+
+            # self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
             if 'userEnteredFormat' in self.value:
                 self.is_empty = False
             else:
-                # debug(f"....cell [{self.row_num},{self.col_num}] is empty")
                 self.is_empty = True
-
-            # handle special notes
-            if self.note.page_number:
-                self.user_entered_value.string_value = "\\thepage\\ of \\pageref{LastPage}"
-                self.user_entered_value.verbatim = True
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
             self.merge_spec.multi_col = MultiSpan.No
-            self.user_entered_value = None
-            self.effective_value = None
-            self.formatted_value = None
-            self.user_entered_format = None
-            self.effective_format = None
             self.note = CellNote()
+            self.cell_value = None
+            self.formatted_value = None
+            # self.user_entered_format = None
+            self.effective_format = None
             self.is_empty = True
 
 
@@ -77,7 +91,8 @@ class Cell(object):
 
         # s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}"
         s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}"
-        s = f"{s}\n{self.effective_format.borders.table_cell_attributes(self.merge_spec)}\n{self.user_entered_value}"
+        # s = f"{s}\n{self.effective_format.borders.table_cell_attributes(self.merge_spec)}\n{self.formatted_value}"
+        s = f"{s}\n{self.formatted_value}"
         # s = f"[{self.row_num+1:>2},{self.col_num+1:>2}], value: {not self.is_empty:<1}, wd: {self.cell_width:1.4f}in, ht: {self.cell_height:1.4f}in, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9}, {self.effective_format.borders} : {self.user_entered_value}"
         return s
 
@@ -97,27 +112,19 @@ class Cell(object):
 
         if not self.is_empty:
             # let us get the cell content
-            paragraph, image = self.to_paragraph(odt, for_table_cell=True)
+            cell_element = self.cell_to_odt(odt, for_table_cell=True)
             # debug(f".... {self.cell_name} {table_cell_style_attributes} {paragraph}")
-
-            # if it is an image
-            if image:
-                picture_path = image['image']
-                width = image['width']
-                height = image['height']
-
-                draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], width, height)
-                paragraph.addElement(draw_frame)
 
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
-            # print(self)
-            table_cell.addElement(paragraph)
+            # TODO: the cell_element may be a paragraph or a list
+            if cell_element:
+                table_cell.addElement(cell_element)
+
         else:
             # wrap this into a covered-table-cell
-            # print(self)
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell
@@ -125,75 +132,26 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def to_paragraph(self, odt, for_table_cell):
+    def cell_to_odt(self, odt, for_table_cell):
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell, self.merge_spec)}
+        text_attributes = self.effective_format.text_format.text_attributes()
 
-        text_attributes = {}
-        cell_value = None
-        image = None
-        paragraph = None
-
+        cell_element = None
+        # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            cell_value = self.user_entered_value.to_odt(odt, self.effective_cell_width, self.effective_cell_height, self.effective_format.text_format)
-            # debug(cell_value)
+            # debug(self.cell_value)
+            if self.cell_value:
+                cell_element = self.cell_value.value_to_odt(odt, self.effective_cell_width, self.effective_cell_height, style_attributes, paragraph_attributes, text_attributes)
 
-            # it may be a page-number
-            if self.note.page_number:
-                text_attributes = cell_value.get('text-attributes')
-                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                paragraph = create_page_number(style_name=style_name, short=False)
-
-                return paragraph, None
-
-            # textFormatRuns first
-            if len(self.text_format_runs):
-                run_value_list = []
-                processed_idx = len(self.formatted_value)
-                for text_format_run in reversed(self.text_format_runs):
-                    text = self.formatted_value[:processed_idx]
-                    run_value_list.insert(0, text_format_run.text_attributes(text))
-                    processed_idx = text_format_run.start_index
-
-                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-                paragraph = create_paragraph(odt, style_name, run_list=run_value_list)
-
-            # userEnteredValue next, it can be either image or text
-            elif self.user_entered_value:
-
-                if 'image' in cell_value:
-                    # if image, userEnteredValue will have an image
-                    text = ''
-                    image = cell_value
-
-                    text_attributes['fontsize'] = 2
-
-                else:
-                    # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                    text_attributes = cell_value.get('text-attributes')
-                    text = cell_value.get('text', '')
-
-                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                paragraph = create_paragraph(odt, style_name, text_content=text)
-
-            # it may be formula field
-            else:
-
-                # if text, formattedValue (which we have already included into userEnteredValue) will contain the text
-                text_attributes = cell_value.get('text-attributes')
-                text = cell_value.get('text', '')
-
-                style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                paragraph = create_paragraph(odt, style_name, text_content=text)
-
-        return paragraph, image
+        return cell_element
 
 
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
-        self.user_entered_format = from_cell.user_entered_format
+        # self.user_entered_format = from_cell.user_entered_format
         self.effective_format = from_cell.effective_format
 
         # self.merge_spec.multi_col = from_cell.merge_spec.multi_col
@@ -384,71 +342,198 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, value_dict, formatted_value=None):
-        self.verbatim = False
-        if value_dict:
-            if formatted_value:
-                self.string_value = formatted_value
-            else:
-                self.string_value = value_dict.get('stringValue')
+    def __init__(self, effective_format):
+        self.effective_format = effective_format
 
-            self.image = value_dict.get('image')
+
+
+''' string type CellValue
+'''
+class StringValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, string_value, formatted_value=None):
+        super().__init__(effective_format)
+        if formatted_value:
+            self.value = formatted_value
         else:
-            if formatted_value:
-                self.string_value = formatted_value
+            if 'stringValue' in string_value:
+                self.value = string_value['string_value']
             else:
-                self.string_value = ''
-
-            self.image = None
+                self.value = ''
 
 
     ''' string representation
     '''
     def __repr__(self):
-        s = f"string [{self.string_value}], image [{self.image}]"
+        s = f"string : [{self.value}]"
         return s
 
 
     ''' generates the odt code
     '''
-    def to_odt(self, odt, cell_width, cell_height, format):
-        if self.image:
-            # it is an image
-            # even now the width may exceed actual cell width, we need to adjust for that
-            dpi_x = 72 if self.image['dpi'][0] == 0 else self.image['dpi'][0]
-            dpi_y = 72 if self.image['dpi'][1] == 0 else self.image['dpi'][1]
-            image_width_in_pixel = self.image['size'][0]
-            image_height_in_pixel = self.image['size'][1]
-            image_width_in_inches =  image_width_in_pixel / dpi_x
-            image_height_in_inches = image_height_in_pixel / dpi_y
+    def value_to_odt(self, odt, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value)
 
-            if self.image['mode'] == 1:
-                # image is to be scaled within the cell width and height
-                # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
-                if image_width_in_inches > cell_width:
-                    adjust_ratio = (cell_width / image_width_in_inches)
-                    image_width_in_inches = image_width_in_inches * adjust_ratio
-                    image_height_in_inches = image_height_in_inches * adjust_ratio
+        return paragraph
 
-                if image_height_in_inches > cell_height:
-                    adjust_ratio = (cell_height / image_height_in_inches)
-                    image_width_in_inches = image_width_in_inches * adjust_ratio
-                    image_height_in_inches = image_height_in_inches * adjust_ratio
 
-            elif self.image['mode'] == 3:
-                # image size is unchanged
-                pass
+''' text-run type CellValue
+'''
+class TextRunValue(CellValue):
 
-            else:
-                # treat it as if image mode is 3
-                pass
+    ''' constructor
+    '''
+    def __init__(self, effective_format, text_format_runs, formatted_value):
+        super().__init__(effective_format)
+        self.text_format_runs = text_format_runs
+        self.formatted_value = formatted_value
 
-            return {'image': Path(self.image['path']).resolve(), 'width': image_width_in_inches, 'height': image_height_in_inches}
 
-        # if text, formattedValue will contain the text
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"text-run : [{self.formatted_value}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+        run_value_list = []
+        processed_idx = len(self.formatted_value)
+        for text_format_run in reversed(self.text_format_runs):
+            text = self.formatted_value[:processed_idx]
+            run_value_list.insert(0, text_format_run.text_attributes(text))
+            processed_idx = text_format_run.start_index
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list)
+
+        return paragraph
+
+
+
+''' page-number type CellValue
+'''
+class PageNumberValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, short=False):
+        super().__init__(effective_format)
+        self.short = short
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"page-number"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_page_number(style_name=style_name, short=self.short)
+
+        return paragraph
+
+
+
+''' image type CellValue
+'''
+class ImageValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, image_value):
+        super().__init__(effective_format)
+        self.value = image_value
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"image : [{self.value}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+        # even now the width may exceed actual cell width, we need to adjust for that
+        dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
+        dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
+        image_width_in_pixel = self.value['size'][0]
+        image_height_in_pixel = self.value['size'][1]
+        image_width_in_inches =  image_width_in_pixel / dpi_x
+        image_height_in_inches = image_height_in_pixel / dpi_y
+
+        if self.value['mode'] == 1:
+            # image is to be scaled within the cell width and height
+            # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
+            if image_width_in_inches > cell_width:
+                adjust_ratio = (cell_width / image_width_in_inches)
+                image_width_in_inches = image_width_in_inches * adjust_ratio
+                image_height_in_inches = image_height_in_inches * adjust_ratio
+
+            if image_height_in_inches > cell_height:
+                adjust_ratio = (cell_height / image_height_in_inches)
+                image_width_in_inches = image_width_in_inches * adjust_ratio
+                image_height_in_inches = image_height_in_inches * adjust_ratio
+
+        elif self.value['mode'] == 3:
+            # image size is unchanged
+            pass
+
         else:
-            # it is text, create the style first
-            return {'text': self.string_value, 'text-attributes': format.text_attributes()}
+            # treat it as if image mode is 3
+            pass
+
+        text_attributes['fontsize'] = 2
+        picture_path = self.value['path']
+
+        draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_paragraph(odt, style_name)
+
+        paragraph.addElement(draw_frame)
+
+        return paragraph
+
+
+
+''' content type CellValue
+'''
+class ContentValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, content_value):
+        super().__init__(effective_format)
+        self.value = content_value
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"content : [{self.value['sheets'][0]['properties']['title']}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+        # TODO
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_paragraph(odt, style_name, text_content='EMBEDDED')
+
+        return paragraph
 
 
 

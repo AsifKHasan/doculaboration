@@ -81,7 +81,7 @@ def process(sheet, section_data, context):
                         m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('link_url') is not None and m.group('link_title') is not None:
                             url = m.group('link_url')
-                            debug(f"found a link to [{url}] at [{m.group('link_url')}]")
+                            debug(f".. found a link to [{url}] at [{m.group('link_url')}]")
 
                             # this may be a drive file
                             if url.startswith('https://drive.google.com/file/d/'):
