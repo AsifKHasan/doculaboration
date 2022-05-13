@@ -7,9 +7,7 @@ import subprocess
 import random
 import string
 from pathlib import Path
-
 from odf import style, text, draw, table
-
 from helper.logger import *
 
 
@@ -281,7 +279,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None):
 
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
 
@@ -498,6 +495,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
         master_page.addElement(header_footer_style)
 
     return header_footer_style
+
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

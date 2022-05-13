@@ -7,7 +7,7 @@ import yaml
 
 from odf import opendocument, style, text
 
-from odt.odt_section import OdtTableSection, OdtToCSection, OdtLoFSection, OdtLoTSection
+from odt.odt_api import OdtTableSection, OdtToCSection, OdtLoFSection, OdtLoTSection
 from odt.odt_util import *
 from helper.logger import *
 
@@ -44,6 +44,7 @@ class OdtHelper(object):
 
             # if it is the very first section, change the page-layout of the *Standard* master-page
             if first_section:
+                section['master-page'] = 'Standard'
                 update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=section['page-layout'])
 
             this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
