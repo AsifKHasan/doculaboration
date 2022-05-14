@@ -87,7 +87,6 @@ def create_table(odt, table_name, table_style_attributes, table_properties_attri
     odt.automaticstyles.addElement(table_style)
 
     # create the table
-    # table_properties = {'name': table_style.getAttribute('name'), 'stylename': table_style.getAttribute('name')}
     table_properties = {'name': table_name, 'stylename': table_style_attributes['name']}
     tbl = table.Table(attributes=table_properties)
 
@@ -106,15 +105,12 @@ def create_table_column(odt, table_column_name, table_column_style_attributes, t
     if 'family' not in table_column_style_attributes:
         table_column_style_attributes['family'] = 'table-column'
 
-    # table_column_properties_attributes['useoptimalcolumnwidth'] = False
-
     # create the style
     table_column_style = style.Style(attributes=table_column_style_attributes)
     table_column_style.addElement(style.TableColumnProperties(attributes=table_column_properties_attributes))
     odt.automaticstyles.addElement(table_column_style)
 
     # create the table-column
-    # table_column_properties = {'stylename': table_column_style.getAttribute('name')}
     table_column_properties = {'stylename': table_column_style_attributes['name']}
     table_column = table.TableColumn(attributes=table_column_properties)
 
@@ -124,7 +120,6 @@ def create_table_column(odt, table_column_name, table_column_style_attributes, t
 ''' create TableRow
 '''
 def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
-    # print(table_row_style_attributes)
     if 'family' not in table_row_style_attributes:
         table_row_style_attributes['family'] = 'table-row'
 
@@ -135,7 +130,6 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
     odt.automaticstyles.addElement(table_row_style)
 
     # create the table-row
-    # table_row_properties = {'stylename': table_row_style.getAttribute('name')}
     table_row_properties = {'stylename': table_row_style_attributes['name']}
     table_row = table.TableRow(attributes=table_row_properties)
 
@@ -159,7 +153,6 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    # table_cell_attributes['stylename'] = table_cell_style.getAttribute('name')
     table_cell_attributes['stylename'] = table_cell_style_attributes['name']
     table_cell = table.TableCell(attributes=table_cell_attributes)
 
@@ -172,16 +165,12 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     if 'family' not in table_cell_style_attributes:
         table_cell_style_attributes['family'] = 'table-cell'
 
-    # print(table_cell_style_attributes)
-    # print(table_cell_properties_attributes)
-
     # create the style
     table_cell_style = style.Style(attributes=table_cell_style_attributes)
     table_cell_style.addElement(style.TableCellProperties(attributes=table_cell_properties_attributes))
     odt.automaticstyles.addElement(table_cell_style)
 
     # create the table-cell
-    # table_cell_attributes = {'stylename': table_cell_style.getAttribute('name')}
     table_cell_attributes = {'stylename': table_cell_style_attributes['name']}
     table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
 
@@ -218,7 +207,6 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     paragraph_style = style.Style(attributes=style_attributes)
 
     if paragraph_attributes is not None:
-        # print(paragraph_attributes)
         paragraph_style.addElement(style.ParagraphProperties(attributes=paragraph_attributes))
 
     if text_attributes is not None:
@@ -256,7 +244,7 @@ def create_page_number(style_name, short=False):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -271,7 +259,11 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None):
         return paragraph
 
     if text_content is not None:
-        paragraph = text.P(stylename=style_name, text=text_content)
+        if outline_level == 0:
+            paragraph = text.P(stylename=style_name, text=text_content)
+        else:
+            paragraph = text.H(stylename=style_name, text=text_content, outlinelevel=outline_level)
+
         return paragraph
     else:
         paragraph = text.P(stylename=style_name)
@@ -301,6 +293,14 @@ def generate_pdf(infile, outdir):
 
 
 ''' create table-of-contents
+  <text:table-of-content-entry-template text:outline-level="1" text:style-name="Contents_20_1">
+    <text:index-entry-link-start text:style-name="Index_20_Link"/>
+    <text:index-entry-chapter/>
+    <text:index-entry-text/>
+    <text:index-entry-tab-stop style:type="right" style:leader-char="."/>
+    <text:index-entry-page-number/>
+    <text:index-entry-link-end/>
+  </text:table-of-content-entry-template>
 '''
 def create_toc():
     name = 'Table of Content'
@@ -308,6 +308,26 @@ def create_toc():
     toc_source = text.TableOfContentSource(outlinelevel=10)
     toc_title_template = text.IndexTitleTemplate()
     toc_source.addElement(toc_title_template)
+
+    for i in range(1, 11):
+        toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=i, stylename=f"Contents_20_{i}")
+
+        index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+        index_entry_chapter = text.IndexEntryChapter()
+        index_entry_text = text.IndexEntryText()
+        index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+        index_entry_page_number = text.IndexEntryPageNumber()
+        index_entry_link_end = text.IndexEntryLinkEnd()
+
+        toc_entry_template.addElement(index_entry_link_start)
+        toc_entry_template.addElement(index_entry_chapter)
+        toc_entry_template.addElement(index_entry_text)
+        toc_entry_template.addElement(index_entry_tab_stop)
+        toc_entry_template.addElement(index_entry_page_number)
+        toc_entry_template.addElement(index_entry_link_end)
+
+        toc_source.addElement(toc_entry_template)
+
     toc.addElement(toc_source)
 
     return toc
@@ -465,6 +485,7 @@ def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_
 def create_header_footer(master_page, page_layout, header_footer, odd_even):
     header_footer_style = None
     if header_footer == 'header':
+        height = f"{HEADER_HEIGHT}in"
         if odd_even == 'odd':
             header_footer_style = style.Header()
         if odd_even == 'even':
@@ -474,6 +495,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
             pass
 
     elif header_footer == 'footer':
+        height = f"{FOOTER_HEIGHT}in"
         if odd_even == 'odd':
             header_footer_style = style.Footer()
         if odd_even == 'even':
@@ -484,7 +506,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
     if header_footer_style:
         # TODO: the height should come from actual header content height
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': '0.5in'}
+        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': height}
         header_style = style.HeaderStyle()
         header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
         footer_style = style.FooterStyle()
@@ -532,10 +554,27 @@ def random_string(length=12):
 COLSEP = (0/72)
 # ROWSEP = (2/72)
 
+HEADER_HEIGHT = 0.3
+FOOTER_HEIGHT = 0.3
+
 GSHEET_ODT_BORDER_MAPPING = {
     'DOTTED': 'dotted',
     'DASHED': 'dash',
     'SOLID': 'solid'
+}
+
+
+HEADING_TO_LEVEL = {
+    'Heading 1': 1,
+    'Heading 2': 2,
+    'Heading 3': 3,
+    'Heading 4': 4,
+    'Heading 5': 5,
+    'Heading 6': 6,
+    'Heading 7': 7,
+    'Heading 8': 8,
+    'Heading 9': 9,
+    'Heading 10': 10,
 }
 
 

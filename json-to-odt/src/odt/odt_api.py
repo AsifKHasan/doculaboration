@@ -76,15 +76,16 @@ class OdtSectionBase(object):
             if self._section_data['section'] != '':
                 heading_text = f"{self._section_data['section']} {heading_text}"
 
+            outline_level = self._section_data['level']
             if self._section_data['level'] == 0:
                 parent_style_name = 'Title'
             else:
                 parent_style_name = f"Heading_20_{self._section_data['level']}"
 
-            # debug(f"..... {parent_style_name} - {heading_text}")
         else:
             heading_text = ''
             parent_style_name = 'Text_20_body'
+            outline_level = 0
 
         style_attributes['parentstylename'] = parent_style_name
 
@@ -94,22 +95,18 @@ class OdtSectionBase(object):
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
             style_name = f"P{self._section_data['section-index']}-P0-with-section-break"
             style_attributes['masterpagename'] = self._section_data['master-page']
-            # debug(f"..... Section Break with MasterPage {self._section_data['master-page']}")
         else:
             if self._section_data['page-break']:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
                 paragraph_attributes = {'breakbefore': 'page'}
                 style_name = f"P{self._section_data['section-index']}-P0-with-page-break"
-                # debug(f"..... Page Break with MasterPage {self._section_data['master-page']}")
             else:
                 style_name = f"P{self._section_data['section-index']}-P0"
-                # debug(f"..... Continuous with MasterPage {self._section_data['master-page']}")
 
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        # debug(f"..... Paragraph style {style_name} created")
-        paragraph = create_paragraph(odt, style_name, text_content=heading_text)
+        paragraph = create_paragraph(odt, style_name, text_content=heading_text, outline_level=outline_level)
         odt.text.addElement(paragraph)
 
 
@@ -222,7 +219,6 @@ class OdtContent(object):
             self.has_content = True
 
             properties = content_data.get('properties')
-            # self.default_format = CellFormat(properties.get('defaultFormat'))
 
             sheets = content_data.get('sheets')
             if isinstance(sheets, list) and len(sheets) > 0:
@@ -321,18 +317,14 @@ class OdtContent(object):
                     if r == first_row and c == first_col:
                         continue
 
-                    # debug(f"..cell [{r+1},{c+1}] is part of column merge")
                     next_cell_in_row = next_row_object.get_cell(c)
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        # next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
                         next_cell_in_row = Cell(r, c, None, first_cell.column_widths, row_height)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
-                        # debug(f"..cell [{r+1},{c+1}] is empty")
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
                         next_cell_in_row.copy_format_from(first_cell)
 
@@ -340,17 +332,14 @@ class OdtContent(object):
                         if col_span > 1:
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the column merge")
                                 next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
 
                         else:
@@ -361,17 +350,14 @@ class OdtContent(object):
                         if row_span > 1:
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
-                                # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the row merge")
                                 next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
 
                         else:
@@ -379,8 +365,6 @@ class OdtContent(object):
 
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
-
-        return
 
 
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
@@ -393,6 +377,10 @@ class OdtContent(object):
         for r in range(0, self.row_count):
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
+
+            # do extra processing on rows
+            data_row.preprocess_row()
+
             if data_row.is_out_of_table():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
@@ -429,14 +417,6 @@ class OdtContent(object):
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_odt(odt=odt, container=container)
-            # odt_element = block.block_to_odt(odt=odt, container=container)
-            # # for a paragrpah or table it can be a single element, for an embedded content it can be a list
-            # if odt_element:
-            #     if isinstance(odt_element, list):
-            #         for e in odt_element:
-            #             container.addElement(e)
-            #     else:
-            #         container.addElement(odt_element)
 
 
 
@@ -465,11 +445,6 @@ class OdtPageHeaderFooter(OdtContent):
             # iterate through tables and blocks contents
             for block in self.content_list:
                 block.block_to_odt(odt=odt, container=header_footer_style)
-                # odt_element = block.block_to_odt(odt=odt, container=header_footer_style)
-                # if odt_element:
-                #     header_footer_style.addElement(odt_element)
-                #
-                # first_block = False
 
 
 
@@ -503,13 +478,6 @@ class OdtTable(OdtBlock):
     ''' generates the odt code
     '''
     def block_to_odt(self, odt, container):
-        # let us see how the cells look now
-        # debug(f"Table [{self.table_name}]")
-        # for row in self.table_cell_matrix:
-        #     debug(row.row_name)
-        #     for cell in row.cells:
-        #         debug(f".. {cell}")
-
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
@@ -520,7 +488,6 @@ class OdtTable(OdtBlock):
             col_a1 = COLUMNS[c]
             col_width = self.column_widths[c]
             table_column_name = f"{self.table_name}.{col_a1}"
-            # print(f"{col_a1:>2} : {col_width:1.4f}in")
             table_column_style_attributes = {'name': f"{table_column_name}_style"}
             table_column_properties_attributes = {'columnwidth': f"{col_width}in", 'useoptimalcolumnwidth': False}
             table_column = create_table_column(odt, table_column_name, table_column_style_attributes, table_column_properties_attributes)
@@ -621,15 +588,12 @@ class Cell(object):
                         self.cell_value = PageNumberValue(self.effective_format, short=False)
 
                     else:
-                        self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value)
+                        self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value, self.note.outline_level())
 
             else:
-                self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
-                # self.cell_value = None
-
-
-            if self.cell_value is None:
-                warn(f"{self} is None")
+                # self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
+                # warn(f"{self} is None")
+                self.cell_value = None
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -637,7 +601,6 @@ class Cell(object):
             self.note = CellNote()
             self.cell_value = None
             self.formatted_value = None
-            # self.user_entered_format = None
             self.effective_format = None
             self.is_empty = True
 
@@ -687,7 +650,6 @@ class Cell(object):
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            # debug(self.cell_value)
             if self.cell_value:
                 self.cell_value.value_to_odt(odt, container, self.effective_cell_width, self.effective_cell_height, style_attributes, paragraph_attributes, text_attributes)
 
@@ -718,18 +680,36 @@ class Row(object):
 
     ''' constructor
     '''
-    # def __init__(self, row_num, row_data, default_format, section_width, column_widths, row_height):
     def __init__(self, row_num, row_data, section_width, column_widths, row_height):
-        # self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height = row_num, default_format, section_width, column_widths, row_height
         self.row_num, self.section_width, self.column_widths, self.row_height = row_num, section_width, column_widths, row_height
         self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            # self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, self.row_height))
             self.cells.append(Cell(self.row_num, c, value, self.column_widths, self.row_height))
             c = c + 1
+
+
+    ''' preprocess row
+        does something automatically even if this is not in the gsheet
+        1. make single cell row with style defined out-of-cell and keep-with-next
+    '''
+    def preprocess_row(self):
+        # if the row is a single cell row (only the first cell is empty) and the cell contains a style note, make it out-of-cell and make it keep-with-next
+        if len(self.cells) > 0:
+            first_cell = self.cells[0]
+            if not first_cell.is_empty and first_cell.note.style is not None:
+                # if the other cells all are empty, we mark it out-of-cell and keep-with-next
+                non_empty_cell_found = False
+                for cell in self.cells[1:]:
+                    if cell.is_empty == False:
+                        non_empty_cell_found = True
+                        break
+
+                if non_empty_cell_found == False:
+                    first_cell.note.out_of_table = True
+                    first_cell.note.keep_with_next = True
 
 
     ''' is the row empty (no cells at all)
@@ -763,7 +743,10 @@ class Row(object):
             self.cells.append(cell)
 
 
-    ''' it is true only when the first cell has a out_of_table true value
+    ''' it is true when the first cell has a out_of_table true value
+        the first cell may be out_of_table when
+        1. it contains a note {'content': 'out-of-cell'}
+        2. it contains a note {'style': '...'} and it is the only non-empty cell in the row
     '''
     def is_out_of_table(self):
         if len(self.cells) > 0:
@@ -797,7 +780,6 @@ class Row(object):
         # create table-row
         table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
         row_height = f"{self.row_height}in"
-        # debug(f".. row {self.row_name} {row_height}")
         table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
         table_row = create_table_row(odt, table_row_style_attributes, table_row_properties_attributes)
 
@@ -881,8 +863,9 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format):
+    def __init__(self, effective_format, outline_level):
         self.effective_format = effective_format
+        self.outline_level = outline_level
 
 
 
@@ -892,8 +875,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value=None):
-        super().__init__(effective_format)
+    def __init__(self, effective_format, string_value, formatted_value=None, outline_level=0):
+        super().__init__(effective_format, outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -917,7 +900,7 @@ class StringValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level)
 
         container.addElement(paragraph)
 
@@ -928,8 +911,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value):
-        super().__init__(effective_format)
+    def __init__(self, effective_format, text_format_runs, formatted_value, outline_level=0):
+        super().__init__(effective_format, outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -967,8 +950,8 @@ class PageNumberValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, short=False):
-        super().__init__(effective_format)
+    def __init__(self, effective_format, short=False, outline_level=0):
+        super().__init__(effective_format, outline_level)
         self.short = short
 
 
@@ -998,8 +981,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value):
-        super().__init__(effective_format)
+    def __init__(self, effective_format, image_value, outline_level=0):
+        super().__init__(effective_format, outline_level)
         self.value = image_value
 
 
@@ -1026,7 +1009,6 @@ class ImageValue(CellValue):
 
         if self.value['mode'] == 1:
             # image is to be scaled within the cell width and height
-            # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{cell_width}in], cell-height [{cell_height}in]")
             if image_width_in_inches > cell_width:
                 adjust_ratio = (cell_width / image_width_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
@@ -1052,7 +1034,6 @@ class ImageValue(CellValue):
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_paragraph(odt, style_name)
-
         paragraph.addElement(draw_frame)
 
         container.addElement(paragraph)
@@ -1065,8 +1046,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value):
-        super().__init__(effective_format)
+    def __init__(self, effective_format, content_value, outline_level=0):
+        super().__init__(effective_format, outline_level)
         self.value = content_value
 
 
@@ -1461,6 +1442,16 @@ class CellNote(object):
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.page_number = note_dict.get('page-number') is not None
+
+
+    ''' outline-level if the style is a heading
+    '''
+    def outline_level(self):
+        outline_level = 0
+        if self.style is not None:
+            outline_level = HEADING_TO_LEVEL.get(self.style, 0)
+
+        return outline_level
 
 
     ''' style attributes dict to create Style
