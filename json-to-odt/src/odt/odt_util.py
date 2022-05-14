@@ -501,6 +501,16 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
+''' whether the container is a table-cell or not
+'''
+def is_table_cell(container):
+    # if container is n instance of table-cell
+    if isinstance(container, type(table.TableCell)):
+        return True
+    else:
+        return False
+
+
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''

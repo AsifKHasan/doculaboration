@@ -562,7 +562,7 @@ class OdtParagraph(OdtBlock):
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
 
-            cell_to_produce.cell_to_odt(odt=odt, container=container, for_table_cell=False)
+            cell_to_produce.cell_to_odt(odt=odt, container=container)
 
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -598,6 +598,12 @@ class Cell(object):
             for text_format_run in self.value.get('textFormatRuns', []):
                 self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
 
+            # presence of userEnteredFormat makes the cell non-empty
+            if 'userEnteredFormat' in self.value:
+                self.is_empty = False
+            else:
+                self.is_empty = True
+
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
@@ -618,14 +624,12 @@ class Cell(object):
                         self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value)
 
             else:
-                self.cell_value = None
+                self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
+                # self.cell_value = None
 
 
-            # presence of userEnteredFormat makes the cell non-empty
-            if 'userEnteredFormat' in self.value:
-                self.is_empty = False
-            else:
-                self.is_empty = True
+            if self.cell_value is None:
+                warn(f"{self} is None")
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -664,7 +668,7 @@ class Cell(object):
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
             if table_cell:
-                self.cell_to_odt(odt=odt, container=table_cell, for_table_cell=True)
+                self.cell_to_odt(odt=odt, container=table_cell)
 
         else:
             # wrap this into a covered-table-cell
@@ -675,9 +679,9 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def cell_to_odt(self, odt, container, for_table_cell=False):
+    def cell_to_odt(self, odt, container):
         style_attributes = self.note.style_attributes()
-        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(for_table_cell, self.merge_spec)}
+        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell(container), self.merge_spec)}
         text_attributes = self.effective_format.text_format.text_attributes()
 
         # for string and image it returns a paragraph, for embedded content a list
@@ -686,8 +690,6 @@ class Cell(object):
             # debug(self.cell_value)
             if self.cell_value:
                 self.cell_value.value_to_odt(odt, container, self.effective_cell_width, self.effective_cell_height, style_attributes, paragraph_attributes, text_attributes)
-            else:
-                warn(f"{self} is None")
 
 
 
@@ -1134,7 +1136,7 @@ class CellFormat(object):
     def paragraph_attributes(self, for_table_cell, cell_merge_spec):
         attributes = {'textalign': self.halign.halign}
 
-        if not for_table_cell:
+        if for_table_cell:
             attributes['verticalalign'] = self.valign.valign
             attributes['backgroundcolor'] = self.bgcolor.value()
             # attributes['wrapoption'] = self.wrapping.wrapping
