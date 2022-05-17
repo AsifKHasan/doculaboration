@@ -206,13 +206,13 @@ class OdtPdfSection(OdtSectionBase):
         super().section_to_odt(odt)
 
         # the images go one after another
+        image_width_in_inches = self.section_width
+        image_height_in_inches = self.section_height - 0.1
         text_attributes = {'fontsize': 2}
         style_attributes = {}
         paragraph_attributes = {}
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
-                image_width_in_inches = self.section_width
-                image_height_in_inches = self.section_height
                 for picture_path in self._section_data['contents']['images']:
                     draw_frame = create_image_frame(odt, picture_path, 'center', 'center', image_width_in_inches, image_height_in_inches)
 
