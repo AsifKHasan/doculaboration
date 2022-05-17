@@ -7,7 +7,7 @@ import yaml
 
 from odf import opendocument, style, text
 
-from odt.odt_api import OdtTableSection, OdtToCSection, OdtLoFSection, OdtLoTSection
+from odt.odt_api import OdtTableSection, OdtToCSection, OdtLoFSection, OdtLoTSection, OdtPdfSection
 from odt.odt_util import *
 from helper.logger import *
 
@@ -50,6 +50,7 @@ class OdtHelper(object):
             this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
             this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
             section['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
+            section['height'] = float(this_section_page_spec['height']) - float(this_section_margin_spec['top']) - float(this_section_margin_spec['bottom'])
 
             first_section = False
             section_index = section_index + 1
@@ -123,7 +124,8 @@ class OdtHelper(object):
     ''' pdf processor
     '''
     def process_pdf(self, section_data):
-        warn(f"content type [pdf] not supported")
+        section = OdtPdfSection(section_data, self._config)
+        section.section_to_odt(self._odt)
 
 
     ''' odt processor

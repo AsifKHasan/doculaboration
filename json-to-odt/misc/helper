@@ -7,7 +7,7 @@ set DOCUMENT="BKB-BKBAPPs__letter-answer__2022-05-11"
 set DOCUMENT="Spectrum__bsw-proposal-to-webb-fontaine"
 
 ./odt-from-gsheet.sh ${DOCUMENT}
-.odt-from-gsheet.bat %DOCUMENT%
+odt-from-gsheet.bat %DOCUMENT%
 
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 unzip -o %DOCUMENT%.odt -d abc && atom abc

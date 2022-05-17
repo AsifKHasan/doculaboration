@@ -22,6 +22,7 @@ class OdtSectionBase(object):
         self.page_numbering = self._section_data['hide-pageno']
         self.section_index = self._section_data['section-index']
         self.section_width = self._section_data['width']
+        self.section_height = self._section_data['height']
         self.section_break = self._section_data['section-break']
         self.page_break = self._section_data['page-break']
 
@@ -189,6 +190,40 @@ class OdtLoFSection(OdtSectionBase):
 
 
 
+''' Odt Pdf section object
+'''
+class OdtPdfSection(OdtSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, config):
+        super().__init__(section_data, config)
+
+
+    ''' generates the odt code
+    '''
+    def section_to_odt(self, odt):
+        super().section_to_odt(odt)
+
+        # the images go one after another
+        text_attributes = {'fontsize': 2}
+        style_attributes = {}
+        paragraph_attributes = {}
+        if 'contents' in self._section_data:
+            if self._section_data['contents'] and 'images' in self._section_data['contents']:
+                image_width_in_inches = self.section_width
+                image_height_in_inches = self.section_height
+                for picture_path in self._section_data['contents']['images']:
+                    draw_frame = create_image_frame(odt, picture_path, 'center', 'center', image_width_in_inches, image_height_in_inches)
+
+                    style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                    paragraph = create_paragraph(odt, style_name)
+                    paragraph.addElement(draw_frame)
+
+                    odt.text.addElement(paragraph)
+
+
+
 ''' Odt section content base object
 '''
 class OdtContent(object):
@@ -215,7 +250,8 @@ class OdtContent(object):
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
-        if content_data:
+        # content_data must have 'properties' and 'sheets'
+        if content_data and 'properties' in content_data and 'sheets' in content_data:
             self.has_content = True
 
             properties = content_data.get('properties')
