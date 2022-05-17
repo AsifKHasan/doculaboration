@@ -547,6 +547,26 @@ def random_string(length=12):
     return ''.join(random.choice(letters) for i in range(length))
 
 
+''' fit width/height into a given width/height maintaining aspect ratio
+'''
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+    WIDTH_OFFSET = 0.0
+    HEIGHT_OFFSET = 0.2
+
+    fit_within_width = fit_within_width - WIDTH_OFFSET
+    fit_within_height = fit_within_height - HEIGHT_OFFSET
+
+    aspect_ratio = width_to_fit / height_to_fit
+
+    if width_to_fit > fit_within_width:
+        width_to_fit = fit_within_width
+        height_to_fit = width_to_fit / aspect_ratio
+        if height_to_fit > fit_within_height:
+            height_to_fit = fit_within_height
+            width_to_fit = height_to_fit * aspect_ratio
+
+    return width_to_fit, height_to_fit
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data

@@ -35,3 +35,9 @@ margin-spec:
     top   : 0.25
     bottom: 0.25
     gutter: 0
+  none:
+    left  : 0.00
+    right : 0.00
+    top   : 0.00
+    bottom: 0.00
+    gutter: 0

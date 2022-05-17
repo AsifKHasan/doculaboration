@@ -206,21 +206,26 @@ class OdtPdfSection(OdtSectionBase):
         super().section_to_odt(odt)
 
         # the images go one after another
-        image_width_in_inches = self.section_width
-        image_height_in_inches = self.section_height - 0.1
         text_attributes = {'fontsize': 2}
         style_attributes = {}
-        paragraph_attributes = {}
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
-                for picture_path in self._section_data['contents']['images']:
-                    draw_frame = create_image_frame(odt, picture_path, 'center', 'center', image_width_in_inches, image_height_in_inches)
+                first_image = True
+                for image in self._section_data['contents']['images']:
+                    paragraph_attributes = {}
+                    if not first_image:
+                        paragraph_attributes['breakbefore'] = 'page'
+
+                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
+                    # print(image_width_in_inches, image_height_in_inches)
+                    draw_frame = create_image_frame(odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
 
                     style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
                     paragraph = create_paragraph(odt, style_name)
                     paragraph.addElement(draw_frame)
 
                     odt.text.addElement(paragraph)
+                    first_image = False
 
 
 
