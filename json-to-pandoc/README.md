@@ -4,44 +4,52 @@ Generates Pandoc markdown from json generated through **gsheet-to-json**
 
 copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the copied file
 
-## Linux usage:
+## Pandoc/LaTex generation
+### Toolchain
+1. Pandoc from https://pandoc.org/
+2. TexLive from https://tug.org/texlive/
+3. LuaLatex
+4. We need fonts
+ * Google Noto fonts from https://github.com/google/fonts
+ * GNU free fonts from https://www.gnu.org/software/freefont/
+ * Go Smallcaps font from https://www.fontmirror.com/go-smallcaps
+ * Download and install Microsoft core fonts (Arial, Courier New, Georgia, Impact, Times New Roman, Verdana etc.)
+ ```
+ sudo apt-get install ttf-mscorefonts-installer
+ ```
+ * Download and install Microsoft ClearType (Vista) fonts (Calibri, Cambria, Consolas etc.)
+ ```
+ wget -qO- http://plasmasturm.org/code/vistafonts-installer/vistafonts-installer | bash
+ ```
+ * Download and install বাংলা fonts
+ ```
+ wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
+ ```
+
+### Linux usage:
+cd to doculaboration root directory and run
+```./pdf-from-gsheet.sh name-of-the-gsheet```
+
+or (NOT PREFERRED)
+
 ```
+DOCUMENT="name-of-the-gsheet"
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
-cd ./json-to-pandoc/src
-./pandoc-from-json.py --config '../conf/config.yml'
+cd ./out
+time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
 ```
 
-## Windows usage:
+### Windows usage:
+cd to doculaboration root directory and run
+```pdf-from-gsheet.bat name-of-the-gsheet```
+
+or (NOT PREFERRED)
+
 ```
+set DOCUMENT="name-of-the-gsheet"
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
-cd ./json-to-pandoc/src
-python pandoc-from-json.py --config "../conf/config.yml"
+cd ./out
+ptime pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```
-
-TODO
-1. latex block
-2. verbatim block
-3. superscript
-4. subscript
-5. footnote
-
-TEXLive contains the otfinfo command line program, which can query this information; for example
-otfinfo -i `kpsewhich lmroman10-regular.otf`
-
-
-LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., ‘Latin Modern Roman’ instead of ‘ec-lmr10’), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
-luaotfload-tool
-
-
-some fonts to use (Preferred Family Name)
-  Latin Modern Roman
-  Latin Modern Sans
-  Latin Modern Mono
-
-  FreeSerif
-
-  Open Sans
-
-  Go Smallcaps

@@ -64,7 +64,9 @@ some useful links for json-to-odt
 ## Linux usage:
 you can run the bash script *odt-from-gsheet.sh* in the root folder. It takes only one parameter - the name of the gsheet
 
-or you can run the python script this way
+```./odt-from-gsheet.sh name-of-the-gsheet```
+
+or you can run the python script this way (NOT PREFERRED)
 ```
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
@@ -75,7 +77,9 @@ cd ./json-to-odt/src
 ## Windows usage:
 you can run the windows command script *odt-from-gsheet.bat* in the root folder. It takes only one parameter - the name of the gsheet
 
-or you can run the python script this way
+```odt-from-gsheet.bat name-of-the-gsheet```
+
+or you can run the python script this way (NOT PREFERRED)
 ```
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%

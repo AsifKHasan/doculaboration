@@ -6,57 +6,13 @@ CRDT (gsheet, etc.) based documentation collaboration pipeline to generate edita
 * *json-to-pandoc* is for generating pandoc markdown for generating editable/printable outputs
 * *json-to-odt* is for generating odt (OpenOffice Text) documents
 
+## Get the scripts/programs
+1. cd to ```d:\projects``` (for Windows) or ```~/projects``` (for Linux)
+2. run ```git clone https://github.com/AsifKHasan/doculaboration.git```
+3. cd to ```D:\projects\doculaboration``` (for Windows) or ```~/projects/doculaboration``` (for Linux)
+4. run command ```pip install -r requirements.txt```. See if there is any error or not.
+
 ## (optional) update all python packages
 ```
 pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-```
-
-## Pandoc/LaTex generation
-### Toolchain
-1. Pandoc from https://pandoc.org/
-2. TexLive from https://tug.org/texlive/
-3. LuaLatex
-4. We need fonts
- * Google Noto fonts from https://github.com/google/fonts
- * GNU free fonts from https://www.gnu.org/software/freefont/
- * Go Smallcaps font from https://www.fontmirror.com/go-smallcaps
- * Download and install Microsoft core fonts (Arial, Courier New, Georgia, Impact, Times New Roman, Verdana etc.)
- ```
- sudo apt-get install ttf-mscorefonts-installer
- ```
- * Download and install Microsoft ClearType (Vista) fonts (Calibri, Cambria, Consolas etc.)
- ```
- wget -qO- http://plasmasturm.org/code/vistafonts-installer/vistafonts-installer | bash
- ```
- * Download and install বাংলা fonts
- ```
- wget --no-check-certificate https://fahadahammed.com/extras/fonts/font.sh -O font.sh;chmod +x font.sh;bash font.sh;rm font.sh
- ```
-
-### Linux usage:
-cd to doculaboration root directory and run
-```./pdf-from-gsheet.sh name-of-the-gsheet```
-
-or
-
-```
-DOCUMENT="name-of-the-gsheet"
-DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
-cd ${DOCULABORATION_BASE}
-cd ./out
-time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
-```
-
-### Windows usage:
-cd to doculaboration root directory and run
-```pdf-from-gsheet.bat name-of-the-gsheet```
-
-or
-
-```
-set DOCUMENT="name-of-the-gsheet"
-set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
-cd %DOCULABORATION_BASE%
-cd ./out
-ptime pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```

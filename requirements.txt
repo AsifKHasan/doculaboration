@@ -1,3 +1,4 @@
+# common
 argparse
 colorama
 httplib2
@@ -9,6 +10,17 @@ PyDrive
 pygsheets
 PyYAML
 termcolor
+colorama
 yamllint
+pdf2image
+pillow
+
+# json-to-docx
+pywin32
+python-docx
+
+# json-to-odt
 odfpy
 OOoPy
+
+# json-to-pdf
