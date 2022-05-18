@@ -1552,13 +1552,11 @@ class CellNote(object):
             except json.JSONDecodeError:
                 note_dict = {}
 
-            self.style = note_dict.get('style')
-
-            if self.style is not None:
-                outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
-                if outline_level_object:
-                    self.outline_level = outline_level_object['outline-level'] + self.nesting_level
-                    self.style = LEVEL_TO_HEADING[self.outline_level]
+            self.header_rows = int(note_dict.get('repeat-rows', 0))
+            self.new_page = note_dict.get('new-page') is not None
+            self.keep_with_next = note_dict.get('keep-with-next') is not None
+            self.keep_with_previous = note_dict.get('keep-with-previous') is not None
+            self.page_number = note_dict.get('page-number') is not None
 
             content = note_dict.get('content')
             if content is not None and content == 'out-of-cell':
@@ -1568,11 +1566,16 @@ class CellNote(object):
             if spacing is not None and spacing == 'no-spacing':
                 self.table_spacing = False
 
-            self.header_rows = int(note_dict.get('repeat-rows', 0))
-            self.new_page = note_dict.get('new-page') is not None
-            self.keep_with_next = note_dict.get('keep-with-next') is not None
-            self.keep_with_previous = note_dict.get('keep-with-previous') is not None
-            self.page_number = note_dict.get('page-number') is not None
+            self.style = note_dict.get('style')
+            if self.style is not None:
+                outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+                if outline_level_object:
+                    self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+                    self.style = LEVEL_TO_HEADING[self.outline_level]
+
+                # if style is any Title/Heading or Table or Figure, apply keep-with-next
+                if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+                    self.keep_with_next = True
 
 
     ''' style attributes dict to create Style
