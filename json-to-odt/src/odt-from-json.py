@@ -69,7 +69,7 @@ class OdtFromJson(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
+		debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments

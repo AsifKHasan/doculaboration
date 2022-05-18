@@ -12,23 +12,23 @@ log_color = {
     '[DEBUG]': {'color': 'green',  'highlight': None, 'attrs': None}
 }
 
-def debug(msg, console=True):
-    log('[DEBUG]', msg, console)
+def debug(msg, console=True, nesting_level=0):
+    log('[DEBUG]', msg, console, nesting_level)
 
-def info(msg, console=True):
-    log('[ INFO]', msg, console)
+def info(msg, console=True, nesting_level=0):
+    log('[ INFO]', msg, console, nesting_level)
 
-def warn(msg, console=True):
-    log('[ WARN]', msg, console)
+def warn(msg, console=True, nesting_level=0):
+    log('[ WARN]', msg, console, nesting_level)
 
-def error(msg, console=True):
-    log('[ERROR]', msg, console)
+def error(msg, console=True, nesting_level=0):
+    log('[ERROR]', msg, console, nesting_level)
 
-def log(level, msg, console=True):
+def log(level, msg, console=True, nesting_level=0):
     now = time.time()
-    data = {'type': level, 'time': datetime.now().isoformat(), 'msg': msg}
+    nesting_leader = ".." * nesting_level
+    data = {'type': level, 'time': datetime.now().isoformat(), 'msg': f"{nesting_leader}{msg}"}
 
     if console:
-        text = '{0} {1:<6} {2}'.format(data['time'], data['type'], data['msg'])
-        # print(text)
+        text = f"{data['time']} {data['type']:<6} {data['msg']}"
         print(colored(text, log_color[data['type']]['color'], log_color[data['type']]['highlight'], attrs=log_color[data['type']]['attrs']))

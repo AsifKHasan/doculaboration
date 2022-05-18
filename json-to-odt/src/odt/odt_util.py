@@ -181,12 +181,6 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
-''' change style of a paragraph
-'''
-def change_paragraph_style():
-    pass
-
-
 ''' create style - family paragraph
 '''
 def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None):
@@ -277,18 +271,18 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 ''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
 '''
 def update_indexes(odt, odt_path):
+    debug(msg=f"updating indexes for {Path(odt_path).resolve()}")
     document_url = Path(odt_path).as_uri()
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    debug(f"updating indexes for {Path(odt_path).resolve()}")
     subprocess.call(command_line, shell=True);
 
 
 ''' given an odt file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
+    debug(msg=f"generating pdf from {Path(infile).resolve()}")
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
-    debug(f"generating pdf from {Path(infile).resolve()}")
     subprocess.call(command_line, shell=True);
 
 
@@ -568,6 +562,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
     return width_to_fit, height_to_fit
 
 
+
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
@@ -585,17 +580,32 @@ GSHEET_ODT_BORDER_MAPPING = {
 
 
 HEADING_TO_LEVEL = {
-    'Heading 1': 1,
-    'Heading 2': 2,
-    'Heading 3': 3,
-    'Heading 4': 4,
-    'Heading 5': 5,
-    'Heading 6': 6,
-    'Heading 7': 7,
-    'Heading 8': 8,
-    'Heading 9': 9,
-    'Heading 10': 10,
+    'Heading 1': {'outline-level': 1},
+    'Heading 2': {'outline-level': 2},
+    'Heading 3': {'outline-level': 3},
+    'Heading 4': {'outline-level': 4},
+    'Heading 5': {'outline-level': 5},
+    'Heading 6': {'outline-level': 6},
+    'Heading 7': {'outline-level': 7},
+    'Heading 8': {'outline-level': 8},
+    'Heading 9': {'outline-level': 9},
+    'Heading 10': {'outline-level': 10},
 }
+
+
+LEVEL_TO_HEADING = [
+    'Title',
+    'Heading 1',
+    'Heading 2',
+    'Heading 3',
+    'Heading 4',
+    'Heading 5',
+    'Heading 6',
+    'Heading 7',
+    'Heading 8',
+    'Heading 9',
+    'Heading 10',
+]
 
 
 TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
