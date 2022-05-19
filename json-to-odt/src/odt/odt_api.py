@@ -298,7 +298,7 @@ class OdtPdfSection(OdtSectionBase):
                     draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
 
                     style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                    paragraph = create_paragraph(odt, style_name)
+                    paragraph = create_paragraph(self._odt, style_name)
                     paragraph.addElement(draw_frame)
 
                     self._odt.text.addElement(paragraph)
