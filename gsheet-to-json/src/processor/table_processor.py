@@ -68,6 +68,7 @@ def process(sheet, section_data, context):
                             row_height = response['sheets'][0]['data'][0]['rowMetadata'][row]['pixelSize']
                             result = download_image(m.group('name'), context['tmp-dir'], row_height)
                             if result:
+                                print(result)
                                 response['sheets'][0]['data'][0]['rowData'][row]['values'][val]['userEnteredValue']['image'] = result
 
                         # content can be a HYPERLINK/hyperlink to another worksheet
