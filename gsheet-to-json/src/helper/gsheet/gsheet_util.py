@@ -219,7 +219,11 @@ def download_image(image_formula, tmp_dir, row_height):
         im = Image.open(local_path)
         im_width, im_height = im.size
         if 'dpi' in im.info:
-            im_dpi = im.info['dpi']
+            # dpi values are of type IFDRational which is not JSON serializable, cast them to float
+            im_dpi_x, im_dpi_y = im.info['dpi']
+            im_dpi_x = float(im_dpi_x)
+            im_dpi_y = float(im_dpi_y)
+            im_dpi = (im_dpi_x, im_dpi_y)
         else:
             im_dpi = (96, 96)
 

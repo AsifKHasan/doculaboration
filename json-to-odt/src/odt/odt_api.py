@@ -441,7 +441,7 @@ class OdtContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        next_cell_in_row = Cell(r, c, None, first_cell.column_widths, row_height)
+                        next_cell_in_row = Cell(row_num=r, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -808,7 +808,7 @@ class Row(object):
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(self.row_num, c, value, self.column_widths, self.row_height, nesting_level=self.nesting_level))
+            self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
             c = c + 1
 
 

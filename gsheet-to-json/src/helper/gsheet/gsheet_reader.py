@@ -69,13 +69,13 @@ def process_section(sheet, toc, context, parent=None):
     # the gsheet is a child gsheet, called from a parent gsheet, so header processing depends on override flags
     if parent:
         if parent['override-header']:
-            debug(f".. this is a child gsheet : header OVERRIDDEN")
+            # debug(f".. this is a child gsheet : header OVERRIDDEN")
             d['different-firstpage'] = parent['different-firstpage']
             d['header-first'] = parent['header-first']
             d['header-odd'] = parent['header-odd']
             d['header-even'] = parent['header-even']
         else:
-            debug(f".. child gsheet's header is NOT overridden")
+            # debug(f".. child gsheet's header is NOT overridden")
             module = importlib.import_module('processor.table_processor')
             if d['different-firstpage']:
                 if d['header-first'] != '' and d['header-first'] is not None:
@@ -96,13 +96,13 @@ def process_section(sheet, toc, context, parent=None):
                 d['header-even'] = d['header-odd']
 
         if parent['override-footer']:
-            debug(f".. this is a child gsheet : footer OVERRIDDEN")
+            # debug(f".. this is a child gsheet : footer OVERRIDDEN")
             d['different-firstpage'] = parent['different-firstpage']
             d['footer-first'] = parent['footer-first']
             d['footer-odd'] = parent['footer-odd']
             d['footer-even'] = parent['footer-even']
         else:
-            debug(f".. child gsheet's footer is NOT overridden")
+            # debug(f".. child gsheet's footer is NOT overridden")
             module = importlib.import_module('processor.table_processor')
             if d['different-firstpage']:
                 if d['footer-first'] != '' and d['footer-first'] is not None:
