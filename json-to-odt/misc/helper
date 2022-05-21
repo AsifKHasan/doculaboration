@@ -8,9 +8,20 @@ set DOCUMENT="Tasnim.Kabir.Ratul__profile"
 set DOCUMENT="Résumé__Md.Jakir.Hossain"
 
 set DOCUMENT="DoS-Tender__8__technical_approach-and-methodology"
+set DOCUMENT="DoS-2022__résumé-index"
 
 ./odt-from-gsheet.sh ${DOCUMENT}
 odt-from-gsheet.bat %DOCUMENT%
 
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 unzip -o %DOCUMENT%.odt -d abc && atom abc
+
+For all resume note
+------------------------------------------------------------------
+replace {"new-page": true, "keep-with-next": true}
+with {"content": "out-of-cell", "keep-with-next": true}
+
+
+Make all image mode 1, instead of 3
+replace .png", 3)
+with .png", 1)
