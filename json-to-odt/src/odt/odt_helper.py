@@ -3,7 +3,9 @@
 ''' Openoffice odt wrapper objects
 '''
 
+import time
 import yaml
+import datetime
 import importlib
 
 from odf import opendocument
@@ -30,6 +32,9 @@ class OdtHelper(object):
 
         first_section = True
         section_index = 0
+
+        debug(msg=f"generating odt ..")
+        self.start_time = int(round(time.time() * 1000))
         for section in section_list:
             section['nesting-level'] = nesting_level
             section['parent-section-index-text'] = parent_section_index_text
@@ -49,9 +54,19 @@ class OdtHelper(object):
             first_section = False
             section_index = section_index + 1
 
+        self.end_time = int(round(time.time() * 1000))
+        debug(msg=f"generating odt .. done {(self.end_time - self.start_time)/1000} seconds")
+
         # save the odt document
-        debug(msg=f"saving odt to {Path(self._config['files']['output-odt']).resolve()}")
+        debug(msg=f"saving odt .. {Path(self._config['files']['output-odt']).resolve()}")
+        self.start_time = int(round(time.time() * 1000))
         self._odt.save(self._config['files']['output-odt'])
+        self.end_time = int(round(time.time() * 1000))
+        debug(msg=f"saving odt .. done {(self.end_time - self.start_time)/1000} seconds")
 
         # update indexes
+        debug(msg=f"updating index .. {Path(self._config['files']['output-odt']).resolve()}")
+        self.start_time = int(round(time.time() * 1000))
         update_indexes(self._odt, self._config['files']['output-odt'])
+        self.end_time = int(round(time.time() * 1000))
+        debug(msg=f"updating index .. done {(self.end_time - self.start_time)/1000} seconds")

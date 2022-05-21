@@ -271,7 +271,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 ''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
 '''
 def update_indexes(odt, odt_path):
-    debug(msg=f"updating indexes for {Path(odt_path).resolve()}")
     document_url = Path(odt_path).as_uri()
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
@@ -281,7 +280,6 @@ def update_indexes(odt, odt_path):
 ''' given an odt file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
-    debug(msg=f"generating pdf from {Path(infile).resolve()}")
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
     subprocess.call(command_line, shell=True);
 

@@ -34,7 +34,10 @@ class OdtFromJson(object):
 			odt_helper.generate_and_save(self._data['sections'])
 
 			if self._CONFIG['odt-related']['generate-pdf']:
+				debug(msg=f"generating odt ..")
 				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'])
+				self.end_time = int(round(time.time() * 1000))
+				debug(msg=f"generating odt .. done {(self.end_time - self.start_time)/1000} seconds")
 
 			self.tear_down()
 
