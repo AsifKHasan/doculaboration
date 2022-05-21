@@ -4,10 +4,10 @@ import re
 import os.path
 from os import path
 
+import requests
 import urllib3
 
 import pygsheets
-import urllib.request
 from PIL import Image
 
 from helper.logger import *
@@ -209,7 +209,21 @@ def download_image(image_formula, tmp_dir, row_height):
             if path.exists(local_path):
                 pass
             else:
-                urllib.request.urlretrieve(url, local_path)
+                with open(local_path, 'wb') as handle:
+                    response = requests.get(url, stream=True)
+
+                    if not response.ok:
+                        warn(response)
+
+                    for block in response.iter_content(512):
+                        if not block:
+                            break
+
+                        handle.write(block)
+
+                # img_data = requests.get(url).content
+                # with open(local_path, 'wb') as handler:
+                #     handler.write(img_data)
         except:
             warn(f".... could not download file: {url}")
             return None
@@ -275,7 +289,10 @@ def download_pdf_from_web(url, tmp_dir):
         if path.exists(local_path):
             pass
         else:
-            urllib.request.urlretrieve(pdf_url, local_path)
+            pdf_data = requests.get(pdf_url).content
+            with open(local_path, 'wb') as handler:
+                handler.write(pdf_data)
+
             info(f".... {pdf_url} downloaded at: {local_path}")
 
         return {'pdf_name': pdf_name, 'pdf_path': local_path}
