@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import re
-import os.path
-from os import path
+# import os.path
+# from os import path
+from pathlib import Path
 
 import requests
 import urllib3
@@ -23,7 +24,7 @@ def worksheet_exists(sheet, ws_title):
         ws = sheet.worksheet('title', ws_title)
         return True
     except:
-        warn(f"No worksheet ... {ws_title}")
+        warn(f"no worksheet ... {ws_title}")
         return False
 
 
@@ -203,27 +204,26 @@ def download_image(image_formula, tmp_dir, row_height):
             warn(f".... url pattern unknown for file: {url}")
             return None
 
+        local_path = Path(local_path).resolve()
+
         # download image in url into localpath
         try:
             # if the image is already in the local_path, we do not download it
-            if path.exists(local_path):
-                pass
+            if Path(local_path).exists():
+                debug(f".... image existing at: {local_path}")
             else:
+                response = requests.get(url, stream=True)
+                if not response.ok:
+                    warn(f".... {response} could not download image: {url}")
+                    return None
+
                 with open(local_path, 'wb') as handle:
-                    response = requests.get(url, stream=True)
-
-                    if not response.ok:
-                        warn(response)
-
                     for block in response.iter_content(512):
                         if not block:
                             break
 
                         handle.write(block)
 
-                # img_data = requests.get(url).content
-                # with open(local_path, 'wb') as handler:
-                #     handler.write(img_data)
         except:
             warn(f".... could not download file: {url}")
             return None
@@ -258,17 +258,17 @@ def download_image(image_formula, tmp_dir, row_height):
         height = row_height
         width = int(height * aspect_ratio)
         # info(f".... adjusting image {local_path} at {width}x{height}-{im_dpi} based on row height {row_height}")
-        return {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
+        return {'url': url, 'path': str(local_path), 'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link is without height, width - use actual image size
     if mode == 3:
         # info(f".... keeping image {local_path} at {im_width}x{im_height}-{im_dpi} as-is")
-        return {'url': url, 'path': local_path, 'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
+        return {'url': url, 'path': str(local_path), 'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link specifies height and width, use those
     if mode == 4 and len(s) == 4:
         # info(f".... image {local_path} at {im_width}x{im_height}-{im_dpi} size specified")
-        return {'url': url, 'path': local_path, 'height': int(s[2]), 'width': int(s[3]), 'dpi': im_dpi, 'size': im.size, 'mode': mode}
+        return {'url': url, 'path': str(local_path), 'height': int(s[2]), 'width': int(s[3]), 'dpi': im_dpi, 'size': im.size, 'mode': mode}
     else:
         warn(f".... image link does not specify height and width: {image_formula}")
         return None
@@ -285,8 +285,9 @@ def download_pdf_from_web(url, tmp_dir):
     # download pdf in url into localpath
     try:
         local_path = f"{tmp_dir}/{pdf_name}"
+        local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
-        if path.exists(local_path):
+        if Path(local_path).exists():
             pass
         else:
             pdf_data = requests.get(pdf_url).content
@@ -295,7 +296,7 @@ def download_pdf_from_web(url, tmp_dir):
 
             info(f".... {pdf_url} downloaded at: {local_path}")
 
-        return {'pdf_name': pdf_name, 'pdf_path': local_path}
+        return {'pdf_name': pdf_name, 'pdf_path': str(local_path)}
     except:
         error(f".... could not download pdf: {pdf_url}")
         return None
@@ -306,7 +307,7 @@ def download_pdf_from_drive(url, tmp_dir, drive):
 
     id = pdf_url.replace('https://drive.google.com/file/d/', '')
     id = id.split('/')[0]
-    info(f"drive file id to be downloaded is {id}")
+    info(f".... drive file id to be downloaded is {id}")
     f = drive.CreateFile({'id': id})
     if f['mimeType'] != 'application/pdf':
         warn(f"drive url {url} is not a pdf")
@@ -318,14 +319,15 @@ def download_pdf_from_drive(url, tmp_dir, drive):
 
     try:
         local_path = f"{tmp_dir}/{pdf_name}"
+        local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
-        if path.exists(local_path):
-            pass
+        if Path(local_path).exists():
+            info(f".... existing at: {local_path}")
         else:
             f.GetContentFile(local_path)
-            info(f".... {url} downloaded at: {local_path}")
+            info(f".... downloaded at: {local_path}")
 
-        return {'pdf_name': pdf_name, 'pdf_path': local_path}
+        return {'pdf_name': pdf_name, 'pdf_path': str(local_path)}
     except:
         error(f".... could not download pdf: {pdf_url}")
         return None

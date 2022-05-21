@@ -11,7 +11,7 @@ from helper.gsheet.gsheet_util import *
 
 def process(sheet, section_data, context):
     hyperlink = section_data['link']
-    debug(f"processing pdf ... {hyperlink}")
+    debug(f".. processing pdf ... {hyperlink}")
 
     if hyperlink.startswith('http') and hyperlink.endswith('.pdf'):
         # the pdf url is a normal web url
