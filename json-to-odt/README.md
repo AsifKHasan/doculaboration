@@ -10,7 +10,7 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 2.  Git -  <https://git-scm.com/downloads>
 3.  LibreOffice - <https://www.libreoffice.org/download/download/>
 
-## we need an application macro
+## we need an application macro for odt index generation to work
 Create the following macro from *Tools->Macros->Edit Macros...*
 
 * Container **My Macros & Dialogs**

@@ -25,3 +25,44 @@ with {"content": "out-of-cell", "keep-with-next": true}
 Make all image mode 1, instead of 3
 replace .png", 3)
 with .png", 1)
+
+./odt-from-gsheet.sh DoS-Tender__0__forms-technical
+./odt-from-gsheet.sh DoS-Tender__1__organizational-documents
+./odt-from-gsheet.sh DoS-Tender__2__wcc-wo
+./odt-from-gsheet.sh DoS-Tender__3__project-data-sheet
+./odt-from-gsheet.sh DoS-Tender__4__conformity-specification-section-6
+./odt-from-gsheet.sh DoS-Tender__5__technical_approach-and-methodology
+./odt-from-gsheet.sh DoS-Tender__6__plans-and-schedules
+./odt-from-gsheet.sh DoS-Tender__7__human-resource
+./odt-from-gsheet.sh DoS-Tender__00_financial-forms
+
+
+./odt-from-gsheet.sh Résumé__Khandakar.Asif.Hasan
+./odt-from-gsheet.sh Résumé__Saiful.Islam.(Sumon)
+./odt-from-gsheet.sh Résumé__Md.Jakir.Hossain
+./odt-from-gsheet.sh Résumé__Ashish.Kumar.Das
+./odt-from-gsheet.sh Résumé__Mir.Erfan.Elahi
+./odt-from-gsheet.sh Résumé__Md.Sohel.Rana
+./odt-from-gsheet.sh Résumé__Md.Istiyak.Ahamed.Milon
+./odt-from-gsheet.sh Résumé__Sagar.Saha
+./odt-from-gsheet.sh Résumé__Akeed.Anjum
+./odt-from-gsheet.sh Résumé__Mehedi.Hasan
+./odt-from-gsheet.sh Résumé__Muhammad.Ashraf.Uddin.Bhuiyan
+./odt-from-gsheet.sh Résumé__Md.Golam.Kibria
+./odt-from-gsheet.sh Résumé__Ishrat.Fatima
+./odt-from-gsheet.sh Résumé__Ommul.Khair.Musammat.Tahera
+./odt-from-gsheet.sh Résumé__Dipankar.Kumar.Biswas
+./odt-from-gsheet.sh Résumé__Tanvir.Rahman
+./odt-from-gsheet.sh Résumé__Md.Ahsan.Habib.Rocky
+./odt-from-gsheet.sh Résumé__Md.Kamruzzaman.Tanim
+./odt-from-gsheet.sh Résumé__Md.Faisal.Hossain
+./odt-from-gsheet.sh Résumé__Md.Jamal.Uddin
+./odt-from-gsheet.sh Résumé__Murshida.Mushfique
+./odt-from-gsheet.sh Résumé__Umme.Rumman.Usha
+./odt-from-gsheet.sh Résumé__Mushfika.Faria
+./odt-from-gsheet.sh Résumé__Md.Anisur.Rahman
+./odt-from-gsheet.sh Résumé__Md.Raqibul.Islam
+./odt-from-gsheet.sh Résumé__Md.Murshid.Sarker
+./odt-from-gsheet.sh Résumé__Mohammad.Kamrul.Hasan
+./odt-from-gsheet.sh Résumé__Amiya.Ahamed
+./odt-from-gsheet.sh Résumé__Dipika.Debnath
