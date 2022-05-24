@@ -1226,10 +1226,18 @@ class CellFormat(object):
     def table_cell_attributes(self, cell_merge_spec):
         attributes = {}
 
-        attributes['verticalalign'] = self.valign.valign
-        attributes['backgroundcolor'] = self.bgcolor.value()
-        attributes['wrapoption'] = self.wrapping.wrapping
-        more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
+        if self.valign:
+            attributes['verticalalign'] = self.valign.valign
+
+        if self.bgcolor:
+            attributes['backgroundcolor'] = self.bgcolor.value()
+
+        if self.wrapping:
+            attributes['wrapoption'] = self.wrapping.wrapping
+
+        more_attributes = {}
+        if self.borders and self.padding:
+            more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
         return {**attributes, **more_attributes}
 
@@ -1238,16 +1246,23 @@ class CellFormat(object):
     '''
     def paragraph_attributes(self, for_table_cell, cell_merge_spec):
         # if the is left aligned, we do not set attribute to let the parent style determine what the alignment should be
-        if self.halign.halign in ['left']:
+        if self.halign is None or self.halign.halign in ['left']:
             attributes = {}
         else:
             attributes = {'textalign': self.halign.halign}
 
         if for_table_cell:
-            attributes['verticalalign'] = self.valign.valign
-            attributes['backgroundcolor'] = self.bgcolor.value()
-            # attributes['wrapoption'] = self.wrapping.wrapping
-            more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
+            if self.valign:
+                attributes['verticalalign'] = self.valign.valign
+
+            if self.bgcolor:
+                attributes['backgroundcolor'] = self.bgcolor.value()
+
+            # if self.wrapping:
+            #     # attributes['wrapoption'] = self.wrapping.wrapping
+            more_attributes = {}
+            if self.borders and self.padding:
+                more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
             return {**attributes, **more_attributes}
 
