@@ -6,6 +6,12 @@ You will need a ```credential.json``` in ```conf``` which is not in the repo and
 
 copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the copied file
 
+## software and tools required
+
+You will need Poppler
+- for Windows - https://blog.alivate.com.au/poppler-windows/
+- for Linux - https://poppler.freedesktop.org/
+
 ## Linux usage:
 ```
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
