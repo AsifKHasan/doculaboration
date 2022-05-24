@@ -1237,7 +1237,11 @@ class CellFormat(object):
     ''' attributes dict for ParagraphProperties
     '''
     def paragraph_attributes(self, for_table_cell, cell_merge_spec):
-        attributes = {'textalign': self.halign.halign}
+        # if the is left aligned, we do not set attribute to let the parent style determine what the alignment should be
+        if self.halign.halign in ['left']:
+            attributes = {}
+        else:
+            attributes = {'textalign': self.halign.halign}
 
         if for_table_cell:
             attributes['verticalalign'] = self.valign.valign

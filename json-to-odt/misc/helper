@@ -7,9 +7,6 @@ set DOCUMENT="NBR-NSW__functional-and-technical-report__PwC__v5.0"
 set DOCUMENT="Tasnim.Kabir.Ratul__profile"
 set DOCUMENT="Résumé__Md.Jakir.Hossain"
 
-set DOCUMENT="DoS-Tender__8__technical_approach-and-methodology"
-set DOCUMENT="DoS-2022__résumé-index"
-
 ./odt-from-gsheet.sh ${DOCUMENT}
 odt-from-gsheet.bat %DOCUMENT%
 
@@ -66,3 +63,45 @@ with .png", 1)
 ./odt-from-gsheet.sh Résumé__Mohammad.Kamrul.Hasan
 ./odt-from-gsheet.sh Résumé__Amiya.Ahamed
 ./odt-from-gsheet.sh Résumé__Dipika.Debnath
+
+
+
+odt-from-gsheet.bat DoS-Tender__0__forms-technical
+odt-from-gsheet.bat DoS-Tender__1__organizational-documents
+odt-from-gsheet.bat DoS-Tender__2__wcc-wo
+odt-from-gsheet.bat DoS-Tender__3__project-data-sheet
+odt-from-gsheet.bat DoS-Tender__4__conformity-specification-section-6
+odt-from-gsheet.bat DoS-Tender__5__technical_approach-and-methodology
+odt-from-gsheet.bat DoS-Tender__6__plans-and-schedules
+odt-from-gsheet.bat DoS-Tender__7__human-resource
+odt-from-gsheet.bat DoS-Tender__00_financial-forms
+
+odt-from-gsheet.bat Résumé__Khandakar.Asif.Hasan
+odt-from-gsheet.bat Résumé__Saiful.Islam.(Sumon)
+odt-from-gsheet.bat Résumé__Md.Jakir.Hossain
+odt-from-gsheet.bat Résumé__Ashish.Kumar.Das
+odt-from-gsheet.bat Résumé__Mir.Erfan.Elahi
+odt-from-gsheet.bat Résumé__Md.Sohel.Rana
+odt-from-gsheet.bat Résumé__Md.Istiyak.Ahamed.Milon
+odt-from-gsheet.bat Résumé__Sagar.Saha
+odt-from-gsheet.bat Résumé__Akeed.Anjum
+odt-from-gsheet.bat Résumé__Mehedi.Hasan
+odt-from-gsheet.bat Résumé__Muhammad.Ashraf.Uddin.Bhuiyan
+odt-from-gsheet.bat Résumé__Md.Golam.Kibria
+odt-from-gsheet.bat Résumé__Ishrat.Fatima
+odt-from-gsheet.bat Résumé__Ommul.Khair.Musammat.Tahera
+odt-from-gsheet.bat Résumé__Dipankar.Kumar.Biswas
+odt-from-gsheet.bat Résumé__Tanvir.Rahman
+odt-from-gsheet.bat Résumé__Md.Ahsan.Habib.Rocky
+odt-from-gsheet.bat Résumé__Md.Kamruzzaman.Tanim
+odt-from-gsheet.bat Résumé__Md.Faisal.Hossain
+odt-from-gsheet.bat Résumé__Md.Jamal.Uddin
+odt-from-gsheet.bat Résumé__Murshida.Mushfique
+odt-from-gsheet.bat Résumé__Umme.Rumman.Usha
+odt-from-gsheet.bat Résumé__Mushfika.Faria
+odt-from-gsheet.bat Résumé__Md.Anisur.Rahman
+odt-from-gsheet.bat Résumé__Md.Raqibul.Islam
+odt-from-gsheet.bat Résumé__Md.Murshid.Sarker
+odt-from-gsheet.bat Résumé__Mohammad.Kamrul.Hasan
+odt-from-gsheet.bat Résumé__Amiya.Ahamed
+odt-from-gsheet.bat Résumé__Dipika.Debnath

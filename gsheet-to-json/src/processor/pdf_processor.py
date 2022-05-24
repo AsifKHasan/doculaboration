@@ -37,7 +37,8 @@ def process(sheet, section_data, context):
 
         try:
             images = pdf2image.convert_from_path(pdf_file, fmt='png', dpi=dpi, size=size, transparent=True, output_file=pdf_name, paths_only=True, output_folder=context['tmp-dir'])
-        except:
+        except Exception as e:
+            print(e)
             error(f".... could not convert {pdf_name} to image(s)")
 
         data['images'] = []
