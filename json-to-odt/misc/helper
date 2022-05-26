@@ -1,3 +1,13 @@
+For all resume note
+------------------------------------------------------------------
+replace {"new-page": true, "keep-with-next": true}
+with {"content": "out-of-cell", "keep-with-next": true}
+
+
+Make all image mode 1, instead of 3
+replace .png", 3)
+with .png", 1)
+
 set DOCUMENT="spectrum__résumé-index"
 set DOCUMENT="BKB-BKBAPPs__letter-answer__2022-05-11"
 set DOCUMENT="SAU-CAS__functional-requirement-specification"
@@ -10,18 +20,10 @@ set DOCUMENT="Résumé__Md.Jakir.Hossain"
 ./odt-from-gsheet.sh ${DOCUMENT}
 odt-from-gsheet.bat %DOCUMENT%
 
+
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 
-For all resume note
-------------------------------------------------------------------
-replace {"new-page": true, "keep-with-next": true}
-with {"content": "out-of-cell", "keep-with-next": true}
-
-
-Make all image mode 1, instead of 3
-replace .png", 3)
-with .png", 1)
 
 ./odt-from-gsheet.sh DoS-Tender__0__forms-technical
 ./odt-from-gsheet.sh DoS-Tender__1__organizational-documents
