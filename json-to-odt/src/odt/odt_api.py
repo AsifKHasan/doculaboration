@@ -766,6 +766,7 @@ class Cell(object):
     def cell_to_odt(self, odt, container):
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell(container), self.merge_spec)}
+        # print(self)
         text_attributes = self.effective_format.text_format.text_attributes()
 
         # for string and image it returns a paragraph, for embedded content a list
