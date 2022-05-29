@@ -21,7 +21,8 @@ unzip -o %DOCUMENT%.odt -d abc && atom abc
 
 
 
-odt-from-gsheet.bat Résumé__Ahmed.Nafis.Fuad
+odt-from-gsheet.bat Résumé__Sanmoon.Yasmin
+
 odt-from-gsheet.bat Résumé__Alif.Arfab.Pavel
 odt-from-gsheet.bat Résumé__Altaf.Hossain
 odt-from-gsheet.bat Résumé__Amiya.Ahamed
