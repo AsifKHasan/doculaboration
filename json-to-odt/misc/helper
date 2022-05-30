@@ -20,7 +20,10 @@ unzip -o ${DOCUMENT}.odt -d abc && atom abc
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 
 
+./odt-from-gsheet.sh BBA-Toll__EOI-ToR
+odt-from-gsheet.bat BBA-Toll__EOI-ToR
 
+odt-from-gsheet.bat spectrum__résumé-index
 odt-from-gsheet.bat Résumé__Sanmoon.Yasmin
 
 odt-from-gsheet.bat Résumé__Alif.Arfab.Pavel

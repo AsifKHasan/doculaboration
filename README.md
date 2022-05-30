@@ -10,7 +10,7 @@ CRDT (gsheet, etc.) based documentation collaboration pipeline to generate edita
 1. cd to ```d:\projects``` (for Windows) or ```~/projects``` (for Linux)
 2. run ```git clone https://github.com/AsifKHasan/doculaboration.git```
 3. cd to ```D:\projects\doculaboration``` (for Windows) or ```~/projects/doculaboration``` (for Linux)
-4. run command ```pip install -r requirements.txt```. See if there is any error or not.
+4. run command ```pip install -r requirements.txt --upgrade```. See if there is any error or not.
 
 ## (optional) update all python packages
 ```
