@@ -1130,7 +1130,7 @@ class ImageValue(CellValue):
         image_width_in_inches =  image_width_in_pixel / dpi_x
         image_height_in_inches = image_height_in_pixel / dpi_y
 
-        if self.value['mode'] == 1:
+        if self.value['mode'] in [1, 2, 3, 4]:
             # image is to be scaled within the cell width and height
             if image_width_in_inches > cell_width:
                 adjust_ratio = (cell_width / image_width_in_inches)
@@ -1142,12 +1142,7 @@ class ImageValue(CellValue):
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
-        elif self.value['mode'] == 3:
-            # image size is unchanged
-            pass
-
         else:
-            # treat it as if image mode is 3
             pass
 
         text_attributes['fontsize'] = 2

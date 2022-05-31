@@ -18,8 +18,8 @@ page-spec:
 
 margin-spec:
   wide:
-    left  : 1.00
-    right : 1.00
+    left  : 0.50
+    right : 0.50
     top   : 1.00
     bottom: 1.00
     gutter: 0

@@ -274,51 +274,60 @@ def download_image(image_formula, tmp_dir, row_height):
         return None
 
 
-def download_pdf_from_web(url, tmp_dir):
-    pdf_url = url.strip()
-    if pdf_url[-4:] != '.pdf':
-        error(f".... url {pdf_url} is NOT a pdf file")
+def download_file_from_web(url, tmp_dir):
+    file_url = url.strip()
+    file_ext = file_url[-4:]
+    if file_ext in ['.pdf', '.png']:
+        error(f".... url {file_url} is NOT a pdf/png file")
         return None
 
-    pdf_name = pdf_url.split('/')[-1].strip()
+    file_name = file_url.split('/')[-1].strip()
+    if file_ext == '.pdf':
+        file_type = 'application/pdf'
+    elif file_ext == '.png':
+        file_type = 'image/png'
 
     # download pdf in url into localpath
     try:
-        local_path = f"{tmp_dir}/{pdf_name}"
+        local_path = f"{tmp_dir}/{file_name}"
         local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
         if Path(local_path).exists():
             pass
         else:
-            pdf_data = requests.get(pdf_url).content
+            file_data = requests.get(file_url).content
             with open(local_path, 'wb') as handler:
-                handler.write(pdf_data)
+                handler.write(file_data)
 
-            info(f".... {pdf_url} downloaded at: {local_path}")
+            info(f".... {file_url} downloaded at: {local_path}")
 
-        return {'pdf_name': pdf_name, 'pdf_path': str(local_path)}
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
     except:
-        error(f".... could not download pdf: {pdf_url}")
+        error(f".... could not download pdf: {file_url}")
         return None
 
 
-def download_pdf_from_drive(url, tmp_dir, drive):
-    pdf_url = url.strip()
+def download_file_from_drive(url, tmp_dir, drive):
+    file_url = url.strip()
 
-    id = pdf_url.replace('https://drive.google.com/file/d/', '')
+    id = file_url.replace('https://drive.google.com/file/d/', '')
     id = id.split('/')[0]
     info(f".... drive file id to be downloaded is {id}")
     f = drive.CreateFile({'id': id})
-    if f['mimeType'] != 'application/pdf':
-        warn(f"drive url {url} is not a pdf")
+    file_name = f['title']
+    file_type = f['mimeType']
+    if not file_type in ['application/pdf', 'image/png']:
+        warn(f".... drive url {url} is not a pdf/png, it is [{f['mimeType']}]")
         return None
 
-    pdf_name = f['title']
-    if not pdf_name.endswith('.pdf'):
-        pdf_name = pdf_name + '.pdf'
+    if file_type == 'application/pdf' and not file_name.endswith('.pdf'):
+        file_name = file_name + '.pdf'
+
+    if file_type == 'image/png' and not file_name.endswith('.png'):
+        file_name = file_name + '.png'
 
     try:
-        local_path = f"{tmp_dir}/{pdf_name}"
+        local_path = f"{tmp_dir}/{file_name}"
         local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
         if Path(local_path).exists():
@@ -327,9 +336,9 @@ def download_pdf_from_drive(url, tmp_dir, drive):
             f.GetContentFile(local_path)
             info(f".... downloaded at: {local_path}")
 
-        return {'pdf_name': pdf_name, 'pdf_path': str(local_path)}
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
     except:
-        error(f".... could not download pdf: {pdf_url}")
+        error(f".... could not download file: {file_url}")
         return None
 
 

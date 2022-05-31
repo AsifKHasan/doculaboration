@@ -20,40 +20,9 @@ unzip -o ${DOCUMENT}.odt -d abc && atom abc
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 
 ./odt-from-gsheet.sh BKB-BKBAPPs__letter-answer__2022-05-11
+odt-from-gsheet.bat BKB-BKBAPPs__letter-answer__2022-05-11
 
 ./odt-from-gsheet.sh BBA-Toll__EOI-ToR
 odt-from-gsheet.bat BBA-Toll__EOI-ToR
 
 odt-from-gsheet.bat spectrum__résumé-index
-odt-from-gsheet.bat Résumé__Sanmoon.Yasmin
-
-odt-from-gsheet.bat Résumé__Alif.Arfab.Pavel
-odt-from-gsheet.bat Résumé__Altaf.Hossain
-odt-from-gsheet.bat Résumé__Amiya.Ahamed
-odt-from-gsheet.bat Résumé__Arnab.Basak
-odt-from-gsheet.bat Résumé__Asiya.Khatun.(Papiya)
-odt-from-gsheet.bat Résumé__Farhana.Naz
-odt-from-gsheet.bat Résumé__Kamrun.Nahar
-odt-from-gsheet.bat Résumé__Khondoker.Tanvir.Hossain
-odt-from-gsheet.bat Résumé__Mainur.Rahman
-odt-from-gsheet.bat Résumé__Maly.Mohsem.Ahmed
-odt-from-gsheet.bat Résumé__Md.Asif.Khan.Taj
-odt-from-gsheet.bat Résumé__MD.Fuad.Hasan.Chowdhury
-odt-from-gsheet.bat Résumé__Md.Hafizur.Rahman
-odt-from-gsheet.bat Résumé__Md.Jamal.Uddin
-odt-from-gsheet.bat Résumé__Md.Kamruzzaman.Tanim
-odt-from-gsheet.bat Résumé__Md.Naim.Reza
-odt-from-gsheet.bat Résumé__Md.Nazmul.Alam
-odt-from-gsheet.bat Résumé__Md.Shariar.Kabir
-odt-from-gsheet.bat Résumé__Mehedi.Hasan
-odt-from-gsheet.bat Résumé__Mohammad.Kamrul.Hasan
-odt-from-gsheet.bat Résumé__Mohammad.Mashud.Karim
-odt-from-gsheet.bat Résumé__Mohammad.Wakib.Hasan
-odt-from-gsheet.bat Résumé__Murshida.Mushfique
-odt-from-gsheet.bat Résumé__Mushfika.Faria
-odt-from-gsheet.bat Résumé__Nasima.Aktar
-odt-from-gsheet.bat Résumé__Shafayat.Ahmed
-odt-from-gsheet.bat Résumé__Shah.Shafi.Mohammed.Shariful.Alam
-odt-from-gsheet.bat Résumé__Sharif.Tamjidur.Rahman
-odt-from-gsheet.bat Résumé__Syed.Mostofa.Monsur
-odt-from-gsheet.bat Résumé__Umme.Rumman.Usha
