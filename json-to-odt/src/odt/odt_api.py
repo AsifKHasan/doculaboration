@@ -714,7 +714,8 @@ class Cell(object):
             else:
                 # self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
                 # warn(f"{self} is None")
-                self.cell_value = None
+                self.cell_value = StringValue(self.effective_format, None, self.formatted_value, self.nesting_level, self.note.outline_level)
+                # self.cell_value = None
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1003,8 +1004,8 @@ class StringValue(CellValue):
         if formatted_value:
             self.value = formatted_value
         else:
-            if 'stringValue' in string_value:
-                self.value = string_value['string_value']
+            if string_value and 'stringValue' in string_value:
+                self.value = string_value['stringValue']
             else:
                 self.value = ''
 
