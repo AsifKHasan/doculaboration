@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Helper to initialize and manipulate docx styles, mostly custom styles not present in the template docx 
+Helper to initialize and manipulate docx styles, mostly custom styles not present in the template docx
 '''
 
 import yaml
@@ -11,9 +11,10 @@ from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
 
 from helper.logger import *
-from helper.docx.docx_util import *
+from doc.doc_util import *
 
-class DocxHelper(object):
+
+class DocHelper(object):
 
     def __init__(self, template, style, docx):
         self._STYLE_DATA = style
