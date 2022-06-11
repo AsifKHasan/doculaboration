@@ -98,7 +98,8 @@ def create_table(doc, table_name, table_style_attributes, table_properties_attri
 ''' create table-header-rows
 '''
 def create_table_header_rows():
-    return table.TableHeaderRows()
+    # return table.TableHeaderRows()
+	return None
 
 
 ''' create TableColumn
@@ -221,7 +222,8 @@ def create_paragraph_style(doc, style_attributes=None, paragraph_attributes=None
     #
     # odt.automaticstyles.addElement(paragraph_style)
 
-    return paragraph_style.getAttribute('name')
+    # return paragraph_style.getAttribute('name')
+    return paragraph_style
 
 
 ''' page number
@@ -325,31 +327,7 @@ def generate_pdf(infile, outdir):
 '''
 def create_toc():
     name = 'Table of Content'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=10)
-    toc_title_template = text.IndexTitleTemplate()
-    toc_source.addElement(toc_title_template)
-
-    for i in range(1, 11):
-        toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=i, stylename=f"Contents_20_{i}")
-
-        index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-        index_entry_chapter = text.IndexEntryChapter()
-        index_entry_text = text.IndexEntryText()
-        index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-        index_entry_page_number = text.IndexEntryPageNumber()
-        index_entry_link_end = text.IndexEntryLinkEnd()
-
-        toc_entry_template.addElement(index_entry_link_start)
-        toc_entry_template.addElement(index_entry_chapter)
-        toc_entry_template.addElement(index_entry_text)
-        toc_entry_template.addElement(index_entry_tab_stop)
-        toc_entry_template.addElement(index_entry_page_number)
-        toc_entry_template.addElement(index_entry_link_end)
-
-        toc_source.addElement(toc_entry_template)
-
-    toc.addElement(toc_source)
+    toc = None
 
     return toc
 
@@ -358,33 +336,7 @@ def create_toc():
 '''
 def create_lof():
     name = 'List of Figures'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
-
-    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = text.IndexEntryChapter()
-    index_entry_text = text.IndexEntryText()
-    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = text.IndexEntryPageNumber()
-    index_entry_link_end = text.IndexEntryLinkEnd()
-
-    toc_entry_template.addElement(index_entry_link_start)
-    toc_entry_template.addElement(index_entry_chapter)
-    toc_entry_template.addElement(index_entry_text)
-    toc_entry_template.addElement(index_entry_tab_stop)
-    toc_entry_template.addElement(index_entry_page_number)
-    toc_entry_template.addElement(index_entry_link_end)
-
-    toc_title_template = text.IndexTitleTemplate()
-    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = text.IndexSourceStyle(stylename='Figure')
-    toc_index_source_styles.addElement(toc_index_source_style)
-
-    toc_source.addElement(toc_entry_template)
-    toc_source.addElement(toc_title_template)
-    toc_source.addElement(toc_index_source_styles)
-    toc.addElement(toc_source)
+    toc = None
 
     return toc
 
@@ -393,110 +345,85 @@ def create_lof():
 '''
 def create_lot():
     name = 'List of Tables'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
-
-    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = text.IndexEntryChapter()
-    index_entry_text = text.IndexEntryText()
-    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = text.IndexEntryPageNumber()
-    index_entry_link_end = text.IndexEntryLinkEnd()
-
-    toc_entry_template.addElement(index_entry_link_start)
-    toc_entry_template.addElement(index_entry_chapter)
-    toc_entry_template.addElement(index_entry_text)
-    toc_entry_template.addElement(index_entry_tab_stop)
-    toc_entry_template.addElement(index_entry_page_number)
-    toc_entry_template.addElement(index_entry_link_end)
-
-    toc_title_template = text.IndexTitleTemplate()
-    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = text.IndexSourceStyle(stylename='Table')
-    toc_index_source_styles.addElement(toc_index_source_style)
-
-    toc_source.addElement(toc_entry_template)
-    toc_source.addElement(toc_title_template)
-    toc_source.addElement(toc_index_source_styles)
-    toc.addElement(toc_source)
+    toc = None
 
     return toc
 
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# master-page and page-layout
+# document-section, page-layout, header-footer
 
-''' get master-page by name
+''' add document section
 '''
-def get_master_page(doc, master_page_name):
-    # for master_page in odt.masterstyles.getElementsByType(style.MasterPage):
-    #     if master_page.getAttribute('name') == master_page_name:
-    #         return master_page
+def add_document_section(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation, different_firstpage):
+	# new section always starts with a page-break
+    section = doc.add_section(WD_SECTION.NEW_PAGE)
 
-    warn(f"master-page {master_page_name} NOT found")
-    return None
-
-
-''' get page-layout by name
-'''
-def get_page_layout(doc, page_layout_name):
-    # for page_layout in odt.automaticstyles.getElementsByType(style.PageLayout):
-    #     if page_layout.getAttribute('name') == page_layout_name:
-    #         return page_layout
-
-    warn(f"page-layout {page_layout_name} NOT found")
-    return None
-
-
-''' update page-layout of Standard master-page with the given page-layout
-'''
-def update_master_page_page_layout(doc, master_page_name, new_page_layout_name):
-    master_page = get_master_page(doc, master_page_name)
-
-    if master_page is not None:
-        master_page.attributes[(master_page.qname[0], 'page-layout-name')] = new_page_layout_name
-
-
-''' create (section-specific) page-layout
-'''
-def create_page_layout(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation):
-    page_layout = None
-    # create one
-    # page_layout = style.PageLayout(name=page_layout_name)
-    # odt.automaticstyles.addElement(page_layout)
-
-    if orientation == 'portrait':
-        pageheight = f"{docx_specs['page-spec'][page_spec]['height']}in"
-        pagewidth = f"{docx_specs['page-spec'][page_spec]['width']}in"
+    if orientation == 'landscape':
+        section.orient = WD_ORIENT.LANDSCAPE
+	    section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
+	    section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
     else:
-        pageheight = f"{docx_specs['page-spec'][page_spec]['width']}in"
-        pagewidth = f"{docx_specs['page-spec'][page_spec]['height']}in"
+        section.orient = WD_ORIENT.PORTRAIT
+	    section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
+	    section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
 
-    margintop = f"{docx_specs['margin-spec'][margin_spec]['top']}in"
-    marginbottom = f"{docx_specs['margin-spec'][margin_spec]['bottom']}in"
-    marginleft = f"{docx_specs['margin-spec'][margin_spec]['left']}in"
-    marginright = f"{docx_specs['margin-spec'][margin_spec]['right']}in"
-    # margingutter = f"{docx_specs['margin-spec'][margin_spec]['gutter']}in"
+    section.left_margin = Inches(docx_specs['margin-spec'][margin_spec]['left'])
+    section.right_margin = Inches(docx_specs['margin-spec'][margin_spec]['right'])
+    section.top_margin = Inches(docx_specs['margin-spec'][margin_spec]['top'])
+    section.bottom_margin = Inches(docx_specs['margin-spec'][margin_spec]['bottom'])
 
-    # page_layout.addElement(style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
+    section.gutter = Inches(docx_specs['margin-spec'][margin_spec]['gutter'])
 
-    return page_layout
+    section.header_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['header'])
+    section.footer_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['footer'])
+
+    section.different_first_page_header_footer = different_firstpage
+
+    # get the actual width
+    actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
+
+    # set header if it is not set already
+    set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
+
+    # set footer if it is not set already
+    set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+
+    return section
 
 
-''' create (section-specific) master-page
-    page layouts are saved with a name mp-section-no
+''' update an existing document section
 '''
-def create_master_page(doc, docx_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation):
-    master_page = None
+def update_document_section(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation, different_firstpage, section_index=-1):
+    section = doc.sections[section_index]
 
-    # create one, first get/create the page-layout
-    # page_layout = create_page_layout(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation)
-    # master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
-    # odt.masterstyles.addElement(master_page)
+    if section_spec['orient'] == 'LANDSCAPE':
+        section.orient = WD_ORIENT.LANDSCAPE
+    else:
+        section.orient = WD_ORIENT.PORTRAIT
 
-    return master_page
+    section.page_width = Inches(section_spec['page_width'])
+    section.page_height = Inches(section_spec['page_height'])
+    section.left_margin = Inches(section_spec['left_margin'])
+    section.right_margin = Inches(section_spec['right_margin'])
+    section.top_margin = Inches(section_spec['top_margin'])
+    section.bottom_margin = Inches(section_spec['bottom_margin'])
+    section.header_distance = Inches(section_spec['header_distance'])
+    section.footer_distance = Inches(section_spec['footer_distance'])
+    section.gutter = Inches(section_spec['gutter'])
+    section.different_first_page_header_footer = section_data['different-first-page-header-footer']
+
+    # get the actual width
+    actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
+
+    # set header if it is not set already
+    set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
+
+    # set footer if it is not set already
+    set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+
+    return section
 
 
 ''' create header/footer
@@ -546,7 +473,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 '''
 def is_table_cell(container):
     # if container is n instance of table-cell
-    if isinstance(container, type(table.TableCell)):
+    if isinstance(container, type(_Cell)):
         return True
     else:
         return False

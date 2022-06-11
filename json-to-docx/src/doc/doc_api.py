@@ -43,14 +43,13 @@ class DocxSectionBase(object):
         page_spec = self._section_data['page-spec']
         margin_spec = self._section_data['margin-spec']
         orientation = self._section_data['landscape']
-        self._section_data['master-page'] = f"mp-{self.section_index_text}"
-        self._section_data['page-layout'] = f"pl-{self.section_index_text}"
-        master_page = create_master_page(self._doc, self._config['page-specs'], self._section_data['master-page'], self._section_data['page-layout'], page_spec, margin_spec, orientation)
 
-        # if it is the very first section, change the page-layout of the *Standard* master-page
+        # if it is the very first section, change the first section
         if self._section_data['first-section']:
-            self._section_data['master-page'] = 'Standard'
-            update_master_page_page_layout(self._doc, master_page_name='Standard', new_page_layout_name=self._section_data['page-layout'])
+            this_section = update_document_section(self._doc, master_page_name='Standard', new_page_layout_name=self._section_data['page-layout'], different_firstpage=self._section_data['different-firstpage'], section_index=-1)
+        else:
+            this_section = add_document_section(self._doc, self._config['page-specs'], self._section_data['master-page'], self._section_data['page-layout'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
+
 
         this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
         this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
@@ -142,7 +141,7 @@ class DocxSectionBase(object):
 
         style_name = create_paragraph_style(self._doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
         paragraph = create_paragraph(self._doc, style_name, text_content=heading_text, outline_level=outline_level)
-        self._doc.text.addElement(paragraph)
+        # self._doc.text.addElement(paragraph)
 
 
 
@@ -160,7 +159,7 @@ class DocxTableSection(DocxSectionBase):
     '''
     def section_to_doc(self):
         super().section_to_doc()
-        self.section_contents.content_to_doc(doc=self._doc, container=self._doc.text)
+        self.section_contents.content_to_doc(doc=self._doc, container=self._doc)
 
 
 
@@ -612,22 +611,25 @@ class DocxTable(DocxBlock):
             table_column_style_attributes = {'name': f"{table_column_name}_style"}
             table_column_properties_attributes = {'columnwidth': f"{col_width}in", 'useoptimalcolumnwidth': False}
             table_column = create_table_column(doc, table_column_name, table_column_style_attributes, table_column_properties_attributes)
-            table.addElement(table_column)
+            if table and table_column:
+                table.addElement(table_column)
 
         # iterate header rows render the table's contents
         table_header_rows = create_table_header_rows()
-        for row in self.table_cell_matrix[0:self.header_row_count]:
-            table_row = row.row_to_doc_table_row(doc, self.table_name)
-            table_header_rows.addElement(table_row)
+        if table_header_rows:
+            for row in self.table_cell_matrix[0:self.header_row_count]:
+                table_row = row.row_to_doc_table_row(doc, self.table_name)
+                table_header_rows.addElement(table_row)
 
-        table.addElement(table_header_rows)
+            table.addElement(table_header_rows)
 
         # iterate rows and cells to render the table's contents
-        for row in self.table_cell_matrix[self.header_row_count:]:
-            table_row = row.row_to_doc_table_row(doc, self.table_name)
-            table.addElement(table_row)
+        if table:
+            for row in self.table_cell_matrix[self.header_row_count:]:
+                table_row = row.row_to_doc_table_row(doc, self.table_name)
+                table.addElement(table_row)
 
-        container.addElement(table)
+            container.addElement(table)
 
 
 
@@ -1026,7 +1028,8 @@ class StringValue(CellValue):
         style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_paragraph(doc, style_name, text_content=self.value, outline_level=self.outline_level)
 
-        container.addElement(paragraph)
+        if container and paragraph:
+            container.addElement(paragraph)
 
 
 ''' text-run type CellValue
@@ -1052,7 +1055,7 @@ class TextRunValue(CellValue):
     '''
     def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
         if container is None:
-            container = doc.text
+            container = doc
 
         run_value_list = []
         processed_idx = len(self.formatted_value)
@@ -1064,7 +1067,8 @@ class TextRunValue(CellValue):
         style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
         paragraph = create_paragraph(doc, style_name, run_list=run_value_list)
 
-        container.addElement(paragraph)
+        if container and paragraph:
+            container.addElement(paragraph)
 
 
 

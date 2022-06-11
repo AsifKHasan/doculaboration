@@ -61,14 +61,14 @@ class DocHelper(object):
         debug(msg=f"saving docx .. {Path(self._config['files']['output-docx']).resolve()}")
         self.start_time = int(round(time.time() * 1000))
         self._doc.save(self._config['files']['output-docx'])
-        set_updatefields_true(self._CONFIG['files']['output-docx'])
+        set_updatefields_true(self._config['files']['output-docx'])
         self.end_time = int(round(time.time() * 1000))
         debug(msg=f"saving docx .. done {(self.end_time - self.start_time)/1000} seconds")
 
         # update indexes
-        if sys.platform == 'win32' and self._CONFIG['docx-related']['update-toc']:
+        if sys.platform == 'win32':
             debug(msg=f"updating index .. {Path(self._config['files']['output-docx']).resolve()}")
             self.start_time = int(round(time.time() * 1000))
-            update_indexes(self._CONFIG['files']['output-docx'])
+            update_indexes(self._config['files']['output-docx'])
             self.end_time = int(round(time.time() * 1000))
             debug(msg=f"updating index .. done {(self.end_time - self.start_time)/1000} seconds")
