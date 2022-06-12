@@ -21,6 +21,7 @@ def generate(data, doc, section_specs, context):
     else:
         debug('Writing ... {0}'.format(data['heading']).strip())
 
+
     if data['no-heading'] == False:
         if data['level'] == 0:
             paragraph = doc.add_paragraph(data['heading'], style='HEADING1')

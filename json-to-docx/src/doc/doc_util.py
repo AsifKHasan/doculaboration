@@ -11,10 +11,15 @@ from pathlib import Path
 from copy import deepcopy
 
 from docx import Document
-from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 from docx.table import _Cell
+
+from docx.shared import Pt, Cm, Inches, RGBColor, Emu
+
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
+from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
+from docx.enum.section import WD_SECTION, WD_ORIENT
 
 
 if sys.platform == 'win32':
@@ -189,43 +194,6 @@ def create_covered_table_cell(doc, table_cell_style_attributes, table_cell_prope
 
 
 
-# --------------------------------------------------------------------------------------------------------------------------------------------
-# paragraphs and styles
-
-''' create style - family paragraph
-'''
-def create_paragraph_style(doc, style_attributes=None, paragraph_attributes=None, text_attributes=None):
-    # we may need to create the style-name
-    if style_attributes is None:
-        style_attributes = {}
-
-    if 'family' not in style_attributes:
-        style_attributes['family'] = 'paragraph'
-
-    if 'name' not in style_attributes:
-        style_attributes['name'] = random_string()
-
-    if 'parentstylename' not in style_attributes:
-        style_attributes['parentstylename'] = 'Text_20_body'
-
-
-    paragraph_style = None
-
-    # create the style
-    # paragraph_style = style.Style(attributes=style_attributes)
-    #
-    # if paragraph_attributes is not None:
-    #     paragraph_style.addElement(style.ParagraphProperties(attributes=paragraph_attributes))
-    #
-    # if text_attributes is not None:
-    #     paragraph_style.addElement(style.TextProperties(attributes=text_attributes))
-    #
-    # odt.automaticstyles.addElement(paragraph_style)
-
-    # return paragraph_style.getAttribute('name')
-    return paragraph_style
-
-
 ''' page number
 '''
 def create_page_number(style_name, short=False):
@@ -250,34 +218,26 @@ def create_page_number(style_name, short=False):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, style_name, text_content=None, run_list=None, outline_level=0):
+def create_paragraph(doc, style_name='Normal', text_content=None, run_list=None, outline_level=0):
     paragraph = None
 
-    # style = odt.getStyleByName(style_name)
-    # if style is None:
-    #     warn(f"style {style_name} not found")
-    #
-    # if run_list is not None:
-    #     paragraph = text.P(stylename=style)
-    #     for run in run_list:
-    #         style_attributes = {'family': 'text'}
-    #         text_style_name = create_paragraph_style(doc, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-    #         paragraph.addElement(text.Span(stylename=text_style_name, text=run['text']))
-    #
-    #     return paragraph
-    #
-    # if text_content is not None:
-    #     if outline_level == 0:
-    #         paragraph = text.P(stylename=style_name, text=text_content)
-    #     else:
-    #         paragraph = text.H(stylename=style_name, text=text_content, outlinelevel=outline_level)
-    #
-    #     return paragraph
-    # else:
-    #     paragraph = text.P(stylename=style_name)
-    #     return paragraph
+    if run_list is not None:
+		# TODO
+        return paragraph
 
-    return paragraph
+    if text_content is not None:
+        if outline_level == 0:
+            paragraph = doc.add_paragraph(text_content, style=style_name)
+        else:
+            paragraph = doc.add_heading(text_content, level=outline_level)
+
+        return paragraph
+
+    else:
+        paragraph = doc.add_paragraph('', style=style_name)
+        return paragraph
+
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
@@ -356,18 +316,18 @@ def create_lot():
 
 ''' add document section
 '''
-def add_document_section(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation, different_firstpage):
+def add_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage):
 	# new section always starts with a page-break
     section = doc.add_section(WD_SECTION.NEW_PAGE)
 
     if orientation == 'landscape':
         section.orient = WD_ORIENT.LANDSCAPE
-	    section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
-	    section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
+        section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
+        section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
     else:
         section.orient = WD_ORIENT.PORTRAIT
-	    section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
-	    section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
+        section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
+        section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
 
     section.left_margin = Inches(docx_specs['margin-spec'][margin_spec]['left'])
     section.right_margin = Inches(docx_specs['margin-spec'][margin_spec]['right'])
@@ -384,86 +344,52 @@ def add_document_section(doc, docx_specs, page_layout_name, page_spec, margin_sp
     # get the actual width
     actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
 
-    # set header if it is not set already
-    set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
-
-    # set footer if it is not set already
-    set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+    # # set header if it is not set already
+    # set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
+	#
+    # # set footer if it is not set already
+    # set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
 
     return section
 
 
 ''' update an existing document section
 '''
-def update_document_section(doc, docx_specs, page_layout_name, page_spec, margin_spec, orientation, different_firstpage, section_index=-1):
+def update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_index=-1):
+	# we want to change section with index section_index
     section = doc.sections[section_index]
 
-    if section_spec['orient'] == 'LANDSCAPE':
+    if orientation == 'landscape':
         section.orient = WD_ORIENT.LANDSCAPE
+        section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
+        section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
     else:
         section.orient = WD_ORIENT.PORTRAIT
+        section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
+        section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
 
-    section.page_width = Inches(section_spec['page_width'])
-    section.page_height = Inches(section_spec['page_height'])
-    section.left_margin = Inches(section_spec['left_margin'])
-    section.right_margin = Inches(section_spec['right_margin'])
-    section.top_margin = Inches(section_spec['top_margin'])
-    section.bottom_margin = Inches(section_spec['bottom_margin'])
-    section.header_distance = Inches(section_spec['header_distance'])
-    section.footer_distance = Inches(section_spec['footer_distance'])
-    section.gutter = Inches(section_spec['gutter'])
-    section.different_first_page_header_footer = section_data['different-first-page-header-footer']
+    section.left_margin = Inches(docx_specs['margin-spec'][margin_spec]['left'])
+    section.right_margin = Inches(docx_specs['margin-spec'][margin_spec]['right'])
+    section.top_margin = Inches(docx_specs['margin-spec'][margin_spec]['top'])
+    section.bottom_margin = Inches(docx_specs['margin-spec'][margin_spec]['bottom'])
+
+    section.gutter = Inches(docx_specs['margin-spec'][margin_spec]['gutter'])
+
+    section.header_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['header'])
+    section.footer_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['footer'])
+
+    section.different_first_page_header_footer = different_firstpage
 
     # get the actual width
     actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
 
-    # set header if it is not set already
-    set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
-
-    # set footer if it is not set already
-    set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
-
+    # # set header if it is not set already
+    # set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
+	#
+    # # set footer if it is not set already
+    # set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
+	#
     return section
-
-
-''' create header/footer
-'''
-def create_header_footer(master_page, page_layout, header_footer, odd_even):
-    header_footer_style = None
-    if header_footer == 'header':
-        height = f"{HEADER_HEIGHT}in"
-        if odd_even == 'odd':
-            header_footer_style = style.Header()
-        if odd_even == 'even':
-            header_footer_style = style.HeaderLeft()
-        if odd_even == 'first':
-            # header_footer_style = HeaderFirst()
-            pass
-
-    elif header_footer == 'footer':
-        height = f"{FOOTER_HEIGHT}in"
-        if odd_even == 'odd':
-            header_footer_style = style.Footer()
-        if odd_even == 'even':
-            header_footer_style = style.FooterLeft()
-        if odd_even == 'first':
-            # header_footer_style = FooterFirst()
-            pass
-
-    if header_footer_style:
-        # TODO: the height should come from actual header content height
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': height}
-        header_style = style.HeaderStyle()
-        header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
-        footer_style = style.FooterStyle()
-        footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
-        page_layout.addElement(header_style)
-        page_layout.addElement(footer_style)
-
-        master_page.addElement(header_footer_style)
-
-    return header_footer_style
-
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -585,6 +511,8 @@ GSHEET_OXML_BORDER_MAPPING = {
     'NONE': 'none'
 }
 
+
+
 '''
 Table of Contents
 '''
@@ -616,6 +544,7 @@ def add_toc(doc):
     r_element.append(fldChar2)
     r_element.append(fldChar4)
     p_element = paragraph._p
+
 
 '''
 List of Figures
@@ -649,6 +578,7 @@ def add_lof(doc):
     r_element.append(fldChar4)
     p_element = paragraph._p
 
+
 '''
 List of Tables
 '''
@@ -680,6 +610,7 @@ def add_lot(doc):
     r_element.append(fldChar2)
     r_element.append(fldChar4)
     p_element = paragraph._p
+
 
 def add_numbered_paragraph(doc, text, restart=False, style='List Number'):
     if restart:
@@ -719,6 +650,7 @@ def add_numbered_paragraph(doc, text, restart=False, style='List Number'):
     else:
         doc.add_paragraph(text, style)
 
+
 def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
     p = paragraph._p  # p is the <w:p> XML element
     pPr = p.get_or_add_pPr()
@@ -738,6 +670,7 @@ def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
     bottom.set(qn('w:space'), '1')
     bottom.set(qn('w:color'), color)
     pBdr.append(bottom)
+
 
 def append_page_number_only(paragraph):
     run = paragraph.add_run()
@@ -765,6 +698,7 @@ def append_page_number_only(paragraph):
     r_element.append(fldCharSeparate1)
     r_element.append(fldCharEnd1)
     p_element = paragraph._p
+
 
 def append_page_number_with_pages(paragraph, separator=' of '):
     run = paragraph.add_run()
@@ -819,6 +753,7 @@ def append_page_number_with_pages(paragraph, separator=' of '):
     r_element.append(fldCharEnd2)
     p_element = paragraph._p
 
+
 def rotate_text(cell: _Cell, direction: str):
     # direction: tbRl -- top to bottom, btLr -- bottom to top
     assert direction in ("tbRl", "btLr")
@@ -827,6 +762,7 @@ def rotate_text(cell: _Cell, direction: str):
     textDirection = OxmlElement('w:textDirection')
     textDirection.set(qn('w:val'), direction)  # btLr tbRl
     tcPr.append(textDirection)
+
 
 def set_character_style(run, spec):
     run.bold = spec['bold']
@@ -848,13 +784,16 @@ def set_character_style(run, spec):
 
     run.font.color.rgb = RGBColor(red, green, blue)
 
+
 def set_cell_bgcolor(cell, color):
     shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
     cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
+
 def set_paragraph_bgcolor(paragraph, color):
     shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
     paragraph._p.get_or_add_pPr().append(shading_elm_1)
+
 
 def copy_cell_border(from_cell: _Cell, to_cell: _Cell):
     from_tc = from_cell._tc
@@ -869,6 +808,7 @@ def copy_cell_border(from_cell: _Cell, to_cell: _Cell):
         if to_tcBorders is None:
             to_tcBorders = deepcopy(from_tcBorders)
             to_tc.get_or_add_tcPr().append(to_tcBorders)
+
 
 def set_cell_border(cell: _Cell, **kwargs):
     """
@@ -908,6 +848,7 @@ def set_cell_border(cell: _Cell, **kwargs):
             for key in ["sz", "val", "color", "space", "shadow"]:
                 if key in edge_data:
                     element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
 
 def set_paragraph_border(paragraph, **kwargs):
     """
@@ -950,6 +891,7 @@ def set_paragraph_border(paragraph, **kwargs):
                 if key in edge_data:
                     element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
+
 def merge_document(placeholder, docx_path):
     # the document is in the same folder as the template, get the path
     # docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
@@ -962,6 +904,7 @@ def merge_document(placeholder, docx_path):
         par_parent.insert(index, element)
         index = index + 1
 
+
 def polish_table(table):
     for r in table.rows:
         # no preferred width for the last column
@@ -970,6 +913,7 @@ def polish_table(table):
         tcW = c.tcPr.tcW
         tcW.type = 'auto'
         tcW.w = 0
+
 
 def ooxml_border_from_gsheet_border(borders, key):
     if key in borders:
@@ -987,6 +931,7 @@ def ooxml_border_from_gsheet_border(borders, key):
     else:
         return None
 
+
 def insert_image(cell, image_spec):
     '''
         image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
@@ -994,6 +939,7 @@ def insert_image(cell, image_spec):
     if image_spec is not None:
         run = cell.paragraphs[0].add_run()
         run.add_picture(image_spec['path'], height=Pt(image_spec['height']), width=Pt(image_spec['width']))
+
 
 def set_repeat_table_header(row):
     ''' set repeat table row on every new page
