@@ -37,3 +37,15 @@ odt-from-gsheet.bat BBA-Toll__EOI-04__résumé-index
 odt-from-gsheet.bat BBA-Toll__EOI-05__req-qualification-compliance
 odt-from-gsheet.bat BBA-Toll__EOI-06__compliance-to-ToR
 odt-from-gsheet.bat BBA-Toll__EOI-07__approach-and-methodology
+
+
+./odt-from-gsheet.sh pds__DSHE-DC
+./odt-from-gsheet.sh pds__iBAS
+./odt-from-gsheet.sh pds__InterCon
+./odt-from-gsheet.sh pds__BCC-AMC-2020
+./odt-from-gsheet.sh pds__DBBL-DC-tvnl
+./odt-from-gsheet.sh pds__DBL-LAN-tvnl
+./odt-from-gsheet.sh pds__EBL-DC-tvnl
+./odt-from-gsheet.sh pds__Ship-Aichi-DC-tvnl
+./odt-from-gsheet.sh pds__STSCTG-DC-tvnl
+./odt-from-gsheet.sh pds__UCBL-DC-tvnl
