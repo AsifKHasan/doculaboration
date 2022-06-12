@@ -27,6 +27,9 @@ odt-from-gsheet.bat BBA-Toll__EOI-ToR
 
 odt-from-gsheet.bat spectrum__résumé-index
 
+odt-from-gsheet.bat SAU-CAS__functional-requirement-specification
+
+
 odt-from-gsheet.bat BBA-Toll__EOI-01__letters-forms
 odt-from-gsheet.bat BBA-Toll__EOI-02__organizational-documents
 odt-from-gsheet.bat BBA-Toll__EOI-03__project-data-sheet
