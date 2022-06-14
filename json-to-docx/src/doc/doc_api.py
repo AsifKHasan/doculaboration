@@ -46,9 +46,9 @@ class DocxSectionBase(object):
 
         # if it is the very first section, change the first section
         if self._section_data['first-section']:
-            this_section = update_document_section(self._doc, master_page_name='Standard', new_page_layout_name=self._section_data['page-layout'], different_firstpage=self._section_data['different-firstpage'], section_index=-1)
+            this_section = update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
         else:
-            this_section = add_document_section(self._doc, self._config['page-specs'], self._section_data['master-page'], self._section_data['page-layout'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
+            this_section = add_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
 
 
         this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
@@ -72,35 +72,30 @@ class DocxSectionBase(object):
 
     ''' Header/Footer processing
     '''
-    def process_header_footer(self, master_page, page_layout):
+    def process_header_footer(self):
         if self._section_data['header-odd']:
-            self.header_odd.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.header_odd.page_header_footer_to_doc(self._doc)
 
         if self._section_data['header-first']:
-            self.header_first.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.header_first.page_header_footer_to_doc(self._doc)
 
         if self._section_data['header-even']:
-            self.header_even.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.header_even.page_header_footer_to_doc(self._doc)
 
         if self._section_data['footer-odd']:
-            self.footer_odd.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.footer_odd.page_header_footer_to_doc(self._doc)
 
         if self._section_data['footer-first']:
-            self.footer_first.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.footer_first.page_header_footer_to_doc(self._doc)
 
         if self._section_data['footer-even']:
-            self.footer_even.page_header_footer_to_doc(self._doc, master_page, page_layout)
+            self.footer_even.page_header_footer_to_doc(self._doc)
 
 
     ''' generates the docx code
     '''
     def section_to_doc(self):
-        # master-page is created, decide on headers and footers
-        master_page = get_master_page(self._doc, self._section_data['master-page'])
-        page_layout = get_page_layout(self._doc, self._section_data['page-layout'])
-
-        if master_page and page_layout:
-            self.process_header_footer(master_page, page_layout)
+        self.process_header_footer()
 
         style_attributes = {}
 
@@ -112,36 +107,16 @@ class DocxSectionBase(object):
 
             outline_level = self._section_data['level'] + self.nesting_level
             if outline_level == 0:
-                parent_style_name = 'Title'
+                style_name = 'Title'
             else:
-                parent_style_name = f"Heading_20_{outline_level}"
+                style_name = f"Heading{outline_level}"
 
         else:
             heading_text = ''
-            parent_style_name = 'Text_20_body'
+            style_name = 'Normal'
             outline_level = 0
 
-        style_attributes['parentstylename'] = parent_style_name
-
-        paragraph_attributes = None
-        # handle section-break and page-break
-        if self._section_data['section-break']:
-            # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
-            style_name = f"P{self.section_index_text}-P0-with-section-break"
-            style_attributes['masterpagename'] = self._section_data['master-page']
-        else:
-            if self._section_data['page-break']:
-                # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
-                paragraph_attributes = {'breakbefore': 'page'}
-                style_name = f"P{self.section_index_text}-P0-with-page-break"
-            else:
-                style_name = f"P{self.section_index_text}-P0"
-
-        style_attributes['name'] = style_name
-
-        style_name = create_paragraph_style(self._doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(self._doc, style_name, text_content=heading_text, outline_level=outline_level)
-        # self._doc.text.addElement(paragraph)
+        paragraph = create_paragraph(self._doc, style_name=style_name, text_content=heading_text, outline_level=outline_level)
 
 
 
@@ -556,15 +531,13 @@ class DocxPageHeaderFooter(DocxContent):
 
     ''' generates the docx code
     '''
-    def page_header_footer_to_doc(self, doc, master_page, page_layout):
+    def page_header_footer_to_doc(self, doc):
         if self.content_data is None:
             return
 
-        header_footer_style = create_header_footer(master_page, page_layout, self.header_footer, self.odd_even)
-        if header_footer_style:
-            # iterate through tables and blocks contents
-            for block in self.content_list:
-                block.block_to_doc(doc=doc, container=header_footer_style)
+        # iterate through tables and blocks contents
+        for block in self.content_list:
+            block.block_to_doc(doc=doc, container=self)
 
 
 
@@ -1025,8 +998,7 @@ class StringValue(CellValue):
         if container is None:
             container = doc.text
 
-        style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(doc, style_name, text_content=self.value, outline_level=self.outline_level)
+        paragraph = create_paragraph(doc, text_content=self.value, outline_level=self.outline_level)
 
         if container and paragraph:
             container.addElement(paragraph)
@@ -1064,8 +1036,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(doc, style_name, run_list=run_value_list)
+        paragraph = create_paragraph(doc, run_list=run_value_list)
 
         if container and paragraph:
             container.addElement(paragraph)

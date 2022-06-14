@@ -3,7 +3,6 @@
 '''
 various utilities for rendering gsheet cell content into a docx, mostly for Formatter of type Table
 '''
-
 import json
 import time
 import pprint
