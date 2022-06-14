@@ -996,12 +996,9 @@ class StringValue(CellValue):
     '''
     def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
         if container is None:
-            container = doc.text
+            container = doc
 
-        paragraph = create_paragraph(doc, text_content=self.value, outline_level=self.outline_level)
-
-        if container and paragraph:
-            container.addElement(paragraph)
+        paragraph = create_paragraph(container, text_content=self.value, outline_level=self.outline_level)
 
 
 ''' text-run type CellValue

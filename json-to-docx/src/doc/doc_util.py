@@ -11,6 +11,7 @@ from pathlib import Path
 from copy import deepcopy
 
 from docx import Document
+from docx.text.paragraph import Paragraph
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 from docx.table import _Cell
@@ -218,23 +219,18 @@ def create_page_number(style_name, short=False):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, style_name='Normal', text_content=None, run_list=None, outline_level=0):
-    paragraph = None
-
+def create_paragraph(container, style_name='Normal', text_content=None, run_list=None, outline_level=0):
     if run_list is not None:
 		# TODO
+        paragraph = None
         return paragraph
 
     if text_content is not None:
-        if outline_level == 0:
-            paragraph = doc.add_paragraph(text_content, style=style_name)
-        else:
-            paragraph = doc.add_heading(text_content, level=outline_level)
-
+        paragraph = container.add_paragraph(text_content, style=style_name)
         return paragraph
 
     else:
-        paragraph = doc.add_paragraph('', style=style_name)
+        paragraph = container.add_paragraph('', style=style_name)
         return paragraph
 
 
