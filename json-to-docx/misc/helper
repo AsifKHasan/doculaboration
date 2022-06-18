@@ -8,5 +8,6 @@ set DOCUMENT="Tasnim.Kabir.Ratul__profile"
 set DOCUMENT="Résumé__Md.Jakir.Hossain"
 
 docx-from-gsheet.bat %DOCUMENT%
+./docx-from-gsheet.sh ${DOCUMENT}
 
 unzip -o %DOCUMENT%.odt -d abc && atom abc

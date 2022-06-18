@@ -46,9 +46,9 @@ class DocxSectionBase(object):
 
         # if it is the very first section, change the first section
         if self._section_data['first-section']:
-            this_section = update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
+            self.this_section = update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
         else:
-            this_section = add_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
+            self.this_section = add_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
 
 
         this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
@@ -74,22 +74,22 @@ class DocxSectionBase(object):
     '''
     def process_header_footer(self):
         if self._section_data['header-odd']:
-            self.header_odd.page_header_footer_to_doc(self._doc)
+            self.header_odd.page_header_footer_to_doc(doc=self._doc, container=self.this_section.header)
 
         if self._section_data['header-first']:
-            self.header_first.page_header_footer_to_doc(self._doc)
+            self.header_first.page_header_footer_to_doc(doc=self._doc, container=self.this_section.first_page_header)
 
         if self._section_data['header-even']:
-            self.header_even.page_header_footer_to_doc(self._doc)
+            self.header_even.page_header_footer_to_doc(doc=self._doc, container=self.this_section.even_page_header)
 
         if self._section_data['footer-odd']:
-            self.footer_odd.page_header_footer_to_doc(self._doc)
+            self.footer_odd.page_header_footer_to_doc(doc=self._doc, container=self.this_section.footer)
 
         if self._section_data['footer-first']:
-            self.footer_first.page_header_footer_to_doc(self._doc)
+            self.footer_first.page_header_footer_to_doc(doc=self._doc, container=self.this_section.first_page_footer)
 
         if self._section_data['footer-even']:
-            self.footer_even.page_header_footer_to_doc(self._doc)
+            self.footer_even.page_header_footer_to_doc(doc=self._doc, container=self.this_section.even_page_footer)
 
 
     ''' generates the docx code
@@ -195,9 +195,7 @@ class DocxToCSection(DocxSectionBase):
     '''
     def section_to_doc(self):
         super().section_to_doc()
-        toc = create_toc()
-        if toc:
-            self._doc.text.addElement(toc)
+        create_toc(self._doc)
 
 
 
@@ -510,7 +508,7 @@ class DocxContent(object):
     def content_to_doc(self, doc, container):
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_doc(doc=doc, container=container)
+            block.block_to_doc(doc=doc, container=container, container_width=self.content_width)
 
 
 
@@ -531,13 +529,13 @@ class DocxPageHeaderFooter(DocxContent):
 
     ''' generates the docx code
     '''
-    def page_header_footer_to_doc(self, doc):
+    def page_header_footer_to_doc(self, doc, container):
         if self.content_data is None:
             return
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_doc(doc=doc, container=self)
+            block.block_to_doc(doc=doc, container=container, container_width=self.content_width)
 
 
 
@@ -570,39 +568,25 @@ class DocxTable(DocxBlock):
 
     ''' generates the docx code
     '''
-    def block_to_doc(self, doc, container):
-        # create the table with styles
-        table_style_attributes = {'name': f"{self.table_name}_style"}
-        table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
-        table = create_table(doc, self.table_name, table_style_attributes=table_style_attributes, table_properties_attributes=table_properties_attributes)
+    def block_to_doc(self, doc, container, container_width):
+        num_cols = len(self.column_widths)
+        num_rows = len(self.table_cell_matrix)
+
+        tbl = create_table(container, num_rows=num_rows, num_cols=num_cols, container_width=container_width)
 
         # table-columns
         for c in range(0, len(self.column_widths)):
-            col_a1 = COLUMNS[c]
             col_width = self.column_widths[c]
-            table_column_name = f"{self.table_name}.{col_a1}"
-            table_column_style_attributes = {'name': f"{table_column_name}_style"}
-            table_column_properties_attributes = {'columnwidth': f"{col_width}in", 'useoptimalcolumnwidth': False}
-            table_column = create_table_column(doc, table_column_name, table_column_style_attributes, table_column_properties_attributes)
-            if table and table_column:
-                table.addElement(table_column)
+            table_column = tbl.columns[c]
+            table_column.width = Inches(col_width)
 
-        # iterate header rows render the table's contents
-        table_header_rows = create_table_header_rows()
-        if table_header_rows:
-            for row in self.table_cell_matrix[0:self.header_row_count]:
-                table_row = row.row_to_doc_table_row(doc, self.table_name)
-                table_header_rows.addElement(table_row)
-
-            table.addElement(table_header_rows)
+        # iterate header rows render the table's contents, self.header_row_count
 
         # iterate rows and cells to render the table's contents
-        if table:
+        if tbl:
             for row in self.table_cell_matrix[self.header_row_count:]:
                 table_row = row.row_to_doc_table_row(doc, self.table_name)
-                table.addElement(table_row)
 
-            container.addElement(table)
 
 
 
@@ -618,7 +602,7 @@ class DocxParagraph(DocxBlock):
 
     ''' generates the docx code
     '''
-    def block_to_doc(self, doc, container):
+    def block_to_doc(self, doc, container, container_width):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             # We take the first cell, the cell will take the whole row width
