@@ -2,6 +2,7 @@
 
 import json
 import importlib
+import inspect
 
 from doc.doc_util import *
 
@@ -16,6 +17,8 @@ class DocxSectionBase(object):
     ''' constructor
     '''
     def __init__(self, section_data, config):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self._config = config
         self._doc = self._config['docx']
         self._section_data = section_data
@@ -46,9 +49,9 @@ class DocxSectionBase(object):
 
         # if it is the very first section, change the first section
         if self._section_data['first-section']:
-            self.this_section = update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
+            self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
         else:
-            self.this_section = add_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
+            self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
 
 
         this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
@@ -73,28 +76,32 @@ class DocxSectionBase(object):
     ''' Header/Footer processing
     '''
     def process_header_footer(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         if self._section_data['header-odd']:
-            self.header_odd.page_header_footer_to_doc(doc=self._doc, container=self.this_section.header)
+            self.header_odd.content_to_doc(doc=self._doc, container=self.this_section.header)
 
         if self._section_data['header-first']:
-            self.header_first.page_header_footer_to_doc(doc=self._doc, container=self.this_section.first_page_header)
+            self.header_first.content_to_doc(doc=self._doc, container=self.this_section.first_page_header)
 
         if self._section_data['header-even']:
-            self.header_even.page_header_footer_to_doc(doc=self._doc, container=self.this_section.even_page_header)
+            self.header_even.content_to_doc(doc=self._doc, container=self.this_section.even_page_header)
 
         if self._section_data['footer-odd']:
-            self.footer_odd.page_header_footer_to_doc(doc=self._doc, container=self.this_section.footer)
+            self.footer_odd.content_to_doc(doc=self._doc, container=self.this_section.footer)
 
         if self._section_data['footer-first']:
-            self.footer_first.page_header_footer_to_doc(doc=self._doc, container=self.this_section.first_page_footer)
+            self.footer_first.content_to_doc(doc=self._doc, container=self.this_section.first_page_footer)
 
         if self._section_data['footer-even']:
-            self.footer_even.page_header_footer_to_doc(doc=self._doc, container=self.this_section.even_page_footer)
+            self.footer_even.content_to_doc(doc=self._doc, container=self.this_section.even_page_footer)
 
 
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self.process_header_footer()
 
         style_attributes = {}
@@ -127,12 +134,16 @@ class DocxTableSection(DocxSectionBase):
     ''' constructor
     '''
     def __init__(self, section_data, config):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         super().__init__(section_data, config)
 
 
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         super().section_to_doc()
         self.section_contents.content_to_doc(doc=self._doc, container=self._doc)
 
@@ -285,6 +296,8 @@ class DocxContent(object):
     ''' constructor
     '''
     def __init__(self, content_data, content_width, nesting_level):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self.content_data = content_data
         self.content_width = content_width
         self.nesting_level = nesting_level
@@ -361,6 +374,7 @@ class DocxContent(object):
         2. generate the proper order of tables and blocks
     '''
     def process(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # first we identify the missing cells or blank cells for merged spans
         for merge in self.merge_list:
@@ -462,6 +476,8 @@ class DocxContent(object):
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         # we have a concept of in-cell content and out-of-cell content
         # in-cell contents are treated as part of a table, while out-of-cell contents are treated as independent paragraphs, images etc. (blocks)
         next_table_starts_in_row = 0
@@ -506,6 +522,8 @@ class DocxContent(object):
         container may be doc.text or a table-cell
     '''
     def content_to_doc(self, doc, container):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_doc(doc=doc, container=container, container_width=self.content_width)
@@ -521,22 +539,12 @@ class DocxPageHeaderFooter(DocxContent):
         odd_even      : first/odd/even(left)
     '''
     def __init__(self, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self.nesting_level = nesting_level
         super().__init__(content_data, section_width, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
-        self.id = f"{self.header_footer}{self.odd_even}{section_index}"
-
-
-    ''' generates the docx code
-    '''
-    def page_header_footer_to_doc(self, doc, container):
-        if self.content_data is None:
-            return
-
-        # iterate through tables and blocks contents
-        for block in self.content_list:
-            block.block_to_doc(doc=doc, container=container, container_width=self.content_width)
-
+        self.id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
 
 ''' Docx Block object wrapper base class (plain docx, table, header etc.)
@@ -546,6 +554,7 @@ class DocxBlock(object):
     ''' constructor
     '''
     def __init__(self):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         pass
 
 
@@ -557,6 +566,8 @@ class DocxTable(DocxBlock):
     ''' constructor
     '''
     def __init__(self, cell_matrix, start_row, end_row, column_widths):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
@@ -569,6 +580,8 @@ class DocxTable(DocxBlock):
     ''' generates the docx code
     '''
     def block_to_doc(self, doc, container, container_width):
+        debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
 
@@ -597,12 +610,16 @@ class DocxParagraph(DocxBlock):
     ''' constructor
     '''
     def __init__(self, data_row, row_number):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         self.data_row = data_row
         self.row_number = row_number
 
     ''' generates the docx code
     '''
     def block_to_doc(self, doc, container, container_width):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             # We take the first cell, the cell will take the whole row width

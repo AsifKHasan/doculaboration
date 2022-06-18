@@ -88,18 +88,15 @@ def create_image_frame(doc, picture_path, valign, halign, width, height):
 def create_table(container, num_rows, num_cols, container_width=None):
 	tbl = None
 
-	print(type(container))
+	debug(f"... creating ({num_rows} x {num_cols}) table for {type(container)}")
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
-		print(type(container))
 		tbl = container.add_table(num_rows, num_cols, container_width)
 	elif type(container) is table._Cell:
 		# if the conrainer is a Cell
-		print(type(container))
 		tbl = container.add_table(num_rows, num_cols)
 	elif type(container) is document.Document:
 		# if the conrainer is a Document
-		print(type(container))
 		tbl = container.add_table(num_rows, num_cols)
 
 	return tbl
@@ -416,11 +413,23 @@ def create_lot():
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # document-section, page-layout, header-footer
 
-''' add document section
+''' add or update a document section
 '''
-def add_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage):
-	# new section always starts with a page-break
-	section = doc.add_section(WD_SECTION.NEW_PAGE)
+def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_index=None):
+	if not section_index is None:
+		# we want to change section with index section_index
+		section = doc.sections[section_index]
+	else:
+		# new section always starts with a page-break
+		section = doc.add_section(WD_SECTION.NEW_PAGE)
+
+	section.first_page_header.is_linked_to_previous = False
+	section.header.is_linked_to_previous = False
+	section.even_page_header.is_linked_to_previous = False
+
+	section.first_page_footer.is_linked_to_previous = False
+	section.footer.is_linked_to_previous = False
+	section.even_page_footer.is_linked_to_previous = False
 
 	if orientation == 'landscape':
 		section.orient = WD_ORIENT.LANDSCAPE
@@ -446,52 +455,8 @@ def add_document_section(doc, docx_specs, page_spec, margin_spec, orientation, d
 	# get the actual width
 	actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
 
-	# # set header if it is not set already
-	# set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
-	#
-	# # set footer if it is not set already
-	# set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
-
 	return section
 
-
-''' update an existing document section
-'''
-def update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_index=-1):
-	# we want to change section with index section_index
-	section = doc.sections[section_index]
-
-	if orientation == 'landscape':
-		section.orient = WD_ORIENT.LANDSCAPE
-		section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
-		section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
-	else:
-		section.orient = WD_ORIENT.PORTRAIT
-		section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
-		section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
-
-	section.left_margin = Inches(docx_specs['margin-spec'][margin_spec]['left'])
-	section.right_margin = Inches(docx_specs['margin-spec'][margin_spec]['right'])
-	section.top_margin = Inches(docx_specs['margin-spec'][margin_spec]['top'])
-	section.bottom_margin = Inches(docx_specs['margin-spec'][margin_spec]['bottom'])
-
-	section.gutter = Inches(docx_specs['margin-spec'][margin_spec]['gutter'])
-
-	section.header_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['header'])
-	section.footer_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['footer'])
-
-	section.different_first_page_header_footer = different_firstpage
-
-	# get the actual width
-	actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
-
-	# # set header if it is not set already
-	# set_header(doc, section, section_data['header-first'], section_data['header-odd'], section_data['header-even'], actual_width)
-	#
-	# # set footer if it is not set already
-	# set_footer(doc, section, section_data['footer-first'], section_data['footer-odd'], section_data['footer-even'], actual_width)
-	#
-	return section
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
