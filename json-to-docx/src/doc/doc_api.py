@@ -7,7 +7,7 @@ import inspect
 from doc.doc_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
-#   docx section (not oo section, gsheet section) objects wrappers
+#   docx (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
 
 ''' Docx section base object
@@ -79,22 +79,22 @@ class DocxSectionBase(object):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         if self._section_data['header-odd']:
-            self.header_odd.content_to_doc(doc=self._doc, container=self.this_section.header)
+            self.header_odd.content_to_doc(container=self.this_section.header)
 
         if self._section_data['header-first']:
-            self.header_first.content_to_doc(doc=self._doc, container=self.this_section.first_page_header)
+            self.header_first.content_to_doc(container=self.this_section.first_page_header)
 
         if self._section_data['header-even']:
-            self.header_even.content_to_doc(doc=self._doc, container=self.this_section.even_page_header)
+            self.header_even.content_to_doc(container=self.this_section.even_page_header)
 
         if self._section_data['footer-odd']:
-            self.footer_odd.content_to_doc(doc=self._doc, container=self.this_section.footer)
+            self.footer_odd.content_to_doc(container=self.this_section.footer)
 
         if self._section_data['footer-first']:
-            self.footer_first.content_to_doc(doc=self._doc, container=self.this_section.first_page_footer)
+            self.footer_first.content_to_doc(container=self.this_section.first_page_footer)
 
         if self._section_data['footer-even']:
-            self.footer_even.content_to_doc(doc=self._doc, container=self.this_section.even_page_footer)
+            self.footer_even.content_to_doc(container=self.this_section.even_page_footer)
 
 
     ''' generates the docx code
@@ -123,7 +123,7 @@ class DocxSectionBase(object):
             style_name = 'Normal'
             outline_level = 0
 
-        paragraph = create_paragraph(self._doc, style_name=style_name, text_content=heading_text, outline_level=outline_level)
+        paragraph = create_paragraph(container=self._doc, style_attributes={'parentstylename': style_name}, text_content=heading_text, outline_level=outline_level)
 
 
 
@@ -145,8 +145,7 @@ class DocxTableSection(DocxSectionBase):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         super().section_to_doc()
-        self.section_contents.content_to_doc(doc=self._doc, container=self._doc)
-
+        self.section_contents.content_to_doc(container=self._doc)
 
 
 
@@ -206,7 +205,7 @@ class DocxToCSection(DocxSectionBase):
     '''
     def section_to_doc(self):
         super().section_to_doc()
-        create_toc(self._doc)
+        create_index(self._doc, index_type='toc')
 
 
 
@@ -224,9 +223,7 @@ class DocxLoTSection(DocxSectionBase):
     '''
     def section_to_doc(self):
         super().section_to_doc()
-        toc = create_lot()
-        if toc:
-            self._doc.text.addElement(toc)
+        create_index(self._doc, index_type='lot')
 
 
 
@@ -244,9 +241,7 @@ class DocxLoFSection(DocxSectionBase):
     '''
     def section_to_doc(self):
         super().section_to_doc()
-        toc = create_lof()
-        if toc:
-            self._doc.text.addElement(toc)
+        create_index(self._doc, index_type='lof')
 
 
 
@@ -277,14 +272,7 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph_attributes['breakbefore'] = 'page'
 
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    # print(image_width_in_inches, image_height_in_inches)
                     draw_frame = create_image_frame(self._doc, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
-
-                    style_name = create_paragraph_style(self._doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                    paragraph = create_paragraph(self._doc, style_name)
-                    paragraph.addElement(draw_frame)
-
-                    self._doc.text.addElement(paragraph)
                     first_image = False
 
 
@@ -519,14 +507,14 @@ class DocxContent(object):
 
 
     ''' generates the docx code
-        container may be doc.text or a table-cell
+        container may be doc, header/footer or a Cell
     '''
-    def content_to_doc(self, doc, container):
+    def content_to_doc(self, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_doc(doc=doc, container=container, container_width=self.content_width)
+            block.block_to_doc(container=container, container_width=self.content_width)
 
 
 
@@ -545,6 +533,7 @@ class DocxPageHeaderFooter(DocxContent):
         super().__init__(content_data, section_width, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.id = f"{self.header_footer}-{self.odd_even}-{section_index}"
+
 
 
 ''' Docx Block object wrapper base class (plain docx, table, header etc.)
@@ -579,7 +568,7 @@ class DocxTable(DocxBlock):
 
     ''' generates the docx code
     '''
-    def block_to_doc(self, doc, container, container_width):
+    def block_to_doc(self, container, container_width):
         debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         num_cols = len(self.column_widths)
@@ -598,8 +587,7 @@ class DocxTable(DocxBlock):
         # iterate rows and cells to render the table's contents
         if tbl:
             for row in self.table_cell_matrix[self.header_row_count:]:
-                table_row = row.row_to_doc_table_row(doc, self.table_name)
-
+                table_row = row.row_to_doc_table_row(container, self.table_name)
 
 
 
@@ -617,7 +605,7 @@ class DocxParagraph(DocxBlock):
 
     ''' generates the docx code
     '''
-    def block_to_doc(self, doc, container, container_width):
+    def block_to_doc(self, container, container_width):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # generate the block, only the first cell of the data_row to be produced
@@ -626,7 +614,8 @@ class DocxParagraph(DocxBlock):
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
 
-            cell_to_produce.cell_to_doc(doc=doc, container=container)
+            cell_to_produce.cell_to_doc(container=container)
+
 
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -729,7 +718,7 @@ class Cell(object):
             table_cell = create_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
             if table_cell:
-                self.cell_to_doc(doc=doc, container=table_cell)
+                self.cell_to_doc(container=table_cell)
 
         else:
             # wrap this into a covered-table-cell
@@ -740,17 +729,16 @@ class Cell(object):
 
     ''' docx code for cell content
     '''
-    def cell_to_doc(self, doc, container):
+    def cell_to_doc(self, container):
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell(container), self.merge_spec)}
-        # print(self)
         text_attributes = self.effective_format.text_format.text_attributes()
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                self.cell_value.value_to_doc(doc, container, self.effective_cell_width, self.effective_cell_height, style_attributes, paragraph_attributes, text_attributes)
+                self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
 
 
 
@@ -931,7 +919,7 @@ class TextFormat(object):
     def text_attributes(self):
         attributes = {}
 
-        attributes['color'] = self.fgcolor.value()
+        attributes['color'] = self.fgcolor
         if self.font_family != '':
             attributes['fontname'] = self.font_family
 
@@ -995,11 +983,9 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
-        if container is None:
-            container = doc
+    def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
+        paragraph = create_paragraph(container=container, text_content=self.value, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
 
-        paragraph = create_paragraph(container, text_content=self.value, outline_level=self.outline_level)
 
 
 ''' text-run type CellValue
@@ -1023,10 +1009,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
-        if container is None:
-            container = doc
-
+    def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1034,10 +1017,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(doc, run_list=run_value_list)
-
-        if container and paragraph:
-            container.addElement(paragraph)
+        paragraph = create_paragraph(container=container, run_list=run_value_list)
 
 
 
@@ -1061,14 +1041,8 @@ class PageNumberValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
-        if container is None:
-            container = doc.text
-
-        style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_page_number(style_name=style_name, short=self.short)
-
-        container.addElement(paragraph)
+    def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
+        paragraph = create_page_number(container=container, style_attributes=style_attributes, text_attributes=text_attributes, short=self.short)
 
 
 
@@ -1092,10 +1066,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
-        if container is None:
-            container = doc.text
-
+    def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1124,12 +1095,6 @@ class ImageValue(CellValue):
 
         draw_frame = create_image_frame(doc, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
 
-        style_name = create_paragraph_style(doc, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(doc, style_name)
-        paragraph.addElement(draw_frame)
-
-        container.addElement(paragraph)
-
 
 
 ''' content type CellValue
@@ -1152,9 +1117,9 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, doc, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
         self.contents = DocxContent(self.value, cell_width, self.nesting_level)
-        self.contents.content_to_doc(doc=doc, container=container)
+        self.contents.content_to_doc(container=container)
 
 
 
@@ -1515,7 +1480,6 @@ class TextFormatRun(object):
 
 
 ''' gsheet cell notes object wrapper
-    TODO: handle keep-with-previous defined in notes
 '''
 class CellNote(object):
 
@@ -1567,7 +1531,7 @@ class CellNote(object):
                     self.keep_with_next = True
 
 
-    ''' style attributes dict to create Style
+    ''' style attributes dict
     '''
     def style_attributes(self):
         attributes = {}
@@ -1578,7 +1542,8 @@ class CellNote(object):
         return attributes
 
 
-    ''' paragraph attrubutes dict to craete ParagraphProperties
+    ''' paragraph attributes dict
+
     '''
     def paragraph_attributes(self):
         attributes = {}
@@ -1588,6 +1553,9 @@ class CellNote(object):
 
         if self.keep_with_next:
             attributes['keepwithnext'] = 'always'
+
+        if self.keep_with_previous:
+            attributes['keepwithprevious'] = 'always'
 
         return attributes
 

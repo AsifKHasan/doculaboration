@@ -10,20 +10,17 @@ import string
 from pathlib import Path
 from copy import deepcopy
 
-# import docx
 from docx import Document
 from docx import section, document, table
 from docx.text.paragraph import Paragraph
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
-# from docx.table import _Cell
 
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
-
 
 if sys.platform == 'win32':
 	import win32com.client as client
@@ -253,19 +250,89 @@ def create_page_number(paragraph, short=False, separator=' of '):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, style_name='Normal', text_content=None, run_list=None, outline_level=0):
-	if run_list is not None:
-		# TODO
-		paragraph = None
-		return paragraph
+def create_paragraph(container, text_content=None, run_list=None, style_attributes=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
+	# create or get the paragraph
+	if type(container) is section._Header or type(container) is section._Footer:
+		# if the container is a Header/Footer
+		paragraph = container.add_paragraph()
 
-	if text_content is not None:
-		paragraph = container.add_paragraph(text_content, style=style_name)
-		return paragraph
+	elif type(container) is table._Cell:
+		# if the conrainer is a Cell, the Cell already has an empty paragraph
+		paragraph = container.paragraphs[0]
+
+	elif type(container) is document.Document:
+		# if the conrainer is a Document
+		paragraph = container.add_paragraph()
 
 	else:
-		paragraph = container.add_paragraph('', style=style_name)
-		return paragraph
+		# if the conrainer is anything else
+		paragraph = container.add_paragraph()
+
+
+	# apply the style if any
+	if style_attributes and 'parentstylename' in style_attributes:
+		style_name = style_attributes['parentstylename']
+		paragraph.style = style_name
+
+
+	# apply paragraph attrubutes
+	if paragraph_attributes:
+		pf = paragraph.paragraph_format
+		# process new-page
+		if 'breakbefore' in paragraph_attributes:
+			pf.page_break_before = True
+
+		# process keep-with-next
+		if 'keepwithnext' in paragraph_attributes:
+			pf.keep_with_next = True
+
+		# process keep-with-previous
+		if 'keepwithprevious' in paragraph_attributes:
+			pf.keep_with_previous = True
+
+
+	# run lists are a series of runs inside the paragraph
+	if run_list is not None:
+		for text_run in run_list:
+			run = paragraph.add_run(text_run['text'])
+			set_text_style(run, text_run['text-attributes'])
+
+	else:
+		run = paragraph.add_run(text_content)
+		set_text_style(run, text_attributes)
+
+	return paragraph
+
+
+''' tex/character style for text run
+'''
+def set_text_style(run, text_attributes):
+	if text_attributes:
+		if 'fontweight' in text_attributes:
+			run.bold = True
+		else:
+			run.bold = False
+
+		if 'fontstyle' in text_attributes:
+			run.italic = True
+		else:
+			run.italic = False
+
+		if 'textlinethroughstyle' in text_attributes:
+			run.strike = True
+		else:
+			run.strike = False
+
+		if 'textunderlinestyle' in text_attributes:
+			run.underline = True
+		else:
+			run.underline = False
+
+		run.font.name = text_attributes['fontname']
+		run.font.size = Pt(text_attributes['fontsize'])
+
+		fgcolor = text_attributes.get('color')
+		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
 
 
 
@@ -315,87 +382,28 @@ def generate_pdf(infile, outdir):
 
 ''' create table-of-contents
 '''
-def create_toc(doc):
+def create_index(doc, index_type):
 	paragraph = doc.add_paragraph()
 	run = paragraph.add_run()
-	# creates a new element
+
+	# create a new element with attributes
 	fldChar = OxmlElement('w:fldChar')
-	# sets attribute on element
 	fldChar.set(qn('w:fldCharType'), 'begin')
+
 	instrText = OxmlElement('w:instrText')
-	# sets attribute on element
 	instrText.set(qn('xml:space'), 'preserve')
-	# change 1-3 depending on heading levels you need
-	instrText.text = 'TOC \\o "1-6" \\h \\z \\u'
+
+	if index_type == 'toc':
+		instrText.text = 'TOC \\o "1-6" \\h \\z \\u'
+	elif index_type == 'lof':
+		instrText.text = 'TOC \\h \\z \\t "Figure" \\c'
+	elif index_type == 'lot':
+		instrText.text = 'TOC \\h \\z \\t "Table" \\c'
 
 	fldChar2 = OxmlElement('w:fldChar')
 	fldChar2.set(qn('w:fldCharType'), 'separate')
 	fldChar3 = OxmlElement('w:t')
-	fldChar3.text = "Right-click to update Table of Contents."
-	fldChar2.append(fldChar3)
-
-	fldChar4 = OxmlElement('w:fldChar')
-	fldChar4.set(qn('w:fldCharType'), 'end')
-
-	r_element = run._r
-	r_element.append(fldChar)
-	r_element.append(instrText)
-	r_element.append(fldChar2)
-	r_element.append(fldChar4)
-	p_element = paragraph._p
-
-
-''' create illustration-index
-'''
-def create_lof(doc):
-	paragraph = doc.add_paragraph()
-	run = paragraph.add_run()
-	# creates a new element
-	fldChar = OxmlElement('w:fldChar')
-	# sets attribute on element
-	fldChar.set(qn('w:fldCharType'), 'begin')
-	instrText = OxmlElement('w:instrText')
-	# sets attribute on element
-	instrText.set(qn('xml:space'), 'preserve')
-	# change 1-3 depending on heading levels you need
-	instrText.text = 'TOC \\h \\z \\t "Figure" \\c'
-
-	fldChar2 = OxmlElement('w:fldChar')
-	fldChar2.set(qn('w:fldCharType'), 'separate')
-	fldChar3 = OxmlElement('w:t')
-	fldChar3.text = "Right-click to update List of Figures."
-	fldChar2.append(fldChar3)
-
-	fldChar4 = OxmlElement('w:fldChar')
-	fldChar4.set(qn('w:fldCharType'), 'end')
-
-	r_element = run._r
-	r_element.append(fldChar)
-	r_element.append(instrText)
-	r_element.append(fldChar2)
-	r_element.append(fldChar4)
-	p_element = paragraph._p
-
-
-''' create Table-index
-'''
-def create_lot():
-	paragraph = doc.add_paragraph()
-	run = paragraph.add_run()
-	# creates a new element
-	fldChar = OxmlElement('w:fldChar')
-	# sets attribute on element
-	fldChar.set(qn('w:fldCharType'), 'begin')
-	instrText = OxmlElement('w:instrText')
-	# sets attribute on element
-	instrText.set(qn('xml:space'), 'preserve')
-	# change 1-3 depending on heading levels you need
-	instrText.text = 'TOC \\h \\z \\t "Table" \\c'
-
-	fldChar2 = OxmlElement('w:fldChar')
-	fldChar2.set(qn('w:fldCharType'), 'separate')
-	fldChar3 = OxmlElement('w:t')
-	fldChar3.text = "Right-click to update List of Tables."
+	fldChar3.text = "Right-click to update Index."
 	fldChar2.append(fldChar3)
 
 	fldChar4 = OxmlElement('w:fldChar')
@@ -576,7 +584,6 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-
 def add_numbered_paragraph(doc, text, restart=False, style='List Number'):
 	if restart:
 		# new numbering
@@ -645,27 +652,6 @@ def rotate_text(cell: table._Cell, direction: str):
 	textDirection = OxmlElement('w:textDirection')
 	textDirection.set(qn('w:val'), direction)  # btLr tbRl
 	tcPr.append(textDirection)
-
-
-def set_character_style(run, spec):
-	run.bold = spec['bold']
-	run.italic = spec['italic']
-	run.strike = spec['strikethrough']
-	run.underline = spec['underline']
-
-	run.font.name = spec['fontFamily']
-	run.font.size = Pt(spec['fontSize'])
-
-	red, green, blue = 0, 0, 0
-	fgcolor = spec['foregroundColor']
-	if fgcolor == {}:
-		red, green, blue = 32, 32, 32
-	else:
-		red = int(fgcolor['red'] * 255) if 'red' in fgcolor else 0
-		green = int(fgcolor['green'] * 255) if 'green' in fgcolor else 0
-		blue = int(fgcolor['blue'] * 255) if 'blue' in fgcolor else 0
-
-	run.font.color.rgb = RGBColor(red, green, blue)
 
 
 def set_cell_bgcolor(cell, color):
