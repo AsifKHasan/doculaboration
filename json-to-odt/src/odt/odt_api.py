@@ -768,7 +768,7 @@ class Cell(object):
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell(container), self.merge_spec)}
         # print(self)
-        text_attributes = self.effective_format.text_format.text_attributes()
+        text_attributes = self.effective_format.text_attributes()
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
@@ -1216,6 +1216,15 @@ class CellFormat(object):
             self.valign = None
             self.text_format = None
             self.wrapping = None
+
+
+    ''' attributes dict for Cell Text
+    '''
+    def text_attributes(self):
+        attributes = {}
+        if self.text_format:
+            attributes = self.text_format.text_attributes()
+        return attributes
 
 
     ''' attributes dict for TableCellProperties
