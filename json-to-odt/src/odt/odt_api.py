@@ -958,14 +958,22 @@ class TextFormat(object):
         attributes['color'] = self.fgcolor.value()
         if self.font_family != '':
             attributes['fontname'] = self.font_family
+            attributes['fontnameasian'] = self.font_family
+            attributes['fontnamecomplex'] = self.font_family
 
         attributes['fontsize'] = self.font_size
+        attributes['fontsizeasian'] = self.font_size
+        attributes['fontsizecomplex'] = self.font_size
 
         if self.is_bold:
             attributes['fontweight'] = "bold"
+            attributes['fontweightasian'] = "bold"
+            attributes['fontweightcomplex'] = "bold"
 
         if self.is_italic:
             attributes['fontstyle'] = "italic"
+            attributes['fontstyleasian'] = "italic"
+            attributes['fontstylecomplex'] = "italic"
 
         if self.is_underline:
             attributes['textunderlinestyle'] = "solid"
@@ -1257,22 +1265,29 @@ class CellFormat(object):
         else:
             attributes = {'textalign': self.halign.halign}
 
+        if self.bgcolor:
+            attributes['backgroundcolor'] = self.bgcolor.value()
+
+        if self.valign:
+            attributes['verticalalign'] = self.valign.valign
+
+        more_attributes = {}
         if for_table_cell:
-            if self.valign:
-                attributes['verticalalign'] = self.valign.valign
 
-            if self.bgcolor:
-                attributes['backgroundcolor'] = self.bgcolor.value()
+            if self.wrapping:
+                attributes['wrapoption'] = self.wrapping.wrapping
 
-            # if self.wrapping:
-            #     # attributes['wrapoption'] = self.wrapping.wrapping
-            more_attributes = {}
             if self.borders and self.padding:
                 more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
-            return {**attributes, **more_attributes}
+        else:
+            # TODO: borders for out-of-cell-paragraphs
+            # if self.borders:
+            #     more_attributes = self.borders.table_cell_attributes(cell_merge_spec)
+            pass
 
-        return attributes
+        return {**attributes, **more_attributes}
+
 
 
     ''' image position as required by BackgroundImage
