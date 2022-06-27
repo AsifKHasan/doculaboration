@@ -4,6 +4,8 @@ replace {"new-page": true, "keep-with-next": true}
 with {"content": "out-of-cell", "keep-with-next": true}
 ", 1)
 
+set DOCUMENT="কবিতার-অনুবাদ"
+
 set DOCUMENT="Tasnim.Kabir.Ratul__profile"
 odt-from-gsheet.bat %DOCUMENT%
 unzip -o %DOCUMENT%.odt -d abc && atom abc
