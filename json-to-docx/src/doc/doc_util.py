@@ -372,10 +372,18 @@ def generate_pdf(infile, outdir):
 	try:
 		word = client.DispatchEx("Word.Application")
 		doc = word.Documents.Open(infile)
-		doc.SaveAs(pdf_path, FileFormat = 17)
-		doc.Close()
+		try:
+			doc.SaveAs(pdf_path, FileFormat = 17)
+
+		except Exception as e:
+			raise e
+
+		finally:
+			doc.Close()
+
 	except Exception as e:
 		raise e
+
 	finally:
 		word.Quit()
 
