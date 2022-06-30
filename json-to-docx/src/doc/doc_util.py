@@ -37,13 +37,17 @@ def insert_image(container, picture_path, width, height):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		return container
 	else:
-		container.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		paragraph = container.add_paragraph()
+		run = paragraph.add_run()
+		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		return paragraph
 
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
-# table, table-row, table-column, table-cell
+# table and table-cell
 
 ''' create a Table
 '''
@@ -63,6 +67,94 @@ def create_table(container, num_rows, num_cols, container_width=None):
 
 	return tbl
 
+
+def format_container(container, attributes):
+	# borders
+	if 'borders' in attributes:
+		if is_table_cell(container):
+			print(f".. cell bordering")
+			set_cell_border(container, borders=attributes['borders'])
+		else:
+			print(f".. paragraph bordering")
+			set_paragraph_border(container, borders=attributes['borders'])
+
+
+
+''' set table-cell borders
+	top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
+	bottom={"sz": 12, "color": "#00FF00", "val": "single"},
+	start={"sz": 24, "val": "dashed", "shadow": "true"},
+	end={"sz": 12, "val": "dashed"},
+'''
+def set_cell_border(cell: table._Cell, borders):
+	tc = cell._tc
+	tcPr = tc.get_or_add_tcPr()
+
+	# check for tag existnace, if none found, then create one
+	tcBorders = tcPr.first_child_found_in("w:tcBorders")
+	if tcBorders is None:
+		tcBorders = OxmlElement('w:tcBorders')
+		tcPr.append(tcBorders)
+
+	# list over all available tags
+	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
+		edge_data = borders.get(edge)
+		if edge_data:
+			print(f".... found cell edge : {edge}")
+			tag = 'w:{}'.format(edge)
+
+			# check for tag existnace, if none found, then create one
+			element = tcBorders.find(qn(tag))
+			if element is None:
+				element = OxmlElement(tag)
+				tcBorders.append(element)
+
+			# looks like order of attributes is important
+			for key in ["sz", "val", "color", "space", "shadow"]:
+				if key in edge_data:
+					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+
+''' set paragraph borders
+	top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
+	bottom={"sz": 12, "color": "#00FF00", "val": "single"},
+	start={"sz": 24, "val": "dashed", "shadow": "true"},
+	end={"sz": 12, "val": "dashed"},
+'''
+def set_paragraph_border(paragraph, borders):
+	pPr = paragraph._p.get_or_add_pPr()
+
+	# check for tag existnace, if none found, then create one
+	pBorders = pPr.first_child_found_in("w:pBorders")
+	if pBorders is None:
+		pBorders = OxmlElement('w:pBorders')
+		pPr.append(pBorders)
+
+	# list over all available tags
+	for edge in ('top', 'start', 'bottom', 'end'):
+		edge_data = borders.get(edge)
+		if edge_data:
+			print(f".... found paragraph edge : {edge}")
+			edge_str = edge
+			if edge_str == 'start': edge_str = 'left'
+			if edge_str == 'end': edge_str = 'right'
+			tag = 'w:{}'.format(edge_str)
+
+			# check for tag existnace, if none found, then create one
+			element = pBorders.find(qn(tag))
+			if element is None:
+				element = OxmlElement(tag)
+				pBorders.append(element)
+
+			# looks like order of attributes is important
+			for key in ["sz", "val", "color", "space", "shadow"]:
+				if key in edge_data:
+					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# paragraphs and texts
 
 ''' page number wit/without page count
 '''
@@ -205,6 +297,11 @@ def set_text_style(run, text_attributes):
 
 		fgcolor = text_attributes.get('color')
 		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
+
+
+
+
+
 
 
 
@@ -499,88 +596,6 @@ def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
 			to_tc.get_or_add_tcPr().append(to_tcBorders)
 
 
-def set_cell_border(cell: table._Cell, **kwargs):
-	"""
-	Set cell's border
-	Usage:
-
-	set_cell_border(
-		cell,
-		top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-		bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-		start={"sz": 24, "val": "dashed", "shadow": "true"},
-		end={"sz": 12, "val": "dashed"},
-	)
-	"""
-	tc = cell._tc
-	tcPr = tc.get_or_add_tcPr()
-
-	# check for tag existnace, if none found, then create one
-	tcBorders = tcPr.first_child_found_in("w:tcBorders")
-	if tcBorders is None:
-		tcBorders = OxmlElement('w:tcBorders')
-		tcPr.append(tcBorders)
-
-	# list over all available tags
-	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
-		edge_data = kwargs.get(edge)
-		if edge_data:
-			tag = 'w:{}'.format(edge)
-
-			# check for tag existnace, if none found, then create one
-			element = tcBorders.find(qn(tag))
-			if element is None:
-				element = OxmlElement(tag)
-				tcBorders.append(element)
-
-			# looks like order of attributes is important
-			for key in ["sz", "val", "color", "space", "shadow"]:
-				if key in edge_data:
-					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
-
-
-def set_paragraph_border(paragraph, **kwargs):
-	"""
-	Set paragraph's border
-	Usage:
-
-	set_paragraph_border(
-		paragraph,
-		top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-		bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-		start={"sz": 24, "val": "dashed", "shadow": "true"},
-		end={"sz": 12, "val": "dashed"},
-	)
-	"""
-	pPr = paragraph._p.get_or_add_pPr()
-
-	# check for tag existnace, if none found, then create one
-	pBorders = pPr.first_child_found_in("w:pBorders")
-	if pBorders is None:
-		pBorders = OxmlElement('w:pBorders')
-		pPr.append(pBorders)
-
-	# list over all available tags
-	for edge in ('top', 'start', 'bottom', 'end'):
-		edge_data = kwargs.get(edge)
-		if edge_data:
-			edge_str = edge
-			if edge_str == 'start': edge_str = 'left'
-			if edge_str == 'end': edge_str = 'right'
-			tag = 'w:{}'.format(edge_str)
-
-			# check for tag existnace, if none found, then create one
-			element = pBorders.find(qn(tag))
-			if element is None:
-				element = OxmlElement(tag)
-				pBorders.append(element)
-
-			# looks like order of attributes is important
-			for key in ["sz", "val", "color", "space", "shadow"]:
-				if key in edge_data:
-					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
-
-
 def merge_document(placeholder, docx_path):
 	# the document is in the same folder as the template, get the path
 	# docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
@@ -602,23 +617,6 @@ def polish_table(table):
 		tcW = c.tcPr.tcW
 		tcW.type = 'auto'
 		tcW.w = 0
-
-
-def ooxml_border_from_gsheet_border(borders, key):
-	if key in borders:
-		border = borders[key]
-		red = int(border['color']['red'] * 255) if 'red' in border['color'] else 0
-		green = int(border['color']['green'] * 255) if 'green' in border['color'] else 0
-		blue = int(border['color']['blue'] * 255) if 'blue' in border['color'] else 0
-		color = '{0:02x}{1:02x}{2:02x}'.format(red, green, blue)
-		if 'style' in border:
-			border_style = border['style']
-		else:
-			border_style = 'NONE'
-
-		return {"sz": border['width'] * 8, "val": GSHEET_OXML_BORDER_MAPPING[border_style], "color": color, "space": "0"}
-	else:
-		return None
 
 
 def set_repeat_table_header(row):

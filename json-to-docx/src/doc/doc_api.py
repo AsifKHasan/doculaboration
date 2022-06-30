@@ -716,12 +716,7 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc_table_cell(self, table, table_cell):
-        col_a1 = COLUMNS[self.col_num]
-
-        table_cell_properties_attributes = {}
-        if self.effective_format:
-            table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
-        else:
+        if self.effective_format is None:
             warn(f"{self} : NO effective_format")
 
         if not self.is_empty:
@@ -734,6 +729,7 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc(self, container):
+        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
         style_attributes = self.note.style_attributes()
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell(container), self.merge_spec)}
         text_attributes = self.effective_format.text_format.text_attributes()
@@ -742,7 +738,11 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+
+                # apply table-cell related format
+                # print(table_cell_attributes)
+                format_container(container=where, attributes=table_cell_attributes)
 
 
 
@@ -974,6 +974,7 @@ class StringValue(CellValue):
     '''
     def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
         paragraph = create_paragraph(container=container, text_content=self.value, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+        return paragraph
 
 
 
@@ -1007,6 +1008,7 @@ class TextRunValue(CellValue):
             processed_idx = text_format_run.start_index
 
         paragraph = create_paragraph(container=container, run_list=run_value_list)
+        return paragraph
 
 
 
@@ -1032,6 +1034,7 @@ class PageNumberValue(CellValue):
     '''
     def value_to_doc(self, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes):
         paragraph = create_page_number(container=container, style_attributes=style_attributes, text_attributes=text_attributes, short=self.short)
+        return paragraph
 
 
 
@@ -1082,7 +1085,8 @@ class ImageValue(CellValue):
         text_attributes['fontsize'] = 2
         picture_path = self.value['path']
 
-        insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches)
+        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches)
+        return where
 
 
 
@@ -1193,12 +1197,6 @@ class CellFormat(object):
         return attributes
 
 
-    ''' image position as required by BackgroundImage
-    '''
-    def image_position(self):
-        return f"{IMAGE_POSITION[self.valign.valign]} {IMAGE_POSITION[self.halign.halign]}"
-
-
 
 ''' gsheet cell borders object wrapper
 '''
@@ -1240,30 +1238,29 @@ class Borders(object):
         # top and bottom
         if cell_merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.top:
-                attributes['bordertop'] = self.top.value()
+                attributes['top'] = self.top.value()
 
             if self.bottom:
-                attributes['borderbottom'] = self.bottom.value()
+                attributes['bottom'] = self.bottom.value()
 
         if cell_merge_spec.multi_row in [MultiSpan.LastCell]:
             if self.bottom:
-                attributes['borderbottom'] = self.bottom.value()
+                attributes['bottom'] = self.bottom.value()
 
 
         # left and right
         if cell_merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.left:
-                attributes['borderleft'] = self.left.value()
+                attributes['start'] = self.left.value()
 
             if self.right:
-                attributes['borderright'] = self.right.value()
+                attributes['end'] = self.right.value()
 
         if cell_merge_spec.multi_col in [MultiSpan.LastCell]:
             if self.right:
-                attributes['borderright'] = self.right.value()
+                attributes['end'] = self.right.value()
 
-
-        return attributes
+        return {'borders': attributes}
 
 
 
@@ -1283,7 +1280,7 @@ class Border(object):
             self.color = RgbColor(border_dict.get('color'))
 
             # TODO: handle double
-            self.style = GSHEET_ODT_BORDER_MAPPING.get(self.style, 'solid')
+            self.style = GSHEET_OXML_BORDER_MAPPING.get(self.style, 'solid')
 
 
     ''' string representation
@@ -1295,7 +1292,7 @@ class Border(object):
     ''' value
     '''
     def value(self):
-        return f"{self.width}pt {self.style} {self.color.value()}"
+    	return {"sz": self.width * 8, "val": self.style, "color": self.color.value(), "space": "0"}
 
 
 
