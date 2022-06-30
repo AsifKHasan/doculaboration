@@ -54,7 +54,7 @@ def insert_image(container, picture_path, width, height):
 def create_table(container, num_rows, num_cols, container_width=None):
 	tbl = None
 
-	debug(f"... creating ({num_rows} x {num_cols}) table for {type(container)}")
+	debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
@@ -65,26 +65,56 @@ def create_table(container, num_rows, num_cols, container_width=None):
 		# if the conrainer is a Document
 		tbl = container.add_table(num_rows, num_cols)
 
+	tbl.style = 'PlainTable'
+	tbl.autofit = False
+
 	return tbl
 
 
-def format_container(container, attributes):
+''' set repeat table row on every new page
+'''
+def set_repeat_table_header(row):
+	tr = row._tr
+	trPr = tr.get_or_add_trPr()
+	tblHeader = OxmlElement('w:tblHeader')
+	tblHeader.set(qn('w:val'), "true")
+	trPr.append(tblHeader)
+	return row
+
+
+''' format container (paragraph or cell)
+	border, bgcolor, padding, valign, halign
+'''
+def format_container(container, attributes, it_is_a_table_cell):
 	# borders
-	if 'borders' in attributes:
-		if is_table_cell(container):
-			print(f".. cell bordering")
+	if it_is_a_table_cell:
+		if 'padding' in attributes:
+			set_cell_padding(container, padding=attributes['padding'])
+
+		if 'borders' in attributes:
 			set_cell_border(container, borders=attributes['borders'])
-		else:
-			print(f".. paragraph bordering")
+
+		if 'backgroundcolor' in attributes:
+			set_cell_bgcolor(container, color=attributes['backgroundcolor'])
+
+		if 'verticalalign' in attributes:
+			container.vertical_alignment = attributes['verticalalign']
+
+		if 'textalign' in attributes:
+			container.paragraphs[0].alignment = attributes['textalign']
+
+	else:
+		if 'borders' in attributes:
 			set_paragraph_border(container, borders=attributes['borders'])
 
+		if 'backgroundcolor' in attributes:
+			set_paragraph_bgcolor(container, color=attributes['backgroundcolor'])
+
+		if 'textalign' in attributes:
+			container.alignment = attributes['textalign']
 
 
 ''' set table-cell borders
-	top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-	bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-	start={"sz": 24, "val": "dashed", "shadow": "true"},
-	end={"sz": 12, "val": "dashed"},
 '''
 def set_cell_border(cell: table._Cell, borders):
 	tc = cell._tc
@@ -100,7 +130,6 @@ def set_cell_border(cell: table._Cell, borders):
 	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
 		edge_data = borders.get(edge)
 		if edge_data:
-			print(f".... found cell edge : {edge}")
 			tag = 'w:{}'.format(edge)
 
 			# check for tag existnace, if none found, then create one
@@ -116,10 +145,6 @@ def set_cell_border(cell: table._Cell, borders):
 
 
 ''' set paragraph borders
-	top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-	bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-	start={"sz": 24, "val": "dashed", "shadow": "true"},
-	end={"sz": 12, "val": "dashed"},
 '''
 def set_paragraph_border(paragraph, borders):
 	pPr = paragraph._p.get_or_add_pPr()
@@ -134,7 +159,6 @@ def set_paragraph_border(paragraph, borders):
 	for edge in ('top', 'start', 'bottom', 'end'):
 		edge_data = borders.get(edge)
 		if edge_data:
-			print(f".... found paragraph edge : {edge}")
 			edge_str = edge
 			if edge_str == 'start': edge_str = 'left'
 			if edge_str == 'end': edge_str = 'right'
@@ -152,14 +176,47 @@ def set_paragraph_border(paragraph, borders):
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
+''' set table-cell bgcolor
+'''
+def set_cell_bgcolor(cell: table._Cell, color):
+	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
+	cell._tc.get_or_add_tcPr().append(shading_elm_1)
+
+
+''' set paragraph bgcolor
+'''
+def set_paragraph_bgcolor(paragraph, color):
+	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
+	paragraph._p.get_or_add_pPr().append(shading_elm_1)
+
+
+''' set table-cell borders
+'''
+def set_cell_padding(cell: table._Cell, padding):
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcMar = OxmlElement('w:tcMar')
+
+    for m in ["top", "start", "bottom", "end", ]:
+        if m in padding:
+            # print(f"padding : {m} : {padding.get(m)}")
+            node = OxmlElement("w:{}".format(m))
+            node.set(qn('w:w'), str(padding.get(m)))
+            node.set(qn('w:type'), 'dxa')
+            tcMar.append(node)
+
+    tcPr.append(tcMar)
+
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
-''' page number wit/without page count
+''' page number with/without page count
 '''
-def create_page_number(paragraph, short=False, separator=' of '):
+def create_page_number(container, text_attributes=None, short=False, separator=' of '):
+	paragraph = create_paragraph(container=container)
 	run = paragraph.add_run()
+	set_text_style(run, text_attributes)
 
 	# create a new element and set attributes
 	fldCharBegin1 = OxmlElement('w:fldChar')
@@ -211,10 +268,12 @@ def create_page_number(paragraph, short=False, separator=' of '):
 
 	p_element = paragraph._p
 
+	return paragraph
+
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, style_attributes=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -234,14 +293,14 @@ def create_paragraph(container, text_content=None, run_list=None, style_attribut
 
 
 	# apply the style if any
-	if style_attributes and 'parentstylename' in style_attributes:
-		style_name = style_attributes['parentstylename']
-		paragraph.style = style_name
-
-
-	# apply paragraph attrubutes
 	if paragraph_attributes:
+		# apply paragraph attrubutes
+		if 'stylename' in paragraph_attributes:
+			style_name = paragraph_attributes['stylename']
+			paragraph.style = style_name
+
 		pf = paragraph.paragraph_format
+
 		# process new-page
 		if 'breakbefore' in paragraph_attributes:
 			pf.page_break_before = True
@@ -297,11 +356,6 @@ def set_text_style(run, text_attributes):
 
 		fgcolor = text_attributes.get('color')
 		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
-
-
-
-
-
 
 
 
@@ -496,53 +550,49 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-COLSEP = (0/72)
+# COLSEP = (0/72)
 # ROWSEP = (2/72)
 
-HEADER_HEIGHT = 0.3
-FOOTER_HEIGHT = 0.3
-
-GSHEET_ODT_BORDER_MAPPING = {
-	'DOTTED': 'dotted',
-	'DASHED': 'dash',
-	'SOLID': 'solid'
-}
-
-
 HEADING_TO_LEVEL = {
-	'Heading 1': {'outline-level': 1},
-	'Heading 2': {'outline-level': 2},
-	'Heading 3': {'outline-level': 3},
-	'Heading 4': {'outline-level': 4},
-	'Heading 5': {'outline-level': 5},
-	'Heading 6': {'outline-level': 6},
-	'Heading 7': {'outline-level': 7},
-	'Heading 8': {'outline-level': 8},
-	'Heading 9': {'outline-level': 9},
-	'Heading 10': {'outline-level': 10},
+    'Heading 1': {'outline-level': 1},
+    'Heading 2': {'outline-level': 2},
+    'Heading 3': {'outline-level': 3},
+    'Heading 4': {'outline-level': 4},
+    'Heading 5': {'outline-level': 5},
+    'Heading 6': {'outline-level': 6},
+    'Heading 7': {'outline-level': 7},
+    'Heading 8': {'outline-level': 8},
+    'Heading 9': {'outline-level': 9},
+    'Heading 10': {'outline-level': 10},
 }
 
 
 LEVEL_TO_HEADING = [
-	'Title',
-	'Heading 1',
-	'Heading 2',
-	'Heading 3',
-	'Heading 4',
-	'Heading 5',
-	'Heading 6',
-	'Heading 7',
-	'Heading 8',
-	'Heading 9',
-	'Heading 10',
+    'Title',
+    'Heading 1',
+    'Heading 2',
+    'Heading 3',
+    'Heading 4',
+    'Heading 5',
+    'Heading 6',
+    'Heading 7',
+    'Heading 8',
+    'Heading 9',
+    'Heading 10',
 ]
 
+TEXT_VALIGN_MAP = {
+	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
+	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
+	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
+}
 
-TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
-# TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
-TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
-
-IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
+TEXT_HALIGN_MAP = {
+	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
+	'CENTER': WD_ALIGN_PARAGRAPH.CENTER,
+	'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT,
+	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
+}
 
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
@@ -569,16 +619,6 @@ def rotate_text(cell: table._Cell, direction: str):
 	textDirection = OxmlElement('w:textDirection')
 	textDirection.set(qn('w:val'), direction)  # btLr tbRl
 	tcPr.append(textDirection)
-
-
-def set_cell_bgcolor(cell, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
-	cell._tc.get_or_add_tcPr().append(shading_elm_1)
-
-
-def set_paragraph_bgcolor(paragraph, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
-	paragraph._p.get_or_add_pPr().append(shading_elm_1)
 
 
 def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
@@ -617,14 +657,3 @@ def polish_table(table):
 		tcW = c.tcPr.tcW
 		tcW.type = 'auto'
 		tcW.w = 0
-
-
-def set_repeat_table_header(row):
-	''' set repeat table row on every new page
-	'''
-	tr = row._tr
-	trPr = tr.get_or_add_trPr()
-	tblHeader = OxmlElement('w:tblHeader')
-	tblHeader.set(qn('w:val'), "true")
-	trPr.append(tblHeader)
-	return row

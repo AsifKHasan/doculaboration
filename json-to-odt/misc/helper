@@ -9,6 +9,7 @@ unzip -o ${DOCUMENT}.odt -d abc && atom abc
 
 set DOCUMENT="কবিতার-অনুবাদ"
 set DOCUMENT="PPA-2006__2019-01"
+set DOCUMENT="NBR-BSW__spectrum__résumé-index"
 
 set DOCUMENT="Tasnim.Kabir.Ratul__profile"
 odt-from-gsheet.bat %DOCUMENT%
