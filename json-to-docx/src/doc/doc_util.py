@@ -31,49 +31,14 @@ from helper.logger import *
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
-''' graphic-style
+''' insert image into a container
 '''
-def create_graphic_style(doc, valign, halign):
-	style_name = f"fr-{random_string()}"
-
-	# graphic_properties_attributes = {'wrap': 'none', 'verticalpos': valign, 'horizontalpos': halign}
-	# graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
-	#
-	# graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
-	# graphic_style = style.Style(attributes=graphic_style_attributes)
-	#
-	# graphic_style.addElement(graphic_properties)
-	# odt.automaticstyles.addElement(graphic_style)
-
-	return style_name
-
-
-''' frame and image
-'''
-def create_image_frame(doc, picture_path, valign, halign, width, height):
-	# THIS IS THE Draw:Frame object to return
-	draw_frame = None
-
-	# first the image to be added into the document
-	# href = doc.addPicture(picture_path)
-	# if href:
-	#	 # next we need the Draw:Image object
-	#	 image_attributes = {'href': href}
-	#	 # image_attributes[('draw', 'mimetype')] = 'image/png'
-	#	 draw_image = draw.Image(attributes=image_attributes)
-	#
-	#	 frame_style_name = create_graphic_style(doc, valign, halign)
-	#
-	#	 # finally we need the Draw:Frame object
-	#	 frame_attributes = {'stylename': frame_style_name, 'anchortype': 'paragraph', 'width': f"{width}in", 'height': f"{height}in"}
-	#	 draw_frame = draw.Frame(attributes=frame_attributes)
-	#
-	#	 draw_frame.addElement(draw_image)
-	#
-	# else:
-	#	 warn(f"image {picture_path} copuld not be added into the document")
-
-	return draw_frame
+def insert_image(container, picture_path, width, height):
+	if is_table_cell(container):
+		run = container.paragraphs[0].add_run()
+		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+	else:
+		container.add_picture(picture_path, height=Inches(height), width=Inches(width))
 
 
 
@@ -97,99 +62,6 @@ def create_table(container, num_rows, num_cols, container_width=None):
 		tbl = container.add_table(num_rows, num_cols)
 
 	return tbl
-
-
-''' create table-header-rows
-'''
-def create_table_header_rows():
-	# return table.TableHeaderRows()
-	return None
-
-
-''' create TableColumn
-'''
-def create_table_column(doc, table_column_name, table_column_style_attributes, table_column_properties_attributes):
-	table_column = None
-
-	if 'family' not in table_column_style_attributes:
-		table_column_style_attributes['family'] = 'table-column'
-
-	# create the style
-	# table_column_style = style.Style(attributes=table_column_style_attributes)
-	# table_column_style.addElement(style.TableColumnProperties(attributes=table_column_properties_attributes))
-	# odt.automaticstyles.addElement(table_column_style)
-	#
-	# # create the table-column
-	# table_column_properties = {'stylename': table_column_style_attributes['name']}
-	# table_column = table.TableColumn(attributes=table_column_properties)
-
-	return table_column
-
-
-''' create TableRow
-'''
-def create_table_row(doc, table_row_style_attributes, table_row_properties_attributes):
-	table_row = None
-
-	if 'family' not in table_row_style_attributes:
-		table_row_style_attributes['family'] = 'table-row'
-
-	# create the style
-	# table_row_style = style.Style(attributes=table_row_style_attributes)
-	# table_row_properties_attributes['keeptogether'] = 'always'
-	# table_row_style.addElement(style.TableRowProperties(attributes=table_row_properties_attributes))
-	# odt.automaticstyles.addElement(table_row_style)
-	#
-	# # create the table-row
-	# table_row_properties = {'stylename': table_row_style_attributes['name']}
-	# table_row = table.TableRow(attributes=table_row_properties)
-
-	return table_row
-
-
-''' create TableCell
-'''
-def create_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=None):
-	table_cell = None
-
-	if 'family' not in table_cell_style_attributes:
-		table_cell_style_attributes['family'] = 'table-cell'
-
-	# create the style
-	# table_cell_style = style.Style(attributes=table_cell_style_attributes)
-	# table_cell_properties = style.TableCellProperties(attributes=table_cell_properties_attributes)
-	#
-	# if background_image_style:
-	#	 table_cell_properties.addElement(background_image_style)
-	#
-	# table_cell_style.addElement(table_cell_properties)
-	# odt.automaticstyles.addElement(table_cell_style)
-	#
-	# # create the table-cell
-	# table_cell_attributes['stylename'] = table_cell_style_attributes['name']
-	# table_cell = table.TableCell(attributes=table_cell_attributes)
-
-	return table_cell
-
-
-''' create CoveredTableCell
-'''
-def create_covered_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes):
-	table_cell = None
-
-	if 'family' not in table_cell_style_attributes:
-		table_cell_style_attributes['family'] = 'table-cell'
-
-	# create the style
-	# table_cell_style = style.Style(attributes=table_cell_style_attributes)
-	# table_cell_style.addElement(style.TableCellProperties(attributes=table_cell_properties_attributes))
-	# odt.automaticstyles.addElement(table_cell_style)
-	#
-	# # create the table-cell
-	# table_cell_attributes = {'stylename': table_cell_style_attributes['name']}
-	# table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
-
-	return table_cell
 
 
 ''' page number wit/without page count
@@ -592,66 +464,6 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-def add_numbered_paragraph(doc, text, restart=False, style='List Number'):
-	if restart:
-		# new numbering
-		ABSTRACT_NUM_ID = 8
-		numbering = doc._part.numbering_part.numbering_definitions._numbering
-		num_id = numbering._next_numId
-		num = CT_Num.new(num_id, ABSTRACT_NUM_ID)
-		num.add_lvlOverride(ilvl=0).add_startOverride(1)
-		w_num = numbering._insert_num(num)
-
-		#w_num_pr_xml = '<w:ilvl w:val="0"/><w:numId w:val="{0}"/>'.format(num_id)
-		#w_num_pr = CT_NumPr()
-		p = doc.add_paragraph(text, style)
-
-		 # Access paragraph XML element
-		p_xml = p._p
-
-		# Paragraph properties
-		p_props = p_xml.get_or_add_pPr()
-
-		# Create number properties element
-		num_props = OxmlElement('w:numPr')
-
-		lvl_prop = OxmlElement('w:ilvl')
-		lvl_prop.set(qn('w:val'), '0')
-
-		num_id_prop = OxmlElement('w:numId')
-		num_id_prop.set(qn('w:val'), str(w_num.numId))
-
-		num_props.append(lvl_prop)
-		num_props.append(num_id_prop)
-
-		# Add number properties to paragraph
-		p_props.append(num_props)
-
-	else:
-		doc.add_paragraph(text, style)
-
-
-def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
-	p = paragraph._p  # p is the <w:p> XML element
-	pPr = p.get_or_add_pPr()
-	pBdr = OxmlElement('w:pBdr')
-	pPr.insert_element_before(pBdr,
-		'w:shd', 'w:tabs', 'w:suppressAutoHyphens', 'w:kinsoku', 'w:wordWrap',
-		'w:overflowPunct', 'w:topLinePunct', 'w:autoSpaceDE', 'w:autoSpaceDN',
-		'w:bidi', 'w:adjustRightInd', 'w:snapToGrid', 'w:spacing', 'w:ind',
-		'w:contextualSpacing', 'w:mirrorIndents', 'w:suppressOverlap', 'w:jc',
-		'w:textDirection', 'w:textAlignment', 'w:textboxTightWrap',
-		'w:outlineLvl', 'w:divId', 'w:cnfStyle', 'w:rPr', 'w:sectPr',
-		'w:pPrChange'
-	)
-	bottom = OxmlElement(pos)
-	bottom.set(qn('w:val'), 'single')
-	bottom.set(qn('w:sz'), size)
-	bottom.set(qn('w:space'), '1')
-	bottom.set(qn('w:color'), color)
-	pBdr.append(bottom)
-
-
 def rotate_text(cell: table._Cell, direction: str):
 	# direction: tbRl -- top to bottom, btLr -- bottom to top
 	assert direction in ("tbRl", "btLr")
@@ -807,15 +619,6 @@ def ooxml_border_from_gsheet_border(borders, key):
 		return {"sz": border['width'] * 8, "val": GSHEET_OXML_BORDER_MAPPING[border_style], "color": color, "space": "0"}
 	else:
 		return None
-
-
-def insert_image(cell, image_spec):
-	'''
-		image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
-	'''
-	if image_spec is not None:
-		run = cell.paragraphs[0].add_run()
-		run.add_picture(image_spec['path'], height=Pt(image_spec['height']), width=Pt(image_spec['width']))
 
 
 def set_repeat_table_header(row):

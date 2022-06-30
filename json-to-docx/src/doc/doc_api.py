@@ -574,7 +574,7 @@ class DocxTable(DocxBlock):
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
 
-        tbl = create_table(container, num_rows=num_rows, num_cols=num_cols, container_width=container_width)
+        tbl = create_table(container=container, num_rows=num_rows, num_cols=num_cols, container_width=container_width)
 
         # table-columns
         for c in range(0, len(self.column_widths)):
@@ -586,8 +586,22 @@ class DocxTable(DocxBlock):
 
         # iterate rows and cells to render the table's contents
         if tbl:
-            for row in self.table_cell_matrix[self.header_row_count:]:
-                table_row = row.row_to_doc_table_row(container, self.table_name)
+            for row_index in range(0, len(self.table_cell_matrix)):
+                row = self.table_cell_matrix[row_index];
+                table_row = tbl.rows[row_index]
+                row.row_to_doc_table_row(table=tbl, table_row=table_row)
+
+            # merge cells
+            for row_index in range(0, len(self.table_cell_matrix)):
+                row = self.table_cell_matrix[row_index];
+                for col_index in range(0, len(row.cells)):
+                    cell = row.cells[col_index]
+                    if cell.merge_spec.multi_row == MultiSpan.FirstCell or cell.merge_spec.multi_col == MultiSpan.FirstCell:
+                        # this is the first cell of a merge, we need to get the last cell
+                        start_table_cell = tbl.cell(row_index, col_index)
+                        end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
+                        # print(f".... merging cells [{row_index}, {col_index}] to [{row_index + cell.merge_spec.row_span-1}, {col_index + cell.merge_spec.col_span-1}]")
+                        start_table_cell.merge(end_table_cell)
 
 
 
@@ -701,10 +715,8 @@ class Cell(object):
 
     ''' docx code for cell content
     '''
-    def cell_to_doc_table_cell(self, doc, table_name):
-        self.table_name = table_name
+    def cell_to_doc_table_cell(self, table, table_cell):
         col_a1 = COLUMNS[self.col_num]
-        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
 
         table_cell_properties_attributes = {}
         if self.effective_format:
@@ -713,18 +725,10 @@ class Cell(object):
             warn(f"{self} : NO effective_format")
 
         if not self.is_empty:
-            # wrap this into a table-cell
-            table_cell_attributes = self.merge_spec.table_cell_attributes()
-            table_cell = create_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
-
-            if table_cell:
-                self.cell_to_doc(container=table_cell)
-
+            self.cell_to_doc(container=table_cell)
         else:
-            # wrap this into a covered-table-cell
-            table_cell = create_covered_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes)
+            warn(f"{self} : Empty Cell")
 
-        return table_cell
 
 
     ''' docx code for cell content
@@ -861,28 +865,13 @@ class Row(object):
 
     ''' generates the docx code
     '''
-    def row_to_doc_table_row(self, doc, table_name):
-        self.table_name = table_name
-
-        # create table-row
-        table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
-        row_height = f"{self.row_height}in"
-        table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
-        table_row = create_table_row(doc, table_row_style_attributes, table_row_properties_attributes)
+    def row_to_doc_table_row(self, table, table_row):
+        table_row.height = Inches(self.row_height)
 
         # iterate over the cells
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-            else:
-                table_cell = cell.cell_to_doc_table_cell(doc, self.table_name)
-                if table_cell:
-                    table_row.addElement(table_cell)
-
-            c = c + 1
-
-        return table_row
+        for cell_index in range(0, len(self.cells)):
+            cell = self.cells[cell_index]
+            cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
 
 
 
@@ -1077,13 +1066,13 @@ class ImageValue(CellValue):
 
         if self.value['mode'] in [1, 2, 3, 4]:
             # image is to be scaled within the cell width and height
-            if image_width_in_inches > cell_width:
-                adjust_ratio = (cell_width / image_width_in_inches)
+            if image_width_in_inches > container_width:
+                adjust_ratio = (container_width / image_width_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
-            if image_height_in_inches > cell_height:
-                adjust_ratio = (cell_height / image_height_in_inches)
+            if image_height_in_inches > container_height:
+                adjust_ratio = (container_height / image_height_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
@@ -1093,7 +1082,7 @@ class ImageValue(CellValue):
         text_attributes['fontsize'] = 2
         picture_path = self.value['path']
 
-        draw_frame = create_image_frame(doc, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
+        insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches)
 
 
 
