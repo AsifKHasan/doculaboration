@@ -13,3 +13,8 @@ unzip -o %DOCUMENT%.odt -d abc && atom abc
 DOCUMENT="Tasnim.Kabir.Ratul__profile"
 ./odt-from-gsheet.sh ${DOCUMENT}
 unzip -o ${DOCUMENT}.odt -d xyz && atom xyz
+
+
+set DOCUMENT="PPA-2006__2019-01"
+set DOCUMENT="PPR-2008__2019-01"
+set DOCUMENT="spectrum__written-exam-questions__fau__2022-07-02__vat-tax-executive"
