@@ -281,8 +281,8 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
     if len(footnote_list):
-        # TODO
         for key, value in footnote_list:
+            # TODO, find out if there is any match with FN#key inside the text_content
             texts_and_footnotes.append((key, value))
             texts_and_footnotes.append(text_content)
     else:
