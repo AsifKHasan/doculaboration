@@ -273,7 +273,7 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph_attributes['breakbefore'] = 'page'
 
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    draw_frame = create_image_frame(self._doc, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
+                    insert_image(container=self._doc, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
                     first_image = False
 
 
@@ -751,7 +751,8 @@ class Cell(object):
                 if is_table_cell(container):
                     format_container(container=container, attributes=table_cell_attributes, it_is_a_table_cell=True)
                 else:
-                    format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
+                    if where:
+                        format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
 
 
 
@@ -1121,8 +1122,9 @@ class ContentValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
-        self.contents = DocxContent(content_data=self.value, content_width=cell_width, nesting_level=self.nesting_level)
+        self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
+        return None
 
 
 
