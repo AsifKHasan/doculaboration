@@ -245,23 +245,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
     paragraph = None
 
-    if run_list is not None:
-        paragraph = text.P(stylename=style)
-        for run in run_list:
-            style_attributes = {'family': 'text'}
-            text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            paragraph.addElement(text.Span(stylename=text_style_name, text=run['text']))
-
-    if text_content is not None:
-        if outline_level == 0:
-            paragraph = text.P(stylename=style_name, text=text_content)
-        else:
-            paragraph = text.H(stylename=style_name, text=text_content, outlinelevel=outline_level)
-
-    else:
-        paragraph = text.P(stylename=style_name)
-
-
     # footnotes
     if len(footnote_list):
         print(f"..... footnotes found")
@@ -269,7 +252,80 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
             print(f"....... {footnote_key} : {footnote_text}")
 
 
+    if run_list is not None:
+        paragraph = text.P(stylename=style)
+        for run in run_list:
+            style_attributes = {'family': 'text'}
+            text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
+            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list)
+            paragraph.addElement(fragment)
+
+    if text_content is not None:
+        if outline_level == 0:
+            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list)
+        else:
+            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list)
+
+    else:
+        paragraph = text.P(stylename=style_name)
+
+
     return paragraph
+
+
+''' create a P or H or span
+'''
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list=[]):
+    paragraph = None
+
+    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
+    texts_and_footnotes = []
+    if len(footnote_list):
+        # TODO
+        for key, value in footnote_list:
+            texts_and_footnotes.append((key, value))
+            texts_and_footnotes.append(text_content)
+    else:
+        texts_and_footnotes.append(text_content)
+
+
+    # create the P or H or span
+    if text_type == 'P':
+        paragraph = text.P(stylename=style_name)
+
+    elif text_type == 'H':
+        paragraph = text.H(stylename=style_name, outlinelevel=outline_level)
+
+    elif text_type == 'span':
+        paragraph = text.Span(stylename=style_name)
+
+
+    # now fill the paragraph with texts and footnotes
+    for obj in texts_and_footnotes:
+        if isinstance(obj, str):
+            paragraph.addText(text=obj)
+
+        elif isinstance(obj, tuple):
+            footnote_object = create_footnote(obj)
+            paragraph.addElement(footnote_object)
+
+
+    return paragraph
+
+
+''' create a footnote
+'''
+def create_footnote(footnote_tuple):
+    citation, footnote = footnote_tuple[0], footnote_tuple[1]
+    note = text.Note(noteclass='footnote')
+    note_citation = text.NoteCitation(label=citation)
+    note_body = text.NoteBody()
+    patagraph = text.P(text=footnote)
+    note_body.addElement(patagraph)
+    note.addElement(note_citation)
+    note.addElement(note_body)
+
+    return note
 
 
 
