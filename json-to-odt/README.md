@@ -8,7 +8,7 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 
 1.  Python 3.8 or higher - <https://www.python.org/downloads/>
 2.  Git -  <https://git-scm.com/downloads>
-3.  LibreOffice - <https://www.libreoffice.org/download/download/>
+3.  LibreOffice - <https://www.libreoffice.org/download/download/>. You can work without LibreOffice installed on Linux and Windows both, but you will not be able to generate indexes and pdf from the generated odt
 
 ## we need an application macro for odt index generation to work
 Create the following macro from *Tools->Macros->Edit Macros...*
