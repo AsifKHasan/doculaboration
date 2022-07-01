@@ -31,61 +31,30 @@ from helper.logger import *
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
-''' graphic-style
+''' insert image into a container
 '''
-def create_graphic_style(doc, valign, halign):
-	style_name = f"fr-{random_string()}"
-
-	# graphic_properties_attributes = {'wrap': 'none', 'verticalpos': valign, 'horizontalpos': halign}
-	# graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
-	#
-	# graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
-	# graphic_style = style.Style(attributes=graphic_style_attributes)
-	#
-	# graphic_style.addElement(graphic_properties)
-	# odt.automaticstyles.addElement(graphic_style)
-
-	return style_name
-
-
-''' frame and image
-'''
-def create_image_frame(doc, picture_path, valign, halign, width, height):
-	# THIS IS THE Draw:Frame object to return
-	draw_frame = None
-
-	# first the image to be added into the document
-	# href = doc.addPicture(picture_path)
-	# if href:
-	#	 # next we need the Draw:Image object
-	#	 image_attributes = {'href': href}
-	#	 # image_attributes[('draw', 'mimetype')] = 'image/png'
-	#	 draw_image = draw.Image(attributes=image_attributes)
-	#
-	#	 frame_style_name = create_graphic_style(doc, valign, halign)
-	#
-	#	 # finally we need the Draw:Frame object
-	#	 frame_attributes = {'stylename': frame_style_name, 'anchortype': 'paragraph', 'width': f"{width}in", 'height': f"{height}in"}
-	#	 draw_frame = draw.Frame(attributes=frame_attributes)
-	#
-	#	 draw_frame.addElement(draw_image)
-	#
-	# else:
-	#	 warn(f"image {picture_path} copuld not be added into the document")
-
-	return draw_frame
+def insert_image(container, picture_path, width, height):
+	if is_table_cell(container):
+		run = container.paragraphs[0].add_run()
+		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		return container
+	else:
+		paragraph = container.add_paragraph()
+		run = paragraph.add_run()
+		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		return paragraph
 
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
-# table, table-row, table-column, table-cell
+# table and table-cell
 
 ''' create a Table
 '''
 def create_table(container, num_rows, num_cols, container_width=None):
 	tbl = None
 
-	debug(f"... creating ({num_rows} x {num_cols}) table for {type(container)}")
+	debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
@@ -96,106 +65,158 @@ def create_table(container, num_rows, num_cols, container_width=None):
 		# if the conrainer is a Document
 		tbl = container.add_table(num_rows, num_cols)
 
+	tbl.style = 'PlainTable'
+	tbl.autofit = False
+
 	return tbl
 
 
-''' create table-header-rows
+''' set repeat table row on every new page
 '''
-def create_table_header_rows():
-	# return table.TableHeaderRows()
-	return None
+def set_repeat_table_header(row):
+	tr = row._tr
+	trPr = tr.get_or_add_trPr()
+	tblHeader = OxmlElement('w:tblHeader')
+	tblHeader.set(qn('w:val'), "true")
+	trPr.append(tblHeader)
+	return row
 
 
-''' create TableColumn
+''' format container (paragraph or cell)
+	border, bgcolor, padding, valign, halign
 '''
-def create_table_column(doc, table_column_name, table_column_style_attributes, table_column_properties_attributes):
-	table_column = None
+def format_container(container, attributes, it_is_a_table_cell):
+	# borders
+	if it_is_a_table_cell:
+		if 'padding' in attributes:
+			set_cell_padding(container, padding=attributes['padding'])
 
-	if 'family' not in table_column_style_attributes:
-		table_column_style_attributes['family'] = 'table-column'
+		if 'borders' in attributes:
+			set_cell_border(container, borders=attributes['borders'])
 
-	# create the style
-	# table_column_style = style.Style(attributes=table_column_style_attributes)
-	# table_column_style.addElement(style.TableColumnProperties(attributes=table_column_properties_attributes))
-	# odt.automaticstyles.addElement(table_column_style)
-	#
-	# # create the table-column
-	# table_column_properties = {'stylename': table_column_style_attributes['name']}
-	# table_column = table.TableColumn(attributes=table_column_properties)
+		if 'backgroundcolor' in attributes:
+			set_cell_bgcolor(container, color=attributes['backgroundcolor'])
 
-	return table_column
+		if 'verticalalign' in attributes:
+			container.vertical_alignment = attributes['verticalalign']
+
+		if 'textalign' in attributes:
+			container.paragraphs[0].alignment = attributes['textalign']
+
+	else:
+		if 'borders' in attributes:
+			set_paragraph_border(container, borders=attributes['borders'])
+
+		if 'backgroundcolor' in attributes:
+			set_paragraph_bgcolor(container, color=attributes['backgroundcolor'])
+
+		if 'textalign' in attributes:
+			container.alignment = attributes['textalign']
 
 
-''' create TableRow
+''' set table-cell borders
 '''
-def create_table_row(doc, table_row_style_attributes, table_row_properties_attributes):
-	table_row = None
+def set_cell_border(cell: table._Cell, borders):
+	tc = cell._tc
+	tcPr = tc.get_or_add_tcPr()
 
-	if 'family' not in table_row_style_attributes:
-		table_row_style_attributes['family'] = 'table-row'
+	# check for tag existnace, if none found, then create one
+	tcBorders = tcPr.first_child_found_in("w:tcBorders")
+	if tcBorders is None:
+		tcBorders = OxmlElement('w:tcBorders')
+		tcPr.append(tcBorders)
 
-	# create the style
-	# table_row_style = style.Style(attributes=table_row_style_attributes)
-	# table_row_properties_attributes['keeptogether'] = 'always'
-	# table_row_style.addElement(style.TableRowProperties(attributes=table_row_properties_attributes))
-	# odt.automaticstyles.addElement(table_row_style)
-	#
-	# # create the table-row
-	# table_row_properties = {'stylename': table_row_style_attributes['name']}
-	# table_row = table.TableRow(attributes=table_row_properties)
+	# list over all available tags
+	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
+		edge_data = borders.get(edge)
+		if edge_data:
+			tag = 'w:{}'.format(edge)
 
-	return table_row
+			# check for tag existnace, if none found, then create one
+			element = tcBorders.find(qn(tag))
+			if element is None:
+				element = OxmlElement(tag)
+				tcBorders.append(element)
+
+			# looks like order of attributes is important
+			for key in ["sz", "val", "color", "space", "shadow"]:
+				if key in edge_data:
+					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
-''' create TableCell
+''' set paragraph borders
 '''
-def create_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=None):
-	table_cell = None
+def set_paragraph_border(paragraph, borders):
+	pPr = paragraph._p.get_or_add_pPr()
 
-	if 'family' not in table_cell_style_attributes:
-		table_cell_style_attributes['family'] = 'table-cell'
+	# check for tag existnace, if none found, then create one
+	pBorders = pPr.first_child_found_in("w:pBorders")
+	if pBorders is None:
+		pBorders = OxmlElement('w:pBorders')
+		pPr.append(pBorders)
 
-	# create the style
-	# table_cell_style = style.Style(attributes=table_cell_style_attributes)
-	# table_cell_properties = style.TableCellProperties(attributes=table_cell_properties_attributes)
-	#
-	# if background_image_style:
-	#	 table_cell_properties.addElement(background_image_style)
-	#
-	# table_cell_style.addElement(table_cell_properties)
-	# odt.automaticstyles.addElement(table_cell_style)
-	#
-	# # create the table-cell
-	# table_cell_attributes['stylename'] = table_cell_style_attributes['name']
-	# table_cell = table.TableCell(attributes=table_cell_attributes)
+	# list over all available tags
+	for edge in ('top', 'start', 'bottom', 'end'):
+		edge_data = borders.get(edge)
+		if edge_data:
+			edge_str = edge
+			if edge_str == 'start': edge_str = 'left'
+			if edge_str == 'end': edge_str = 'right'
+			tag = 'w:{}'.format(edge_str)
 
-	return table_cell
+			# check for tag existnace, if none found, then create one
+			element = pBorders.find(qn(tag))
+			if element is None:
+				element = OxmlElement(tag)
+				pBorders.append(element)
+
+			# looks like order of attributes is important
+			for key in ["sz", "val", "color", "space", "shadow"]:
+				if key in edge_data:
+					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
-''' create CoveredTableCell
+''' set table-cell bgcolor
 '''
-def create_covered_table_cell(doc, table_cell_style_attributes, table_cell_properties_attributes):
-	table_cell = None
-
-	if 'family' not in table_cell_style_attributes:
-		table_cell_style_attributes['family'] = 'table-cell'
-
-	# create the style
-	# table_cell_style = style.Style(attributes=table_cell_style_attributes)
-	# table_cell_style.addElement(style.TableCellProperties(attributes=table_cell_properties_attributes))
-	# odt.automaticstyles.addElement(table_cell_style)
-	#
-	# # create the table-cell
-	# table_cell_attributes = {'stylename': table_cell_style_attributes['name']}
-	# table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
-
-	return table_cell
+def set_cell_bgcolor(cell: table._Cell, color):
+	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
+	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
 
-''' page number wit/without page count
+''' set paragraph bgcolor
 '''
-def create_page_number(paragraph, short=False, separator=' of '):
+def set_paragraph_bgcolor(paragraph, color):
+	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
+	paragraph._p.get_or_add_pPr().append(shading_elm_1)
+
+
+''' set table-cell borders
+'''
+def set_cell_padding(cell: table._Cell, padding):
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcMar = OxmlElement('w:tcMar')
+
+    for m in ["top", "start", "bottom", "end", ]:
+        if m in padding:
+            # print(f"padding : {m} : {padding.get(m)}")
+            node = OxmlElement("w:{}".format(m))
+            node.set(qn('w:w'), str(padding.get(m)))
+            node.set(qn('w:type'), 'dxa')
+            tcMar.append(node)
+
+    tcPr.append(tcMar)
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# paragraphs and texts
+
+''' page number with/without page count
+'''
+def create_page_number(container, text_attributes=None, short=False, separator=' of '):
+	paragraph = create_paragraph(container=container)
 	run = paragraph.add_run()
+	set_text_style(run, text_attributes)
 
 	# create a new element and set attributes
 	fldCharBegin1 = OxmlElement('w:fldChar')
@@ -247,10 +268,12 @@ def create_page_number(paragraph, short=False, separator=' of '):
 
 	p_element = paragraph._p
 
+	return paragraph
+
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, style_attributes=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -270,14 +293,14 @@ def create_paragraph(container, text_content=None, run_list=None, style_attribut
 
 
 	# apply the style if any
-	if style_attributes and 'parentstylename' in style_attributes:
-		style_name = style_attributes['parentstylename']
-		paragraph.style = style_name
-
-
-	# apply paragraph attrubutes
 	if paragraph_attributes:
+		# apply paragraph attrubutes
+		if 'stylename' in paragraph_attributes:
+			style_name = paragraph_attributes['stylename']
+			paragraph.style = style_name
+
 		pf = paragraph.paragraph_format
+
 		# process new-page
 		if 'breakbefore' in paragraph_attributes:
 			pf.page_break_before = True
@@ -372,10 +395,18 @@ def generate_pdf(infile, outdir):
 	try:
 		word = client.DispatchEx("Word.Application")
 		doc = word.Documents.Open(infile)
-		doc.SaveAs(pdf_path, FileFormat = 17)
-		doc.Close()
+		try:
+			doc.SaveAs(pdf_path, FileFormat = 17)
+
+		except Exception as e:
+			raise e
+
+		finally:
+			doc.Close()
+
 	except Exception as e:
 		raise e
+
 	finally:
 		word.Quit()
 
@@ -519,53 +550,49 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-COLSEP = (0/72)
+# COLSEP = (0/72)
 # ROWSEP = (2/72)
 
-HEADER_HEIGHT = 0.3
-FOOTER_HEIGHT = 0.3
-
-GSHEET_ODT_BORDER_MAPPING = {
-	'DOTTED': 'dotted',
-	'DASHED': 'dash',
-	'SOLID': 'solid'
-}
-
-
 HEADING_TO_LEVEL = {
-	'Heading 1': {'outline-level': 1},
-	'Heading 2': {'outline-level': 2},
-	'Heading 3': {'outline-level': 3},
-	'Heading 4': {'outline-level': 4},
-	'Heading 5': {'outline-level': 5},
-	'Heading 6': {'outline-level': 6},
-	'Heading 7': {'outline-level': 7},
-	'Heading 8': {'outline-level': 8},
-	'Heading 9': {'outline-level': 9},
-	'Heading 10': {'outline-level': 10},
+    'Heading 1': {'outline-level': 1},
+    'Heading 2': {'outline-level': 2},
+    'Heading 3': {'outline-level': 3},
+    'Heading 4': {'outline-level': 4},
+    'Heading 5': {'outline-level': 5},
+    'Heading 6': {'outline-level': 6},
+    'Heading 7': {'outline-level': 7},
+    'Heading 8': {'outline-level': 8},
+    'Heading 9': {'outline-level': 9},
+    'Heading 10': {'outline-level': 10},
 }
 
 
 LEVEL_TO_HEADING = [
-	'Title',
-	'Heading 1',
-	'Heading 2',
-	'Heading 3',
-	'Heading 4',
-	'Heading 5',
-	'Heading 6',
-	'Heading 7',
-	'Heading 8',
-	'Heading 9',
-	'Heading 10',
+    'Title',
+    'Heading 1',
+    'Heading 2',
+    'Heading 3',
+    'Heading 4',
+    'Heading 5',
+    'Heading 6',
+    'Heading 7',
+    'Heading 8',
+    'Heading 9',
+    'Heading 10',
 ]
 
+TEXT_VALIGN_MAP = {
+	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
+	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
+	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
+}
 
-TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
-# TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
-TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
-
-IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
+TEXT_HALIGN_MAP = {
+	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
+	'CENTER': WD_ALIGN_PARAGRAPH.CENTER,
+	'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT,
+	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
+}
 
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
@@ -584,66 +611,6 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-def add_numbered_paragraph(doc, text, restart=False, style='List Number'):
-	if restart:
-		# new numbering
-		ABSTRACT_NUM_ID = 8
-		numbering = doc._part.numbering_part.numbering_definitions._numbering
-		num_id = numbering._next_numId
-		num = CT_Num.new(num_id, ABSTRACT_NUM_ID)
-		num.add_lvlOverride(ilvl=0).add_startOverride(1)
-		w_num = numbering._insert_num(num)
-
-		#w_num_pr_xml = '<w:ilvl w:val="0"/><w:numId w:val="{0}"/>'.format(num_id)
-		#w_num_pr = CT_NumPr()
-		p = doc.add_paragraph(text, style)
-
-		 # Access paragraph XML element
-		p_xml = p._p
-
-		# Paragraph properties
-		p_props = p_xml.get_or_add_pPr()
-
-		# Create number properties element
-		num_props = OxmlElement('w:numPr')
-
-		lvl_prop = OxmlElement('w:ilvl')
-		lvl_prop.set(qn('w:val'), '0')
-
-		num_id_prop = OxmlElement('w:numId')
-		num_id_prop.set(qn('w:val'), str(w_num.numId))
-
-		num_props.append(lvl_prop)
-		num_props.append(num_id_prop)
-
-		# Add number properties to paragraph
-		p_props.append(num_props)
-
-	else:
-		doc.add_paragraph(text, style)
-
-
-def add_horizontal_line(paragraph, pos='w:bottom', size='6', color='auto'):
-	p = paragraph._p  # p is the <w:p> XML element
-	pPr = p.get_or_add_pPr()
-	pBdr = OxmlElement('w:pBdr')
-	pPr.insert_element_before(pBdr,
-		'w:shd', 'w:tabs', 'w:suppressAutoHyphens', 'w:kinsoku', 'w:wordWrap',
-		'w:overflowPunct', 'w:topLinePunct', 'w:autoSpaceDE', 'w:autoSpaceDN',
-		'w:bidi', 'w:adjustRightInd', 'w:snapToGrid', 'w:spacing', 'w:ind',
-		'w:contextualSpacing', 'w:mirrorIndents', 'w:suppressOverlap', 'w:jc',
-		'w:textDirection', 'w:textAlignment', 'w:textboxTightWrap',
-		'w:outlineLvl', 'w:divId', 'w:cnfStyle', 'w:rPr', 'w:sectPr',
-		'w:pPrChange'
-	)
-	bottom = OxmlElement(pos)
-	bottom.set(qn('w:val'), 'single')
-	bottom.set(qn('w:sz'), size)
-	bottom.set(qn('w:space'), '1')
-	bottom.set(qn('w:color'), color)
-	pBdr.append(bottom)
-
-
 def rotate_text(cell: table._Cell, direction: str):
 	# direction: tbRl -- top to bottom, btLr -- bottom to top
 	assert direction in ("tbRl", "btLr")
@@ -652,16 +619,6 @@ def rotate_text(cell: table._Cell, direction: str):
 	textDirection = OxmlElement('w:textDirection')
 	textDirection.set(qn('w:val'), direction)  # btLr tbRl
 	tcPr.append(textDirection)
-
-
-def set_cell_bgcolor(cell, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
-	cell._tc.get_or_add_tcPr().append(shading_elm_1)
-
-
-def set_paragraph_bgcolor(paragraph, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
-	paragraph._p.get_or_add_pPr().append(shading_elm_1)
 
 
 def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
@@ -677,88 +634,6 @@ def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
 		if to_tcBorders is None:
 			to_tcBorders = deepcopy(from_tcBorders)
 			to_tc.get_or_add_tcPr().append(to_tcBorders)
-
-
-def set_cell_border(cell: table._Cell, **kwargs):
-	"""
-	Set cell's border
-	Usage:
-
-	set_cell_border(
-		cell,
-		top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-		bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-		start={"sz": 24, "val": "dashed", "shadow": "true"},
-		end={"sz": 12, "val": "dashed"},
-	)
-	"""
-	tc = cell._tc
-	tcPr = tc.get_or_add_tcPr()
-
-	# check for tag existnace, if none found, then create one
-	tcBorders = tcPr.first_child_found_in("w:tcBorders")
-	if tcBorders is None:
-		tcBorders = OxmlElement('w:tcBorders')
-		tcPr.append(tcBorders)
-
-	# list over all available tags
-	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
-		edge_data = kwargs.get(edge)
-		if edge_data:
-			tag = 'w:{}'.format(edge)
-
-			# check for tag existnace, if none found, then create one
-			element = tcBorders.find(qn(tag))
-			if element is None:
-				element = OxmlElement(tag)
-				tcBorders.append(element)
-
-			# looks like order of attributes is important
-			for key in ["sz", "val", "color", "space", "shadow"]:
-				if key in edge_data:
-					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
-
-
-def set_paragraph_border(paragraph, **kwargs):
-	"""
-	Set paragraph's border
-	Usage:
-
-	set_paragraph_border(
-		paragraph,
-		top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
-		bottom={"sz": 12, "color": "#00FF00", "val": "single"},
-		start={"sz": 24, "val": "dashed", "shadow": "true"},
-		end={"sz": 12, "val": "dashed"},
-	)
-	"""
-	pPr = paragraph._p.get_or_add_pPr()
-
-	# check for tag existnace, if none found, then create one
-	pBorders = pPr.first_child_found_in("w:pBorders")
-	if pBorders is None:
-		pBorders = OxmlElement('w:pBorders')
-		pPr.append(pBorders)
-
-	# list over all available tags
-	for edge in ('top', 'start', 'bottom', 'end'):
-		edge_data = kwargs.get(edge)
-		if edge_data:
-			edge_str = edge
-			if edge_str == 'start': edge_str = 'left'
-			if edge_str == 'end': edge_str = 'right'
-			tag = 'w:{}'.format(edge_str)
-
-			# check for tag existnace, if none found, then create one
-			element = pBorders.find(qn(tag))
-			if element is None:
-				element = OxmlElement(tag)
-				pBorders.append(element)
-
-			# looks like order of attributes is important
-			for key in ["sz", "val", "color", "space", "shadow"]:
-				if key in edge_data:
-					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
 def merge_document(placeholder, docx_path):
@@ -782,40 +657,3 @@ def polish_table(table):
 		tcW = c.tcPr.tcW
 		tcW.type = 'auto'
 		tcW.w = 0
-
-
-def ooxml_border_from_gsheet_border(borders, key):
-	if key in borders:
-		border = borders[key]
-		red = int(border['color']['red'] * 255) if 'red' in border['color'] else 0
-		green = int(border['color']['green'] * 255) if 'green' in border['color'] else 0
-		blue = int(border['color']['blue'] * 255) if 'blue' in border['color'] else 0
-		color = '{0:02x}{1:02x}{2:02x}'.format(red, green, blue)
-		if 'style' in border:
-			border_style = border['style']
-		else:
-			border_style = 'NONE'
-
-		return {"sz": border['width'] * 8, "val": GSHEET_OXML_BORDER_MAPPING[border_style], "color": color, "space": "0"}
-	else:
-		return None
-
-
-def insert_image(cell, image_spec):
-	'''
-		image_spec is like {'url': url, 'path': local_path, 'height': height, 'width': width, 'dpi': im_dpi}
-	'''
-	if image_spec is not None:
-		run = cell.paragraphs[0].add_run()
-		run.add_picture(image_spec['path'], height=Pt(image_spec['height']), width=Pt(image_spec['width']))
-
-
-def set_repeat_table_header(row):
-	''' set repeat table row on every new page
-	'''
-	tr = row._tr
-	trPr = tr.get_or_add_trPr()
-	tblHeader = OxmlElement('w:tblHeader')
-	tblHeader.set(qn('w:val'), "true")
-	trPr.append(tblHeader)
-	return row
