@@ -238,10 +238,12 @@ def create_page_number(style_name, short=False):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list=[]):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
+
+    paragraph = None
 
     if run_list is not None:
         paragraph = text.P(stylename=style)
@@ -250,18 +252,24 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
             paragraph.addElement(text.Span(stylename=text_style_name, text=run['text']))
 
-        return paragraph
-
     if text_content is not None:
         if outline_level == 0:
             paragraph = text.P(stylename=style_name, text=text_content)
         else:
             paragraph = text.H(stylename=style_name, text=text_content, outlinelevel=outline_level)
 
-        return paragraph
     else:
         paragraph = text.P(stylename=style_name)
-        return paragraph
+
+
+    # footnotes
+    if len(footnote_list):
+        print(f"..... footnotes found")
+        for footnote_key, footnote_text in footnote_list:
+            print(f"....... {footnote_key} : {footnote_text}")
+
+
+    return paragraph
 
 
 

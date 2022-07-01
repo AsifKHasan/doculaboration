@@ -767,16 +767,17 @@ class Cell(object):
     ''' odt code for cell content
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
-        style_attributes = self.note.style_attributes()
         # print(f".. Cell : cell_to_odt : table-cell : {is_table_cell}")
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell, self.merge_spec)}
         text_attributes = self.effective_format.text_attributes()
+        style_attributes = self.note.style_attributes()
+        footnote_list = self.note.footnote_list()
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                self.cell_value.value_to_odt(odt, container, self.effective_cell_width, self.effective_cell_height, style_attributes, paragraph_attributes, text_attributes)
+                self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
 
 
 
@@ -1029,13 +1030,12 @@ class StringValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
         if container is None:
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level)
-
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list)
         container.addElement(paragraph)
 
 
@@ -1060,7 +1060,7 @@ class TextRunValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
         if container is None:
             container = odt.text
 
@@ -1072,8 +1072,7 @@ class TextRunValue(CellValue):
             processed_idx = text_format_run.start_index
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list)
-
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list)
         container.addElement(paragraph)
 
 
@@ -1098,13 +1097,12 @@ class PageNumberValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
         if container is None:
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_page_number(style_name=style_name, short=self.short)
-
         container.addElement(paragraph)
 
 
@@ -1129,7 +1127,7 @@ class ImageValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
         if container is None:
             container = odt.text
 
@@ -1143,13 +1141,13 @@ class ImageValue(CellValue):
 
         if self.value['mode'] in [1, 2, 3, 4]:
             # image is to be scaled within the cell width and height
-            if image_width_in_inches > cell_width:
-                adjust_ratio = (cell_width / image_width_in_inches)
+            if image_width_in_inches > container_width:
+                adjust_ratio = (container_width / image_width_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
-            if image_height_in_inches > cell_height:
-                adjust_ratio = (cell_height / image_height_in_inches)
+            if image_height_in_inches > container_height:
+                adjust_ratio = (container_height / image_height_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
@@ -1164,7 +1162,6 @@ class ImageValue(CellValue):
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_paragraph(odt, style_name)
         paragraph.addElement(draw_frame)
-
         container.addElement(paragraph)
 
 
@@ -1189,8 +1186,8 @@ class ContentValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, cell_width, cell_height, style_attributes, paragraph_attributes, text_attributes):
-        self.contents = OdtContent(self.value, cell_width, self.nesting_level)
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+        self.contents = OdtContent(self.value, container_width, self.nesting_level)
         self.contents.content_to_odt(odt=odt, container=container)
 
 
@@ -1621,12 +1618,15 @@ class CellNote(object):
         self.keep_with_next = False
         self.keep_with_previous = False
 
+        self.footnotes = None
+
         self.outline_level = 0
 
         if note_json:
             try:
                 note_dict = json.loads(note_json)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
+                print(e)
                 note_dict = {}
 
             self.header_rows = int(note_dict.get('repeat-rows', 0))
@@ -1634,15 +1634,19 @@ class CellNote(object):
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.page_number = note_dict.get('page-number') is not None
+            self.footnotes = note_dict.get('footnote')
 
+            # content
             content = note_dict.get('content')
             if content is not None and content == 'out-of-cell':
                 self.out_of_table = True
 
+            # table-spacing
             spacing = note_dict.get('table-spacing')
             if spacing is not None and spacing == 'no-spacing':
                 self.table_spacing = False
 
+            # style
             self.style = note_dict.get('style')
             if self.style is not None:
                 outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
@@ -1653,6 +1657,12 @@ class CellNote(object):
                 # if style is any Title/Heading or Table or Figure, apply keep-with-next
                 if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
                     self.keep_with_next = True
+
+            # footnotes
+            if self.footnotes:
+                if not isinstance(self.footnotes, dict):
+                    self.footnotes = None
+                    warn(f".... found footnotes, but it is not a valid dictionary")
 
 
     ''' style attributes dict to create Style
@@ -1678,6 +1688,17 @@ class CellNote(object):
             attributes['keepwithnext'] = 'always'
 
         return attributes
+
+
+    ''' get the footnotes a list of tuples
+    '''
+    def footnote_list(self):
+        footnotes = []
+
+        if self.footnotes:
+            footnotes = self.footnotes.items()
+
+        return footnotes
 
 
 
