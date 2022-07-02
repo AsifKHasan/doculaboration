@@ -771,7 +771,7 @@ class Cell(object):
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell, self.merge_spec)}
         text_attributes = self.effective_format.text_attributes()
         style_attributes = self.note.style_attributes()
-        footnote_list = self.note.footnote_list()
+        footnote_list = self.note.footnotes
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
@@ -1618,7 +1618,7 @@ class CellNote(object):
         self.keep_with_next = False
         self.keep_with_previous = False
 
-        self.footnotes = None
+        self.footnotes = {}
 
         self.outline_level = 0
 
@@ -1626,7 +1626,7 @@ class CellNote(object):
             try:
                 note_dict = json.loads(note_json)
             except json.JSONDecodeError as e:
-                print(e)
+                warn(e)
                 note_dict = {}
 
             self.header_rows = int(note_dict.get('repeat-rows', 0))
@@ -1661,7 +1661,7 @@ class CellNote(object):
             # footnotes
             if self.footnotes:
                 if not isinstance(self.footnotes, dict):
-                    self.footnotes = None
+                    self.footnotes = {}
                     warn(f".... found footnotes, but it is not a valid dictionary")
 
 
@@ -1688,17 +1688,6 @@ class CellNote(object):
             attributes['keepwithnext'] = 'always'
 
         return attributes
-
-
-    ''' get the footnotes a list of tuples
-    '''
-    def footnote_list(self):
-        footnotes = []
-
-        if self.footnotes:
-            footnotes = self.footnotes.items()
-
-        return footnotes
 
 
 

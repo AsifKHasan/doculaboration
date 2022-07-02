@@ -2,6 +2,7 @@
 
 ''' various utilities for generating an Openoffice odt document
 '''
+import re
 import platform
 import subprocess
 import random
@@ -238,20 +239,14 @@ def create_page_number(style_name, short=False):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list=[]):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
 
     paragraph = None
 
-    # footnotes
-    if len(footnote_list):
-        print(f"..... footnotes found")
-        for footnote_key, footnote_text in footnote_list:
-            print(f"....... {footnote_key} : {footnote_text}")
-
-
+    # text-runs
     if run_list is not None:
         paragraph = text.P(stylename=style)
         for run in run_list:
@@ -260,7 +255,8 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
             fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list)
             paragraph.addElement(fragment)
 
-    if text_content is not None:
+    # P or H
+    elif text_content is not None:
         if outline_level == 0:
             paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list)
         else:
@@ -275,18 +271,34 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list=[]):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}):
     paragraph = None
 
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
-    if len(footnote_list):
-        for key, value in footnote_list:
-            # TODO, find out if there is any match with FN#key inside the text_content
-            texts_and_footnotes.append((key, value))
-            texts_and_footnotes.append(text_content)
-    else:
-        texts_and_footnotes.append(text_content)
+
+    # find out if there is any match with FN#key inside the text_content
+    pattern = r'FN{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+      footnote_key = match.group()[3:-1]
+      if footnote_key in footnote_list:
+        # debug(f".... footnote {footnote_key} found at {match.span()} with description")
+        # we have found a footnote, we add the preceding text and the footnote spec into the list
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        if footnote_start_index >= current_index:
+          # there are preceding text before the footnote
+          texts_and_footnotes.append(text_content[current_index:footnote_start_index])
+          texts_and_footnotes.append((footnote_key, footnote_list[footnote_key]))
+          current_index = footnote_end_index
+      else:
+        warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
+        # this is not a footnote, ignore it
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        # current_index = footnote_end_index + 1
+
+    # there may be trailing text
+    texts_and_footnotes.append(text_content[current_index:])
 
 
     # create the P or H or span
