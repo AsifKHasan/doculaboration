@@ -8,3 +8,5 @@ unzip -o %DOCUMENT%.docx -d abc && atom abc
 DOCUMENT="Tasnim.Kabir.Ratul__profile"
 ./docx-from-gsheet.sh ${DOCUMENT}
 unzip -o ${DOCUMENT}.docx -d abc && atom abc
+
+docx-from-gsheet.bat ayin.kaka__writings
