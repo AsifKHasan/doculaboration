@@ -8,6 +8,9 @@ set DOCUMENT="PPR-2008__2019-01"
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 
+odt-from-gsheet.bat "ayin.kaka__writings"
+./odt-from-gsheet.sh "ayin.kaka__writings"
+
 odt-from-gsheet.bat "PPA-2006__2019-01"
 ./odt-from-gsheet.sh "PPA-2006__2019-01"
 
@@ -28,3 +31,9 @@ odt-from-gsheet.bat "MRA-IMS__EoI__field-operational-resource"
 
 odt-from-gsheet.bat "MRA-IMS__EoI__technical-experts"
 ./odt-from-gsheet.sh "MRA-IMS__EoI__technical-experts"
+
+odt-from-gsheet.bat "KalnaBridgeToll__project-general-specification"
+./odt-from-gsheet.sh "KalnaBridgeToll__project-general-specification"
+
+odt-from-gsheet.bat "KalnaBridgeToll__project-technical-specification"
+./odt-from-gsheet.sh "KalnaBridgeToll__project-technical-specification"
