@@ -23,5 +23,8 @@ odt-from-gsheet.bat "MRA-IMS__EoI__content"
 odt-from-gsheet.bat "BKB-BKBAPPs__letter-answer__2022-05-11"
 ./odt-from-gsheet.sh "BKB-BKBAPPs__letter-answer__2022-05-11"
 
-odt-from-gsheet.bat "MRA-IMS__EoI__field__operational__resource"
-./odt-from-gsheet.sh "MRA-IMS__EoI__field__operational__resource"
+odt-from-gsheet.bat "MRA-IMS__EoI__field-operational-resource"
+./odt-from-gsheet.sh "MRA-IMS__EoI__field-operational-resource"
+
+odt-from-gsheet.bat "MRA-IMS__EoI__technical-experts"
+./odt-from-gsheet.sh "MRA-IMS__EoI__technical-experts"

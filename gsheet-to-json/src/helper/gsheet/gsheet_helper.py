@@ -46,16 +46,20 @@ class GsheetHelper(object):
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
         self._context['gsheet-read-try-count'] = config['gsheet-read-try-count']
 
-    def process_gsheet(self, gsheet_name, parent=None):
+    def process_gsheet(self, gsheet_title, gsheet_url=None, parent=None):
         wait_for = self._context['gsheet-read-wait-seconds']
         try_count = self._context['gsheet-read-try-count']
         gsheet = None
         for i in range(0, try_count):
             try:
-                gsheet = self._context['_G'].open(gsheet_name)
+                if gsheet_url:
+                    gsheet = self._context['_G'].open_by_url(gsheet_url)
+                else:
+                    gsheet = self._context['_G'].open(gsheet_title)
+                
                 break
             except:
-                warn(f"gsheet {gsheet_name} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
+                warn(f"gsheet {gsheet_title} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
                 time.sleep(float(wait_for))
 
         if gsheet is None:

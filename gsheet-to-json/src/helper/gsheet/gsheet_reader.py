@@ -29,10 +29,7 @@ def process_sheet(context, sheet, parent=None):
     ws = sheet.worksheet('title', ws_title)
 
     toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
-    toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in ['0', '1', '2', '3', '4', '5', '6']]
-
-    # TODO: some columns may have formula, parse those
-    # link column (F, toc[5] may be a formula), parse it
+    toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
     data['sections'] = [process_section(sheet, toc, context, parent) for toc in toc_list]
 
@@ -40,6 +37,18 @@ def process_sheet(context, sheet, parent=None):
 
 
 def process_section(sheet, toc, context, parent=None):
+    # TODO: some columns may have formula, parse those
+    # link column (F, toc[5] may be a formula), parse it
+    if toc[4] in ['gsheet', 'docx', 'pdf']:
+        link_name, link_target = get_gsheet_link(toc[5])
+
+    elif toc[4] == 'table':
+        link_name, link_target = get_worksheet_link(toc[5]), None
+
+    else:
+        link_name, link_target = toc[5], None
+
+
     # transform to a dict
     d = {
         'section'               : str(toc[0]),
@@ -47,7 +56,8 @@ def process_section(sheet, toc, context, parent=None):
         'process'               : toc[2],
         'level'                 : int(toc[3]),
         'content-type'          : toc[4],
-        'link'                  : toc[5],
+        'link'                  : link_name,
+        'link-target'           : link_target,
         'page-break'            : True if toc[6] == "page" else False,
         'section-break'         : True if toc[6] == "section" else False,
         'landscape'             : True if toc[7] == "Yes" else False,
@@ -56,12 +66,12 @@ def process_section(sheet, toc, context, parent=None):
         'hide-pageno'           : True if toc[10] == "Yes" else False,
         'hide-heading'          : True if toc[11] == "Yes" else False,
         'different-firstpage'   : True if toc[12] == "Yes" else False,
-        'header-first'          : toc[13],
-        'header-odd'            : toc[14],
-        'header-even'           : toc[15],
-        'footer-first'          : toc[16],
-        'footer-odd'            : toc[17],
-        'footer-even'           : toc[18],
+        'header-first'          : get_worksheet_link(toc[13]),
+        'header-odd'            : get_worksheet_link(toc[14]),
+        'header-even'           : get_worksheet_link(toc[15]),
+        'footer-first'          : get_worksheet_link(toc[16]),
+        'footer-odd'            : get_worksheet_link(toc[17]),
+        'footer-even'           : get_worksheet_link(toc[18]),
         'override-header'       : True if toc[19] == "Yes" else False,
         'override-footer'       : True if toc[20] == "Yes" else False,
         'responsible'           : toc[21],

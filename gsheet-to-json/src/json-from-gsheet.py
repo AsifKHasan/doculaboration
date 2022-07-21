@@ -28,9 +28,9 @@ class JsonFromGsheet(object):
 		self.set_up()
 
 		# process gsheets one by one
-		for gsheet in self._CONFIG['gsheets']:
-			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet}.json"
-			self._data = self._gsheethelper.process_gsheet(gsheet)
+		for gsheet_title in self._CONFIG['gsheets']:
+			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
+			self._data = self._gsheethelper.process_gsheet(gsheet_title=gsheet_title)
 			self.save_json()
 
 		self.tear_down()

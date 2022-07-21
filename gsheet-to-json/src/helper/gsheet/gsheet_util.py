@@ -19,6 +19,32 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
 
+def get_gsheet_link(value):
+    link_name, link_target = value, None
+
+    m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', value, re.IGNORECASE)
+    if m and m.group('link_url') is not None and m.group('link_title') is not None:
+        # debug(f".. found a link to [{url}] at [{m.group('link_url')}]")
+        link_name, link_target = m.group('link_title'), m.group('link_url')
+
+
+    return link_name, link_target
+
+
+
+def get_worksheet_link(value):
+    link_name = value
+
+    # content can be a HYPERLINK/hyperlink to another worksheet
+    m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', value, re.IGNORECASE)
+    if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
+        # debug(m.group('ws_gid'), m.group('ws_title'))
+        link_name = m.group('ws_title')
+
+    return link_name
+
+
+
 def worksheet_exists(sheet, ws_title):
     try:
         ws = sheet.worksheet('title', ws_title)
@@ -32,7 +58,7 @@ def hex_to_rgba(color_hex):
     color = tuple(int(color_hex[i:i+2], 16) for i in (0, 2, 4, 6))
     return {'red': color[0]/255, 'green': color[1]/255, 'blue': color[2]/255, 'alpha': color[3]/255}
 
-
+'''
 def range_object(ws, start_row, end_row, start_col, end_col):
     return {'sheetId': ws.id, 'startRowIndex': start_row, 'endRowIndex': end_row, 'startColumnIndex': start_col, 'endColumnIndex': end_col}
 
@@ -175,7 +201,7 @@ def init_worksheet(sheet, ws_title, num_rows=100, num_cols=4, frozen_rows=2, fro
         format_range(sheet, ws, 0, num_rows, col_data['idx'], col_data['idx'] + 1, None, None, bold=None, fg_color=None, bg_color=None, wrap_strategy=None, valign=None, halign=col_data['halign'], number_format=col_data['numberFormat'])
 
     return ws
-
+'''
 
 def download_image(image_formula, tmp_dir, row_height):
     '''
