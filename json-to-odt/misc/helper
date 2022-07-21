@@ -4,22 +4,24 @@ replace {"new-page": true, "keep-with-next": true}
 with {"content": "out-of-cell", "keep-with-next": true}
 ", 1)
 
+set DOCUMENT="PPR-2008__2019-01"
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 
-set DOCUMENT="কবিতার-অনুবাদ"
-set DOCUMENT="NBR-BSW__spectrum__résumé-index"
-set DOCUMENT="spectrum__written-exam-questions__fau__2022-07-02__vat-tax-executive"
-set DOCUMENT="PPA-2006__2019-01"
-set DOCUMENT="PPR-2008__2019-01"
+odt-from-gsheet.bat "PPA-2006__2019-01"
+./odt-from-gsheet.sh "PPA-2006__2019-01"
 
-set DOCUMENT="Tasnim.Kabir.Ratul__profile"
-odt-from-gsheet.bat %DOCUMENT%
+odt-from-gsheet.bat "PPR-2008__2019-01"
+./odt-from-gsheet.sh "PPR-2008__2019-01"
 
-DOCUMENT="Tasnim.Kabir.Ratul__profile"
-./odt-from-gsheet.sh ${DOCUMENT}
-
-
+odt-from-gsheet.bat "Tasnim.Kabir.Ratul__profile"
+./odt-from-gsheet.sh "Tasnim.Kabir.Ratul__profile"
 
 odt-from-gsheet.bat "MRA-IMS__EoI__content"
+./odt-from-gsheet.sh "MRA-IMS__EoI__content"
+
 odt-from-gsheet.bat "BKB-BKBAPPs__letter-answer__2022-05-11"
+./odt-from-gsheet.sh "BKB-BKBAPPs__letter-answer__2022-05-11"
+
+odt-from-gsheet.bat "MRA-IMS__EoI__field__operational__resource"
+./odt-from-gsheet.sh "MRA-IMS__EoI__field__operational__resource"

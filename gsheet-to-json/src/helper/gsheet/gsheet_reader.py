@@ -28,8 +28,11 @@ def process_sheet(context, sheet, parent=None):
     ws_title = context['index-worksheet']
     ws = sheet.worksheet('title', ws_title)
 
-    toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False)
+    toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in ['0', '1', '2', '3', '4', '5', '6']]
+
+    # TODO: some columns may have formula, parse those
+    # link column (F, toc[5] may be a formula), parse it
 
     data['sections'] = [process_section(sheet, toc, context, parent) for toc in toc_list]
 
