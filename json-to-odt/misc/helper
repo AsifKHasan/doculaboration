@@ -1,9 +1,13 @@
 {"content": "out-of-cell", "new-page": true}
+{"repeat-rows": 1}
+
 For all resume note
 ------------------------------------------------------------------
 replace {"new-page": true, "keep-with-next": true}
 with {"content": "out-of-cell", "keep-with-next": true}
 ", 1)
+
+cd /home/asif/projects/asif@github/doculaboration
 
 set DOCUMENT="PPR-2008__2019-01"
 unzip -o %DOCUMENT%.odt -d abc && atom abc
