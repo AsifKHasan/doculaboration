@@ -10,19 +10,20 @@ from helper.gsheet.gsheet_helper import GsheetHelper
 from helper.gsheet.gsheet_util import *
 
 def process(sheet, section_data, context):
-    hyperlink = section_data['link']
-    debug(f".. processing file ... {hyperlink}")
+    pdf_title = section_data['link']
+    pdf_url = section_data['link-target']
+    debug(f"processing file ... {pdf_title} : {pdf_url}")
 
-    if hyperlink.startswith('https://drive.google.com/file/d/'):
+    if pdf_url.startswith('https://drive.google.com/file/d/'):
         # the file is from gdrive
-        data = download_file_from_drive(hyperlink, context['tmp-dir'], context['drive'])
+        data = download_file_from_drive(pdf_url, context['tmp-dir'], context['drive'])
 
-    elif hyperlink.startswith('http'):
+    elif pdf_url.startswith('http'):
         # the file url is a normal web url
-        data = download_file_from_web(hyperlink, context['tmp-dir'])
+        data = download_file_from_web(pdf_url, context['tmp-dir'])
 
     else:
-        warn(f"the url {hyperlink} is neither a web nor a gdrive url")
+        warn(f"the url {pdf_url} is neither a web nor a gdrive url")
         data = None
 
     # extract pages from pdf as images

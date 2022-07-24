@@ -7,6 +7,7 @@ replace {"new-page": true, "keep-with-next": true}
 with {"content": "out-of-cell", "keep-with-next": true}
 ", 1)
 
+cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
 set DOCUMENT="PPR-2008__2019-01"
