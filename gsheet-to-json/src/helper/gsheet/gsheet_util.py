@@ -27,6 +27,9 @@ def get_gsheet_link(value):
         # debug(f".. found a link to [{url}] at [{m.group('link_url')}]")
         link_name, link_target = m.group('link_title'), m.group('link_url')
 
+    else:
+        link_target = value
+
 
     return link_name, link_target
 
