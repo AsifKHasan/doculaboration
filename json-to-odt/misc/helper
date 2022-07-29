@@ -17,6 +17,9 @@ unzip -o ${DOCUMENT}.odt -d abc && atom abc
 odt-from-gsheet.bat "ayin.kaka__writings"
 ./odt-from-gsheet.sh "ayin.kaka__writings"
 
+odt-from-gsheet.bat "SAU-ACAS__services-proposal"
+./odt-from-gsheet.sh "SAU-ACAS__services-proposal"
+
 odt-from-gsheet.bat "PPA-2006__2019-01"
 ./odt-from-gsheet.sh "PPA-2006__2019-01"
 
