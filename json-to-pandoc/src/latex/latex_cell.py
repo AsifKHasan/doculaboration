@@ -106,6 +106,9 @@ class Cell(object):
                 cell_value = None
 
         if cell_value:
+            #  get the footnotes
+            footnote_list = self.note.footnotes
+
             # paragraphs need formatting to be included, table cells do not need them
             if include_formatting:
                 # alignments and bgcolor
@@ -1008,14 +1011,17 @@ class CellNote(object):
     ''' constructor
     '''
     def __init__(self, note_json=None):
-        self.style = None
         self.out_of_table = False
         self.table_spacing = True
+        self.page_number = False
         self.header_rows = 0
+
+        self.style = None
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
-        self.page_number = False
+
+        self.footnotes = {}
 
         if note_json:
             try:
@@ -1023,21 +1029,42 @@ class CellNote(object):
             except json.JSONDecodeError:
                 note_dict = {}
 
-            self.style = note_dict.get('style')
-
-            content = note_dict.get('content')
-            if content is not None and content == 'out-of-cell':
-                self.out_of_table = True
-
-            spacing = note_dict.get('table-spacing')
-            if spacing is not None and spacing == 'no-spacing':
-                self.table_spacing = False
-
             self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.page_number = note_dict.get('page-number') is not None
+            self.footnotes = note_dict.get('footnote')
+
+            # content
+            content = note_dict.get('content')
+            if content is not None and content == 'out-of-cell':
+                self.out_of_table = True
+
+            # table-spacing
+            spacing = note_dict.get('table-spacing')
+            if spacing is not None and spacing == 'no-spacing':
+                self.table_spacing = False
+
+            # style
+            self.style = note_dict.get('style')
+            #  TODO: outline-level and nesting-level
+            # if self.style is not None:
+            #     outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+            #     if outline_level_object:
+            #         self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+            #         self.style = LEVEL_TO_HEADING[self.outline_level]
+
+            #     # if style is any Title/Heading or Table or Figure, apply keep-with-next
+            #     if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+            #         self.keep_with_next = True
+
+            # footnotes
+            if self.footnotes:
+                if not isinstance(self.footnotes, dict):
+                    self.footnotes = {}
+                    warn(f".... found footnotes, but it is not a valid dictionary")
+
 
 
 
