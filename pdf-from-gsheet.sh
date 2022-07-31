@@ -8,7 +8,7 @@ DOCUMENT=$1
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
-./json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
+# ./json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1
@@ -18,7 +18,7 @@ fi
 
 # pandoc-from-json
 pushd ./json-to-pandoc/src
-./pandoc-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
+# ./pandoc-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1

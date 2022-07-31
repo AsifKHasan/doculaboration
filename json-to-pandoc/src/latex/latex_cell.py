@@ -521,15 +521,25 @@ class TextFormat(object):
         if self.source:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
-                if not text_format_dict['fontFamily'] in FONT_MAP:
-                    self.font_family = DEFAULT_FONT
-                    warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
-                elif text_format_dict['fontFamily'] == DEFAULT_FONT:
+                font_family = text_format_dict['fontFamily']
+
+                if font_family == DEFAULT_FONT:
+                    # it is the default font, so we do not need to set it
                     self.font_family = ''
+
                 else:
-                    self.font_family = FONT_MAP.get(text_format_dict.get('fontFamily'))
-                    if not self.font_family == text_format_dict['fontFamily']:
-                        warn(f"{text_format_dict['fontFamily']} is mapped to {FONT_MAP[text_format_dict['fontFamily']]}")
+                    if font_family in FONT_MAP:
+                        # we have the font in our FONT_MAP, we replace it as per the map
+                        self.font_family = FONT_MAP.get(font_family)
+                        if self.font_family != font_family:
+                            warn(f"{font_family} is mapped to {self.font_family}")
+
+                    else:
+                        # the font is not in our FONT_MAP, use it anyway and let us see
+                        self.font_family = font_family
+
+                        # self.font_family = DEFAULT_FONT
+                        # warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
             else:
                 self.font_family = ''
 
@@ -576,7 +586,7 @@ class TextFormat(object):
         if self.font_family != '':
             font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
         else:
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{DEFAULT_FONT}}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\color{{{self.fgcolor.key()}}}"
             # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
 
         latex = f"{font_spec}{content}"

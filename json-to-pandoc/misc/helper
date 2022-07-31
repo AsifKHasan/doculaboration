@@ -1,6 +1,10 @@
 pdf-from-gsheet.bat NBR-NSW__functional-and-technical-report__PwC__v5.0
 ./pdf-from-gsheet.sh NBR-NSW__functional-and-technical-report__PwC__v5.0
 
+./pdf-from-gsheet.sh SSCL__job-description
+./pdf-from-gsheet.sh PPA-2006__2019-01
+./pdf-from-gsheet.sh ayin.kaka__writings
+
 
 TODO:
 1. Minipage to keep image caption and image together
@@ -21,17 +25,6 @@ TEXLive contains the otfinfo command line program, which can query this informat
 otfinfo -i `kpsewhich lmroman10-regular.otf`
 
 
-LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., ‘Latin Modern Roman’ instead of ‘ec-lmr10’), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
+LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., 'Latin Modern Roman' instead of'ec-lmr10'), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
+
 luaotfload-tool
-
-
-some fonts to use (Preferred Family Name)
-  Latin Modern Roman
-  Latin Modern Sans
-  Latin Modern Mono
-
-  FreeSerif
-
-  Open Sans
-
-  Go Smallcaps

@@ -1,18 +1,18 @@
 ---
 # documentclass: book
 # classoption: twoside
-subparagraph: yes               # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
+subparagraph: yes                       # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
-- \RequirePackage{luatex85}     # we use lualatex as our engine
-- \RequirePackage{titlesec}     # for custom titles and headings
-- \usepackage{babel}
+- \RequirePackage{luatex85}             # we use lualatex as our engine
+- \usepackage[center]{titlesec}         # for custom titles and headings
 - \usepackage{fontspec}
+- \usepackage{babel}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
 - \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
 - \usepackage{etoolbox}
 - \usepackage{graphicx}
-- \usepackage{grffile}          # png support?
-- \usepackage{fancyhdr}         # custom header/footer
+- \usepackage{grffile}                  # png support?
+- \usepackage{fancyhdr}                 # custom header/footer
 - \usepackage{colortbl}
 - \usepackage{xcolor}
 - \usepackage{ulem}
@@ -22,18 +22,19 @@ header-includes:
 - \usepackage{lscape}
 - \usepackage{hyperref}
 - \usepackage{slantsc}
+- \usepackage{newunicodechar}
+# - \usepackage[utf8]{inputenc}
+# - \usepackage[T1]{fontenc}
 # - \usepackage{showframe}
 
 - \hypersetup{colorlinks,linkcolor=gray}
 
 - \tracinglostchars=2
 
-- \defaultfontfeatures{Scale=MatchLowercase, Ligatures=TeX, Renderer=HarfBuzz}
+- \defaultfontfeatures{Scale=MatchLowercase,Ligatures=TeX,Renderer=HarfBuzz}
 
 - \babelprovide[import,main]{english}
 - \babelprovide[import,onchar=fonts ids]{bengali}
-
-- \setmainfont{Calibri}
 
 - \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
 - \babelfont[Language=Default]{sf}{Latin Modern Sans}
@@ -45,6 +46,12 @@ header-includes:
 
 - \babeltags{english=english}
 - \babeltags{bengali=bengali}
+
+- \setmainfont{Calibri}
+
+- \newfontfamily{\substitutett}{Noto Serif Bengali}
+- \newunicodechar{।}{\makebox[0.2em]{\substitutett।}}
+
 
 # - \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
 # - \babelfont[Language=Default]{sf}{Latin Modern Sans}

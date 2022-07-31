@@ -55,21 +55,19 @@ class LatexSectionBase(object):
     def get_heading(self):
         heading_lines = []
         if not self.hide_heading:
-            hashes = '#' * self.level
             if self.section != '':
-                heading_text = f"{hashes} {self.section} {self.heading}".strip()
+                heading_text = f"{self.section} {self.heading}".strip()
             else:
-                heading_text = f"{hashes} {self.heading}".strip()
+                heading_text = f"{self.heading}".strip()
 
             # headings are styles based on level
             if self.level != 0:
-                heading_lines.append(heading_text)
-                heading_lines.append('\n')
+                heading_tag = LATEX_HEADING_MAP.get(f"Heading {self.level}")
+                heading_lines.append(f"\\{heading_tag}{{ {heading_text} }}")
             else:
                 heading_lines.append(f"\\titlestyle{{ {heading_text} }}")
-                heading_lines = mark_as_latex(heading_lines)
 
-        return heading_lines
+        return mark_as_latex(heading_lines)
 
 
 
