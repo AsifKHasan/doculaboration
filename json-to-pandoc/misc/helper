@@ -1,8 +1,13 @@
 pdf-from-gsheet.bat NBR-NSW__functional-and-technical-report__PwC__v5.0
 ./pdf-from-gsheet.sh NBR-NSW__functional-and-technical-report__PwC__v5.0
 
+pdf-from-gsheet.bat SSCL__job-description
 ./pdf-from-gsheet.sh SSCL__job-description
+
+pdf-from-gsheet.bat PPA-2006__2019-01
 ./pdf-from-gsheet.sh PPA-2006__2019-01
+
+pdf-from-gsheet.bat ayin.kaka__writings
 ./pdf-from-gsheet.sh ayin.kaka__writings
 
 

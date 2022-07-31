@@ -4,7 +4,7 @@
 subparagraph: yes                       # for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
 header-includes:
 - \RequirePackage{luatex85}             # we use lualatex as our engine
-- \usepackage[center]{titlesec}         # for custom titles and headings
+- \usepackage{titlesec}                 # for custom titles and headings
 - \usepackage{fontspec}
 - \usepackage{babel}
 - \DeclareFontSeriesDefault[rm]{bf}{b}
@@ -27,8 +27,7 @@ header-includes:
 # - \usepackage[T1]{fontenc}
 # - \usepackage{showframe}
 
-- \hypersetup{colorlinks,linkcolor=gray}
-
+- \hypersetup{colorlinks=true,linktoc=all,linkcolor=gray}
 - \tracinglostchars=2
 
 - \defaultfontfeatures{Scale=MatchLowercase,Ligatures=TeX,Renderer=HarfBuzz}

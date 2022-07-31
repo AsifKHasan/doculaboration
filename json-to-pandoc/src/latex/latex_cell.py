@@ -139,16 +139,19 @@ class Cell(object):
             if self.note.style == 'Figure':
                 # caption for figure
                 # content_lines.append(f"\\neeedspace{{2em}}")
+                content_lines.append(f"\\phantomsection")
                 content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.user_entered_value.string_value)}}}")
             elif self.note.style == 'Table':
                 # caption for table
                 # content_lines.append(f"\\neeedspace{{2em}}")
+                content_lines.append(f"\\phantomsection")
                 content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.user_entered_value.string_value)}}}")
             elif self.note.style:
                 # some custom style needs to be applied
                 heading_tag = LATEX_HEADING_MAP.get(self.note.style)
                 if heading_tag:
                     # content_lines.append(f"\\neeedspace{{2em}}")
+                    content_lines.append(f"\\phantomsection")
                     content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.user_entered_value.string_value)}}}")
                 else:
                     warn(f"style : {self.note.style} not defined")

@@ -63,6 +63,7 @@ class LatexSectionBase(object):
             # headings are styles based on level
             if self.level != 0:
                 heading_tag = LATEX_HEADING_MAP.get(f"Heading {self.level}")
+                heading_lines.append(f"\\phantomsection")
                 heading_lines.append(f"\\{heading_tag}{{ {heading_text} }}")
             else:
                 heading_lines.append(f"\\titlestyle{{ {heading_text} }}")

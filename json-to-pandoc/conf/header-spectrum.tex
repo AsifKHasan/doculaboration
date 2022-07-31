@@ -2,13 +2,26 @@
 % Title Style - used for Level 0 heading
 \newcommand\titlestyle[1]{\vspace{0.0cm}\begin{center}\Large\textsc{#1}\end{center}\vspace{0.0cm}}
 
-\titleformat*{\section}{\centering\LARGE\raggedright\color[rgb]{0.7,0,0}\scshape}
-\titleformat*{\subsection}{\centering\Large\sf\bfseries\raggedright\color[rgb]{0.7,0,0}}
-\titleformat*{\subsubsection}{\centering\large\sf\bfseries\raggedright\color[rgb]{0.7,0,0}}
+% Chapter Style - Heading 1
+% \titleformat{\chapter}[display]{\fontsize{16pt}{16pt}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}\centering}{}{0pt}{}
+% \titleformat{\chapter}{\fontsize{16}{16}\raggedright\color[rgb]{0.7,0,0}\scshape\centering}{}{0pt}{}
+% \titlespacing{\chapter}{0pt}{0pt}{2pt}
 
+% Chapter Style - Heading 1
+\titleformat*{\section}{\fontsize{16}{16}\sf\bfseries\raggedright\color[rgb]{0.0,0.7,0.0}\scshape\centering}
 \titlespacing{\section}{0pt}{0pt}{2pt}
-\titlespacing{\subsection}{0pt}{0pt}{2pt}
-\titlespacing{\subsubsection}{0pt}{0pt}{2pt}
+
+% Chapter Style - Heading 2
+\titleformat*{\subsection}{\fontsize{14}{14}\sf\bfseries\raggedright\color[rgb]{0.0,0.0,0.7}\centering}
+\titlespacing{\subsection}{0pt}{2pt}{2pt}
+
+% Chapter Style - Heading 3
+\titleformat*{\subsubsection}{\fontsize{12}{12}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
+\titlespacing{\subsubsection}{0pt}{2pt}{2pt}
+
+% Chapter Style - Heading 4
+\titleformat*{\paragraph}{\fontsize{11}{11}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
+\titlespacing{\paragraph}{0pt}{2pt}{2pt}
 
 % \renewcommand{\thetable}{}
 % \renewcommand{\thefigure}{}
