@@ -4,6 +4,7 @@
 various utilities for generating latex code
 '''
 
+import sys
 import re
 
 DEFAULT_FONT = 'Calibri'
@@ -39,6 +40,9 @@ GSHEET_LATEX_BORDER_MAPPING = {
     'SOLID': 'solid'
 }
 
+WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
+
+
 TBLR_VALIGN = {'TOP': 'h', 'MIDDLE': 'm', 'BOTTOM': 'f'}
 PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
 TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
@@ -57,6 +61,52 @@ LATEX_HEADING_MAP = {
     'Heading 4' : 'paragraph',
     'Heading 5' : 'subparagraph',
 }
+
+HEADING_TO_LEVEL = {
+    'Heading 1': {'outline-level': 1},
+    'Heading 2': {'outline-level': 2},
+    'Heading 3': {'outline-level': 3},
+    'Heading 4': {'outline-level': 4},
+    'Heading 5': {'outline-level': 5},
+    'Heading 6': {'outline-level': 6},
+    'Heading 7': {'outline-level': 7},
+    'Heading 8': {'outline-level': 8},
+    'Heading 9': {'outline-level': 9},
+    'Heading 10': {'outline-level': 10},
+}
+
+
+LEVEL_TO_HEADING = [
+    'Title',
+    'Heading 1',
+    'Heading 2',
+    'Heading 3',
+    'Heading 4',
+    'Heading 5',
+    'Heading 6',
+    'Heading 7',
+    'Heading 8',
+    'Heading 9',
+    'Heading 10',
+]
+
+LETTERS = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+    'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 
+    'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ', 
+    'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CI', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CO', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 
+]
+
+
+''' :param path: a path string
+    :return: the path that the OS accepts
+'''
+def os_specific_path(path):
+    if sys.platform == 'win32':
+        return path.replace('\\', '/')
+    else:
+        return path
+
 
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)

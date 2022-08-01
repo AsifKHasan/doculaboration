@@ -47,6 +47,7 @@ class DocHelper(object):
             section['first-section'] = True if first_section else False
             section['section-index'] = section_index
 
+
             module = importlib.import_module("doc.doc_api")
             func = getattr(module, f"process_{section['content-type']}")
             func(section, self._config)

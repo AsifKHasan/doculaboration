@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-'''
-'''
+
 import os
 import sys
 import json
@@ -9,10 +8,11 @@ import yaml
 import datetime
 import argparse
 from pathlib import Path
-
-from helper.logger import *
+ 
 from doc.doc_helper import DocHelper
 from doc.doc_util import *
+from helper.logger import *
+
 
 class DocFromJson(object):
 

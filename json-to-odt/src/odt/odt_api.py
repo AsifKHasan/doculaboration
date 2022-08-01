@@ -1618,9 +1618,8 @@ class CellNote(object):
         self.keep_with_next = False
         self.keep_with_previous = False
 
-        self.footnotes = {}
-
         self.outline_level = 0
+        self.footnotes = {}
 
         if note_json:
             try:

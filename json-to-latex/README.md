@@ -1,4 +1,4 @@
-# json-to-pandoc
+# json-to-latex
 
 Generates Pandoc markdown from json generated through **gsheet-to-json**
 
@@ -37,7 +37,7 @@ DOCUMENT="name-of-the-gsheet"
 DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
 cd ${DOCULABORATION_BASE}
 cd ./out
-time pandoc ${DOCUMENT}.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
+time pandoc ${DOCUMENT}.mkd ../json-to-latex/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
 ```
 
 ### Windows usage:
@@ -51,5 +51,5 @@ set DOCUMENT="name-of-the-gsheet"
 set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
 cd %DOCULABORATION_BASE%
 cd ./out
-ptime pandoc %DOCUMENT%.mkd ../json-to-pandoc/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
+ptime pandoc %DOCUMENT%.mkd ../json-to-latex/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 ```

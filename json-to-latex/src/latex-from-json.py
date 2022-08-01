@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-'''
-'''
+
+import os
 import sys
 import json
 import time
@@ -9,11 +9,12 @@ import datetime
 import argparse
 from pathlib import Path
 
-from pandoc.pandoc_helper import PandocHelper
-from pandoc.pandoc_util import *
+from latex.latex_helper import LatexHelper
+from latex.latex_util import *
 from helper.logger import *
 
-class PandocFromJson(object):
+
+class LatexFromJson(object):
 
 	def __init__(self, config_path, json=None):
 		self.start_time = int(round(time.time() * 1000))
@@ -28,10 +29,10 @@ class PandocFromJson(object):
 			self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
 			self.load_json()
 
-			# pandoc-helper
-			self._CONFIG['files']['output-pandoc'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.mkd"
-			pandoc = PandocHelper(self._CONFIG)
-			pandoc.generate_pandoc(self._data['sections'])
+			# latex-helper
+			self._CONFIG['files']['output-latex'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.mkd"
+			latex_helper = LatexHelper(self._CONFIG)
+			latex_helper.generate_and_save(self._data['sections'])
 			self.tear_down()
 
 	def set_up(self):
@@ -74,5 +75,5 @@ if __name__ == '__main__':
 	ap.add_argument("-j", "--json", required=False, help="json name to override json list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = PandocFromJson(args["config"], args["json"])
+	generator = LatexFromJson(args["config"], args["json"])
 	generator.run()

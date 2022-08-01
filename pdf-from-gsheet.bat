@@ -1,4 +1,4 @@
-:: gsheet->json->pandoc->pdf pipeline
+:: gsheet->json->latex->pdf pipeline
 
 @echo off
 
@@ -16,9 +16,9 @@ if errorlevel 1 (
 
 popd
 
-:: pandoc-from-json
-pushd .\json-to-pandoc\src
-:: .\pandoc-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+:: latex-from-json
+pushd .\json-to-latex\src
+:: .\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -27,9 +27,9 @@ if errorlevel 1 (
 
 popd
 
-:: pandoc-from-json
+:: latex-from-json
 pushd .\out
-pandoc %DOCUMENT%.mkd ..\json-to-pandoc\conf\preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
+pandoc %DOCUMENT%.mkd ..\json-to-latex\conf\preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
 
 if errorlevel 1 (
   popd

@@ -3,6 +3,7 @@
 import json
 import importlib
 import inspect
+from pprint import pprint
 
 from doc.doc_util import *
 
@@ -40,7 +41,6 @@ class DocxSectionBase(object):
             self.section_index_text = zfilled_index
 
         self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
-
 
         # master-page name
         page_spec = self._section_data['page-spec']
@@ -111,7 +111,7 @@ class DocxSectionBase(object):
         if not self._section_data['hide-heading']:
             heading_text = self._section_data['heading']
             if self._section_data['section'] != '':
-                heading_text = f"{self._section_data['section']} {heading_text}"
+                heading_text = f"{self._section_data['section']} {heading_text}".strip()
 
             outline_level = self._section_data['level'] + self.nesting_level
             if outline_level == 0:
