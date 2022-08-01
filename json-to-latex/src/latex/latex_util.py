@@ -7,6 +7,8 @@ various utilities for generating latex code
 import sys
 import re
 
+from helper.logger import *
+
 DEFAULT_FONT = 'Calibri'
 # DEFAULT_FONT = 'LiberationSerif'
 
@@ -143,3 +145,49 @@ def fancy_pagestyle_header(page_style_name):
     lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
 
     return lines
+
+
+''' insert footnotes inside text
+'''
+def process_footnotes(text_content, footnote_list, verbatim=False):
+    # find out if there is any match with FN#key inside the text_content
+    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
+    texts_and_footnotes = []
+
+    pattern = r'FN{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        footnote_key = match.group()[3:-1]
+        if footnote_key in footnote_list:
+            debug(f".... footnote {footnote_key} found at {match.span()} with description")
+            # we have found a footnote, we add the preceding text and the footnote spec into the list
+            footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+            if footnote_start_index >= current_index:
+                # there are preceding text before the footnote
+                text = text_content[current_index:footnote_start_index]
+                if not verbatim:
+                    text = tex_escape(text)
+
+                texts_and_footnotes.append(text)
+
+                # TODO: footnotemark not supporting any character, it needs an ordered set
+                # foot_note_latex = f"\\footnote[{tex_escape(footnote_key)}]{{ {tex_escape(footnote_list[footnote_key])} }}"
+                foot_note_latex = f"\\footnote{{{tex_escape(footnote_list[footnote_key])}}}"
+                texts_and_footnotes.append(foot_note_latex)
+
+                current_index = footnote_end_index
+
+        else:
+            warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
+            # this is not a footnote, ignore it
+            footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+            # current_index = footnote_end_index + 1
+
+    # there may be trailing text
+    text = text_content[current_index:]
+    if not verbatim:
+        text = tex_escape(text)
+
+    texts_and_footnotes.append(text)
+
+    return ''.join(texts_and_footnotes)

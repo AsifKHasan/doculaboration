@@ -5,7 +5,7 @@
 DOCUMENT=$1
 
 # set echo off
-PYTHON=python3
+PYTHON=python
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
@@ -19,7 +19,7 @@ fi
 
 # latex-from-json
 pushd ./json-to-latex/src
-${PYTHON} latex-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
+# ${PYTHON} latex-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1

@@ -6,6 +6,7 @@ import inspect
 from pprint import pprint
 
 from doc.doc_util import *
+from helper.logger import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   docx (not oo section, gsheet section) objects wrappers

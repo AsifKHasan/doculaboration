@@ -6,6 +6,7 @@ import inspect
 from pprint import pprint
 
 from latex.latex_util import *
+from helper.logger import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   latex section objects wrappers
@@ -227,6 +228,54 @@ class LatexTableSection(LatexSectionBase):
         content_lines = self.section_contents.content_to_latex(color_dict)
 
         return section_lines + content_lines
+
+
+
+''' Latex gsheet section object
+'''
+class LatexGsheetSection(LatexSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, config):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        super().__init__(section_data, config)
+
+
+    ''' generates the odt code
+    '''
+    def section_to_latex(self, color_dict):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        section_lines = super().section_to_latex(color_dict)
+
+        # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
+        if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
+            # these are child contents, we need to assign indexes so that they do not overlap with parent indexes
+            nesting_level = self.nesting_level + 1
+
+            first_section = False
+            section_index = self.section_index * 100
+            for section in self._section_data['contents']['sections']:
+                section['nesting-level'] = nesting_level
+                section['parent-section-index-text'] = self.section_index_text
+                if section['section'] != '':
+                    info(msg=f"writing : {section['section'].strip()} {section['heading'].strip()}", nesting_level=nesting_level)
+                else:
+                    info(msg=f"writing : {section['heading'].strip()}", nesting_level=nesting_level)
+
+                section['first-section'] = True if first_section else False
+                section['section-index'] = section_index
+
+                module = importlib.import_module("latex.latex_api")
+                func = getattr(module, f"process_{section['content-type']}")
+                section_lines = section_lines + func(section_data=section, config=self._config, color_dict=color_dict)
+
+                first_section = False
+                section_index = section_index + 1
+
+        return section_lines
 
 
 
@@ -868,22 +917,8 @@ class Cell(object):
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
 
-                cell_value = self.cell_value.value_to_latex(self.cell_width, self.cell_height, color_dict)
-
-                # # textFormatRuns first
-                # if len(self.text_format_runs):
-                #     run_value_list = []
-                #     processed_idx = len(self.formatted_value)
-                #     for text_format_run in reversed(self.text_format_runs):
-                #         text = self.formatted_value[:processed_idx]
-                #         run_value_list.insert(0, text_format_run.text_format_run_to_latex(text, color_dict))
-                #         processed_idx = text_format_run.start_index
-
-                #     cell_value = ''.join(run_value_list)
-
-
-                #  get the footnotes
-                footnote_list = self.note.footnotes
+                # get the latex code
+                cell_value = self.cell_value.value_to_latex(container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, footnote_list=self.note.footnotes)
 
                 # paragraphs need formatting to be included, table cells do not need them
                 if include_formatting:
@@ -1340,9 +1375,13 @@ class TextFormat(object):
             self.is_underline = False
 
 
-    def text_format_to_latex(self, text, color_dict):
+    ''' generate latex code
+    '''
+    def text_format_to_latex(self, text, color_dict, footnote_list, verbatim=False):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
-        content = f"{text}"
+
+        # process footnote (if any)
+        content = f"{process_footnotes(text, footnote_list, verbatim)}"
 
         styled = False
         if self.is_underline:
@@ -1415,13 +1454,9 @@ class StringValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict):
-        # TODO: verbatim/latex code
-        # if self.verbatim:
-        if False:
-            latex = self.effective_format.text_format.text_format_to_latex(self.value, color_dict)
-        else:
-            latex = self.effective_format.text_format.text_format_to_latex(tex_escape(self.value), color_dict)
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+        verbatim = False
+        latex = self.effective_format.text_format.text_format_to_latex(self.value, color_dict, footnote_list, verbatim)
 
         return latex
 
@@ -1448,16 +1483,16 @@ class TextRunValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+        verbatim = False
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
             text = self.formatted_value[:processed_idx]
-            run_value_list.insert(0, text_format_run.text_attributes(text))
+            run_value_list.insert(0, text_format_run.text_format_run_to_latex(text, color_dict, footnote_list, verbatim))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(container=container, run_list=run_value_list)
-        return paragraph
+        return ''.join(run_value_list)
 
 
 
@@ -1481,7 +1516,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
         if self.short:
             latex = "\\thepage"
         else:
@@ -1511,7 +1546,7 @@ class ImageValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 96 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 96 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1567,10 +1602,9 @@ class ContentValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict):
-        self.contents = LatexContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
-        self.contents.content_to_doc(container=container)
-        return None
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+        section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, nesting_level=self.nesting_level)
+        return section_contents.content_to_latex(color_dict)
 
 
 
@@ -1903,8 +1937,8 @@ class TextFormatRun(object):
 
     ''' generates the latex code
     '''
-    def text_format_run_to_latex(self, text, color_dict):
-        latex = self.format.text_format_to_latex(tex_escape(text[self.start_index:]), color_dict)
+    def text_format_run_to_latex(self, text, color_dict, footnote_list, verbatim=False):
+        latex = self.format.text_format_to_latex(text[self.start_index:], color_dict, footnote_list, verbatim)
 
         return latex
 
@@ -1956,7 +1990,6 @@ class CellNote(object):
 
             # style
             self.style = note_dict.get('style')
-            #  TODO: outline-level and nesting-level
             if self.style is not None:
                 outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
                 if outline_level_object:
@@ -2055,7 +2088,6 @@ def process_table(section_data, config, color_dict):
     section_lines = latex_section.section_to_latex(color_dict=color_dict)
 
     return section_lines
-
 
 
 ''' Gsheet processor
