@@ -23,9 +23,11 @@ header-includes:
 - \usepackage{hyperref}
 - \usepackage{slantsc}
 - \usepackage{newunicodechar}
-- \usepackage{tablefootnote}
+- \usepackage[perpage,symbol*]{footmisc}
+# - \usepackage{tablefootnote}
 # - \usepackage[utf8]{inputenc}
 # - \usepackage[T1]{fontenc}
+# - \usepackage{alphalph}
 # - \usepackage{showframe}
 
 - \hypersetup{colorlinks=true,linktoc=all,linkcolor=gray}

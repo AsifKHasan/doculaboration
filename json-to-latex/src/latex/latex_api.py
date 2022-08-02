@@ -667,7 +667,8 @@ class LatexBlock(object):
     '''
     def __init__(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-        pass
+        self.footnote_texts = []
+
 
 
     ''' generates latex code
@@ -685,6 +686,7 @@ class LatexTable(LatexBlock):
     '''
     def __init__(self, cell_matrix, start_row, end_row, column_widths):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        super().__init__()
 
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
@@ -769,11 +771,16 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer, footnote_texts=self.footnote_texts)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
         table_lines = list(map(lambda x: f"\t{x}", table_lines))
+
+        # TODO: append footnote_texts
+        if len(self.footnote_texts):
+            table_lines.append(f"")
+            table_lines = table_lines + list(map(lambda x: f"\t{x}", self.footnote_texts))
 
         if not strip_comments:
             table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
@@ -791,8 +798,11 @@ class LatexParagraph(LatexBlock):
     def __init__(self, data_row, row_number):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
+        super().__init__()
+
         self.data_row = data_row
         self.row_number = row_number
+
 
     ''' generates the latex code
     '''
@@ -899,7 +909,7 @@ class Cell(object):
 
     ''' latex code for cell content
     '''
-    def content_latex(self, include_formatting, color_dict, strip_comments=False, left_hspace=None, right_hspace=None):
+    def content_latex(self, include_formatting, color_dict, footnote_texts, strip_comments=False, left_hspace=None, right_hspace=None):
         content_lines = []
 
         if not strip_comments:
@@ -910,7 +920,7 @@ class Cell(object):
             if self.cell_value:
 
                 # get the latex code
-                cell_value = self.cell_value.value_to_latex(container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, footnote_list=self.note.footnotes)
+                cell_value = self.cell_value.value_to_latex(container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, footnote_list=self.note.footnotes, footnote_texts=footnote_texts)
 
                 # paragraphs need formatting to be included, table cells do not need them
                 if include_formatting:
@@ -1251,7 +1261,7 @@ class Row(object):
 
     ''' generates the latex code
     '''
-    def cell_content_latex(self, include_formatting, color_dict, strip_comments=False, header_footer=None):
+    def cell_content_latex(self, include_formatting, color_dict, footnote_texts, strip_comments=False, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -1292,7 +1302,7 @@ class Row(object):
                     if c == len(self.cells) - 1:
                         right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
 
-                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
+                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, footnote_texts=footnote_texts, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -1369,11 +1379,11 @@ class TextFormat(object):
 
     ''' generate latex code
     '''
-    def text_format_to_latex(self, text, color_dict, footnote_list, verbatim=False):
+    def text_format_to_latex(self, text, color_dict, footnote_list, footnote_texts, verbatim=False):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
         # process footnote (if any)
-        content = f"{process_footnotes(text, footnote_list, verbatim)}"
+        content = f"{process_footnotes(text_content=text, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts)}"
 
         styled = False
         if self.is_underline:
@@ -1446,9 +1456,9 @@ class StringValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
         verbatim = False
-        latex = self.effective_format.text_format.text_format_to_latex(self.value, color_dict, footnote_list, verbatim)
+        latex = self.effective_format.text_format.text_format_to_latex(self.value, color_dict=color_dict, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts)
 
         return latex
 
@@ -1475,13 +1485,13 @@ class TextRunValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
         verbatim = False
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
             text = self.formatted_value[:processed_idx]
-            run_value_list.insert(0, text_format_run.text_format_run_to_latex(text, color_dict, footnote_list, verbatim))
+            run_value_list.insert(0, text_format_run.text_format_run_to_latex(text, color_dict=color_dict, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts))
             processed_idx = text_format_run.start_index
 
         return ''.join(run_value_list)
@@ -1508,7 +1518,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
         if self.short:
             latex = "\\thepage"
         else:
@@ -1538,7 +1548,7 @@ class ImageValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 96 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 96 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1594,7 +1604,7 @@ class ContentValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list):
+    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
         section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, nesting_level=self.nesting_level)
         return section_contents.content_to_latex(color_dict)
 
@@ -1929,8 +1939,8 @@ class TextFormatRun(object):
 
     ''' generates the latex code
     '''
-    def text_format_run_to_latex(self, text, color_dict, footnote_list, verbatim=False):
-        latex = self.format.text_format_to_latex(text[self.start_index:], color_dict, footnote_list, verbatim)
+    def text_format_run_to_latex(self, text, color_dict, footnote_list, footnote_texts, verbatim=False):
+        latex = self.format.text_format_to_latex(text=text[self.start_index:], color_dict=color_dict, footnote_list=footnote_list, footnote_texts=footnote_texts, verbatim=verbatim)
 
         return latex
 
