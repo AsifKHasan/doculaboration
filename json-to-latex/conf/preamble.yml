@@ -23,6 +23,7 @@ header-includes:
 - \usepackage{hyperref}
 - \usepackage{slantsc}
 - \usepackage{newunicodechar}
+- \usepackage{tablefootnote}
 # - \usepackage[utf8]{inputenc}
 # - \usepackage[T1]{fontenc}
 # - \usepackage{showframe}

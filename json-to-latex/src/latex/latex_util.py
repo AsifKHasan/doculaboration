@@ -172,8 +172,8 @@ def process_footnotes(text_content, footnote_list, verbatim=False):
 
                 # TODO: footnotemark not supporting any character, it needs an ordered set
                 # foot_note_latex = f"\\footnote[{tex_escape(footnote_key)}]{{ {tex_escape(footnote_list[footnote_key])} }}"
-                foot_note_latex = f"\\footnote{{{tex_escape(footnote_list[footnote_key])}}}"
-                texts_and_footnotes.append(foot_note_latex)
+                foot_note_latex = f"\\tablefootnote{{{tex_escape(footnote_list[footnote_key])}}}"
+                # texts_and_footnotes.append(foot_note_latex)
 
                 current_index = footnote_end_index
 

@@ -47,16 +47,7 @@ class LatexSectionBase(object):
 
 
         # master-page name
-        # page_spec = self._section_data['page-spec']
-        # margin_spec = self._section_data['margin-spec']
         self.landscape = self._section_data['landscape']
-
-        # if it is the very first section, change the first section
-        # if self._section_data['first-section']:
-        #     self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, landscape, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
-        # else:
-        #     self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, landscape, different_firstpage=self._section_data['different-firstpage'])
-
 
         self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
         self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
@@ -78,6 +69,7 @@ class LatexSectionBase(object):
         self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
         self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, nesting_level=self.nesting_level)
+
 
 
     ''' generates section heading
