@@ -74,6 +74,30 @@ class LatexSectionBase(object):
 
 
 
+    ''' generates section geometry
+    '''
+    def get_geometry(self):
+        geometry_lines = []
+
+        paper = self.page_spec['name']
+        page_width = self.page_spec['width']
+        page_height = self.page_spec['height']
+        top_margin = self.margin_spec['top']
+        bottom_margin = self.margin_spec['bottom']
+        left_margin = self.margin_spec['left']
+        right_margin = self.margin_spec['right']
+
+        geometry_lines.append(f"% LatexSection: [{self.id}]")
+        geometry_lines.append(f"\t\\pagebreak")
+
+        geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
+
+        geometry_lines = mark_as_latex(lines=geometry_lines)
+
+        return geometry_lines
+
+
+
     ''' generates section heading
     '''
     def get_heading(self):
@@ -93,29 +117,6 @@ class LatexSectionBase(object):
                 heading_lines.append(f"\\{heading_tag}{{ {heading_text} }}")
 
         return mark_as_latex(lines=heading_lines)
-
-
-
-    ''' generates section geometry
-    '''
-    def get_geometry(self):
-        geometry_lines = []
-
-        paper = self.page_spec['name']
-        page_width = self.page_spec['width']
-        page_height = self.page_spec['height']
-        top_margin = self.margin_spec['top']
-        bottom_margin = self.margin_spec['bottom']
-        left_margin = self.margin_spec['left']
-        right_margin = self.margin_spec['right']
-
-        geometry_lines.append(f"\t\\pagebreak")
-
-        geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
-
-        geometry_lines = mark_as_latex(lines=geometry_lines)
-
-        return geometry_lines
 
 
 
@@ -210,7 +211,7 @@ class LatexTableSection(LatexSectionBase):
 
         super().__init__(section_data=section_data, config=config)
 
-
+ 
     ''' generates the latex code
     '''
     def section_to_latex(self, color_dict, document_footnotes):
@@ -695,7 +696,7 @@ class LatexTable(LatexBlock):
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
         self.table_name = f"LatexTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
-        self.id = f"{self.section_id}__t-{self.start_row+1}_{self.end_row+1}"
+        self.id = f"{self.section_id}__t_{self.start_row+1}_{self.end_row+1}"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(c=0).note.header_rows
@@ -785,11 +786,17 @@ class LatexTable(LatexBlock):
         table_lines.append(f"\t\\end{{{table_type}}}")
         table_lines = list(map(lambda x: f"\t{x}", table_lines))
 
-        # TODO: append footnote_texts
+        # latex footnotes
         footnote_texts = document_footnotes[self.id]
         if len(footnote_texts):
+            # append footnotetexts 
             table_lines.append(f"")
-            table_lines = table_lines + list(map(lambda x: f"\t{x}", footnote_texts))
+            for footnote_text_dict in footnote_texts:
+                footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
+                table_lines.append(footnote_text)
+
+            # \\setfnsymbol for the footnotes, this needs to go before the table
+            table_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + table_lines
 
         if not strip_comments:
             table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
@@ -811,7 +818,7 @@ class LatexParagraph(LatexBlock):
 
         self.data_row = data_row
         self.row_number = row_number
-        self.id = f"{self.section_id}__p-{self.row_number+1}"
+        self.id = f"{self.section_id}__p_{self.row_number+1}"
 
 
     ''' generates the latex code
@@ -829,9 +836,23 @@ class LatexParagraph(LatexBlock):
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(c=0).content_latex(block_id=self.id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
+            row_text = self.data_row.get_cell(c=0).cell_content_to_latex(block_id=self.id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
+
+        # latex footnotes
+        footnote_texts = document_footnotes[self.id]
+        if len(footnote_texts):
+            # append footnotetexts 
+            block_lines.append(f"")
+            for footnote_text_dict in footnote_texts:
+                footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
+                block_lines.append(footnote_text)
+
+            block_lines.append(f"")
+
+            # \\setfnsymbol for the footnotes, this needs to go before the table
+            block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
 
         return [f"% LatexParagraph: [{self.id}]"] + block_lines
 
@@ -2104,7 +2125,7 @@ def process_table(section_data, config, color_dict, document_footnotes):
     latex_section = LatexTableSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
+    return section_lines
 
 
 ''' Gsheet processor
@@ -2113,7 +2134,7 @@ def process_gsheet(section_data, config, color_dict, document_footnotes):
     latex_section = LatexGsheetSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
+    return section_lines
 
 
 ''' Table of Content processor
@@ -2131,7 +2152,7 @@ def process_lof(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoFSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
+    return section_lines
 
 
 ''' List of Table processor
@@ -2140,7 +2161,7 @@ def process_lot(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoTSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
+    return section_lines
 
 
 ''' pdf processor
@@ -2149,7 +2170,7 @@ def process_pdf(section_data, config, color_dict, document_footnotes):
     latex_section = LatexPdfSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
+    return section_lines
 
 
 ''' odt processor

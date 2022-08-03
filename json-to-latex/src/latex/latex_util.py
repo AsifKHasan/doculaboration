@@ -160,7 +160,7 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list,
     for match in re.finditer(pattern, text_content):
         footnote_key = match.group()[3:-1]
         if footnote_key in footnote_list:
-            debug(f".... footnote {footnote_key} found at {match.span()} with description")
+            # debug(f".... footnote {footnote_key} found at {match.span()} with description")
             # we have found a footnote, we add the preceding text and the footnote spec into the list
             footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
             if footnote_start_index >= current_index:
@@ -171,15 +171,13 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list,
 
                 texts_and_footnotes.append(text)
 
-                # TODO: footnotemark not supporting any character, it needs an ordered set
-                # foot_note_latex = f"\\footnote[{tex_escape(footnote_key)}]{{ {tex_escape(footnote_list[footnote_key])} }}"
-                # foot_note_latex = f"\\footnotemark{{{tex_escape(footnote_list[footnote_key])}}}"
                 footnote_mark_latex = f"\\footnotemark[{next_footnote_number}]"
-                next_footnote_number = next_footnote_number + 1
                 texts_and_footnotes.append(footnote_mark_latex)
 
                 # this block has this footnote
-                document_footnotes[block_id].append({footnote_key: footnote_list[footnote_key]})
+                document_footnotes[block_id].append({'key': footnote_key, 'mark': next_footnote_number, 'text': footnote_list[footnote_key]})
+
+                next_footnote_number = next_footnote_number + 1
 
                 current_index = footnote_end_index
 

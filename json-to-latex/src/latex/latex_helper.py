@@ -64,8 +64,26 @@ class LatexHelper(object):
         for k,v in self.color_dict.items():
             self.header_lines.append(f"\t\definecolor{{{k}}}{{HTML}}{{{v}}}")
 
+        # define the footnote sysmbols through DefineFNsymbols
+        for k,v in self.document_footnotes.items():
+            if len(v):
+                self.header_lines = self.header_lines + define_fn_symbols(name=k, item_list=v)
+
         self.header_lines.append("```\n\n")
 
         # save the markdown document string in a file
         with open(self._config['files']['output-latex'], "w", encoding="utf-8") as f:
             f.write('\n'.join(self.header_lines + self.document_lines))
+
+
+def define_fn_symbols(name, item_list):
+    lines = []
+    lines.append(f"")
+    lines.append(f"\\DefineFNsymbols{{{name}_symbols}}{{")
+    for item in item_list:
+        lines.append(f"\t{item['key']}")
+
+    lines.append(f"}}")
+
+    return lines
+
