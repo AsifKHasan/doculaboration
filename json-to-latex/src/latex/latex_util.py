@@ -149,13 +149,14 @@ def fancy_pagestyle_header(page_style_name):
 
 ''' insert footnotes inside text
 '''
-def process_footnotes(text_content, footnote_list, footnote_texts, verbatim=False):
+def process_footnotes(block_id, text_content, document_footnotes, footnote_list, verbatim=False):
     # find out if there is any match with FN#key inside the text_content
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
 
     pattern = r'FN{[^}]+}'
     current_index = 0
+    next_footnote_number = len(document_footnotes[block_id]) + 1
     for match in re.finditer(pattern, text_content):
         footnote_key = match.group()[3:-1]
         if footnote_key in footnote_list:
@@ -173,11 +174,12 @@ def process_footnotes(text_content, footnote_list, footnote_texts, verbatim=Fals
                 # TODO: footnotemark not supporting any character, it needs an ordered set
                 # foot_note_latex = f"\\footnote[{tex_escape(footnote_key)}]{{ {tex_escape(footnote_list[footnote_key])} }}"
                 # foot_note_latex = f"\\footnotemark{{{tex_escape(footnote_list[footnote_key])}}}"
-                footnote_mark_latex = f"\\footnotemark[{tex_escape(footnote_key)}]"
+                footnote_mark_latex = f"\\footnotemark[{next_footnote_number}]"
+                next_footnote_number = next_footnote_number + 1
                 texts_and_footnotes.append(footnote_mark_latex)
 
-                footnote_text_latex = f"\\footnotetext[{tex_escape(footnote_key)}]{{{tex_escape(footnote_list[footnote_key])}}}"
-                footnote_texts.append(footnote_text_latex)
+                # this block has this footnote
+                document_footnotes[block_id].append({footnote_key: footnote_list[footnote_key]})
 
                 current_index = footnote_end_index
 

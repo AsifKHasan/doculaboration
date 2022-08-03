@@ -38,6 +38,7 @@ class LatexHelper(object):
 
         self.document_lines = []
         self.color_dict = {}
+        self.document_footnotes = {}
         for section in section_list:
             section['nesting-level'] = nesting_level
             section['parent-section-index-text'] = parent_section_index_text
@@ -52,7 +53,7 @@ class LatexHelper(object):
 
             module = importlib.import_module("latex.latex_api")
             func = getattr(module, f"process_{section['content-type']}")
-            section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict)
+            section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict, document_footnotes=self.document_footnotes)
             self.document_lines = self.document_lines + section_lines
 
             first_section = False

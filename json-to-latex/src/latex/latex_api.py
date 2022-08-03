@@ -39,9 +39,11 @@ class LatexSectionBase(object):
 
         zfilled_index = str(self.section_index).zfill(3)
         if self.parent_section_index_text != '':
-            self.section_index_text = f"{self.parent_section_index_text}.{zfilled_index}"
+            self.section_index_text = f"{self.parent_section_index_text}_{zfilled_index}"
         else:
             self.section_index_text = zfilled_index
+
+        self.id = f"s_{self.section_index_text}"
 
         self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
 
@@ -61,14 +63,14 @@ class LatexSectionBase(object):
 
         # headers and footers
         # print(f".. orientation: {landscape}, section_width: {self.section_width}")
-        self.header_first = LatexPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = LatexPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = LatexPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = LatexPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = LatexPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.header_first = LatexPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+        self.header_odd   = LatexPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        self.header_even  = LatexPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+        self.footer_first = LatexPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+        self.footer_odd   = LatexPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
-        self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, nesting_level=self.nesting_level)
+        self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.id, nesting_level=self.nesting_level)
 
 
 
@@ -90,7 +92,7 @@ class LatexSectionBase(object):
                 heading_lines.append(f"\\phantomsection")
                 heading_lines.append(f"\\{heading_tag}{{ {heading_text} }}")
 
-        return mark_as_latex(heading_lines)
+        return mark_as_latex(lines=heading_lines)
 
 
 
@@ -111,7 +113,7 @@ class LatexSectionBase(object):
 
         geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
 
-        geometry_lines = mark_as_latex(geometry_lines)
+        geometry_lines = mark_as_latex(lines=geometry_lines)
 
         return geometry_lines
 
@@ -119,27 +121,27 @@ class LatexSectionBase(object):
 
     ''' get header/fotter contents
     '''
-    def get_header_footer(self, color_dict):
+    def get_header_footer(self, color_dict, document_footnotes):
         hf_lines = []
 
         # get headers and footers
         if self.header_first.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t\{x}", self.header_first.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t\{x}", self.header_first.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.header_odd.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_odd.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.header_even.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_even.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.footer_first.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_first.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_first.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.footer_odd.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.footer_even.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_even.content_to_latex(color_dict)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         # now the pagestyle
         hf_lines = hf_lines + fancy_pagestyle_header(self.page_style_name)
@@ -161,7 +163,7 @@ class LatexSectionBase(object):
         # TODO
         hf_lines = [f"% PageStyle - [{self.page_style_name}]"] + hf_lines
 
-        hf_lines = mark_as_latex(hf_lines)
+        hf_lines = mark_as_latex(lines=hf_lines)
 
         return hf_lines
 
@@ -169,7 +171,7 @@ class LatexSectionBase(object):
 
     ''' generates the latex code
     '''
-    def section_to_latex(self, color_dict):
+    def section_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         geometry_lines = []
@@ -179,7 +181,7 @@ class LatexSectionBase(object):
 
 
         # header/footer lines
-        hf_lines = self.get_header_footer(color_dict)
+        hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
         content_lines = []
@@ -187,7 +189,7 @@ class LatexSectionBase(object):
         if self.page_break:
             content_lines.append(f"\t\\pagebreak")
 
-        content_lines = mark_as_latex(content_lines)
+        content_lines = mark_as_latex(lines=content_lines)
 
 
         # section heading is always applicable
@@ -206,18 +208,18 @@ class LatexTableSection(LatexSectionBase):
     def __init__(self, section_data, config):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(section_data, config)
+        super().__init__(section_data=section_data, config=config)
 
 
     ''' generates the latex code
     '''
-    def section_to_latex(self, color_dict):
+    def section_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_latex(color_dict)
+        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # get the contents
-        content_lines = self.section_contents.content_to_latex(color_dict)
+        content_lines = self.section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         return section_lines + content_lines
 
@@ -232,15 +234,15 @@ class LatexGsheetSection(LatexSectionBase):
     def __init__(self, section_data, config):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(section_data, config)
+        super().__init__(section_data=section_data, config=config)
 
 
     ''' generates the odt code
     '''
-    def section_to_latex(self, color_dict):
+    def section_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_latex(color_dict)
+        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
@@ -278,13 +280,13 @@ class LatexToCSection(LatexSectionBase):
     ''' constructor
     '''
     def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+        super().__init__(section_data=section_data, config=config)
 
 
     ''' generates the latex code
     '''
-    def section_to_latex(self, color_dict):
-        section_lines = super().section_to_latex(color_dict)
+    def section_to_latex(self, color_dict, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -292,7 +294,7 @@ class LatexToCSection(LatexSectionBase):
         content_lines.append("\\vspace{-0.5in}")
         content_lines.append("\\tableofcontents")
         content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
+        content_lines = mark_as_latex(lines=content_lines)
 
         return section_lines + content_lines
 
@@ -305,13 +307,13 @@ class LatexLoTSection(LatexSectionBase):
     ''' constructor
     '''
     def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+        super().__init__(section_data=section_data, config=config)
 
 
     ''' generates the latex code
     '''
-    def section_to_latex(self, color_dict):
-        section_lines = super().section_to_latex(color_dict)
+    def section_to_latex(self, color_dict, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -319,7 +321,7 @@ class LatexLoTSection(LatexSectionBase):
         content_lines.append("\\vspace{-0.4in}")
         content_lines.append("\\listoftables")
         content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
+        content_lines = mark_as_latex(lines=content_lines)
 
         return section_lines + content_lines
 
@@ -332,13 +334,13 @@ class LatexLoFSection(LatexSectionBase):
     ''' constructor
     '''
     def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+        super().__init__(section_data=section_data, config=config)
 
 
     ''' generates the latex code
     '''
-    def section_to_latex(self, color_dict):
-        section_lines = super().section_to_latex(color_dict)
+    def section_to_latex(self, color_dict, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -346,7 +348,7 @@ class LatexLoFSection(LatexSectionBase):
         content_lines.append("\\vspace{-0.4in}")
         content_lines.append("\\listoffigures")
         content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_latex(content_lines)
+        content_lines = mark_as_latex(lines=content_lines)
 
         return section_lines + content_lines
 
@@ -358,12 +360,10 @@ class LatexContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, section_index, nesting_level):
+    def __init__(self, content_data, content_width, section_index, section_id, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        self.content_width = content_width
-        self.section_index = section_index
-        self.nesting_level = nesting_level
+        self.content_width, self.section_index, self.section_id, self.nesting_level = content_width, section_index, section_id, nesting_level
 
         self.title = None
         self.row_count = 0
@@ -386,7 +386,7 @@ class LatexContent(object):
             self.has_content = True
 
             properties = content_data.get('properties')
-            # self.default_format = CellFormat(properties.get('defaultFormat'))
+            # self.default_format = CellFormat(format_dict=properties.get('defaultFormat'))
 
             sheets = content_data.get('sheets')
             if isinstance(sheets, list) and len(sheets) > 0:
@@ -405,15 +405,15 @@ class LatexContent(object):
 
                     # rowMetadata
                     for row_metadata in data.get('rowMetadata', []):
-                        self.row_metadata_list.append(RowMetadata(row_metadata))
+                        self.row_metadata_list.append(RowMetadata(row_metadata_dict=row_metadata))
 
                     # columnMetadata
                     for column_metadata in data.get('columnMetadata', []):
-                        self.column_metadata_list.append(ColumnMetadata(column_metadata))
+                        self.column_metadata_list.append(ColumnMetadata(column_metadata_dict=column_metadata))
 
                     # merges
                     for merge in sheets[0].get('merges', []):
-                        self.merge_list.append(Merge(merge, self.start_row, self.start_column))
+                        self.merge_list.append(Merge(gsheet_merge_dict=merge, start_row=self.start_row, start_column=self.start_column))
 
                     # column width needs adjustment as \tabcolsep is COLSEPin. This means each column has a COLSEP inch on left and right as space which needs to be removed from column width
                     all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list)
@@ -422,7 +422,8 @@ class LatexContent(object):
                     # rowData
                     r = 0
                     for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(r, row_data, self.default_format, self.content_width, self.column_widths, self.row_metadata_list[r].inches, self.nesting_level))
+                        row = Row(row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                        self.cell_matrix.append(row)
                         r = r + 1
 
             # process and split
@@ -448,7 +449,7 @@ class LatexContent(object):
             row_span = merge.row_span
             col_span = merge.col_span
             first_row_object = self.cell_matrix[first_row]
-            first_cell = first_row_object.get_cell(first_col)
+            first_cell = first_row_object.get_cell(c=first_col)
 
             if first_cell is None:
                 warn(f"cell [{first_row},{first_col}] starts a span, but it is not there")
@@ -487,38 +488,38 @@ class LatexContent(object):
                         continue
 
                     # debug(f"..cell [{r+1},{c+1}] is part of column merge")
-                    next_cell_in_row = next_row_object.get_cell(c)
+                    next_cell_in_row = next_row_object.get_cell(c=c)
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
                         # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(r, c, None, first_cell.default_format, first_cell.column_widths, row_height)
-                        next_row_object.insert_cell(c, next_cell_in_row)
+                        next_cell_in_row = Cell(row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height)
+                        next_row_object.insert_cell(pos=c, cell=next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
                         # debug(f"..cell [{r+1},{c+1}] is empty")
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
-                        next_cell_in_row.copy_format_from(first_cell)
+                        next_cell_in_row.copy_format_from(from_cell=first_cell)
 
                         # mark cells for multicol only if it is multicol
                         if col_span > 1:
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
+                                next_cell_in_row.mark_multicol(span=MultiSpan.FirstCell)
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(MultiSpan.LastCell)
+                                next_cell_in_row.mark_multicol(span=MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the column merge")
-                                next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
+                                next_cell_in_row.mark_multicol(span=MultiSpan.InnerCell)
 
                         else:
-                            next_cell_in_row.mark_multicol(MultiSpan.No)
+                            next_cell_in_row.mark_multicol(span=MultiSpan.No)
 
 
                         # mark cells for multirow only if it is multirow
@@ -526,20 +527,20 @@ class LatexContent(object):
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
+                                next_cell_in_row.mark_multirow(span=MultiSpan.FirstCell)
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(MultiSpan.LastCell)
+                                next_cell_in_row.mark_multirow(span=MultiSpan.LastCell)
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the row merge")
-                                next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
+                                next_cell_in_row.mark_multirow(span=MultiSpan.InnerCell)
 
                         else:
-                            next_cell_in_row.mark_multirow(MultiSpan.No)
+                            next_cell_in_row.mark_multirow(span=MultiSpan.No)
 
                     else:
                         warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
@@ -567,10 +568,10 @@ class LatexContent(object):
             if data_row.is_out_of_table():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
-                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    table = LatexTable(cell_matrix=self.cell_matrix, start_row=next_table_starts_in_row, end_row=(r - 1), column_widths=self.column_widths, section_index=self.section_index, section_id=self.section_id)
                     self.content_list.append(table)
 
-                block = LatexParagraph(data_row, r)
+                block = LatexParagraph(data_row=data_row, row_number=r, section_index=self.section_index, section_id=self.section_id)
                 self.content_list.append(block)
 
                 next_table_starts_in_row = r + 1
@@ -579,7 +580,7 @@ class LatexContent(object):
             elif data_row.is_table_start():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
-                    table = LatexTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    table = LatexTable(cell_matrix=self.cell_matrix, start_row=next_table_starts_in_row, end_row=(r - 1), column_widths=self.column_widths, section_index=self.section_index, section_id=self.section_id)
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
@@ -589,13 +590,13 @@ class LatexContent(object):
 
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
-            table = LatexTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
+            table = LatexTable(cell_matrix=self.cell_matrix, start_row=next_table_starts_in_row, end_row=next_table_ends_in_row, column_widths=self.column_widths, section_index=self.section_index, section_id=self.section_id)
             self.content_list.append(table)
 
 
     ''' generates the latex code
     '''
-    def content_to_latex(self, color_dict):
+    def content_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         latex_lines = []
@@ -607,7 +608,7 @@ class LatexContent(object):
             if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
                 latex_lines.append(f"\t\\\\[{0}pt]")
 
-            latex_lines = latex_lines + block.block_to_latex(longtable=True, color_dict=color_dict)
+            latex_lines = latex_lines + block.block_to_latex(longtable=True, color_dict=color_dict, document_footnotes=document_footnotes)
 
             # keep track of the block as the previous block
             if isinstance(block, LatexParagraph):
@@ -615,7 +616,7 @@ class LatexContent(object):
             else:
                 last_block_is_a_paragraph = False
 
-        latex_lines = mark_as_latex(latex_lines)
+        latex_lines = mark_as_latex(lines=latex_lines)
 
         return latex_lines
 
@@ -629,17 +630,17 @@ class LatexPageHeaderFooter(LatexContent):
         header_footer : header/footer
         odd_even      : first/odd/even
     '''
-    def __init__(self, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
+    def __init__(self, content_data, section_width, section_index, section_id, header_footer, odd_even, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, nesting_level=nesting_level)
+        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.id = f"{self.header_footer}{self.odd_even}{LETTERS[section_index]}"
 
 
     ''' generates the latex code
     '''
-    def content_to_latex(self, color_dict):
+    def content_to_latex(self, color_dict, document_footnotes):
         latex_lines = []
 
         latex_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
@@ -647,7 +648,7 @@ class LatexPageHeaderFooter(LatexContent):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.block_to_latex(longtable=False, color_dict=color_dict, strip_comments=True, header_footer=self.header_footer)
+            block_lines = block.block_to_latex(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=True, header_footer=self.header_footer)
             # block_lines = list(map(lambda x: f"\t{x}", block_lines))
             latex_lines = latex_lines + block_lines
 
@@ -655,7 +656,7 @@ class LatexPageHeaderFooter(LatexContent):
 
         latex_lines.append(f"\t}}")
 
-        return latex_lines
+        return [f"% LatexPageHeaderFooter: [{self.id}]"] + latex_lines
 
 
 
@@ -665,15 +666,16 @@ class LatexBlock(object):
 
     ''' constructor
     '''
-    def __init__(self):
+    def __init__(self, section_index, section_id):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-        self.footnote_texts = []
+
+        self.section_index, self.section_id = section_index, section_id
 
 
 
     ''' generates latex code
     '''
-    def block_to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
+    def block_to_latex(self, longtable, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         pass
 
 
@@ -684,23 +686,29 @@ class LatexTable(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, cell_matrix, start_row, end_row, column_widths):
+    def __init__(self, section_index, section_id, cell_matrix, start_row, end_row, column_widths):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-        super().__init__()
+
+        super().__init__(section_index, section_id)
 
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
         self.table_name = f"LatexTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
+        self.id = f"{self.section_id}__t-{self.start_row+1}_{self.end_row+1}"
 
         # header row if any
-        self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
+        self.header_row_count = self.table_cell_matrix[0].get_cell(c=0).note.header_rows
 
 
     ''' generates the latex code
     '''
-    def block_to_latex(self, longtable, color_dict, strip_comments=False, header_footer=None):
+    def block_to_latex(self, longtable, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        # for storing the footnotes (if any) for this block
+        if (self.id not in document_footnotes):
+            document_footnotes[self.id] = []
 
         # table template
         template_lines = []
@@ -748,21 +756,21 @@ class LatexTable(LatexBlock):
         # generate row formats
         r = 1
         for row in self.table_cell_matrix:
-            row_format_line = f"\t\t{row.row_format_latex(r, color_dict)}"
+            row_format_line = f"\t\t{row.row_format_to_latex(r=r, color_dict=color_dict)}"
             table_lines.append(row_format_line)
             r = r + 1
 
         # generate cell formats
         r = 1
         for row in self.table_cell_matrix:
-            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_format_latex(r, color_dict)))
+            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_formats_to_latex(r=r, color_dict=color_dict)))
             table_lines = table_lines + cell_format_lines
             r = r + 1
 
         # generate vertical borders
         r = 1
         for row in self.table_cell_matrix:
-            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_latex(r, color_dict)))
+            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_to_latex(r=r, color_dict=color_dict)))
             table_lines = table_lines + v_lines
             r = r + 1
 
@@ -771,21 +779,22 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_content_latex(include_formatting=False, color_dict=color_dict, strip_comments=strip_comments, header_footer=header_footer, footnote_texts=self.footnote_texts)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_contents_to_latex(block_id=self.id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
         table_lines = list(map(lambda x: f"\t{x}", table_lines))
 
         # TODO: append footnote_texts
-        if len(self.footnote_texts):
+        footnote_texts = document_footnotes[self.id]
+        if len(footnote_texts):
             table_lines.append(f"")
-            table_lines = table_lines + list(map(lambda x: f"\t{x}", self.footnote_texts))
+            table_lines = table_lines + list(map(lambda x: f"\t{x}", footnote_texts))
 
         if not strip_comments:
             table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
 
-        return table_lines
+        return [f"% LatexTable: [{self.id}]"] + table_lines
 
 
 
@@ -795,19 +804,24 @@ class LatexParagraph(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, data_row, row_number):
+    def __init__(self, section_index, section_id, data_row, row_number):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__()
+        super().__init__(section_index, section_id)
 
         self.data_row = data_row
         self.row_number = row_number
+        self.id = f"{self.section_id}__p-{self.row_number+1}"
 
 
     ''' generates the latex code
     '''
-    def block_to_latex(self, longtable, color_dict, strip_comments=False):
+    def block_to_latex(self, longtable, color_dict, document_footnotes, strip_comments=False):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        # for storing the footnotes (if any) for this block
+        if (self.id not in document_footnotes):
+            document_footnotes[self.id] = []
 
         block_lines = []
         if not strip_comments:
@@ -815,11 +829,11 @@ class LatexParagraph(LatexBlock):
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(0).content_latex(include_formatting=True, color_dict=color_dict)
+            row_text = self.data_row.get_cell(c=0).content_latex(block_id=self.id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
 
-        return block_lines
+        return [f"% LatexParagraph: [{self.id}]"] + block_lines
 
 
 
@@ -843,18 +857,18 @@ class Cell(object):
         self.merge_spec = CellMergeSpec()
 
         if self.value:
-            self.note = CellNote(value.get('note'))
+            self.note = CellNote(note_json=value.get('note'))
             self.formatted_value = self.value.get('formattedValue', '')
 
-            # self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+            # self.effective_format = CellFormat(format_dict=self.value.get('effectiveFormat'), default_format=self.default_format)
+            self.effective_format = CellFormat(format_dict=self.value.get('effectiveFormat'))
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
+                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
-                self.user_entered_format = CellFormat(self.value.get('userEnteredFormat'))
+                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
                 self.is_empty = False
             else:
                 self.user_entered_format = None
@@ -863,27 +877,27 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(self.effective_format, self.value['contents'])
+                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(self.effective_format, self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(self.effective_format, self.text_format_runs, self.formatted_value)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
                     elif self.note.page_number:
-                        self.cell_value = PageNumberValue(self.effective_format, short=False)
+                        self.cell_value = PageNumberValue(effective_format=self.effective_format, short=False)
 
                     else:
-                        self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value, self.nesting_level, self.note.outline_level)
+                        self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                # self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
-                # warn(f"{self} is None")
-                self.cell_value = StringValue(self.effective_format, '', self.formatted_value, self.nesting_level, self.note.outline_level)
+                # self.cell_value = StringValue(effective_format=self.effective_format, '', self.formatted_value)
                 # self.cell_value = None
+                # warn(f"{self} is None")
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
 
 
@@ -909,7 +923,7 @@ class Cell(object):
 
     ''' latex code for cell content
     '''
-    def content_latex(self, include_formatting, color_dict, footnote_texts, strip_comments=False, left_hspace=None, right_hspace=None):
+    def cell_content_to_latex(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, left_hspace=None, right_hspace=None):
         content_lines = []
 
         if not strip_comments:
@@ -920,7 +934,7 @@ class Cell(object):
             if self.cell_value:
 
                 # get the latex code
-                cell_value = self.cell_value.value_to_latex(container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, footnote_list=self.note.footnotes, footnote_texts=footnote_texts)
+                cell_value = self.cell_value.value_to_latex(block_id=block_id, container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=self.note.footnotes)
 
                 # paragraphs need formatting to be included, table cells do not need them
                 if include_formatting:
@@ -977,7 +991,7 @@ class Cell(object):
 
     ''' latex code for cell format
     '''
-    def format_latex(self, r, color_dict):
+    def cell_format_to_latex(self, r, color_dict):
         latex_lines = []
 
         # alignments and bgcolor
@@ -1063,11 +1077,11 @@ class Cell(object):
 
     ''' latex code for top border
     '''
-    def top_border_latex(self, color_dict):
+    def top_border_to_latex(self, color_dict):
         t = None
         if self.effective_format and self.effective_format.borders:
             if self.top_border_allowed():
-                t = self.effective_format.borders.borders_to_latex_t(color_dict)
+                t = self.effective_format.borders.borders_to_latex_t(color_dict=color_dict)
                 if t is not None:
                     # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
                     t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
@@ -1077,11 +1091,11 @@ class Cell(object):
 
     ''' latex code for bottom border
     '''
-    def bottom_border_latex(self, color_dict):
+    def bottom_border_to_latex(self, color_dict):
         b = None
         if self.effective_format and self.effective_format.borders:
             if self.bottom_border_allowed():
-                b = self.effective_format.borders.borders_to_latex_b(color_dict)
+                b = self.effective_format.borders.borders_to_latex_b(color_dict=color_dict)
                 if b is not None:
                     # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
                     b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
@@ -1092,17 +1106,17 @@ class Cell(object):
     ''' latex code for left and right borders
         r is row numbner (1 based)
     '''
-    def cell_vertical_borders_latex(self, r, color_dict):
+    def cell_vertical_borders_to_latex(self, r, color_dict):
         lr_borders = []
         if self.effective_format and self.effective_format.borders:
             if self.left_border_allowed():
-                lb = self.effective_format.borders.borders_to_latex_l(color_dict)
+                lb = self.effective_format.borders.borders_to_latex_l(color_dict=color_dict)
                 if lb is not None:
                     lb = f"vline{{{self.col_num+1}}} = {{{r}}}{{{lb}}},"
                     lr_borders.append(lb)
 
             if self.right_border_allowed():
-                rb = self.effective_format.borders.borders_to_latex_r(color_dict)
+                rb = self.effective_format.borders.borders_to_latex_r(color_dict=color_dict)
                 if rb is not None:
                     rb = f"vline{{{self.col_num+2}}} = {{{r}}}{{{rb}}},"
                     lr_borders.append(rb)
@@ -1124,7 +1138,8 @@ class Row(object):
         self.cells = []
         c = 0
         for value in row_data.get('values', []):
-            self.cells.append(Cell(self.row_num, c, value, self.default_format, self.column_widths, self.row_height, nesting_level=self.nesting_level))
+            cell = Cell(row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
+            self.cells.append(cell)
             c = c + 1
 
 
@@ -1187,7 +1202,7 @@ class Row(object):
 
     ''' generates the top borders
     '''
-    def top_borders_latex(self, color_dict):
+    def top_borders_to_latex(self, color_dict):
         top_borders = []
         c = 0
         for cell in self.cells:
@@ -1195,7 +1210,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                t = cell.top_border_latex(color_dict)
+                t = cell.top_border_to_latex(color_dict=color_dict)
                 if t is not None:
                     # top_borders.append(f"\\SetHline{t}")
                     top_borders.append(f"\\cline{t}")
@@ -1207,7 +1222,7 @@ class Row(object):
 
     ''' generates the bottom borders
     '''
-    def bottom_borders_latex(self, color_dict):
+    def bottom_borders_to_latex(self, color_dict):
         bottom_borders = []
         c = 0
         for cell in self.cells:
@@ -1215,7 +1230,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
 
             else:
-                b = cell.bottom_border_latex(color_dict)
+                b = cell.bottom_border_to_latex(color_dict=color_dict)
                 if b is not None:
                     # bottom_borders.append(f"\\SetHline{b}")
                     bottom_borders.append(f"\\cline{b}")
@@ -1227,12 +1242,12 @@ class Row(object):
 
     ''' generates the vertical borders
     '''
-    def vertical_borders_latex(self, r, color_dict):
+    def vertical_borders_to_latex(self, r, color_dict):
         v_lines = []
         c = 0
         for cell in self.cells:
             if cell is not None:
-                v_lines = v_lines + cell.cell_vertical_borders_latex(r, color_dict)
+                v_lines = v_lines + cell.cell_vertical_borders_to_latex(r=r, color_dict=color_dict)
 
             c = c + 1
 
@@ -1241,7 +1256,7 @@ class Row(object):
 
     ''' generates the latex code for row formats
     '''
-    def row_format_latex(self, r, color_dict):
+    def row_format_to_latex(self, r, color_dict):
         row_format_line = f"row{{{r}}} = {{ht={self.row_height}in}},"
 
         return row_format_line
@@ -1249,19 +1264,19 @@ class Row(object):
 
     ''' generates the latex code for cell formats
     '''
-    def cell_format_latex(self, r, color_dict):
+    def cell_formats_to_latex(self, r, color_dict):
         cell_format_lines = []
         for cell in self.cells:
             if cell is not None:
                 if not cell.is_empty:
-                    cell_format_lines = cell_format_lines + cell.format_latex(r, color_dict)
+                    cell_format_lines = cell_format_lines + cell.cell_format_to_latex(r=r, color_dict=color_dict)
 
         return cell_format_lines
 
 
     ''' generates the latex code
     '''
-    def cell_content_latex(self, include_formatting, color_dict, footnote_texts, strip_comments=False, header_footer=None):
+    def cell_contents_to_latex(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -1269,10 +1284,10 @@ class Row(object):
         row_lines.append(f"% {self.row_name}")
 
         # borders
-        top_border_lines = self.top_borders_latex(color_dict)
+        top_border_lines = self.top_borders_to_latex(color_dict=color_dict)
         top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
 
-        bottom_border_lines = self.bottom_borders_latex(color_dict)
+        bottom_border_lines = self.bottom_borders_to_latex(color_dict=color_dict)
         bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
 
         # left_border_lines = self.left_borders_latex(color_dict)
@@ -1302,7 +1317,7 @@ class Row(object):
                     if c == len(self.cells) - 1:
                         right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
 
-                cell_lines = cell.content_latex(include_formatting=include_formatting, color_dict=color_dict, footnote_texts=footnote_texts, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
+                cell_lines = cell.cell_content_to_latex(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -1338,7 +1353,7 @@ class TextFormat(object):
     def __init__(self, text_format_dict=None):
         self.source = text_format_dict
         if self.source:
-            self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
+            self.fgcolor = RgbColor(rgb_dict=text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
                 font_family = text_format_dict['fontFamily']
 
@@ -1379,11 +1394,11 @@ class TextFormat(object):
 
     ''' generate latex code
     '''
-    def text_format_to_latex(self, text, color_dict, footnote_list, footnote_texts, verbatim=False):
+    def text_format_to_latex(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
         # process footnote (if any)
-        content = f"{process_footnotes(text_content=text, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts)}"
+        content = f"{process_footnotes(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
 
         styled = False
         if self.is_underline:
@@ -1456,9 +1471,9 @@ class StringValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = False
-        latex = self.effective_format.text_format.text_format_to_latex(self.value, color_dict=color_dict, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts)
+        latex = self.effective_format.text_format.text_format_to_latex(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
 
         return latex
 
@@ -1485,13 +1500,13 @@ class TextRunValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = False
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
             text = self.formatted_value[:processed_idx]
-            run_value_list.insert(0, text_format_run.text_format_run_to_latex(text, color_dict=color_dict, footnote_list=footnote_list, verbatim=verbatim, footnote_texts=footnote_texts))
+            run_value_list.insert(0, text_format_run.text_format_run_to_latex(block_id=block_id, text=text, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim))
             processed_idx = text_format_run.start_index
 
         return ''.join(run_value_list)
@@ -1518,7 +1533,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         if self.short:
             latex = "\\thepage"
         else:
@@ -1548,7 +1563,7 @@ class ImageValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 96 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 96 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1604,9 +1619,9 @@ class ContentValue(CellValue):
 
     ''' generates the latex code
     '''
-    def value_to_latex(self, container_width, container_height, color_dict, footnote_list, footnote_texts):
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, nesting_level=self.nesting_level)
-        return section_contents.content_to_latex(color_dict)
+        return section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
 
@@ -1618,12 +1633,12 @@ class CellFormat(object):
     '''
     def __init__(self, format_dict, default_format=None):
         if format_dict:
-            self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
-            self.borders = Borders(format_dict.get('borders'))
-            self.padding = Padding(format_dict.get('padding'))
-            self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
-            self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
-            self.text_format = TextFormat(format_dict.get('textFormat'))
+            self.bgcolor = RgbColor(rgb_dict=format_dict.get('backgroundColor'))
+            self.borders = Borders(borders_dict=format_dict.get('borders'))
+            self.padding = Padding(padding_dict=format_dict.get('padding'))
+            self.halign = HorizontalAlignment(halign=format_dict.get('horizontalAlignment'))
+            self.valign = VerticalAlignment(valign=format_dict.get('verticalAlignment'))
+            self.text_format = TextFormat(text_format_dict=format_dict.get('textFormat'))
         elif default_format:
             self.bgcolor = default_format.bgcolor
             self.borders = default_format.borders
@@ -1644,24 +1659,24 @@ class CellFormat(object):
     '''
     def override_borders(self, color):
         if self.borders is None:
-            self.borders = Borders(None, color)
+            self.borders = Borders(borders_dict=None)
         else:
-            self.borders.override_top_border(color)
-            self.borders.override_bottom_border(color)
-            self.borders.override_left_border(color)
-            self.borders.override_right_border(color)
+            self.borders.override_top_border(border_color=color)
+            self.borders.override_bottom_border(border_color=color)
+            self.borders.override_left_border(border_color=color)
+            self.borders.override_right_border(border_color=color)
 
 
     ''' recolor top border with the specified color
     '''
     def recolor_top_border(self, color):
-        self.borders.override_top_border(color, forced=True)
+        self.borders.override_top_border(border_color=color, forced=True)
 
 
     ''' recolor bottom border with the specified color
     '''
     def recolor_bottom_border(self, color):
-        self.borders.override_bottom_border(color, forced=True)
+        self.borders.override_bottom_border(border_color=color, forced=True)
 
 
 
@@ -1679,16 +1694,16 @@ class Borders(object):
 
         if borders_dict:
             if 'top' in borders_dict:
-                self.top = Border(borders_dict.get('top'))
+                self.top = Border(border_dict=borders_dict.get('top'))
 
             if 'right' in borders_dict:
-                self.right = Border(borders_dict.get('right'))
+                self.right = Border(border_dict=borders_dict.get('right'))
 
             if 'bottom' in borders_dict:
-                self.bottom = Border(borders_dict.get('bottom'))
+                self.bottom = Border(border_dict=borders_dict.get('bottom'))
 
             if 'left' in borders_dict:
-                self.left = Border(borders_dict.get('left'))
+                self.left = Border(border_dict=borders_dict.get('left'))
 
 
     ''' string representation
@@ -1702,7 +1717,7 @@ class Borders(object):
     def override_top_border(self, border_color, forced=False):
         if border_color:
             if self.top is None:
-                self.top = Border(None, border_color)
+                self.top = Border(border_dict=None)
             elif forced:
                 self.top.color = border_color
 
@@ -1712,7 +1727,7 @@ class Borders(object):
     def override_bottom_border(self, border_color, forced=False):
         if border_color:
             if self.bottom is None:
-                self.bottom = Border(None, border_color)
+                self.bottom = Border(border_dict=None)
             elif forced:
                 self.bottom.color = border_color
 
@@ -1722,7 +1737,7 @@ class Borders(object):
     def override_left_border(self, border_color):
         if border_color:
             if self.left is None:
-                self.left = Border(None, border_color)
+                self.left = Border(border_dict=None)
 
 
     ''' override right border with the specified color
@@ -1730,7 +1745,7 @@ class Borders(object):
     def override_right_border(self, border_color):
         if border_color:
             if self.right is None:
-                self.right = Border(None, border_color)
+                self.right = Border(border_dict=None)
 
 
     ''' top border
@@ -1738,7 +1753,7 @@ class Borders(object):
     def borders_to_latex_t(self, color_dict):
         t = None
         if self.top:
-            t = self.top.border_to_latex(color_dict)
+            t = self.top.border_to_latex(color_dict=color_dict)
 
         return t
 
@@ -1748,7 +1763,7 @@ class Borders(object):
     def borders_to_latex_b(self, color_dict):
         b = None
         if self.bottom:
-            b = self.bottom.border_to_latex(color_dict)
+            b = self.bottom.border_to_latex(color_dict=color_dict)
 
         return b
 
@@ -1758,7 +1773,7 @@ class Borders(object):
     def borders_to_latex_l(self, color_dict):
         l = None
         if self.left:
-            l = self.left.border_to_latex(color_dict)
+            l = self.left.border_to_latex(color_dict=color_dict)
 
         return l
 
@@ -1768,7 +1783,7 @@ class Borders(object):
     def borders_to_latex_r(self, color_dict):
         r = None
         if self.right:
-            r = self.right.border_to_latex(color_dict)
+            r = self.right.border_to_latex(color_dict=color_dict)
 
         return r
 
@@ -1788,7 +1803,7 @@ class Border(object):
         if border_dict:
             self.style = border_dict.get('style')
             self.width = int(border_dict.get('width')) * 0.4
-            self.color = RgbColor(border_dict.get('color'))
+            self.color = RgbColor(rgb_dict=border_dict.get('color'))
 
             # TODO: handle double
             self.style = GSHEET_LATEX_BORDER_MAPPING.get(self.style, 'solid')
@@ -1931,7 +1946,7 @@ class TextFormatRun(object):
             self.start_index = int(run_dict.get('startIndex', 0))
             format = run_dict.get('format')
             new_format = {**default_format, **format}
-            self.format = TextFormat(new_format)
+            self.format = TextFormat(text_format_dict=new_format)
         else:
             self.start_index = None
             self.format = None
@@ -1939,8 +1954,8 @@ class TextFormatRun(object):
 
     ''' generates the latex code
     '''
-    def text_format_run_to_latex(self, text, color_dict, footnote_list, footnote_texts, verbatim=False):
-        latex = self.format.text_format_to_latex(text=text[self.start_index:], color_dict=color_dict, footnote_list=footnote_list, footnote_texts=footnote_texts, verbatim=verbatim)
+    def text_format_run_to_latex(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
+        latex = self.format.text_format_to_latex(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
 
         return latex
 
@@ -2068,7 +2083,7 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config, color_dict):
+def process_table(section_data, config, color_dict, document_footnotes):
     # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
     # if section_data['contents'] is not None and 'sections' in section_data['contents']:
     #     for section in section_data['contents']['sections']:
@@ -2087,59 +2102,59 @@ def process_table(section_data, config, color_dict):
     #     section_lines = latex_section.section_to_latex(self.color_dict)
 
     latex_section = LatexTableSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return section_lines
+    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
 
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config, color_dict):
+def process_gsheet(section_data, config, color_dict, document_footnotes):
     latex_section = LatexGsheetSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return section_lines
+    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config, color_dict):
+def process_toc(section_data, config, color_dict, document_footnotes):
     latex_section = LatexToCSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config, color_dict):
+def process_lof(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoFSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return section_lines
+    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
 
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config, color_dict):
+def process_lot(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoTSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return section_lines
+    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
 
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config, color_dict):
+def process_pdf(section_data, config, color_dict, document_footnotes):
     latex_section = LatexPdfSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-    return section_lines
+    return [f"% LatexSection: [{latex_section.id}]"] + section_lines
 
 
 ''' odt processor
 '''
-def process_odt(section_data, config, color_dict):
+def process_odt(section_data, config, color_dict, document_footnotes):
     warn(f"content type [odt] not supported")
 
     return []
