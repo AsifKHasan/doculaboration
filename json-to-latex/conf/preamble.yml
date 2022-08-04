@@ -23,10 +23,9 @@ header-includes:
 - \usepackage{hyperref}
 - \usepackage{slantsc}
 - \usepackage{newunicodechar}
-- \usepackage[perpage,symbol*]{footmisc}
+- \usepackage[bottomfloats,belowfloats,hang,flushmargin,symbol*]{footmisc}
+# - \usepackage[ragged,bottom,symbol*]{footmisc}
 # - \usepackage{tablefootnote}
-# - \usepackage[utf8]{inputenc}
-# - \usepackage[T1]{fontenc}
 # - \usepackage{alphalph}
 # - \usepackage{showframe}
 

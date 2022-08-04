@@ -46,3 +46,6 @@ odt-from-gsheet.bat "KalnaBridgeToll__project-general-specification"
 
 odt-from-gsheet.bat "KalnaBridgeToll__project-technical-specification"
 ./odt-from-gsheet.sh "KalnaBridgeToll__project-technical-specification"
+
+odt-from-gsheet.bat BNDA__standards
+./odt-from-gsheet.sh BNDA__standards
