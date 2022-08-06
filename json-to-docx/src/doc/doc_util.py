@@ -54,7 +54,7 @@ def insert_image(container, picture_path, width, height):
 def create_table(container, num_rows, num_cols, container_width=None):
 	tbl = None
 
-	debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
+	# debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
