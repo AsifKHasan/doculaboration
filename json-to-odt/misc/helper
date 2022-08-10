@@ -29,26 +29,11 @@ odt-from-gsheet.bat "PPR-2008__2019-01"
 odt-from-gsheet.bat "Tasnim.Kabir.Ratul__profile"
 ./odt-from-gsheet.sh "Tasnim.Kabir.Ratul__profile"
 
-odt-from-gsheet.bat "MRA-IMS__EoI__content"
-./odt-from-gsheet.sh "MRA-IMS__EoI__content"
-
-odt-from-gsheet.bat "BKB-BKBAPPs__letter-answer__2022-05-11"
-./odt-from-gsheet.sh "BKB-BKBAPPs__letter-answer__2022-05-11"
-
-odt-from-gsheet.bat "MRA-IMS__EoI__field-operational-resource"
-./odt-from-gsheet.sh "MRA-IMS__EoI__field-operational-resource"
-
-odt-from-gsheet.bat "MRA-IMS__EoI__technical-experts"
-./odt-from-gsheet.sh "MRA-IMS__EoI__technical-experts"
-
-odt-from-gsheet.bat "KalnaBridgeToll__project-general-specification"
-./odt-from-gsheet.sh "KalnaBridgeToll__project-general-specification"
-
-odt-from-gsheet.bat "KalnaBridgeToll__project-technical-specification"
-./odt-from-gsheet.sh "KalnaBridgeToll__project-technical-specification"
-
 odt-from-gsheet.bat BNDA__standards
 ./odt-from-gsheet.sh BNDA__standards
 
 odt-from-gsheet.bat BCC-BNDA__hardware-specifications-checklist
 ./odt-from-gsheet.sh BCC-BNDA__hardware-specifications-checklist
+
+odt-from-gsheet.bat spectrum__explanation-iso-certificates
+./odt-from-gsheet.sh spectrum__explanation-iso-certificates
