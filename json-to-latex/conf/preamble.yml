@@ -48,7 +48,7 @@ header-includes:
 - \babeltags{english=english}
 - \babeltags{bengali=bengali}
 
-- \setmainfont{Calibri}
+- \setmainfont{Arial}
 
 - \newfontfamily{\substitutett}{Noto Serif Bengali}
 - \newunicodechar{।}{\makebox[0.2em]{\substitutett।}}

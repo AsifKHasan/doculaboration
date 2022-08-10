@@ -11,6 +11,9 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 3. LuaLatex
 4. We need fonts
  * Google Noto fonts from https://github.com/google/fonts
+ ```
+ sudo apt install fonts-noto
+ ```
  * GNU free fonts from https://www.gnu.org/software/freefont/
  * Go Smallcaps font from https://www.fontmirror.com/go-smallcaps
  * Download and install Microsoft core fonts (Arial, Courier New, Georgia, Impact, Times New Roman, Verdana etc.)
