@@ -394,6 +394,10 @@ def generate_pdf(infile, outdir):
 	pdf_path = infile.replace(".docx", r".pdf")
 	try:
 		word = client.DispatchEx("Word.Application")
+	except Exception as e:
+		raise e
+
+	try:
 		doc = word.Documents.Open(infile)
 		try:
 			doc.SaveAs(pdf_path, FileFormat = 17)
