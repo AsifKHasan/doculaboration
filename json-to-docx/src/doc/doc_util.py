@@ -365,8 +365,13 @@ def set_text_style(run, text_attributes):
 ''' update docx indexes by opening and closing the docx, rest is done by macros
 '''
 def update_indexes(docx_path):
+
 	try:
 		word = client.DispatchEx("Word.Application")
+	except Exception as e:
+		raise e
+
+	try:
 		doc = word.Documents.Open(docx_path)
 		doc.Close()
 	except Exception as e:

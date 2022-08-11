@@ -4,7 +4,7 @@ import json
 import importlib
 import inspect
 from pprint import pprint
-
+ 
 from latex.latex_util import *
 from helper.logger import *
 
@@ -566,7 +566,7 @@ class LatexContent(object):
         for r in range(0, self.row_count):
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
-            if data_row.is_out_of_table():
+            if data_row.is_free_content():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = LatexTable(cell_matrix=self.cell_matrix, start_row=next_table_starts_in_row, end_row=(r - 1), column_widths=self.column_widths, section_index=self.section_index, section_id=self.section_id)
@@ -1195,13 +1195,13 @@ class Row(object):
             self.cells.append(cell)
 
 
-    ''' it is true only when the first cell has a out_of_table true value
+    ''' it is true only when the first cell has a free_content true value
     '''
-    def is_out_of_table(self):
+    def is_free_content(self):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return self.cells[0].note.out_of_table
+                return self.cells[0].note.free_content
             else:
                 return False
         else:
@@ -1990,7 +1990,7 @@ class CellNote(object):
     '''
     def __init__(self, note_json=None, nesting_level=0):
         self.nesting_level = nesting_level
-        self.out_of_table = False
+        self.free_content = False
         self.table_spacing = True
         self.page_number = False
         self.header_rows = 0
@@ -1999,6 +1999,7 @@ class CellNote(object):
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
+        self.keep_line_breaks = False
 
         self.outline_level = 0
         self.footnotes = {}
@@ -2013,13 +2014,14 @@ class CellNote(object):
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
+            self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
 
             # content
             content = note_dict.get('content')
-            if content is not None and content == 'out-of-cell':
-                self.out_of_table = True
+            if content is not None and content in ['free', 'out-of-cell']:
+                self.free_content = True
 
             # table-spacing
             spacing = note_dict.get('table-spacing')

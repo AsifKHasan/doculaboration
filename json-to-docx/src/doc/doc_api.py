@@ -4,7 +4,7 @@ import json
 import importlib
 import inspect
 from pprint import pprint
-
+ 
 from doc.doc_util import *
 from helper.logger import *
 
@@ -479,7 +479,7 @@ class DocxContent(object):
             # do extra processing on rows
             data_row.preprocess_row()
 
-            if data_row.is_out_of_table():
+            if data_row.is_free_content():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = DocxTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -811,7 +811,7 @@ class Row(object):
                         break
 
                 if non_empty_cell_found == False:
-                    first_cell.note.out_of_table = True
+                    first_cell.note.free_content = True
                     first_cell.note.keep_with_next = True
 
 
@@ -846,16 +846,16 @@ class Row(object):
             self.cells.append(cell)
 
 
-    ''' it is true when the first cell has a out_of_table true value
-        the first cell may be out_of_table when
+    ''' it is true when the first cell has a free_content true value
+        the first cell may be free_content when
         1. it contains a note {'content': 'out-of-cell'}
         2. it contains a note {'style': '...'} and it is the only non-empty cell in the row
     '''
-    def is_out_of_table(self):
+    def is_free_content(self):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return self.cells[0].note.out_of_table
+                return self.cells[0].note.free_content
             else:
                 return False
         else:
@@ -1466,7 +1466,7 @@ class CellNote(object):
     '''
     def __init__(self, note_json=None, nesting_level=0):
         self.nesting_level = nesting_level
-        self.out_of_table = False
+        self.free_content = False
         self.table_spacing = True
         self.page_number = False
         self.header_rows = 0
@@ -1475,6 +1475,7 @@ class CellNote(object):
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
+        self.keep_line_breaks = False
 
         self.outline_level = 0
 
@@ -1488,16 +1489,21 @@ class CellNote(object):
             self.new_page = note_dict.get('new-page') is not None
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
+            self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.page_number = note_dict.get('page-number') is not None
+            self.footnotes = note_dict.get('footnote')
 
+            # content
             content = note_dict.get('content')
-            if content is not None and content == 'out-of-cell':
-                self.out_of_table = True
+            if content is not None and content in ['free', 'out-of-cell']:
+                self.free_content = True
 
+            # table-spacing
             spacing = note_dict.get('table-spacing')
             if spacing is not None and spacing == 'no-spacing':
                 self.table_spacing = False
 
+            # style
             self.style = note_dict.get('style')
             if self.style is not None:
                 outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
@@ -1508,6 +1514,13 @@ class CellNote(object):
                 # if style is any Title/Heading or Table or Figure, apply keep-with-next
                 if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
                     self.keep_with_next = True
+
+            # footnotes
+            if self.footnotes:
+                if not isinstance(self.footnotes, dict):
+                    self.footnotes = {}
+                    warn(f".... found footnotes, but it is not a valid dictionary")
+
 
 
     ''' paragraph attributes dict
