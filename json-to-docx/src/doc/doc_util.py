@@ -22,7 +22,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
 
-if sys.platform == 'win32':
+if not sys.platform in ['win32', 'darwin']:
 	import win32com.client as client
 
 from helper.logger import *
