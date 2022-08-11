@@ -46,7 +46,7 @@ def process(sheet, section_data, context):
                 error(f".... could not convert {pdf_name} to image(s)")
 
         # if it is an image
-        if file_type in ['image/png']:
+        if file_type in ['image/png', 'image/jpeg']:
             images = [file_path]
 
         data['images'] = []

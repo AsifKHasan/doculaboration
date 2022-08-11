@@ -162,15 +162,19 @@ def download_image(image_formula, tmp_dir, row_height):
 def download_file_from_web(url, tmp_dir):
     file_url = url.strip()
     file_ext = file_url[-4:]
-    if file_ext in ['.pdf', '.png']:
-        error(f".... url {file_url} is NOT a pdf/png file")
+    if file_ext in ['.pdf', '.png', '.jpg']:
+        error(f".... url {file_url} is NOT a pdf/png/jpg file")
         return None
 
     file_name = file_url.split('/')[-1].strip()
     if file_ext == '.pdf':
         file_type = 'application/pdf'
+
     elif file_ext == '.png':
         file_type = 'image/png'
+    
+    elif file_ext == '.jpg':
+        file_type = 'image/jpeg'
 
     # download pdf in url into localpath
     try:
@@ -201,8 +205,8 @@ def download_file_from_drive(url, tmp_dir, drive):
     f = drive.CreateFile({'id': id})
     file_name = f['title']
     file_type = f['mimeType']
-    if not file_type in ['application/pdf', 'image/png']:
-        warn(f".... drive url {url} is not a pdf/png, it is [{f['mimeType']}]")
+    if not file_type in ['application/pdf', 'image/png', 'image/jpeg']:
+        warn(f".... drive url {url} is not a pdf/png/jpg, it is [{f['mimeType']}]")
         return None
 
     if file_type == 'application/pdf' and not file_name.endswith('.pdf'):
@@ -210,6 +214,9 @@ def download_file_from_drive(url, tmp_dir, drive):
 
     if file_type == 'image/png' and not file_name.endswith('.png'):
         file_name = file_name + '.png'
+
+    if file_type == 'image/jpeg' and not file_name.endswith('.jpg'):
+        file_name = file_name + '.jpg'
 
     try:
         local_path = f"{tmp_dir}/{file_name}"
