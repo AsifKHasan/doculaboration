@@ -1,14 +1,13 @@
-pdf-from-gsheet.bat NBR-NSW__functional-and-technical-report__PwC__v5.0
-./pdf-from-gsheet.sh NBR-NSW__functional-and-technical-report__PwC__v5.0
-
-pdf-from-gsheet.bat SSCL__job-description
-./pdf-from-gsheet.sh SSCL__job-description
-
 pdf-from-gsheet.bat PPA-2006__2019-01
 ./pdf-from-gsheet.sh PPA-2006__2019-01
 
 pdf-from-gsheet.bat ayin.kaka__writings
 ./pdf-from-gsheet.sh ayin.kaka__writings
+
+
+pdf-from-gsheet.bat anannita__college-physics
+./pdf-from-gsheet.sh anannita__college-physics
+
 
 
 TODO:
@@ -34,3 +33,26 @@ otfinfo -i `kpsewhich lmroman10-regular.otf`
 LuaTEX users only In order to load fonts by their name rather than by their filename (e.g., 'Latin Modern Roman' instead of'ec-lmr10'), you may need to run the script luaotfload-tool, which is distributed with the luaotfload package.
 
 luaotfload-tool
+
+
+
+
+
+    sudo apt-get purge texlive*
+
+    sudo rm -rf /usr/local/texlive/* and rm -rf ~/.texlive*
+
+    sudo rm -rf /usr/local/share/texmf
+
+    sudo rm -rf /var/lib/texmf
+
+    sudo rm -rf /etc/texmf
+
+    sudo apt-get remove tex-common --purge
+
+    rm -rf ~/.texlive
+
+    find -L /usr/local/bin/ -lname /usr/local/texlive/*/bin/* | xargs -r rm
+
+    This finds all the files in /usr/local/bin which point to a location within /usr/local/texlive/*/bin/* and removes them; because we’ve already deleted all of /usr/local/texlive, these are dead links. To see which files are being deleted, replace xargs rm with xargs -t rm (or tee off to a log file, or whatever).
+

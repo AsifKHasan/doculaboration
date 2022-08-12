@@ -927,7 +927,7 @@ class Cell(object):
             self.merge_spec.multi_col = MultiSpan.No
             self.note = CellNote()
             self.cell_value = None
-            self.formatted_value = None
+            self.formatted_value = ''
             self.effective_format = None
             self.user_entered_format = None
             self.is_empty = True
@@ -991,23 +991,26 @@ class Cell(object):
                     # caption for figure
                     # content_lines.append(f"\\neeedspace{{2em}}")
                     content_lines.append(f"\\phantomsection")
-                    content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.user_entered_value.string_value)}}}")
+                    content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.formatted_value)}}}")
+
                 elif self.note.style == 'Table':
                     # caption for table
                     # content_lines.append(f"\\neeedspace{{2em}}")
                     content_lines.append(f"\\phantomsection")
-                    content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.user_entered_value.string_value)}}}")
+                    content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.formatted_value)}}}")
+
                 elif self.note.style:
                     # some custom style needs to be applied
                     heading_tag = LATEX_HEADING_MAP.get(self.note.style)
                     if heading_tag:
                         # content_lines.append(f"\\neeedspace{{2em}}")
                         content_lines.append(f"\\phantomsection")
-                        content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.user_entered_value.string_value)}}}")
+                        content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.formatted_value)}}}")
                     else:
                         warn(f"style : {self.note.style} not defined")
 
         return content_lines
+
 
 
     ''' latex code for cell format
