@@ -96,7 +96,7 @@ class LatexSectionBase(object):
 
         return geometry_lines
 
-
+ 
 
     ''' generates section heading
     '''
@@ -106,6 +106,8 @@ class LatexSectionBase(object):
             heading_text = self.heading
             if self.section != '':
                 heading_text = f"{self.section} {heading_text}".strip()
+
+            heading_text = tex_escape(heading_text)
 
             # headings are styles based on level
             outline_level = self.level + self.nesting_level
