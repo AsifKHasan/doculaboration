@@ -1042,6 +1042,7 @@ class StringValue(CellValue):
         container.addElement(paragraph)
 
 
+
 ''' text-run type CellValue
 '''
 class TextRunValue(CellValue):

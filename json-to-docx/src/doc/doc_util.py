@@ -463,13 +463,25 @@ def create_index(doc, index_type):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_index=None):
-	if not section_index is None:
-		# we want to change section with index section_index
-		section = doc.sections[section_index]
-	else:
-		# new section always starts with a page-break
+def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section):
+	#  if it is a section break, we isnert a new section
+	if section_break:
+		new_section = True
 		section = doc.add_section(WD_SECTION.NEW_PAGE)
+
+	else:
+		# we are continuing the last section
+		if first_section:
+			new_section = True
+		else:
+			new_section = False
+
+		section = doc.sections[-1]
+
+		#  we may have a page break
+		if page_break:
+			doc.add_page_break()
+
 
 	section.first_page_header.is_linked_to_previous = False
 	section.header.is_linked_to_previous = False
@@ -503,7 +515,8 @@ def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orie
 	# get the actual width
 	actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
 
-	return section
+
+	return section, new_section
 
 
 

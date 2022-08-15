@@ -34,7 +34,7 @@ class DocxSectionBase(object):
 
         self.nesting_level = self._section_data['nesting-level']
         self.parent_section_index_text = self._section_data['parent-section-index-text']
-
+ 
         zfilled_index = str(self.section_index).zfill(3)
         if self.parent_section_index_text != '':
             self.section_index_text = f"{self.parent_section_index_text}.{zfilled_index}"
@@ -48,12 +48,8 @@ class DocxSectionBase(object):
         margin_spec = self._section_data['margin-spec']
         orientation = self._section_data['landscape']
 
-        # if it is the very first section, change the first section
-        if self._section_data['first-section']:
-            self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_index=-1)
-        else:
-            self.this_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'])
-
+        # create or get the docx section
+        self.this_section, new_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_break=self.section_break, page_break=self.page_break, first_section=self._section_data['first-section'])
 
         this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
         this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
@@ -63,14 +59,24 @@ class DocxSectionBase(object):
         self.section_width = self._section_data['width']
         self.section_height = self._section_data['height']
 
-        # headers and footers
-        # print(f".. orientation: {orientation}, section_width: {self.section_width}")
-        self.header_first = DocxPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = DocxPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = DocxPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = DocxPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = DocxPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = DocxPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        # headers and footers if it is a new section
+        if new_section: 
+            # print(f".. orientation: {orientation}, section_width: {self.section_width}")
+            self.header_first = DocxPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+            self.header_odd   = DocxPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+            self.header_even  = DocxPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+            self.footer_first = DocxPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+            self.footer_odd   = DocxPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+            self.footer_even  = DocxPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        
+        else:
+            self.header_first = None
+            self.header_odd   = None
+            self.header_even  = None
+            self.footer_first = None
+            self.footer_odd   = None
+            self.footer_even  = None
+
 
         self.section_contents = DocxContent(content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
@@ -80,22 +86,22 @@ class DocxSectionBase(object):
     def process_header_footer(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        if self._section_data['header-odd']:
+        if self._section_data['header-odd'] and self.header_odd:
             self.header_odd.content_to_doc(container=self.this_section.header)
 
-        if self._section_data['header-first']:
+        if self._section_data['header-first'] and self.header_first:
             self.header_first.content_to_doc(container=self.this_section.first_page_header)
 
-        if self._section_data['header-even']:
+        if self._section_data['header-even'] and self.header_even:
             self.header_even.content_to_doc(container=self.this_section.even_page_header)
 
-        if self._section_data['footer-odd']:
+        if self._section_data['footer-odd'] and self.footer_odd:
             self.footer_odd.content_to_doc(container=self.this_section.footer)
 
-        if self._section_data['footer-first']:
+        if self._section_data['footer-first'] and self.footer_first:
             self.footer_first.content_to_doc(container=self.this_section.first_page_footer)
 
-        if self._section_data['footer-even']:
+        if self._section_data['footer-even'] and self.footer_even:
             self.footer_even.content_to_doc(container=self.this_section.even_page_footer)
 
 

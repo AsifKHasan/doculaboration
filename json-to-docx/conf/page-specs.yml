@@ -42,8 +42,8 @@ margin-spec:
     bottom: 0.25
     gutter: 0
     distance:
-      header  : 0.00
-      footer  : 0.00
+      header  : 0.10
+      footer  : 0.10
   none:
     left  : 0.00
     right : 0.00
