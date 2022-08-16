@@ -23,9 +23,11 @@ def copy_drive_file(service, origin_file_id, copy_title):
         error(f"An error occurred: {error}")
         return None
 
+
 def download_drive_file(param, destination, context):
     f = context['drive'].CreateFile(param)
     f.GetContentFile(destination)
+
 
 def read_drive_file(drive_url, context):
     url = drive_url.strip()

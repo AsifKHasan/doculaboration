@@ -25,6 +25,7 @@ class GsheetHelper(object):
 
         return GsheetHelper.__instance
 
+
     def init(self, config):
         # as we go further we put everything inside a single dict _context
         self._context = {}
@@ -45,6 +46,7 @@ class GsheetHelper(object):
         self._context['index-worksheet'] = config['index-worksheet']
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
         self._context['gsheet-read-try-count'] = config['gsheet-read-try-count']
+
 
     def process_gsheet(self, gsheet_title, gsheet_url=None, parent=None):
         wait_for = self._context['gsheet-read-wait-seconds']

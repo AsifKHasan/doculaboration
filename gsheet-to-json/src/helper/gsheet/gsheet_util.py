@@ -57,9 +57,11 @@ def worksheet_exists(sheet, ws_title):
         return False
 
 
+
 def hex_to_rgba(color_hex):
     color = tuple(int(color_hex[i:i+2], 16) for i in (0, 2, 4, 6))
     return {'red': color[0]/255, 'green': color[1]/255, 'blue': color[2]/255, 'alpha': color[3]/255}
+
 
 
 def download_image(image_formula, tmp_dir, row_height):
@@ -159,6 +161,7 @@ def download_image(image_formula, tmp_dir, row_height):
         return None
 
 
+
 def download_file_from_web(url, tmp_dir):
     file_url = url.strip()
     file_ext = file_url[-4:]
@@ -194,6 +197,7 @@ def download_file_from_web(url, tmp_dir):
     except:
         error(f".... could not download pdf: {file_url}")
         return None
+
 
 
 def download_file_from_drive(url, tmp_dir, drive):
@@ -232,6 +236,7 @@ def download_file_from_drive(url, tmp_dir, drive):
     except:
         error(f".... could not download file: {file_url}")
         return None
+
 
 
 def read_web_content(web_url):
