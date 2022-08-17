@@ -9,6 +9,9 @@ pdf-from-gsheet.bat anannita__college-physics
 ./pdf-from-gsheet.sh anannita__college-physics
 
 
+pdf-from-gsheet.bat spectrum__résumé-index
+./pdf-from-gsheet.sh spectrum__résumé-index
+
 
 TODO:
 1. Minipage to keep image caption and image together

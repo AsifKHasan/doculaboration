@@ -315,26 +315,21 @@ class DocxContent(object):
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
-        # content_data must have 'properties' and 'sheets'
-        if content_data and 'properties' in content_data and 'sheets' in content_data:
+        # content_data must have 'properties' and 'data'
+        if content_data and 'properties' in content_data and 'data' in content_data:
             self.has_content = True
+            sheet_properties = content_data.get('properties')
+            self.title = sheet_properties.get('title')
 
-            properties = content_data.get('properties')
+            if 'gridProperties' in sheet_properties:
+                self.row_count = max(int(sheet_properties['gridProperties'].get('rowCount', 0)) - 2, 0)
+                self.column_count = max(int(sheet_properties['gridProperties'].get('columnCount', 0)) - 1, 0)
 
-            sheets = content_data.get('sheets')
-            if isinstance(sheets, list) and len(sheets) > 0:
-                sheet_properties = sheets[0].get('properties')
-                if sheet_properties:
-                    self.title = sheet_properties.get('title')
-                    if 'gridProperties' in sheet_properties:
-                        self.row_count = max(int(sheet_properties['gridProperties'].get('rowCount', 0)) - 2, 0)
-                        self.column_count = max(int(sheet_properties['gridProperties'].get('columnCount', 0)) - 1, 0)
-
-                data_list = sheets[0].get('data')
+                data_list = content_data.get('data')
                 if isinstance(data_list, list) and len(data_list) > 0:
                     data = data_list[0]
-                    self.start_row = int(data.get('startRow', 0))
-                    self.start_column = int(data.get('startColumn', 0))
+                    self.start_row = 2
+                    self.start_column = 1
 
                     # rowMetadata
                     for row_metadata in data.get('rowMetadata', []):
@@ -345,17 +340,20 @@ class DocxContent(object):
                         self.column_metadata_list.append(ColumnMetadata(column_metadata))
 
                     # merges
-                    for merge in sheets[0].get('merges', []):
-                        self.merge_list.append(Merge(merge, self.start_row, self.start_column))
+                    if 'merges' in content_data:
+                        for merge in content_data.get('merges', []):
+                            self.merge_list.append(Merge(merge, self.start_row, self.start_column))
 
-                    all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list)
-                    self.column_widths = [ (x.pixel_size * self.content_width / all_column_widths_in_pixel) for x in self.column_metadata_list ]
+                    all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list[1:])
+                    self.column_widths = [ (x.pixel_size * self.content_width / all_column_widths_in_pixel) for x in self.column_metadata_list[1:] ]
 
                     # rowData
-                    r = 0
-                    for row_data in data.get('rowData', []):
-                        self.cell_matrix.append(Row(r, row_data, self.content_width, self.column_widths, self.row_metadata_list[r].inches, self.nesting_level))
-                        r = r + 1
+                    r = 2
+                    row_data_list = data.get('rowData', [])
+                    if len(row_data_list) > 2:
+                        for row_data in row_data_list[2:]:
+                            self.cell_matrix.append(Row(r, row_data, self.content_width, self.column_widths, self.row_metadata_list[r].inches, self.nesting_level))
+                            r = r + 1
 
             # process and split
             self.process()
@@ -374,6 +372,7 @@ class DocxContent(object):
 
         # first we identify the missing cells or blank cells for merged spans
         for merge in self.merge_list:
+            # print(f"merge range : {merge}")
             first_row = merge.start_row
             first_col = merge.start_col
             last_row = merge.end_row
@@ -383,8 +382,14 @@ class DocxContent(object):
             first_row_object = self.cell_matrix[first_row]
             first_cell = first_row_object.get_cell(first_col)
 
+            if first_row < 0:
+                continue
+
+            if first_col < 0:
+                continue
+
             if first_cell is None:
-                warn(f"cell [{first_row},{first_col}] starts a span, but it is not there")
+                warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there")
                 continue
 
             if col_span > 1:
@@ -466,7 +471,7 @@ class DocxContent(object):
                             next_cell_in_row.mark_multirow(MultiSpan.No)
 
                     else:
-                        warn(f"..cell [{r+1},{c+1}] is not empty, it must be part of another column/row merge which is an issue")
+                        warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
 
 
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
@@ -519,6 +524,13 @@ class DocxContent(object):
     '''
     def content_to_doc(self, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        for r in range(0, self.row_count):
+            data_row = self.cell_matrix[r]
+            for cell in data_row.cells:
+                # print(cell)
+                pass
+
 
         # iterate through tables and blocks contents
         for block in self.content_list:
@@ -660,7 +672,7 @@ class Cell(object):
     '''
     def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
         self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
-        self.cell_name = f"cell: [{self.row_num},{self.col_num}]"
+        self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
@@ -727,7 +739,7 @@ class Cell(object):
     '''
     def __repr__(self):
         # s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
-        s = f"[{self.row_num+1},{self.col_num+1:>2}], width: {self.cell_width}]"
+        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
         return s
 
 
@@ -795,9 +807,11 @@ class Row(object):
 
         self.cells = []
         c = 0
-        for value in row_data.get('values', []):
-            self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
-            c = c + 1
+        values = row_data.get('values', [])
+        if len(values) > 1:
+            for value in values[1:]:
+                self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
+                c = c + 1
 
 
     ''' preprocess row
@@ -1364,6 +1378,12 @@ class Merge(object):
 
         self.row_span = self.end_row - self.start_row
         self.col_span = self.end_col - self.start_col
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"{COLUMNS[self.start_col]}{self.start_row+1}:{COLUMNS[self.end_col-1]}{self.end_row}"
 
 
 

@@ -22,6 +22,7 @@ class DocFromJson(object):
 		self._data = {}
 		self._json = json
 
+
 	def run(self):
 		self.set_up()
 		# process jsons one by one
@@ -42,6 +43,7 @@ class DocFromJson(object):
 				debug(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
 
 			self.tear_down()
+
 
 	def set_up(self):
 		# configuration
@@ -68,13 +70,16 @@ class DocFromJson(object):
 		if not 'files' in self._CONFIG:
 			self._CONFIG['files'] = {}
 
+
 	def load_json(self):
 		with open(self._CONFIG['files']['input-json'], "r") as f:
 			self._data = json.load(f)
 
+
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
 		debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
+
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments

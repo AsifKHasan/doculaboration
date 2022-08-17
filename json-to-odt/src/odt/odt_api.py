@@ -168,7 +168,7 @@ class OdtTableSection(OdtSectionBase):
 
 
 ''' Odt gsheet section object
-'''
+''' 
 class OdtGsheetSection(OdtSectionBase):
 
     ''' constructor
@@ -336,7 +336,7 @@ class OdtContent(object):
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
-        # content_data must have 'properties' and 'sheets'
+        # content_data must have 'properties' and 'data'
         if content_data and 'properties' in content_data and 'data' in content_data:
             self.has_content = True
             sheet_properties = content_data.get('properties')
@@ -367,7 +367,6 @@ class OdtContent(object):
 
                     all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list[1:])
                     self.column_widths = [ (x.pixel_size * self.content_width / all_column_widths_in_pixel) for x in self.column_metadata_list[1:] ]
-                    # self.column_widths = [0] + self.column_widths
 
                     # rowData
                     r = 2
@@ -400,15 +399,14 @@ class OdtContent(object):
             last_col = merge.end_col
             row_span = merge.row_span
             col_span = merge.col_span
+            first_row_object = self.cell_matrix[first_row]
+            first_cell = first_row_object.get_cell(first_col)
 
             if first_row < 0:
                 continue
 
             if first_col < 0:
                 continue
-
-            first_row_object = self.cell_matrix[first_row]
-            first_cell = first_row_object.get_cell(first_col)
 
             if first_cell is None:
                 warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there")
