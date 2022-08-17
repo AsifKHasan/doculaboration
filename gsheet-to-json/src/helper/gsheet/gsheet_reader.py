@@ -15,10 +15,11 @@ from helper.logger import *
 from helper.gsheet.gsheet_util import *
 
 
-def process_sheet(context, sheet, parent=None):
+def process_gsheet(context, sheet, parent=None):
     data = {}
 
-    # worksheet-cache is nested dictionary of sheet->worksheet as two different sheets may have worksheets of same name, so keying by only worksheet name is not feasible
+    # worksheet-cache is nested dictionary of sheet->worksheet as two different sheets may have worksheets of same name
+    # so keying by only worksheet name is not feasible
     if 'worksheet-cache' not in context:
         context['worksheet-cache'] = {}
 
@@ -31,12 +32,12 @@ def process_sheet(context, sheet, parent=None):
     toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
-    data['sections'] = [process_section(sheet, toc, context, parent) for toc in toc_list]
+    data['sections'] = [process_section(context, sheet, toc, parent) for toc in toc_list]
 
     return data
 
 
-def process_section(sheet, toc, context, parent=None):
+def process_section(context, sheet, toc, parent=None):
     # TODO: some columns may have formula, parse those
     # link column (F, toc[5] may be a formula), parse it
     if toc[4] in ['gsheet', 'docx', 'pdf']:

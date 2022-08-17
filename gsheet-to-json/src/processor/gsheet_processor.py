@@ -10,5 +10,5 @@ def process(sheet, section_data, context):
     gsheet_url = section_data['link-target']
     debug(f"processing gsheet ... {gsheet_title} : {gsheet_url}")
     _gsheethelper = GsheetHelper()
-    _data = _gsheethelper.process_gsheet(gsheet_title=gsheet_title, gsheet_url=gsheet_url, parent=section_data)
+    _data = _gsheethelper.read_gsheet(gsheet_title=gsheet_title, gsheet_url=gsheet_url, parent=section_data)
     return _data

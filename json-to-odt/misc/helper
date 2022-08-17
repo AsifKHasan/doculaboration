@@ -35,5 +35,5 @@ odt-from-gsheet.bat BNDA__standards
 odt-from-gsheet.bat BCC-BNDA__hardware-specifications-checklist
 ./odt-from-gsheet.sh BCC-BNDA__hardware-specifications-checklist
 
-odt-from-gsheet.bat spectrum__explanation-iso-certificates
-./odt-from-gsheet.sh spectrum__explanation-iso-certificates
+odt-from-gsheet.bat NBR-BSW__explanation-on-iso-certificates-pds
+./odt-from-gsheet.sh NBR-BSW__explanation-on-iso-certificates-pds
