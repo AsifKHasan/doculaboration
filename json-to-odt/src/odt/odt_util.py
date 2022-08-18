@@ -574,7 +574,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
     if header_footer_style:
         # TODO: the height should come from actual header content height
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': height}
+        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': True, 'height': height}
         header_style = style.HeaderStyle()
         header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
         footer_style = style.FooterStyle()
@@ -633,7 +633,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 COLSEP = (0/72)
 # ROWSEP = (2/72)
 
-HEADER_HEIGHT = 0.3
+HEADER_HEIGHT = 1.8
 FOOTER_HEIGHT = 0.3
 
 GSHEET_ODT_BORDER_MAPPING = {

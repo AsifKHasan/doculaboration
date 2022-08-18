@@ -888,7 +888,7 @@ class Row(object):
 
     ''' it is true when the first cell has a free_content true value
         the first cell may be free_content when
-        1. it contains a note {'content': 'out-of-cell'}
+        1. it contains a note {'content': 'out-of-cell/free'}
         2. it contains a note {'style': '...'} and it is the only non-empty cell in the row
     '''
     def is_free_content(self):
