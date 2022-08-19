@@ -574,7 +574,8 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
     if header_footer_style:
         # TODO: the height should come from actual header content height
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': True, 'height': height}
+        # header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': height}
+        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
         header_style = style.HeaderStyle()
         header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
         footer_style = style.FooterStyle()

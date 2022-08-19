@@ -43,7 +43,11 @@ class LatexSectionBase(object):
         else:
             self.section_index_text = zfilled_index
 
-        self.id = f"s_{self.section_index_text}"
+        # self.section_id = f"s_{self.section_index_text}"
+        if self._section_data['link'] != '':
+            self.section_id = f"s__{self.section_index_text}__{self._section_data['link']}"
+        else:
+            self.section_id = f"s__{self.section_index_text}__{self._section_data['content-type']}"
 
         self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
 
@@ -59,18 +63,18 @@ class LatexSectionBase(object):
         self.section_width = self._section_data['width']
         self.section_height = self._section_data['height']
 
-        self.page_style_name = f"page{COLUMNS[self.section_index]}style"
+        self.page_style_name = f"pagestyle{COLUMNS[self.section_index]}"
 
         # headers and footers
         # print(f".. orientation: {landscape}, section_width: {self.section_width}")
-        self.header_first = LatexPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = LatexPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = LatexPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = LatexPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = LatexPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.header_first = LatexPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+        self.header_odd   = LatexPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        self.header_even  = LatexPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+        self.footer_first = LatexPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+        self.footer_odd   = LatexPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
-        self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.id, nesting_level=self.nesting_level)
+        self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
 
 
 
@@ -87,7 +91,6 @@ class LatexSectionBase(object):
         left_margin = self.margin_spec['left']
         right_margin = self.margin_spec['right']
 
-        geometry_lines.append(f"% LatexSection: [{self.id}]")
         geometry_lines.append(f"\t\\pagebreak")
 
         geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
@@ -149,22 +152,22 @@ class LatexSectionBase(object):
         # now the pagestyle
         hf_lines = hf_lines + fancy_pagestyle_header(self.page_style_name)
         if self.header_odd.has_content:
-            hf_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.id}}}")
+            hf_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.page_header_footer_id}}}")
 
         if self.header_even.has_content:
-            hf_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.id}}}")
+            hf_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.page_header_footer_id}}}")
 
         if self.footer_odd.has_content:
-            hf_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.id}}}")
+            hf_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.page_header_footer_id}}}")
 
         if self.footer_even.has_content:
-            hf_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.id}}}")
+            hf_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.page_header_footer_id}}}")
 
         hf_lines.append(f"\t\t}}")
         hf_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
 
         # TODO
-        hf_lines = [f"% PageStyle - [{self.page_style_name}]"] + hf_lines
+        hf_lines = [f"% PageStyle: [{self.page_style_name}]"] + hf_lines
 
         hf_lines = mark_as_latex(lines=hf_lines)
 
@@ -176,6 +179,8 @@ class LatexSectionBase(object):
     '''
     def section_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        section_lines = [f"\n% BEGIN LatexSection: [{self.section_id}]"]
 
         geometry_lines = []
         # page geometry changes only when a new section starts or if it is the first section
@@ -198,7 +203,7 @@ class LatexSectionBase(object):
         # section heading is always applicable
         heading_lines = self.get_heading()
 
-        return geometry_lines + hf_lines + content_lines + heading_lines
+        return section_lines + geometry_lines + hf_lines + content_lines + heading_lines
 
 
 
@@ -224,7 +229,9 @@ class LatexTableSection(LatexSectionBase):
         # get the contents
         content_lines = self.section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-        return section_lines + content_lines
+        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
+
+        return section_lines + content_lines + section_end_lines
 
 
 
@@ -273,7 +280,9 @@ class LatexGsheetSection(LatexSectionBase):
                 first_section = False
                 section_index = section_index + 1
 
-        return section_lines
+        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
+
+        return section_lines + section_end_lines
 
 
 
@@ -300,7 +309,8 @@ class LatexToCSection(LatexSectionBase):
         content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        return section_lines + content_lines
+        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
+        return section_lines + content_lines + section_end_lines
 
 
 
@@ -327,7 +337,8 @@ class LatexLoTSection(LatexSectionBase):
         content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        return section_lines + content_lines
+        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
+        return section_lines + content_lines + section_end_lines
 
 
 
@@ -354,7 +365,8 @@ class LatexLoFSection(LatexSectionBase):
         content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        return section_lines + content_lines
+        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
+        return section_lines + content_lines + section_end_lines
 
 
 
@@ -636,7 +648,7 @@ class LatexPageHeaderFooter(LatexContent):
 
         super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
-        self.id = f"{self.header_footer}{COLUMNS[self.section_index]}{self.odd_even}"
+        self.page_header_footer_id = f"{self.header_footer}{self.odd_even}{COLUMNS[self.section_index]}"
 
 
     ''' generates the latex code
@@ -644,8 +656,8 @@ class LatexPageHeaderFooter(LatexContent):
     def content_to_latex(self, color_dict, document_footnotes):
         latex_lines = []
 
-        latex_lines.append(f"\\providecommand\\{self.id}{{}}")
-        latex_lines.append(f"\\renewcommand\\{self.id}{{%")
+        latex_lines.append(f"\\providecommand\\{self.page_header_footer_id}{{}}")
+        latex_lines.append(f"\\renewcommand\\{self.page_header_footer_id}{{%")
 
         # iterate through tables and blocks contents
         first_block = True
@@ -658,7 +670,7 @@ class LatexPageHeaderFooter(LatexContent):
 
         latex_lines.append(f"\t}}")
 
-        return [f"% LatexPageHeaderFooter: [{self.id}]"] + latex_lines
+        return [f"% LatexPageHeaderFooter: [{self.page_header_footer_id}]"] + latex_lines
 
 
 
@@ -696,8 +708,12 @@ class LatexTable(LatexBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
-        self.table_name = f"LatexTable: {self.start_row+1}-{self.end_row+1}[{self.row_count}]"
-        self.id = f"{self.section_id}__t_{self.start_row+1}_{self.end_row+1}"
+        col_count = len(column_widths)
+        start_col = 1
+        end_col = col_count
+
+        self.table_name = f"{COLUMNS[start_col]}{self.start_row+3}-{COLUMNS[start_col]}{self.end_row+3}"
+        self.table_id = f"{self.section_id}__t__{self.table_name}__{self.row_count}"
 
         # header row if any
         self.header_row_count = self.table_cell_matrix[0].get_cell(c=0).note.header_rows
@@ -709,8 +725,8 @@ class LatexTable(LatexBlock):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # for storing the footnotes (if any) for this block
-        if (self.id not in document_footnotes):
-            document_footnotes[self.id] = []
+        if (self.table_id not in document_footnotes):
+            document_footnotes[self.table_id] = []
 
         # table template
         template_lines = []
@@ -723,8 +739,12 @@ class LatexTable(LatexBlock):
             template_lines.append(f"\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
             template_lines.append(f"\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
             table_type = "longtblr"
+            table_start_lines = [f"% BEGIN LatexTable: [{self.table_id}]\n"]
+            table_end_lines = [f"\n% END   LatexTable: [{self.table_id}]"]
         else:
             table_type = "tblr"
+            table_start_lines = []
+            table_end_lines = []
 
         # optional inner keys
         table_inner_keys = [f"caption=,", f"entry=none,", f"label=none,", f"presep={0}pt,", f"postsep={0}pt,"]
@@ -781,14 +801,14 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_contents_to_latex(block_id=self.id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)))
+            row_lines = list(map(lambda x: f"\t{x}", row.cell_contents_to_latex(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)))
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\t\\end{{{table_type}}}")
         table_lines = list(map(lambda x: f"\t{x}", table_lines))
 
         # latex footnotes
-        footnote_texts = document_footnotes[self.id]
+        footnote_texts = document_footnotes[self.table_id]
         if len(footnote_texts):
             # append footnotetexts 
             table_lines.append(f"")
@@ -797,12 +817,12 @@ class LatexTable(LatexBlock):
                 table_lines.append(footnote_text)
 
             # \\setfnsymbol for the footnotes, this needs to go before the table
-            table_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + table_lines
+            table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
 
-        if not strip_comments:
-            table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
+        # if not strip_comments:
+        #     table_lines = [f"% LatexTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
 
-        return [f"% LatexTable: [{self.id}]"] + table_lines
+        return table_start_lines + table_lines + table_end_lines
 
 
 
@@ -819,7 +839,7 @@ class LatexParagraph(LatexBlock):
 
         self.data_row = data_row
         self.row_number = row_number
-        self.id = f"{self.section_id}__p_{self.row_number+1}"
+        self.paragraph_id = f"{self.section_id}__p__{self.row_number+3}"
 
 
     ''' generates the latex code
@@ -828,21 +848,21 @@ class LatexParagraph(LatexBlock):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # for storing the footnotes (if any) for this block
-        if (self.id not in document_footnotes):
-            document_footnotes[self.id] = []
+        if (self.paragraph_id not in document_footnotes):
+            document_footnotes[self.paragraph_id] = []
 
         block_lines = []
-        if not strip_comments:
-            block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
+        # if not strip_comments:
+        #     block_lines.append(f"% LatexParagraph: row {self.row_number+1}")
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(c=0).cell_content_to_latex(block_id=self.id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
+            row_text = self.data_row.get_cell(c=0).cell_content_to_latex(block_id=self.paragraph_id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
             row_lines = list(map(lambda x: f"\t{x}", row_text))
             block_lines = block_lines + row_lines
 
         # latex footnotes
-        footnote_texts = document_footnotes[self.id]
+        footnote_texts = document_footnotes[self.paragraph_id]
         if len(footnote_texts):
             # append footnotetexts 
             block_lines.append(f"")
@@ -855,7 +875,7 @@ class LatexParagraph(LatexBlock):
             # \\setfnsymbol for the footnotes, this needs to go before the table
             block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
 
-        return [f"% LatexParagraph: [{self.id}]"] + block_lines
+        return [f"\n\n% BEGIN LatexParagraph: [{self.paragraph_id}]\n"] + block_lines + [f"\n% END   LatexParagraph: [{self.paragraph_id}]\n\n"]
 
 
 

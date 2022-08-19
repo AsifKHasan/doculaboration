@@ -36,7 +36,7 @@ class LatexHelper(object):
         first_section = True
         section_index = 0
 
-        self.document_lines = ["% document starts", "\\begin{document}"]
+        self.document_lines = ["% BEGIN Document", "\\begin{document}"]
         self.color_dict = {}
         self.document_footnotes = {}
         for section in section_list:
@@ -72,7 +72,7 @@ class LatexHelper(object):
         self.header_lines.append("\n")
 
         
-        self.document_lines.append("\\end{document}")
+        self.document_lines.append("\n\\end{document}")
 
         # save the markdown document string in a file
         with open(self._config['files']['output-latex'], "w", encoding="utf-8") as f:

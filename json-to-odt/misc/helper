@@ -10,7 +10,7 @@ with {"content": "out-of-cell", "keep-with-next": true}
 cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
-set DOCUMENT="PPR-2008__2019-01"
+set DOCUMENT="test"
 unzip -o %DOCUMENT%.odt -d abc && atom abc
 unzip -o ${DOCUMENT}.odt -d abc && atom abc
 
