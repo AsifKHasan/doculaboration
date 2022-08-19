@@ -59,7 +59,7 @@ class LatexSectionBase(object):
         self.section_width = self._section_data['width']
         self.section_height = self._section_data['height']
 
-        self.page_style_name = f"pagestyle{self.section_index}"
+        self.page_style_name = f"page{COLUMNS[self.section_index]}style"
 
         # headers and footers
         # print(f".. orientation: {landscape}, section_width: {self.section_width}")
@@ -253,7 +253,8 @@ class LatexGsheetSection(LatexSectionBase):
             nesting_level = self.nesting_level + 1
 
             first_section = False
-            section_index = self.section_index * 100
+            # section_index = self.section_index * 100
+            section_index = 0
             for section in self._section_data['contents']['sections']:
                 section['nesting-level'] = nesting_level
                 section['parent-section-index-text'] = self.section_index_text
@@ -423,7 +424,7 @@ class LatexContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            row = Row(row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                            row = Row(section_index=self.section_index, section_id=self.section_id, row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
                             self.cell_matrix.append(row)
                             r = r + 1
 
@@ -635,7 +636,7 @@ class LatexPageHeaderFooter(LatexContent):
 
         super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
-        self.id = f"{self.header_footer}{self.odd_even}{section_index}"
+        self.id = f"{self.header_footer}{COLUMNS[self.section_index]}{self.odd_even}"
 
 
     ''' generates the latex code
@@ -643,7 +644,8 @@ class LatexPageHeaderFooter(LatexContent):
     def content_to_latex(self, color_dict, document_footnotes):
         latex_lines = []
 
-        latex_lines.append(f"\\newcommand{{\\{self.id}}}{{%")
+        latex_lines.append(f"\\providecommand\\{self.id}{{}}")
+        latex_lines.append(f"\\renewcommand\\{self.id}{{%")
 
         # iterate through tables and blocks contents
         first_block = True
@@ -867,8 +869,8 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
-        self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = row_num, col_num, column_widths, default_format, nesting_level
+    def __init__(self, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
+        self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
         self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.value = value
         self.text_format_runs = []
@@ -897,27 +899,27 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, content_value=self.value['contents'])
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
                     elif self.note.page_number:
-                        self.cell_value = PageNumberValue(effective_format=self.effective_format, short=False)
+                        self.cell_value = PageNumberValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, short=False)
 
                     else:
-                        self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                        self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                # self.cell_value = StringValue(effective_format=self.effective_format, '', self.formatted_value)
+                # self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, '', self.formatted_value)
                 # self.cell_value = None
                 # warn(f"{self} is None")
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
 
 
@@ -1154,8 +1156,8 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
-        self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = row_num, default_format, section_width, column_widths, row_height, nesting_level
+    def __init__(self, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
+        self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
         self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
@@ -1163,7 +1165,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                cell = Cell(row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
+                cell = Cell(section_index=self.section_index, section_id=self.section_id, row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
                 self.cells.append(cell)
                 c = c + 1
 
@@ -1463,10 +1465,12 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, nesting_level=0, outline_level=0):
+    def __init__(self, section_index, section_id, effective_format, nesting_level=0, outline_level=0):
         self.effective_format = effective_format
         self.nesting_level = nesting_level
         self.outline_level = outline_level
+        self.section_index = section_index
+        self.section_id = section_id
 
 
 
@@ -1476,8 +1480,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1510,8 +1514,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, section_index, section_id, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1544,8 +1548,8 @@ class PageNumberValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, short=False, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, section_index, section_id, effective_format, short=False, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.short = short
 
 
@@ -1574,8 +1578,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, section_index, section_id, effective_format, image_value, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1630,8 +1634,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, section_index, section_id, effective_format, content_value, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1645,7 +1649,7 @@ class ContentValue(CellValue):
     ''' generates the latex code
     '''
     def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
-        section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, nesting_level=self.nesting_level)
+        section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
         return section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
@@ -2117,23 +2121,6 @@ class MultiSpan(object):
 ''' Table processor
 '''
 def process_table(section_data, config, color_dict, document_footnotes):
-    # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
-    # if section_data['contents'] is not None and 'sections' in section_data['contents']:
-    #     for section in section_data['contents']['sections']:
-    #         content_type = section['content-type']
-
-    #         # force table formatter for gsheet content
-    #         if content_type == 'gsheet':
-    #             content_type = 'table'
-
-    #         func = getattr(self, f"process_{content_type}")
-    #         section_lines = func(section)
-    #         self.document_lines = self.document_lines + section_lines
-
-    # else:
-    #     latex_section = LatexTableSection(section_data, self._config)
-    #     section_lines = latex_section.section_to_latex(self.color_dict)
-
     latex_section = LatexTableSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 

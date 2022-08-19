@@ -9,7 +9,7 @@ PYTHON=python3
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
-# ${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
+${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1
@@ -29,7 +29,7 @@ fi
 
 # latex-from-json
 pushd ./out
-time pandoc ${DOCUMENT}.mkd ../json-to-latex/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
+time lualatex ${DOCUMENT}.tex --output-format=pdf --interaction=batchmode
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1

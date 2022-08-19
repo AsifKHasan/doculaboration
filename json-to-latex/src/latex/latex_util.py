@@ -128,11 +128,19 @@ def tex_escape(text):
 '''
 '''
 def mark_as_latex(lines):
-    latex_lines = ["```{=latex}"]
-    latex_lines = latex_lines + lines
-    latex_lines.append("```\n\n")
+    # latex_lines = ["```{=latex}"]
+    # latex_lines = latex_lines + lines
+    # latex_lines.append("```\n\n")
 
-    return latex_lines
+    if len(lines) > 0:
+        latex_lines = ['']
+        latex_lines = latex_lines + lines
+        latex_lines.append('')
+        return latex_lines
+
+    else:
+        return lines
+
 
 
 ''' fancy pagestyle

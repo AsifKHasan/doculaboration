@@ -1,15 +1,14 @@
 # json-to-latex
 
-Generates Pandoc markdown from json generated through **gsheet-to-json**
+Generates LaTex from json generated through **gsheet-to-json**
 
 copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the copied file
 
-## Pandoc/LaTex generation
+## LaTex generation
 ### Toolchain
-1. Pandoc from https://pandoc.org/
-2. TexLive from https://tug.org/texlive/
-3. LuaLatex
-4. We need fonts
+1. TexLive from https://tug.org/texlive/
+2. LuaLatex
+3. We need fonts
  * Google Noto fonts from https://github.com/google/fonts
  ```
  sudo apt install fonts-noto
@@ -33,26 +32,6 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 cd to doculaboration root directory and run
 ```./pdf-from-gsheet.sh name-of-the-gsheet```
 
-or (NOT PREFERRED)
-
-```
-DOCUMENT="name-of-the-gsheet"
-DOCULABORATION_BASE="/home/asif/projects/asif@github/doculaboration"
-cd ${DOCULABORATION_BASE}
-cd ./out
-time pandoc ${DOCUMENT}.mkd ../json-to-latex/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o ${DOCUMENT}.pdf
-```
-
 ### Windows usage:
 cd to doculaboration root directory and run
 ```pdf-from-gsheet.bat name-of-the-gsheet```
-
-or (NOT PREFERRED)
-
-```
-set DOCUMENT="name-of-the-gsheet"
-set DOCULABORATION_BASE="D:\projects\asif@github\doculaboration"
-cd %DOCULABORATION_BASE%
-cd ./out
-ptime pandoc %DOCUMENT%.mkd ../json-to-latex/conf/preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
-```

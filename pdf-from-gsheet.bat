@@ -7,7 +7,7 @@ set DOCUMENT=%1
 
 :: json-from-gsheet
 pushd .\gsheet-to-json\src
-@REM .\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
+.\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -29,7 +29,7 @@ popd
 
 :: latex-from-json
 pushd .\out
-pandoc %DOCUMENT%.mkd ..\json-to-latex\conf\preamble.yml -s --pdf-engine=lualatex -f markdown -t latex -o %DOCUMENT%.pdf
+lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
 
 if errorlevel 1 (
   popd
