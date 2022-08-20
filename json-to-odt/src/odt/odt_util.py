@@ -9,6 +9,14 @@ import random
 import string
 from pathlib import Path
 from odf import style, text, draw, table
+from odf.element import Element
+from namespaces import MATHNS
+
+from xml.dom.minidom import parseString
+from xml.dom import Node
+
+import latex2mathml.converter
+
 from helper.logger import *
 
 
@@ -340,6 +348,64 @@ def create_footnote(footnote_tuple):
     return note
 
 
+''' write a mathml draw-frame
+'''
+def create_mathml(odt, style_name, latex_content):
+    # process styles
+    style = odt.getStyleByName(style_name)
+    if style is None:
+        warn(f"style {style_name} not found")
+
+    paragraph = text.P(stylename=style)
+
+    # convert to MathML
+    if latex_content is not None:
+        mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
+        draw_frame = draw.Frame(zindex=0, anchortype='as-char')
+        paragraph.addElement(draw_frame)
+
+        math = mathml_odf(mathml_content=mathml_output)
+        draw_object = draw.Object()
+        draw_object.addElement(math)
+        draw_frame.addElement(draw_object)
+
+    else:
+        paragraph = text.P(stylename=style_name)
+
+
+    return paragraph
+
+
+''' odf.math.Math element
+'''
+def mathml_odf(mathml_content):
+    # TODO: process the generated MathML
+    mathml = mathml_content
+    math_ = parseString(mathml.encode('utf-8'))
+    math_ = math_.documentElement
+    odf_math = mathml_odf_(math_)
+
+    return odf_math
+
+
+''' odf.math.Math element generator
+'''
+def mathml_odf_(parent):
+    elem = Element(qname = (MATHNS,parent.tagName))
+    if parent.attributes:
+        for attr, value in parent.attributes.items():
+            elem.setAttribute((MATHNS,attr), value, check_grammar=False)
+
+    for child in parent.childNodes:
+        if child.nodeType == Node.TEXT_NODE:
+            text = child.nodeValue
+            elem.addText(text, check_grammar=False)
+        else:
+            elem.addElement(mathml_odf_(child), check_grammar=False)
+    
+    return elem
+
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
@@ -348,9 +414,16 @@ def create_footnote(footnote_tuple):
 '''
 def update_indexes(odt, odt_path):
     document_url = Path(odt_path).as_uri()
+
+    macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    # print(command_line)
+    subprocess.call(command_line, shell=True)
+
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    subprocess.call(command_line, shell=True);
+    # print(command_line)
+    subprocess.call(command_line, shell=True)
 
 
 ''' given an odt file generates pdf in the given directory
@@ -631,6 +704,22 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
             width_to_fit = height_to_fit * aspect_ratio
 
     return width_to_fit, height_to_fit
+
+
+
+'''
+'''
+def strip_math_mode_delimeters(latex_content):
+    # strip SPACES
+    stripped = latex_content.strip()
+    
+    # strip $
+    stripped = stripped.strip('$')
+
+    # TODO: strip \( and \)
+
+    return stripped
+
 
 
 

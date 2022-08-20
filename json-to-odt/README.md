@@ -11,7 +11,7 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 3.  LibreOffice - <https://www.libreoffice.org/download/download/>. You can work without LibreOffice installed on Linux and Windows both, but you will not be able to generate indexes and pdf from the generated odt
 
 ## we need an application macro for odt index generation to work
-Create the following macro from *Tools->Macros->Edit Macros...*
+Create the following two macros from *Tools->Macros->Edit Macros...*
 
 * Container **My Macros & Dialogs**
 * Application **Standard**
@@ -47,6 +47,58 @@ Sub open_document(docUrl As String)
 
 End Sub
 ```
+
+
+
+* Container **My Macros & Dialogs**
+* Application **Standard**
+* Module **Module1**
+* Function **force_update(String)**
+
+```
+Sub force_update(docUrl As String)
+	
+	Dim doc As Object
+	Dim properties(1) As New com.sun.star.beans.PropertyValue
+
+	properties(0).Name = "Hidden"
+	properties(0).value  = true
+	properties(1).Name = "MacroExecutionMode"
+	properties(1).value  = 4
+
+	doc = StarDesktop.loadComponentFromURL(docUrl, "_blank", 0, properties)
+	'''doc = ThisComponent
+
+	'''Update embedded formulas'''
+	Dim oEmbeddedObjects as Variant: oEmbeddedObjects = doc.EmbeddedObjects
+	Dim nIndex as Long
+	Dim nEndIndex as Long: nEndIndex = oEmbeddedObjects.Count-1
+
+	rem like green handle status
+	Dim oEmbeddedObject as Variant:
+	rem like edit status 
+	Dim oModel as Variant: 
+	rem oExtendedControlOverEmbeddedObject
+	Dim oXCOEO as Variant: 
+
+	For nIndex=0 to nEndIndex
+		oEmbeddedObject = oEmbeddedObjects.getByIndex(nIndex)
+		oModel = oEmbeddedObject.Model: rem might be empty; css.comp.math.FormulaDocument
+		If Not(isEmpty(oModel)) then
+			If oModel.supportsService("com.sun.star.formula.FormulaProperties") then
+				rem It is a formula object.
+				oXCOEO = oEmbeddedObject.ExtendedControlOverEmbeddedObject
+				oXCOEO.update()
+			End If	
+		End If
+	Next nIndex
+	
+	doc.store()
+	doc.close(True)
+	
+End Sub
+```
+
 
 ## macro security
 For now, we need to allow macros in LibreOffice

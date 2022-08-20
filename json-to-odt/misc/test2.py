@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import odf
@@ -9,7 +9,7 @@ from odf.math import Math
 from namespaces import MATHNS
 
 
-formula =u'<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>&#x0002B;</mo><msup><mi>y</mi><mn>2</mn></msup><mo>&#x0003D;</mo><msup><mi>z</mi><mn>2</mn></msup></mrow></math>'
+formula =u'<mrow><msup><mi>x</mi><mn>2</mn></msup><mo>&#x0002B;</mo><msup><mi>y</mi><mn>2</mn></msup><mo>&#x0003D;</mo><msup><mi>z</mi><mn>2</mn></msup></mrow>'
 
 def main():
     doc = OpenDocumentText()
@@ -27,7 +27,7 @@ def main():
     do.addElement(math)
     df.addElement(do)
 
-    outputfile = u'result'
+    outputfile = u'test2'
     doc.save(outputfile, True)
 
 if __name__ == '__main__':

@@ -933,12 +933,13 @@ class Cell(object):
                         self.cell_value = PageNumberValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, short=False)
 
                     else:
-                        self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                        if self.note.script and self.note.script == 'latex':
+                            self.cell_value = LatexValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                        
+                        else:
+                            self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                # self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, '', self.formatted_value)
-                # self.cell_value = None
-                # warn(f"{self} is None")
                 self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
 
@@ -952,7 +953,6 @@ class Cell(object):
             self.effective_format = None
             self.user_entered_format = None
             self.is_empty = True
-            # warn(f"{self} is Empty")
 
 
     ''' string representation
@@ -1528,6 +1528,41 @@ class StringValue(CellValue):
 
 
 
+''' LaTex type CellValue
+'''
+class LatexValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        if formatted_value:
+            self.value = formatted_value
+        else:
+            if string_value and 'stringValue' in string_value:
+                self.value = string_value['stringValue']
+            else:
+                self.value = ''
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"string : [{self.value}]"
+        return s
+
+
+    ''' generates the latex code
+    '''
+    def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
+        verbatim = True
+        latex = self.effective_format.text_format.text_format_to_latex(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # latex = self.value
+
+        return latex
+
+
+
 ''' text-run type CellValue
 '''
 class TextRunValue(CellValue):
@@ -2035,6 +2070,8 @@ class CellNote(object):
         self.keep_with_previous = False
         self.keep_line_breaks = False
 
+        self.script = None
+
         self.outline_level = 0
         self.footnotes = {}
 
@@ -2056,6 +2093,11 @@ class CellNote(object):
             content = note_dict.get('content')
             if content is not None and content in ['free', 'out-of-cell']:
                 self.free_content = True
+
+            # script
+            script = note_dict.get('script')
+            if script is not None and script in ['latex']:
+                self.script = script
 
             # table-spacing
             spacing = note_dict.get('table-spacing')
