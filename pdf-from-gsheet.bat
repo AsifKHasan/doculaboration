@@ -18,7 +18,7 @@ popd
 
 :: latex-from-json
 pushd .\json-to-latex\src
-@REM .\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+.\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -29,7 +29,7 @@ popd
 
 :: latex-from-json
 pushd .\out
-@REM lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
+lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
 move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (

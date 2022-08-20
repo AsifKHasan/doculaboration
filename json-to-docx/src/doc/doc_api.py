@@ -775,7 +775,6 @@ class Cell(object):
 
 
 
-
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
