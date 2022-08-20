@@ -30,6 +30,7 @@ fi
 # latex-from-json
 pushd ./out
 time lualatex ${DOCUMENT}.tex --output-format=pdf --interaction=batchmode
+mv ${DOCUMENT}.pdf ${DOCUMENT}.tex.pdf
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1

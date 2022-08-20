@@ -356,8 +356,14 @@ def update_indexes(odt, odt_path):
 ''' given an odt file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf --outdir "{outdir}" "{infile}"'
-    subprocess.call(command_line, shell=True);
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{outdir}" "{infile}"'
+    subprocess.call(command_line, shell=True)
+
+    #  now there should be a pdf file, we need to rename it
+    file_to_rename = infile.replace(r'.odt', r'.pdf')
+    rename_to = infile + '.pdf'
+    Path(file_to_rename).replace(rename_to)
+
 
 
 ''' create table-of-contents

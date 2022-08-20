@@ -7,7 +7,7 @@ set DOCUMENT=%1
 
 :: json-from-gsheet
 pushd .\gsheet-to-json\src
-.\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
+@REM .\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -18,7 +18,7 @@ popd
 
 :: latex-from-json
 pushd .\json-to-latex\src
-:: .\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+@REM .\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -29,7 +29,8 @@ popd
 
 :: latex-from-json
 pushd .\out
-lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
+@REM lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
+move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (
   popd

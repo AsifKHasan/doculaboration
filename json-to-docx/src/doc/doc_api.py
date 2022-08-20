@@ -528,8 +528,8 @@ class DocxContent(object):
         for r in range(0, self.row_count):
             data_row = self.cell_matrix[r]
             for cell in data_row.cells:
-                # print(cell)
-                pass
+                print(cell)
+                # pass
 
 
         # iterate through tables and blocks contents

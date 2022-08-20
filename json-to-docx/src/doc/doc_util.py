@@ -396,7 +396,7 @@ def set_updatefields_true(docx_path):
 ''' given an docx file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
-	pdf_path = infile.replace(".docx", r".pdf")
+	pdf_path = infile + '.pdf'
 	try:
 		word = client.DispatchEx("Word.Application")
 	except Exception as e:
