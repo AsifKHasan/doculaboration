@@ -721,8 +721,8 @@ class Cell(object):
                     if len(self.text_format_runs):
                         self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
-                    elif self.note.page_number:
-                        self.cell_value = PageNumberValue(effective_format=self.effective_format, short=False)
+                    elif self.note.page_numbering:
+                        self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
@@ -1138,9 +1138,9 @@ class PageNumberValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, short=False, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.short = short
+        self.page_numbering = page_numbering
 
 
     ''' string representation
@@ -1157,7 +1157,7 @@ class PageNumberValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_page_number(style_name=style_name, short=self.short)
+        paragraph = create_page_number(style_name=style_name, page_numbering=self.page_numbering)
         container.addElement(paragraph)
 
 
@@ -1671,7 +1671,7 @@ class CellNote(object):
         self.nesting_level = nesting_level
         self.free_content = False
         self.table_spacing = True
-        self.page_number = False
+        self.page_numbering = None
         self.header_rows = 0
 
         self.style = None
@@ -1704,6 +1704,11 @@ class CellNote(object):
             content = note_dict.get('content')
             if content is not None and content in ['free', 'out-of-cell']:
                 self.free_content = True
+
+            # page-number
+            page_numbering = note_dict.get('page-number')
+            if page_numbering is not None and page_numbering in ['long', 'short']:
+                self.page_numbering = page_numbering
 
             # script
             script = note_dict.get('script')

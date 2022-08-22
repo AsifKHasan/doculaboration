@@ -225,19 +225,20 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
         <text:s/>of <text:page-count>1</text:page-count>
     </text:p>
 '''
-def create_page_number(style_name, short=False):
+def create_page_number(style_name, page_numbering='long'):
     paragraph = text.P(stylename=style_name)
-    page_number = text.PageNumber(selectpage='current')
+    page_num = text.PageNumber(selectpage='current')
 
-    if short:
+    if page_numbering == 'short':
         paragraph.addText("Page ")
-        paragraph.addElement(page_number)
+        paragraph.addElement(page_num)
+
     else:
         s = text.S()
         page_count = text.PageCount()
 
         paragraph.addText("Page ")
-        paragraph.addElement(page_number)
+        paragraph.addElement(page_num)
         paragraph.addElement(s)
         paragraph.addText("of ")
         paragraph.addElement(page_count)
