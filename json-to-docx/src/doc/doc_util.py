@@ -22,6 +22,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
 
+import latex2mathml.converter
+
 if sys.platform in ['win32', 'darwin']:
 	import win32com.client as client
 
@@ -327,6 +329,15 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	return paragraph
 
 
+''' add a latex/mathml run into a paragraph
+'''
+def create_latex(paragraph, latex_content):
+	if latex_content is not None:
+		mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
+		paragraph.add_run(text=mathml_output, style=None)
+
+
+
 ''' tex/character style for text run
 '''
 def set_text_style(run, text_attributes):
@@ -566,6 +577,20 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 			width_to_fit = height_to_fit * aspect_ratio
 
 	return width_to_fit, height_to_fit
+
+
+'''
+'''
+def strip_math_mode_delimeters(latex_content):
+    # strip SPACES
+    stripped = latex_content.strip()
+    
+    # strip $
+    stripped = stripped.strip('$')
+
+    # TODO: strip \( and \)
+
+    return stripped
 
 
 

@@ -282,31 +282,18 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}):
     paragraph = None
 
-    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
-    texts_and_footnotes = []
+    # process FN{...} first, we get a list of block dicts
+    inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
 
-    # find out if there is any match with FN#key inside the text_content
-    pattern = r'FN{[^}]+}'
-    current_index = 0
-    for match in re.finditer(pattern, text_content):
-      footnote_key = match.group()[3:-1]
-      if footnote_key in footnote_list:
-        # debug(f".... footnote {footnote_key} found at {match.span()} with description")
-        # we have found a footnote, we add the preceding text and the footnote spec into the list
-        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
-        if footnote_start_index >= current_index:
-          # there are preceding text before the footnote
-          texts_and_footnotes.append(text_content[current_index:footnote_start_index])
-          texts_and_footnotes.append((footnote_key, footnote_list[footnote_key]))
-          current_index = footnote_end_index
-      else:
-        warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
-        # this is not a footnote, ignore it
-        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
-        # current_index = footnote_end_index + 1
+    # process LATEX{...} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block['text'])
 
-    # there may be trailing text
-    texts_and_footnotes.append(text_content[current_index:])
+        else:
+            new_inline_blocks.append(inline_block)
 
 
     # create the P or H or span
@@ -321,16 +308,89 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
 
     # now fill the paragraph with texts and footnotes
-    for obj in texts_and_footnotes:
-        if isinstance(obj, str):
-            paragraph.addText(text=obj)
+    # we are ready prepare the content
+    for inline_block in new_inline_blocks:
+        if 'text' in inline_block:
+            paragraph.addText(text=inline_block['text'])
 
-        elif isinstance(obj, tuple):
-            footnote_object = create_footnote(obj)
+        elif 'fn' in inline_block:
+            footnote_object = create_footnote(inline_block['fn'])
             paragraph.addElement(footnote_object)
+
+        elif 'latex' in inline_block:
+            latex_df = create_latex(latex_content=inline_block['latex'])
+            if latex_df:
+                paragraph.addElement(latex_df)
 
 
     return paragraph
+
+
+
+''' process footnotes inside text
+'''
+def process_footnotes(text_content, footnote_list):
+    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
+    texts_and_footnotes = []
+
+    # find out if there is any match with FN#key inside the text_content
+    pattern = r'FN{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+      footnote_key = match.group()[3:-1]
+      if footnote_key in footnote_list:
+        # debug(f".... footnote {footnote_key} found at {match.span()} with description")
+        # we have found a footnote, we add the preceding text and the footnote spec into the list
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        if footnote_start_index >= current_index:
+          # there are preceding text before the footnote
+          texts_and_footnotes.append({'text': text_content[current_index:footnote_start_index]})
+          texts_and_footnotes.append({'fn': (footnote_key, footnote_list[footnote_key])})
+          current_index = footnote_end_index
+      else:
+        warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
+        # this is not a footnote, ignore it
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        # current_index = footnote_end_index + 1
+
+    # there may be trailing text
+    texts_and_footnotes.append({'text': text_content[current_index:]})
+
+    return texts_and_footnotes
+
+
+
+''' process latex blocks inside text
+'''
+def process_latex_blocks(text_content):
+    # find out if there is any match with LATEX{...} inside the text_content
+    texts_and_latex = []
+
+    pattern = r'LATEX{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        latex_content = match.group()[6:-1]
+
+        # we have found a latex block, we add the preceding text and the latex block into the list
+        latex_start_index, latex_end_index = match.span()[0], match.span()[1]
+        if latex_start_index >= current_index:
+            # there are preceding text before the latex
+            text = text_content[current_index:latex_start_index]
+
+            texts_and_latex.append({'text': text})
+
+            texts_and_latex.append({'latex': latex_content})
+
+            current_index = latex_end_index
+
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_latex.append({'text': text})
+
+    return texts_and_latex
+
 
 
 ''' create a footnote
@@ -348,6 +408,27 @@ def create_footnote(footnote_tuple):
     return note
 
 
+
+''' create latex object
+'''
+def create_latex(latex_content):
+    # convert to MathML
+    if latex_content is not None:
+        mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
+        draw_frame = draw.Frame(zindex=0, anchortype='as-char')
+
+        math = mathml_odf(mathml_content=mathml_output)
+        draw_object = draw.Object()
+        draw_object.addElement(math)
+        draw_frame.addElement(draw_object)
+
+        return draw_frame
+
+    else:
+        return None
+
+
+
 ''' write a mathml draw-frame
 '''
 def create_mathml(odt, style_name, latex_content):
@@ -358,20 +439,9 @@ def create_mathml(odt, style_name, latex_content):
 
     paragraph = text.P(stylename=style)
 
-    # convert to MathML
-    if latex_content is not None:
-        mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
-        draw_frame = draw.Frame(zindex=0, anchortype='as-char')
-        paragraph.addElement(draw_frame)
-
-        math = mathml_odf(mathml_content=mathml_output)
-        draw_object = draw.Object()
-        draw_object.addElement(math)
-        draw_frame.addElement(draw_object)
-
-    else:
-        paragraph = text.P(stylename=style_name)
-
+    latex_df = create_latex(latex_content=latex_content)
+    if latex_df is not None:
+        paragraph.addElement(latex_df)
 
     return paragraph
 

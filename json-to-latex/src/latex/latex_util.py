@@ -110,11 +110,13 @@ def os_specific_path(path):
         return path
 
 
+
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
 def row_height_in_inches(pixel_size):
     return (pixel_size - 9) / 72
+
 
 
 ''' :param text: a plain text message
@@ -155,9 +157,43 @@ def fancy_pagestyle_header(page_style_name):
     return lines
 
 
+
+''' insert latex blocks inside text
+'''
+def process_latex_blocks(text_content):
+    # find out if there is any match with LATEX{...} inside the text_content
+    texts_and_latex = []
+
+    pattern = r'LATEX{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        latex_content = match.group()[6:-1]
+
+        # we have found a latex block, we add the preceding text and the latex block into the list
+        latex_start_index, latex_end_index = match.span()[0], match.span()[1]
+        if latex_start_index >= current_index:
+            # there are preceding text before the latex
+            text = text_content[current_index:latex_start_index]
+
+            texts_and_latex.append({'text': text})
+
+            texts_and_latex.append({'latex': latex_content})
+
+            current_index = latex_end_index
+
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_latex.append({'text': text})
+
+    return texts_and_latex
+
+
+
 ''' insert footnotes inside text
 '''
-def process_footnotes(block_id, text_content, document_footnotes, footnote_list, verbatim=False):
+def process_footnotes(block_id, text_content, document_footnotes, footnote_list):
     # find out if there is any match with FN#key inside the text_content
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
@@ -174,13 +210,10 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list,
             if footnote_start_index >= current_index:
                 # there are preceding text before the footnote
                 text = text_content[current_index:footnote_start_index]
-                if not verbatim:
-                    text = tex_escape(text)
-
-                texts_and_footnotes.append(text)
+                texts_and_footnotes.append({'text': text})
 
                 footnote_mark_latex = f"\\footnotemark[{next_footnote_number}]"
-                texts_and_footnotes.append(footnote_mark_latex)
+                texts_and_footnotes.append({'fn': footnote_mark_latex})
 
                 # this block has this footnote
                 document_footnotes[block_id].append({'key': footnote_key, 'mark': next_footnote_number, 'text': footnote_list[footnote_key]})
@@ -197,9 +230,47 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list,
 
     # there may be trailing text
     text = text_content[current_index:]
-    if not verbatim:
-        text = tex_escape(text)
 
-    texts_and_footnotes.append(text)
+    texts_and_footnotes.append({'text': text})
 
-    return ''.join(texts_and_footnotes)
+    return texts_and_footnotes
+
+
+
+''' process inine contents inside the text
+    inine contents are FN{...}, LATEX{...} etc.
+'''
+def process_inline_blocks(block_id, text_content, document_footnotes, footnote_list, verbatim=False):
+
+    # process FN{...} first, we get a list of block dicts
+    inline_blocks = process_footnotes(block_id=block_id, text_content=text_content, document_footnotes=document_footnotes, footnote_list=footnote_list)
+
+    # process LATEX{...} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block['text'])
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+
+    # we are ready prepare the content
+    final_content = ''
+    for inline_block in new_inline_blocks:
+        if 'text' in inline_block:
+            if verbatim:
+                final_content = final_content + inline_block['text']
+
+            else:
+                final_content = final_content + tex_escape(inline_block['text'])
+
+        elif 'fn' in inline_block:
+            final_content = final_content + inline_block['fn']
+
+        elif 'latex' in inline_block:
+            final_content = final_content + inline_block['latex']
+
+
+    return final_content

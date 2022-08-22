@@ -1078,7 +1078,7 @@ class LatexValue(CellValue):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"string : [{self.value}]"
+        s = f"latex : [{self.value}]"
         return s
 
 

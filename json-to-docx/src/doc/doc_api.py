@@ -702,27 +702,28 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(self.effective_format, self.value['contents'])
+                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(self.effective_format, self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(self.effective_format, self.text_format_runs, self.formatted_value)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
                     elif self.note.page_number:
-                        self.cell_value = PageNumberValue(self.effective_format, short=False)
+                        self.cell_value = PageNumberValue(effective_format=self.effective_format, short=False)
 
                     else:
-                        self.cell_value = StringValue(self.effective_format, self.value['userEnteredValue'], self.formatted_value, self.nesting_level, self.note.outline_level)
+                        if self.note.script and self.note.script == 'latex':
+                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                        
+                        else:
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                # self.cell_value = StringValue(self.effective_format, '', self.formatted_value)
-                # warn(f"{self} is None")
-                self.cell_value = StringValue(self.effective_format, '', self.formatted_value, self.nesting_level, self.note.outline_level)
-                # self.cell_value = None
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -732,7 +733,6 @@ class Cell(object):
             self.formatted_value = None
             self.effective_format = None
             self.is_empty = True
-            # warn(f"{self} is Empty")
 
 
     ''' string representation
@@ -1005,6 +1005,41 @@ class StringValue(CellValue):
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
         paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+        return paragraph
+
+
+
+''' LaTex type CellValue
+'''
+class LatexValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        if formatted_value:
+            self.value = formatted_value
+        else:
+            if string_value and 'stringValue' in string_value:
+                self.value = string_value['stringValue']
+            else:
+                self.value = ''
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"latex : [{self.value}]"
+        return s
+
+
+    ''' generates the docx code
+    '''
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+        paragraph = create_paragraph(container=container, text_content=None, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+        # TODO: latex/math
+        create_latex(paragraph, latex_content=self.value)
+        
         return paragraph
 
 
@@ -1502,6 +1537,9 @@ class CellNote(object):
         self.keep_with_previous = False
         self.keep_line_breaks = False
 
+        self.script = None
+        self.footnotes = {}
+
         self.outline_level = 0
 
         if note_json:
@@ -1522,6 +1560,11 @@ class CellNote(object):
             content = note_dict.get('content')
             if content is not None and content in ['free', 'out-of-cell']:
                 self.free_content = True
+
+            # script
+            script = note_dict.get('script')
+            if script is not None and script in ['latex']:
+                self.script = script
 
             # table-spacing
             spacing = note_dict.get('table-spacing')

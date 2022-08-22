@@ -1444,8 +1444,8 @@ class TextFormat(object):
     def text_format_to_latex(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
-        # process footnote (if any)
-        content = f"{process_footnotes(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
+        # process inline blocks (footnotes, latex, etc. (if any))
+        content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
 
         styled = False
         if self.is_underline:
