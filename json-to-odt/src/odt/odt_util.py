@@ -366,10 +366,11 @@ def process_latex_blocks(text_content):
     # find out if there is any match with LATEX{...} inside the text_content
     texts_and_latex = []
 
-    pattern = r'LATEX{[^}]+}'
+    pattern = r'LATEX[$].+[$]'
     current_index = 0
     for match in re.finditer(pattern, text_content):
         latex_content = match.group()[6:-1]
+        print(latex_content)
 
         # we have found a latex block, we add the preceding text and the latex block into the list
         latex_start_index, latex_end_index = match.span()[0], match.span()[1]

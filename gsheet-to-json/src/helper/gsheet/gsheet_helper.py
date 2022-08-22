@@ -75,9 +75,9 @@ class GsheetHelper(object):
                     info(f"opened  gsheet : {gsheet_title}")
 
                 # optimization - read the full gsheet
-                info(f"reading gsheet : {gsheet_title}")
+                info(f"reading gsheet : [{gsheet_title}]")
                 self._context['gsheet-data'] = self.get_gsheet_data(gsheet)
-                info(f"read    gsheet : {gsheet_title}")
+                info(f"read    gsheet : [{gsheet_title}]")
                 # return self._context['gsheet-data']
                 
                 break
