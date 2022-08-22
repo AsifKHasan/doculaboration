@@ -371,7 +371,6 @@ def process_latex_blocks(text_content):
     current_index = 0
     for match in re.finditer(pattern, text_content):
         latex_content = match.group()[6:-1]
-        print(latex_content)
 
         # we have found a latex block, we add the preceding text and the latex block into the list
         latex_start_index, latex_end_index = match.span()[0], match.span()[1]
@@ -489,12 +488,10 @@ def update_indexes(odt, odt_path):
 
     macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    # print(command_line)
     subprocess.call(command_line, shell=True)
 
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    # print(command_line)
     subprocess.call(command_line, shell=True)
 
 

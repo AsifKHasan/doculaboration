@@ -712,8 +712,8 @@ class Cell(object):
                     if len(self.text_format_runs):
                         self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
-                    elif self.note.page_number:
-                        self.cell_value = PageNumberValue(effective_format=self.effective_format, short=False)
+                    elif self.note.page_numbering:
+                        self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
@@ -1084,9 +1084,9 @@ class PageNumberValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, short=False, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.short = short
+        self.page_numbering = page_numbering
 
 
     ''' string representation
@@ -1099,7 +1099,7 @@ class PageNumberValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
-        paragraph = create_page_number(container=container, text_attributes=text_attributes, short=self.short)
+        paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
 
 
@@ -1528,7 +1528,7 @@ class CellNote(object):
         self.nesting_level = nesting_level
         self.free_content = False
         self.table_spacing = True
-        self.page_number = False
+        self.page_numbering = None
         self.header_rows = 0
 
         self.style = None
@@ -1553,7 +1553,6 @@ class CellNote(object):
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
-            self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
 
             # content
@@ -1565,6 +1564,11 @@ class CellNote(object):
             script = note_dict.get('script')
             if script is not None and script in ['latex']:
                 self.script = script
+
+            # page-number
+            page_numbering = note_dict.get('page-number')
+            if page_numbering is not None and page_numbering in ['long', 'short']:
+                self.page_numbering = page_numbering
 
             # table-spacing
             spacing = note_dict.get('table-spacing')

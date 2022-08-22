@@ -215,7 +215,7 @@ def set_cell_padding(cell: table._Cell, padding):
 
 ''' page number with/without page count
 '''
-def create_page_number(container, text_attributes=None, short=False, separator=' of '):
+def create_page_number(container, text_attributes=None, page_numbering='long', separator=' of '):
 	paragraph = create_paragraph(container=container)
 	run = paragraph.add_run()
 	set_text_style(run, text_attributes)
@@ -241,7 +241,7 @@ def create_page_number(container, text_attributes=None, short=False, separator='
 	r_element.append(fldCharSeparate1)
 	r_element.append(fldCharEnd1)
 
-	if not short:
+	if page_numbering == 'long':
 		# number of pages
 		fldCharOf = OxmlElement('w:t')
 		fldCharOf.set(qn('xml:space'), 'preserve')
