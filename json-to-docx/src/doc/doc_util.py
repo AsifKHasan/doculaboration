@@ -10,6 +10,8 @@ import string
 from pathlib import Path
 from copy import deepcopy
 
+from lxml import etree
+
 from docx import Document
 from docx import section, document, table
 from docx.text.paragraph import Paragraph
@@ -332,9 +334,19 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 ''' add a latex/mathml run into a paragraph
 '''
 def create_latex(paragraph, latex_content):
+	mml2omml_stylesheet_path = '../conf/MML2OMML.XSL'
 	if latex_content is not None:
 		mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
-		paragraph.add_run(text=mathml_output, style=None)
+		# paragraph.add_run(text=mathml_output, style=None)
+
+		# Convert MathML (MML) into Office MathML (OMML) using a XSLT stylesheet
+		tree = etree.fromstring(mathml_output)
+		xslt = etree.parse(mml2omml_stylesheet_path)
+
+		transform = etree.XSLT(xslt)
+		new_dom = transform(tree)
+
+		paragraph._element.append(new_dom.getroot())
 
 
 
