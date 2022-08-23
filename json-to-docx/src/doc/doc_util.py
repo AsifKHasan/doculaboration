@@ -3,6 +3,7 @@
 various utilities for formatting a docx
 '''
 
+import re
 import sys
 import lxml
 import random
@@ -19,7 +20,7 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
-
+ 
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
@@ -203,7 +204,6 @@ def set_cell_padding(cell: table._Cell, padding):
 
     for m in ["top", "start", "bottom", "end", ]:
         if m in padding:
-            # print(f"padding : {m} : {padding.get(m)}")
             node = OxmlElement("w:{}".format(m))
             node.set(qn('w:w'), str(padding.get(m)))
             node.set(qn('w:type'), 'dxa')
@@ -318,26 +318,125 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 			pf.keep_with_previous = True
 
 
-	# run lists are a series of runs inside the paragraph
+	# TODO: process inline blocks like footnotes, latex inside the content
 	if run_list is not None:
+		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
-			run = paragraph.add_run(text_run['text'])
-			set_text_style(run, text_run['text-attributes'])
+			process_inline_blocks(paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'])
 
-	else:
-		run = paragraph.add_run(text_content)
-		set_text_style(run, text_attributes)
+	elif text_content is not None:
+		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes)
+
 
 	return paragraph
 
 
+''' process inline blocks inside a text and add to a paragraph
+'''
+def process_inline_blocks(paragraph, text_content, text_attributes):
+    # process FN{...} first, we get a list of block dicts
+	inline_blocks = process_footnotes(text_content=text_content, footnote_list={})
+
+	# process LATEX{...} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if 'text' in inline_block:
+			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block['text'])
+
+		else:
+			new_inline_blocks.append(inline_block)
+
+
+	# we are ready to prepare the content
+	for inline_block in new_inline_blocks:
+		if 'text' in inline_block:
+			run = paragraph.add_run(inline_block['text'])
+			set_text_style(run=run, text_attributes=text_attributes)
+
+		elif 'fn' in inline_block:
+			pass
+
+		elif 'latex' in inline_block:
+			run = paragraph.add_run()
+			create_latex(container=run, latex_content=inline_block['latex'])
+			set_text_style(run=run, text_attributes=text_attributes)
+
+
+
+''' process footnotes inside text
+'''
+def process_footnotes(text_content, footnote_list):
+    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
+    texts_and_footnotes = []
+
+    # find out if there is any match with FN#key inside the text_content
+    pattern = r'FN{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+      footnote_key = match.group()[3:-1]
+      if footnote_key in footnote_list:
+        # debug(f".... footnote {footnote_key} found at {match.span()} with description")
+        # we have found a footnote, we add the preceding text and the footnote spec into the list
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        if footnote_start_index >= current_index:
+          # there are preceding text before the footnote
+          texts_and_footnotes.append({'text': text_content[current_index:footnote_start_index]})
+          texts_and_footnotes.append({'fn': (footnote_key, footnote_list[footnote_key])})
+          current_index = footnote_end_index
+      else:
+        warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
+        # this is not a footnote, ignore it
+        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+        # current_index = footnote_end_index + 1
+
+    # there may be trailing text
+    texts_and_footnotes.append({'text': text_content[current_index:]})
+
+    return texts_and_footnotes
+
+
+
+''' process latex blocks inside text
+'''
+def process_latex_blocks(text_content):
+    # find out if there is any match with LATEX{...} inside the text_content
+    texts_and_latex = []
+
+    pattern = r'LATEX[$].+[$]'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        latex_content = match.group()[6:-1]
+
+        # we have found a latex block, we add the preceding text and the latex block into the list
+        latex_start_index, latex_end_index = match.span()[0], match.span()[1]
+        if latex_start_index >= current_index:
+            # there are preceding text before the latex
+            text = text_content[current_index:latex_start_index]
+
+            texts_and_latex.append({'text': text})
+
+            texts_and_latex.append({'latex': latex_content})
+
+            current_index = latex_end_index
+
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_latex.append({'text': text})
+
+    return texts_and_latex
+
+
+
 ''' add a latex/mathml run into a paragraph
 '''
-def create_latex(paragraph, latex_content):
-	mml2omml_stylesheet_path = '../conf/MML2OMML.XSL'
+def create_latex(container, latex_content):
 	if latex_content is not None:
+		print(latex_content)
 		mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
-		# paragraph.add_run(text=mathml_output, style=None)
+		print(mathml_output)
 
 		# Convert MathML (MML) into Office MathML (OMML) using a XSLT stylesheet
 		tree = etree.fromstring(mathml_output)
@@ -346,7 +445,7 @@ def create_latex(paragraph, latex_content):
 		transform = etree.XSLT(xslt)
 		new_dom = transform(tree)
 
-		paragraph._element.append(new_dom.getroot())
+		container._element.append(new_dom.getroot())
 
 
 
@@ -611,6 +710,10 @@ def strip_math_mode_delimeters(latex_content):
 
 # COLSEP = (0/72)
 # ROWSEP = (2/72)
+
+mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
+# mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
+
 
 HEADING_TO_LEVEL = {
     'Heading 1': {'outline-level': 1},

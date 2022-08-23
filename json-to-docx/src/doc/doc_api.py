@@ -11,7 +11,7 @@ from helper.logger import *
 #   ----------------------------------------------------------------------------------------------------------------
 #   docx (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
-
+ 
 ''' Docx section base object
 '''
 class DocxSectionBase(object):
@@ -1036,9 +1036,8 @@ class LatexValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
-        paragraph = create_paragraph(container=container, text_content=None, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
-        # TODO: latex/math
-        create_latex(paragraph, latex_content=self.value)
+        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+        create_latex(container=paragraph, latex_content=self.value)
         
         return paragraph
 

@@ -11,7 +11,7 @@ from helper.logger import *
 #   ----------------------------------------------------------------------------------------------------------------
 #   odt section (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
-
+ 
 ''' Odt section base object
 '''
 class OdtSectionBase(object):

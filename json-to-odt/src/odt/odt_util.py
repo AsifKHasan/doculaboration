@@ -14,7 +14,7 @@ from namespaces import MATHNS
 
 from xml.dom.minidom import parseString
 from xml.dom import Node
-
+ 
 import latex2mathml.converter
 
 from helper.logger import *
