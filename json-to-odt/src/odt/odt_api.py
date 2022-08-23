@@ -296,7 +296,6 @@ class OdtPdfSection(OdtSectionBase):
                         paragraph_attributes['breakbefore'] = 'page'
 
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    # print(image_width_in_inches, image_height_in_inches)
                     draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
 
                     style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
@@ -392,7 +391,6 @@ class OdtContent(object):
 
         # first we identify the missing cells or blank cells for merged spans
         for merge in self.merge_list:
-            # print(f"merge range : {merge}")
             first_row = merge.start_row
             first_col = merge.start_col
             last_row = merge.end_row
@@ -541,11 +539,11 @@ class OdtContent(object):
         container may be odt.text or a table-cell
     '''
     def content_to_odt(self, odt, container):
-        for r in range(0, self.row_count):
-            data_row = self.cell_matrix[r]
-            for cell in data_row.cells:
-                # print(cell)
-                pass
+        # for r in range(0, self.row_count):
+        #     data_row = self.cell_matrix[r]
+        #     for cell in data_row.cells:
+        #         # print(cell)
+        #         pass
 
 
         # iterate through tables and blocks contents
@@ -613,7 +611,6 @@ class OdtTable(OdtBlock):
     ''' generates the odt code
     '''
     def block_to_odt(self, odt, container):
-        # print(f"\nOdtTable : block_to_odt")
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
@@ -665,7 +662,6 @@ class OdtParagraph(OdtBlock):
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
 
-            # print(f"\nOdtParagraph : block_to_odt")
             cell_to_produce.cell_to_odt(odt=odt, container=container)
 
 
@@ -747,7 +743,8 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
+        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
 
@@ -770,7 +767,6 @@ class Cell(object):
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
 
             if table_cell:
-                # print(f".. Cell : cell_to_odt_table_cell")
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
 
         else:
@@ -783,7 +779,6 @@ class Cell(object):
     ''' odt code for cell content
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
-        # print(f".. Cell : cell_to_odt : table-cell : {is_table_cell}")
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell, self.merge_spec)}
         text_attributes = self.effective_format.text_attributes()
         style_attributes = self.note.style_attributes()
@@ -1318,7 +1313,6 @@ class CellFormat(object):
     '''
     def paragraph_attributes(self, is_table_cell, cell_merge_spec):
         # if the is left aligned, we do not set attribute to let the parent style determine what the alignment should be
-        # print(f".... CellFormat : paragraph_attributes")
         if self.halign is None or self.halign.halign in ['left']:
             attributes = {}
         else:
@@ -1333,7 +1327,6 @@ class CellFormat(object):
         borders_attributes = {}
         padding_attributes = {}
         if is_table_cell:
-            # print(f".... CellFormat : paragraph_attributes : table-cell")
             pass
             # if self.borders:
             #     borders_attributes = self.borders.table_cell_attributes(cell_merge_spec)
@@ -1343,7 +1336,6 @@ class CellFormat(object):
 
         else:
             # TODO: borders for out-of-cell-paragraphs
-            # print(f".... CellFormat : paragraph_attributes : paragraph")
             # if self.wrapping:
             #     attributes['wrapoption'] = self.wrapping.wrapping
 

@@ -434,9 +434,7 @@ def process_latex_blocks(text_content):
 '''
 def create_latex(container, latex_content):
 	if latex_content is not None:
-		print(latex_content)
 		mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
-		print(mathml_output)
 
 		# Convert MathML (MML) into Office MathML (OMML) using a XSLT stylesheet
 		tree = etree.fromstring(mathml_output)

@@ -525,11 +525,11 @@ class DocxContent(object):
     def content_to_doc(self, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        for r in range(0, self.row_count):
-            data_row = self.cell_matrix[r]
-            for cell in data_row.cells:
-                print(cell)
-                # pass
+        # for r in range(0, self.row_count):
+        #     data_row = self.cell_matrix[r]
+        #     for cell in data_row.cells:
+        #         # print(cell)
+        #         pass
 
 
         # iterate through tables and blocks contents
@@ -595,16 +595,12 @@ class DocxTable(DocxBlock):
         num_rows = len(self.table_cell_matrix)
 
         tbl = create_table(container=container, num_rows=num_rows, num_cols=num_cols, container_width=container_width)
-        # print(f".... column-widths: {self.column_widths}")
 
         # table-columns
         for c in range(0, len(self.column_widths)):
             col_width = self.column_widths[c]
             table_column = tbl.columns[c]
             table_column.width = Inches(col_width)
-            # print(f".... column {c} : {table_column.width.inches}")
-
-        # iterate header rows render the table's contents, self.header_row_count
 
         # iterate rows and cells to render the table's contents
         if tbl:
@@ -628,8 +624,15 @@ class DocxTable(DocxBlock):
                         # this is the first cell of a merge, we need to get the last cell
                         start_table_cell = tbl.cell(row_index, col_index)
                         end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
-                        # print(f".... merging cells [{row_index}, {col_index}] to [{row_index + cell.merge_spec.row_span-1}, {col_index + cell.merge_spec.col_span-1}]")
                         start_table_cell.merge(end_table_cell)
+
+
+            #  decorate cells
+            for row_index in range(0, len(self.table_cell_matrix)):
+                row = self.table_cell_matrix[row_index];
+                for col_index in range(0, len(row.cells)):
+                    cell = row.cells[col_index]
+                    cell.decorate_cell()
 
 
 
@@ -738,14 +741,15 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        # s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
+        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
 
     ''' docx code for cell content
     '''
     def cell_to_doc_table_cell(self, table, table_cell):
+        self.table_cell = table_cell
         table_cell.width = Inches(self.cell_width)
         if self.effective_format:
             self.cell_to_doc(container=table_cell)
@@ -755,7 +759,6 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc(self, container):
-        # print(f"...... {self}")
         table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
         paragraph_attributes = self.note.paragraph_attributes()
         text_attributes = self.effective_format.text_format.text_attributes()
@@ -766,12 +769,18 @@ class Cell(object):
             if self.cell_value:
                 where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
 
-                # apply table-cell related format
-                if is_table_cell(container):
-                    format_container(container=container, attributes=table_cell_attributes, it_is_a_table_cell=True)
-                else:
-                    if where:
-                        format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
+                # do not aaply table-cell format, here, it needs to be done after the merging is done
+                if not is_table_cell(container) and where:
+                    format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
+
+
+
+    ''' apply formatting for table cell
+    '''
+    def decorate_cell(self):
+        if self.cell_value:
+            table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+            format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
 
 
