@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-various utilities for generating LaTeX code
+various utilities for generating ConTeXt code
 '''
 
 import sys
@@ -129,16 +129,16 @@ def tex_escape(text):
 
 '''
 '''
-def mark_as_latex(lines):
-    # latex_lines = ["```{=latex}"]
-    # latex_lines = latex_lines + lines
-    # latex_lines.append("```\n\n")
+def mark_as_context(lines):
+    # context_lines = ["```{=context}"]
+    # context_lines = context_lines + lines
+    # context_lines.append("```\n\n")
 
     if len(lines) > 0:
-        latex_lines = ['']
-        latex_lines = latex_lines + lines
-        latex_lines.append('')
-        return latex_lines
+        context_lines = ['']
+        context_lines = context_lines + lines
+        context_lines.append('')
+        return context_lines
 
     else:
         return lines
@@ -169,7 +169,7 @@ def process_latex_blocks(text_content):
     for match in re.finditer(pattern, text_content):
         latex_content = match.group()[5:]
 
-        # we have found a LaTeX block, we add the preceding text and the LaTeX block into the list
+        # we have found a ConTeXt block, we add the preceding text and the ConTeXt block into the list
         latex_start_index, latex_end_index = match.span()[0], match.span()[1]
         if latex_start_index >= current_index:
             # there are preceding text before the latex
@@ -212,8 +212,8 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list)
                 text = text_content[current_index:footnote_start_index]
                 texts_and_footnotes.append({'text': text})
 
-                footnote_mark_latex = f"\\footnotemark[{next_footnote_number}]"
-                texts_and_footnotes.append({'fn': footnote_mark_latex})
+                footnote_mark_context = f"\\footnotemark[{next_footnote_number}]"
+                texts_and_footnotes.append({'fn': footnote_mark_context})
 
                 # this block has this footnote
                 document_footnotes[block_id].append({'key': footnote_key, 'mark': next_footnote_number, 'text': footnote_list[footnote_key]})

@@ -1,4 +1,4 @@
-:: gsheet->json->latex->pdf pipeline
+:: gsheet->json->context->pdf pipeline
 
 @echo off
 
@@ -16,9 +16,9 @@ if errorlevel 1 (
 
 popd
 
-:: latex-from-json
-pushd .\json-to-latex\src
-.\latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+:: context-from-json
+pushd .\json-to-context\src
+.\context-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -27,9 +27,9 @@ if errorlevel 1 (
 
 popd
 
-:: latex-from-json
+:: context -> pdf
 pushd .\out
-lualatex %DOCUMENT%.tex --output-format=pdf --interaction=batchmode
+ptime lualatex %DOCUMENT%.tex --output-format=pdf
 move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (

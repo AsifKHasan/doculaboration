@@ -1,0 +1,13 @@
+# copy this file as config.yml and do not commit the copied file
+
+dirs:
+  # all outputs and temporary downloads go here
+  output-dir:            "../../out"
+
+files:
+  # the custom (latex) header for pandoc
+  document-header:           "./header-spectrum.tex"
+
+jsons:
+  # the json(s) that will be processed to generate output(s). One json outputs one pdf
+  - "replace-with-json-name-without-extension"

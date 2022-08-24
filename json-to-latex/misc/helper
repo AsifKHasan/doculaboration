@@ -1,16 +1,16 @@
-pdf-from-gsheet.bat PPA-2006__2019-01
-./pdf-from-gsheet.sh PPA-2006__2019-01
+latex-from-gsheet.bat PPA-2006__2019-01
+./latex-from-gsheet.sh PPA-2006__2019-01
 
-pdf-from-gsheet.bat ayin.kaka__writings
-./pdf-from-gsheet.sh ayin.kaka__writings
-
-
-pdf-from-gsheet.bat anannita__college-physics
-./pdf-from-gsheet.sh anannita__college-physics
+latex-from-gsheet.bat ayin.kaka__writings
+./latex-from-gsheet.sh ayin.kaka__writings
 
 
-pdf-from-gsheet.bat spectrum__résumé-index
-./pdf-from-gsheet.sh spectrum__résumé-index
+latex-from-gsheet.bat anannita__college-physics
+./latex-from-gsheet.sh anannita__college-physics
+
+
+latex-from-gsheet.bat spectrum__résumé-index
+./latex-from-gsheet.sh spectrum__résumé-index
 
 
 TODO:

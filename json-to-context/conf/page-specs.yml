@@ -1,0 +1,37 @@
+page-spec:
+  A4:
+    width : 8.27
+    height: 11.69
+    name  : a4paper
+  A3:
+    width : 11.69
+    height: 16.54
+    name  : a3paper
+  Letter:
+    width : 8.50
+    height: 11.00
+    name  : letterpaper
+  Legal:
+    width : 8.50
+    height: 14.00
+    name  : legalpaper
+
+margin-spec:
+  wide:
+    left  : 1.00
+    right : 1.00
+    top   : 1.00
+    bottom: 1.00
+    gutter: 0
+  medium:
+    left  : 0.75
+    right : 0.75
+    top   : 0.75
+    bottom: 0.75
+    gutter: 0
+  narrow:
+    left  : 0.50
+    right : 0.50
+    top   : 0.75
+    bottom: 0.75
+    gutter: 0

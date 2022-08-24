@@ -27,9 +27,9 @@ else
   popd
 fi
 
-# latex-from-json
+# latex -> pdf
 pushd ./out
-time lualatex ${DOCUMENT}.tex --output-format=pdf --interaction=batchmode
+time lualatex ${DOCUMENT}.tex --output-format=pdf
 mv ${DOCUMENT}.pdf ${DOCUMENT}.tex.pdf
 
 if [ ${?} -ne 0 ];  then

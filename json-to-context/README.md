@@ -1,10 +1,10 @@
-# json-to-latex
+# json-to-context
 
-Generates LaTex from json generated through **gsheet-to-json**
+Generates ConTeXt from json generated through **gsheet-to-json**
 
 copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the copied file
 
-## LaTeX generation
+## ConTeXt generation
 ### Toolchain
 1. TexLive from https://tug.org/texlive/
 2. LuaLatex
@@ -30,8 +30,8 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 
 ### Linux usage:
 cd to doculaboration root directory and run
-```./latex-from-gsheet.sh name-of-the-gsheet```
+```./context-from-gsheet.sh name-of-the-gsheet```
 
 ### Windows usage:
 cd to doculaboration root directory and run
-```latex-from-gsheet.bat name-of-the-gsheet```
+```context-from-gsheet.bat name-of-the-gsheet```

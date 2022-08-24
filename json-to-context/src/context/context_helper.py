@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-''' LaTeX wrapper objects
+''' ConTeXt wrapper objects
 '''
 
 import time
@@ -8,10 +8,10 @@ import yaml
 import datetime
 import importlib
 
-from latex.latex_util import *
+from context.context_util import *
 from helper.logger import *
 
-class LatexHelper(object):
+class ContextHelper(object):
 
     ''' constructor
     '''
@@ -21,7 +21,7 @@ class LatexHelper(object):
 
 
 
-    ''' generate and save the latex
+    ''' generate and save the ConTeXt
     '''
     def generate_and_save(self, section_list):
         # we have a concept of nesting_level where parent sections are at level 0 and nested gsheet sections are at subsequent level 1, 2, .....
@@ -51,7 +51,7 @@ class LatexHelper(object):
             section['first-section'] = True if first_section else False
             section['section-index'] = section_index
 
-            module = importlib.import_module("latex.latex_api")
+            module = importlib.import_module("context.context_api")
             func = getattr(module, f"process_{section['content-type']}")
             section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict, document_footnotes=self.document_footnotes)
             self.document_lines = self.document_lines + section_lines
@@ -75,7 +75,7 @@ class LatexHelper(object):
         self.document_lines.append("\n\\end{document}")
 
         # save the markdown document string in a file
-        with open(self._config['files']['output-latex'], "w", encoding="utf-8") as f:
+        with open(self._config['files']['output-context'], "w", encoding="utf-8") as f:
             f.write('\n'.join(self.header_lines + self.document_lines))
 
 
