@@ -24,4 +24,5 @@ OOoPy
 
 # json-to-docx
 python-docx
+bayoo-docx
 # pywin32
