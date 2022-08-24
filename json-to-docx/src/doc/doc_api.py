@@ -759,15 +759,17 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc(self, container):
-        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
-        paragraph_attributes = self.note.paragraph_attributes()
-        text_attributes = self.effective_format.text_format.text_attributes()
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+                paragraph_attributes = self.note.paragraph_attributes()
+                text_attributes = self.effective_format.text_format.text_attributes()
+                footnote_list = self.note.footnotes
+
+                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
 
                 # do not aaply table-cell format, here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where:
@@ -1012,8 +1014,8 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
-        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list)
         return paragraph
 
 
@@ -1044,7 +1046,7 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
         create_latex(container=paragraph, latex_content=self.value)
         
@@ -1073,7 +1075,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1081,7 +1083,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(container=container, run_list=run_value_list)
+        paragraph = create_paragraph(container=container, run_list=run_value_list, footnote_list=footnote_list)
         return paragraph
 
 
@@ -1106,7 +1108,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
 
@@ -1132,7 +1134,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1184,7 +1186,7 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
         return None

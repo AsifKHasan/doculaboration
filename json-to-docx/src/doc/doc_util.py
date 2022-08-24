@@ -277,7 +277,7 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -325,7 +325,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 			process_inline_blocks(paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'])
 
 	elif text_content is not None:
-		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes)
+		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
 
 
 	return paragraph
@@ -333,9 +333,9 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
-def process_inline_blocks(paragraph, text_content, text_attributes):
+def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
     # process FN{...} first, we get a list of block dicts
-	inline_blocks = process_footnotes(text_content=text_content, footnote_list={})
+	inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
 
 	# process LATEX{...} for each text item
 	new_inline_blocks = []
@@ -355,7 +355,7 @@ def process_inline_blocks(paragraph, text_content, text_attributes):
 			set_text_style(run=run, text_attributes=text_attributes)
 
 		elif 'fn' in inline_block:
-			pass
+			create_footnote(paragraph=paragraph, footnote_tuple=inline_block['fn'])
 
 		elif 'latex' in inline_block:
 			run = paragraph.add_run()
@@ -427,6 +427,13 @@ def process_latex_blocks(text_content):
     texts_and_latex.append({'text': text})
 
     return texts_and_latex
+
+
+
+''' create a footnote
+'''
+def create_footnote(paragraph, footnote_tuple):
+	paragraph.add_footnote(footnote_tuple[1])
 
 
 
