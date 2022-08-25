@@ -6,8 +6,9 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 
 ## ConTeXt generation
 ### Toolchain
-1. ConTeXt from http://minimals.contextgarden.net/setup/context-setup-win64.zip
-2. We need fonts
+1. Ruby from https://www.ruby-lang.org/en/downloads/
+2. ConTeXt from http://minimals.contextgarden.net/setup/context-setup-win64.zip
+3. We need fonts
  * Google Noto fonts from https://github.com/google/fonts
  ```
  sudo apt install fonts-noto

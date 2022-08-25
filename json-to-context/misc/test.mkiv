@@ -1,0 +1,154 @@
+% Start of document
+
+% Language = English
+\mainlanguage[en] 
+
+% Font = Latin Modern, 12 point
+\setupbodyfont
+    [modern,12pt]
+
+% Heading 1
+\setuphead
+    [chapter]
+    [style=\bfc]
+
+% double sided
+% \setuppagenumbering[alternative=doublesided]
+
+\definelayout[a4-portrait-narrow][,
+    % gutter + left-margin
+    backspace=0.5in,
+    % page-width - backspace - rightmargin
+    width=7.27in,
+    % right-margin
+    rightmargin=0.5in,
+    % top-margin
+    topspace=0.5in,
+    % page-height - top-margin - bottom-margin
+    height=10.69in,
+    % top-margin
+    bottom=0.5in
+]
+
+\definelayout[a4-landscape-narrow][
+    % gutter + left-margin
+    backspace=0.5in,
+    % page-width - backspace - rightmargin
+    width=10.69in,
+    % right-margin
+    rightmargin=0.5in,
+    % top-margin
+    topspace=0.5in,
+    % page-height - top-margin - bottom-margin
+    height=7.27in,
+    % top-margin
+    bottom=0.5in
+]
+
+\starttext
+    \setuppapersize[A4,portrait]
+    \setuplayout[a4-portrait-narrow]
+
+    \startchapter
+        [title=Some information required]
+
+        Sonia, Mim - please collect the following info for me
+
+        \blank
+
+        1. \# of total mailboxes in our exchange
+        2. \# of active mailboxes in our exchange
+        3. Total size of mailboxes in exchange
+        4. Do we keep backups? If yes, how?
+        5. How many servers we use for exchange? Specification and age
+        6. How many exchange CAL do we have?
+        7. Do we have any license for Windows server OS? versions?
+        8. Do we have any license for Windows desktop OS? versions?
+        9. Do we have any license for Office suite? versions?
+                
+    \stopchapter
+
+    \page
+
+    \setuppapersize[A4,landscape]
+    \setuplayout[a4-landscape-narrow]
+
+    \startchapter
+        [title=Chapter 2]
+
+        \startxtable
+
+            \startxrow
+
+                \startxcell 
+                    alpha 1
+                \stopxcell
+
+                \startxcell 
+                    beta 1 
+                \stopxcell
+
+                \startxcell 
+                    gamma 1 
+                \stopxcell
+
+                \startxcell 
+                    delta 1 
+                \stopxcell
+
+            \stopxrow
+
+            \startxrow
+
+                \startxcell 
+                    alpha 2 
+                \stopxcell
+
+                \startxcell[nx=2,ny=2] 
+                    whatever 
+                \stopxcell
+
+                \startxcell 
+                    delta 2 
+                \stopxcell
+
+            \stopxrow
+
+            \startxrow
+
+                \startxcell 
+                    alpha 3 
+                \stopxcell
+
+                \startxcell 
+                    delta 3 
+                \stopxcell
+
+            \stopxrow
+
+            \startxrow
+
+                \startxcell 
+                    alpha 4 
+                \stopxcell
+
+                \startxcell 
+                    beta 4 
+                \stopxcell
+
+                \startxcell 
+                    gamma 4 
+                \stopxcell
+
+                \startxcell 
+                    delta 4 
+                \stopxcell
+
+            \stopxrow
+
+        \stopxtable
+        
+    \stopchapter
+
+\stoptext 
+% End of document
