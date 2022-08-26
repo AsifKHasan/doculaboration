@@ -8,24 +8,14 @@
     [modern,12pt]
 
 % Heading 1
-\setuphead[chapter][style=\bfc]
+\setuphead
+    [chapter]
+    [style=\bfc]
 
 % double sided
 % \setuppagenumbering[alternative=doublesided]
 
-
-% define colors for tables
-\definecolor[ffffff][x=ffffff]
-\definecolor[ff0000][x=ff0000]
-\definecolor[e0e0e0][x=e0e0e0]
-\definecolor[a0a0a0][x=a0a0a0]
-\definecolor[808080][x=808080]
-\definecolor[666666][x=666666]
-\definecolor[000000][x=000000]
-\definecolor[434343][x=434343]
-
-
-\definelayout[a4-portrait-narrow][,
+\definelayout[a4-portrait-narrow][
     % gutter + left-margin
     backspace=0.5in,
     % page-width - backspace - rightmargin
@@ -85,12 +75,45 @@
                 {ConTeXt test document}
             \stopxcell
             \startxcell[C3]
-                {Page \pagenumber of \totalnumberofpages}
+                {Page \pagenumber{} of \totalnumberofpages}
             \stopxcell
         \stopxrow
     \stopembeddedxtable
 \stoptexdefinition
 
+% HeaderTable A4 Landscape
+\starttexdefinition HeaderOddALandscapeTable
+    \setupxtable[frame=off]
+    \setupxtable[B3][width=9.69in, bottomframe=on, rulethickness=0.05pt, framecolor=red, align={right}]
+    \setupxtable[C3][width=1.00in, bottomframe=on, rulethickness=0.05pt, framecolor=red, align={left}]
+    \startembeddedxtable
+        \startxrow
+            \startxcell[B3]
+                {Spectrum Engineering Consortium Ltd.}
+            \stopxcell
+            \startxcell[C3]
+                {\externalfigure[./tmp/delcot-logo.png][height=0.25in]}
+            \stopxcell
+        \stopxrow
+    \stopembeddedxtable
+\stoptexdefinition
+
+% FooterTable A4 Landscape
+\starttexdefinition FooterOddALandscapeTable
+    \setupxtable[frame=off]
+    \setupxtable[B3][width=9.69in, topframe=on, rulethickness=0.05pt, framecolor=red, align={right}]
+    \setupxtable[C3][width=1.00in, topframe=on, rulethickness=0.05pt, framecolor=red, align={left}]
+    \startembeddedxtable
+        \startxrow
+            \startxcell[B3]
+                {ConTeXt test document}
+            \stopxcell
+            \startxcell[C3]
+                {Page \pagenumber{} of \totalnumberofpages}
+            \stopxcell
+        \stopxrow
+    \stopembeddedxtable
+\stoptexdefinition
 
 \starttext
     \setuppapersize[A4,portrait]
@@ -125,6 +148,9 @@
 
     \setuppapersize[A4,landscape]
     \setuplayout[a4-landscape-narrow]
+
+    \setupheadertexts[\HeaderOddALandscapeTable]
+    \setupfootertexts[\FooterOddALandscapeTable]
 
     \startchapter
         [title=Chapter 2]
@@ -998,7 +1024,35 @@
 
                 \stopxrow
 
+                % row 30
+                \startxrow
 
+                    % cell B30
+                    \startxcell 
+                        27
+                    \stopxcell
+
+                    % cell C30
+                    \startxcell 
+                        alpha 27
+                    \stopxcell
+
+                    % cell D30
+                    \startxcell 
+                        beta 27
+                    \stopxcell
+
+                    % cell E30
+                    \startxcell 
+                        gamma 27
+                    \stopxcell
+
+                    % cell F30
+                    \startxcell 
+                        delta 27
+                    \stopxcell
+
+                \stopxrow
 
             \stopxtablebody
 
