@@ -55,12 +55,55 @@
     bottom=0.5in
 ]
 
+
+% Table definition for headers and footers
+% HeaderTable A4 Portrait
+\starttexdefinition HeaderOddAPortraitTable
+    \setupxtable[frame=off]
+    \setupxtable[B3][width=6.27in, bottomframe=on, rulethickness=0.05pt, framecolor=red, align={right}]
+    \setupxtable[C3][width=1.00in, bottomframe=on, rulethickness=0.05pt, framecolor=red, align={left}]
+    \startembeddedxtable
+        \startxrow
+            \startxcell[B3]
+                {Spectrum Engineering Consortium Ltd.}
+            \stopxcell
+            \startxcell[C3]
+                {\externalfigure[./tmp/delcot-logo.png][height=0.25in]}
+            \stopxcell
+        \stopxrow
+    \stopembeddedxtable
+\stoptexdefinition
+
+% FooterTable A4 Portrait
+\starttexdefinition FooterOddAPortraitTable
+    \setupxtable[frame=off]
+    \setupxtable[B3][width=6.27in, topframe=on, rulethickness=0.05pt, framecolor=red, align={right}]
+    \setupxtable[C3][width=1.00in, topframe=on, rulethickness=0.05pt, framecolor=red, align={left}]
+    \startembeddedxtable
+        \startxrow
+            \startxcell[B3]
+                {ConTeXt test document}
+            \stopxcell
+            \startxcell[C3]
+                {Page \pagenumber of \totalnumberofpages}
+            \stopxcell
+        \stopxrow
+    \stopembeddedxtable
+\stoptexdefinition
+
+
 \starttext
     \setuppapersize[A4,portrait]
     \setuplayout[a4-portrait-narrow]
 
+    \setupheadertexts[\HeaderOddAPortraitTable]
+    \setupfootertexts[\FooterOddAPortraitTable]
+
     \startchapter
         [title=Some information required]
+
+
+
 
         Sonia, Mim - please collect the following info for me
 
