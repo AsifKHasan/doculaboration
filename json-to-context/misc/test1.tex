@@ -4,12 +4,13 @@
 \mainlanguage[en]
 
 
-% Font = Latin Modern, 12 point
-\setupbodyfont[modern,12pt]
+% Font = Latin Modern, 10 point
+\setupbodyfont[modern,10pt]
 
+\define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
 
 % Heading 1
-\setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[red]\hrule\stopcolor\medskip}]
+\setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
 % Heading 2
 \setuphead[subject][style=\bfb]
@@ -46,13 +47,13 @@
     % top-margin
     topspace=0.25in,
     % header height
-    header=0.40in,
+    header=0.25in,
     headerdistance=0.10in,
     % page-height - top-margin - bottom-margin
     height=11.19in,
     % footer
-    footerdistance=0.10in,
-    footer=0.40in,
+    footerdistance=0.00in,
+    footer=0.25in,
     % bottom-margin
     bottomdistance=0.00in,
     bottom=0.25in
@@ -60,16 +61,23 @@
 
 \definelayout[a4-landscape-narrow][
     % gutter + left-margin
-    backspace=0.5in,
+    backspace=0.50in,
     % page-width - backspace - rightmargin
     width=10.69in,
     % right-margin
-    rightmargin=0.5in,
+    rightmargin=0.50in,
     % top-margin
     topspace=0.25in,
+    % header height
+    header=0.25in,
+    headerdistance=0.10in,
     % page-height - top-margin - bottom-margin
     height=7.77in,
-    % top-margin
+    % footer
+    footerdistance=0.00in,
+    footer=0.25in,
+    % bottom-margin
+    bottomdistance=0.00in,
     bottom=0.25in
 ]
 
@@ -79,13 +87,13 @@
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=6.27in]
     \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=red, align=flushleft]
-    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=blue, align=flushright]
+    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
+    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
         % row 3
         \bTR
             % cell B3
             \bTD
-                {Spectrum Engineering Consortium Ltd.}
+                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
                 % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
             \eTD
             % cell C3
@@ -101,17 +109,17 @@
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=6.27in]
     \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=blue, align=flushleft]
-    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=red, align=flushright]
+    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
         % row 3
         \bTR
             % cell B3
             \bTD
-                {Spectrum Engineering Consortium Ltd.}
+                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
             \eTD
             % cell C3
             \bTD
-                {Page \pagenumber{} of \totalnumberofpages}
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
             \eTD
         \eTR
     \eTABLEnested
@@ -122,13 +130,14 @@
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=9.69in]
     \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=green, align=flushleft]
-    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=red, align=flushright]
+    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
         % row 3
         \bTR
             % cell B3
             \bTD
-                {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
             \eTD
             % cell C3
             \bTD
@@ -143,17 +152,17 @@
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=9.69in]
     \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=red, align=flushleft]
-    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=green, align=flushright]
+    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
         % row 3
         \bTR
             % cell B3
             \bTD
-                {Spectrum Engineering Consortium Ltd.}
+                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
             \eTD
             % cell C3
             \bTD
-                {Page \pagenumber{} of \totalnumberofpages}
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
             \eTD
         \eTR
     \eTABLEnested
@@ -1094,6 +1103,276 @@
                     % cell F30
                     \startxcell 
                         delta 27
+                    \stopxcell
+
+                \stopxrow
+
+                % row 31
+                \startxrow
+
+                    % cell B31
+                    \startxcell 
+                        28
+                    \stopxcell
+
+                    % cell C31
+                    \startxcell 
+                        alpha 28
+                    \stopxcell
+
+                    % cell D31
+                    \startxcell 
+                        beta 28
+                    \stopxcell
+
+                    % cell E31
+                    \startxcell 
+                        gamma 28
+                    \stopxcell
+
+                    % cell F31
+                    \startxcell 
+                        delta 28
+                    \stopxcell
+
+                \stopxrow
+
+                % row 32
+                \startxrow
+
+                    % cell B32
+                    \startxcell 
+                        29
+                    \stopxcell
+
+                    % cell C32
+                    \startxcell 
+                        alpha 29
+                    \stopxcell
+
+                    % cell D32
+                    \startxcell 
+                        beta 29
+                    \stopxcell
+
+                    % cell E32
+                    \startxcell 
+                        gamma 29
+                    \stopxcell
+
+                    % cell F32
+                    \startxcell 
+                        delta 29
+                    \stopxcell
+
+                \stopxrow
+
+                % row 33
+                \startxrow
+
+                    % cell B33
+                    \startxcell 
+                        30
+                    \stopxcell
+
+                    % cell C33
+                    \startxcell 
+                        alpha 30
+                    \stopxcell
+
+                    % cell D33
+                    \startxcell 
+                        beta 30
+                    \stopxcell
+
+                    % cell E33
+                    \startxcell 
+                        gamma 30
+                    \stopxcell
+
+                    % cell F33
+                    \startxcell 
+                        delta 30
+                    \stopxcell
+
+                \stopxrow
+
+                % row 34
+                \startxrow
+
+                    % cell B34
+                    \startxcell 
+                        31
+                    \stopxcell
+
+                    % cell C34
+                    \startxcell 
+                        alpha 31
+                    \stopxcell
+
+                    % cell D34
+                    \startxcell 
+                        beta 31
+                    \stopxcell
+
+                    % cell E34
+                    \startxcell 
+                        gamma 31
+                    \stopxcell
+
+                    % cell F34
+                    \startxcell 
+                        delta 31
+                    \stopxcell
+
+                \stopxrow
+
+                % row 35
+                \startxrow
+
+                    % cell B35
+                    \startxcell 
+                        33
+                    \stopxcell
+
+                    % cell C35
+                    \startxcell 
+                        alpha 33
+                    \stopxcell
+
+                    % cell D35
+                    \startxcell 
+                        beta 33
+                    \stopxcell
+
+                    % cell E35
+                    \startxcell 
+                        gamma 33
+                    \stopxcell
+
+                    % cell F35
+                    \startxcell 
+                        delta 33
+                    \stopxcell
+
+                \stopxrow
+
+                % row 36
+                \startxrow
+
+                    % cell B36
+                    \startxcell 
+                        33
+                    \stopxcell
+
+                    % cell C36
+                    \startxcell 
+                        alpha 33
+                    \stopxcell
+
+                    % cell D36
+                    \startxcell 
+                        beta 33
+                    \stopxcell
+
+                    % cell E36
+                    \startxcell 
+                        gamma 33
+                    \stopxcell
+
+                    % cell F36
+                    \startxcell 
+                        delta 33
+                    \stopxcell
+
+                \stopxrow
+
+                % row 37
+                \startxrow
+
+                    % cell B37
+                    \startxcell 
+                        34
+                    \stopxcell
+
+                    % cell C37
+                    \startxcell 
+                        alpha 34
+                    \stopxcell
+
+                    % cell D37
+                    \startxcell 
+                        beta 34
+                    \stopxcell
+
+                    % cell E37
+                    \startxcell 
+                        gamma 34
+                    \stopxcell
+
+                    % cell F37
+                    \startxcell 
+                        delta 34
+                    \stopxcell
+
+                \stopxrow
+
+                % row 38
+                \startxrow
+
+                    % cell B38
+                    \startxcell 
+                        35
+                    \stopxcell
+
+                    % cell C38
+                    \startxcell 
+                        alpha 35
+                    \stopxcell
+
+                    % cell D38
+                    \startxcell 
+                        beta 35
+                    \stopxcell
+
+                    % cell E38
+                    \startxcell 
+                        gamma 35
+                    \stopxcell
+
+                    % cell F38
+                    \startxcell 
+                        delta 35
+                    \stopxcell
+
+                \stopxrow
+
+                % row 39
+                \startxrow
+
+                    % cell B39
+                    \startxcell 
+                        36
+                    \stopxcell
+
+                    % cell C39
+                    \startxcell 
+                        alpha 36
+                    \stopxcell
+
+                    % cell D39
+                    \startxcell 
+                        beta 36
+                    \stopxcell
+
+                    % cell E39
+                    \startxcell 
+                        gamma 36
+                    \stopxcell
+
+                    % cell F39
+                    \startxcell 
+                        delta 36
                     \stopxcell
 
                 \stopxrow
