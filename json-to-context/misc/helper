@@ -3,7 +3,7 @@ context-from-gsheet.bat PPA-2006__2019-01
 
 first-setup.bat --context=latest --modules=all
 
-texexec --pdf ../json-to-context/misc/test.mkiv
+texexec --pdf ../json-to-context/misc/test.tex
 
-context --run ../json-to-context/misc/test.mkiv
+context --run ../json-to-context/misc/test.tex
 
