@@ -322,7 +322,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	if run_list is not None:
 		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
-			process_inline_blocks(paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'])
+			process_inline_blocks(paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list)
 
 	elif text_content is not None:
 		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
