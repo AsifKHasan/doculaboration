@@ -9,17 +9,20 @@
 
 \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
 
-% Heading 1
+% Heading 0
 \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
+% Heading 1
+\setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+
 % Heading 2
-\setuphead[subject][style=\bfb]
+\setuphead[section][style=\bfb]
 
 % Heading 3
-\setuphead[subsubject][style=\bfa]
+\setuphead[subsection][style=\bfa]
 
 % Heading 4
-\setuphead[subsubsubject][style=\bf]
+\setuphead[subsubsection][style=\bf]
 
 
 % double sided
@@ -83,7 +86,7 @@
 
 % Table definition for headers and footers
 % HeaderTable A4 Portrait
-\startsetups [HeaderOddTableA4Portrait]
+\startsetups [header-odd-A4-portrait]
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=6.27in]
     \setupTABLE[c][2][width=1.00in]
@@ -98,14 +101,14 @@
             \eTD
             % cell C3
             \bTD
-                {\externalfigure[./tmp/delcot-logo.png][height=0.25in]}
+                {\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
             \eTD
         \eTR
     \eTABLEnested
 \stopsetups
 
 % FooterTable A4 Portrait
-\startsetups [FooterOddTableA4Portrait]
+\startsetups [footer-odd-A4-portrait]
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=6.27in]
     \setupTABLE[c][2][width=1.00in]
@@ -126,7 +129,7 @@
 \stopsetups
 
 % HeaderTable A4 Landscape
-\startsetups [HeaderOddTableA4Landscape]
+\startsetups [header-odd-A4-landscape]
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=9.69in]
     \setupTABLE[c][2][width=1.00in]
@@ -141,14 +144,14 @@
             \eTD
             % cell C3
             \bTD
-                {\externalfigure[./tmp/delcot-logo.png][height=0.25in]}
+                {\externalfigure[./tmp/delcot-logo.png][height=0.25in], frame=off}
             \eTD
         \eTR
     \eTABLEnested
 \stopsetups
 
 % FooterTable A4 Landscape
-\startsetups [FooterOddTableA4Landscape]
+\startsetups [footer-odd-A4-landscape]
     \bTABLEnested[frame=off]
     \setupTABLE[c][1][width=9.69in]
     \setupTABLE[c][2][width=1.00in]
@@ -175,10 +178,13 @@
     \setuppapersize[A4,portrait]
     \setuplayout[a4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{HeaderOddTableA4Portrait}]
-    \setupfootertexts[\directsetup{FooterOddTableA4Portrait}]
+    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
+    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
 
-    \completecontent
+    \starttitle[title=Table of Contents]
+        \placecontent
+    \stoptitle
+
     \page
     
 
@@ -186,10 +192,13 @@
     \setuppapersize[A4,portrait]
     \setuplayout[a4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{HeaderOddTableA4Portrait}]
-    \setupfootertexts[\directsetup{FooterOddTableA4Portrait}]
+    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
+    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
 
-    \completelistoffigures
+    \starttitle[title=List of Figures]
+        \placelistoffigures
+    \stoptitle
+
     \page
 
 
@@ -197,10 +206,13 @@
     \setuppapersize[A4,portrait]
     \setuplayout[a4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{HeaderOddTableA4Portrait}]
-    \setupfootertexts[\directsetup{FooterOddTableA4Portrait}]
+    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
+    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
 
-    \completelistoftables
+    \starttitle[title=List of Tables]
+        \placelistoftables
+    \stoptitle
+
     \page
 
 
@@ -208,11 +220,10 @@
     \setuppapersize[A4,portrait]
     \setuplayout[a4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{HeaderOddTableA4Portrait}]
-    \setupfootertexts[\directsetup{FooterOddTableA4Portrait}]
+    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
+    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
 
-    \starttitle
-        [title=Some information required]
+    \startchapter[title=Some information required]
 
         Sonia, Mim - please collect the following info for me
 
@@ -237,10 +248,10 @@
     \setuppapersize[A4,landscape]
     \setuplayout[a4-landscape-narrow]
 
-    \setupheadertexts[\directsetup{HeaderOddTableA4Landscape}]
-    \setupfootertexts[\directsetup{FooterOddTableA4Landscape}]
+    \setupheadertexts[\directsetup{header-odd-A4-landscape}]
+    \setupfootertexts[\directsetup{footer-odd-A4-landscape}]
 
-    \starttitle
+    \startchapter
         [title=Chapter 2]
 
         % table B3:B29

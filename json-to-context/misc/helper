@@ -6,4 +6,3 @@ first-setup.bat --context=latest --modules=all
 texexec --pdf ../json-to-context/misc/test1.tex
 
 context --run ../json-to-context/misc/test1.tex
-
