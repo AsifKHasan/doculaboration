@@ -1,11 +1,64 @@
 % Start of document
 
+\replacemissingcharacters
+\enabletrackers[fonts.missing]
+
 % Language = English
 \mainlanguage[en]
 
+\definefontfeature[default]
+  [mode=node,kern=yes,
+  liga=yes,tlig=yes,
+  ccmp=yes,language=dflt,
+  protrusion=quality,
+  expansion=quality,
+  analyze=yes,
+  devanagari=yes,keepligatures=yes,compat-ligatures=yes,char-ligatures=yes,compose=yes]
+
+\definefallbackfamily [mainfont] [rm] [notoserifbengali] [range=bengali]
+\definefontfamily     [mainfont] [rm] [Latin Modern Roman]
+
+\definefallbackfamily [mainfont] [ss] [notosansbengali] [range=bengali]
+\definefontfamily     [mainfont] [ss] [Latin Modern Sans]
+
+\definefontfamily     [mainfont] [tf] [Latin Modern Roman]
+
+\definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
+
+\setupbodyfont        [mainfont, 10pt]
+
+
+% fallbacks for Bangla
+% \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
+%                     [0x0980:0x09FF] [force=yes]
+
+%% Now we hook the fallbacks into their respective type faces.
+% \starttypescript [serif] [mainfont]
+%     \setups[font:fallback:serif]
+%         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
+%         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
+%         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
+%         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
+% \stoptypescript
+
+%% Complete the typescript for all four type faces. Note that we default
+%% to the predefined Latin Modern setups for the three other faces.
+% \starttypescript [mainfont]
+%     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
+%     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
+%     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
+%     \definetypeface [mainfont] [mm] [math]  [modern] [default]
+% \stoptypescript
+
 
 % Font = Latin Modern, 10 point
-\setupbodyfont[modern,10pt]
+% \setupbodyfont[mainfont,10pt]
 
 \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
 
@@ -28,6 +81,8 @@
 % double sided
 % \setuppagenumbering[alternative=doublesided]
 
+\setupnotation[footnote][way=bypage]
+\setupnote[footnote][]
 
 % define colors for tables
 \definecolor[ffffff][x=ffffff]
@@ -55,7 +110,7 @@
     % page-height - top-margin - bottom-margin
     height=11.19in,
     % footer
-    footerdistance=0.00in,
+    footerdistance=0.10in,
     footer=0.25in,
     % bottom-margin
     bottomdistance=0.00in,
@@ -77,7 +132,7 @@
     % page-height - top-margin - bottom-margin
     height=7.77in,
     % footer
-    footerdistance=0.00in,
+    footerdistance=0.10in,
     footer=0.25in,
     % bottom-margin
     bottomdistance=0.00in,
@@ -225,11 +280,11 @@
 
     \startchapter[title=Some information required]
 
-        Sonia, Mim - please collect the following info for me
+        Sonia, Mim - please collect the following info for me. বাংলাদেশ স্বপ্ন দ্যাখে।
 
         \blank
         \startitemize[n]
-        \item \# of total mailboxes in our exchange
+        \item \# of total mailboxes\footnote{Microsoft Exchange mail-boxes} in our exchange
         \item \# of active mailboxes in our exchange
         \item Total size of mailboxes in exchange
         \item Do we keep backups? If yes, how?
@@ -237,10 +292,10 @@
         \item How many exchange CAL do we have?
         \item Do we have any license for Windows server OS? versions?
         \item Do we have any license for Windows desktop OS? versions?
-        \item Do we have any license for Office suite? versions?
+        \item \bf Do we have any license for Office suite? versions?
         \stopitemize
                 
-    \stoptitle
+    \stopchapter
 
     \page
 
@@ -254,1145 +309,1170 @@
     \startchapter
         [title=Chapter 2]
 
+        \startpostponingnotes
+        % paragraph B3
+        \framed[align={flushleft}, width=10.69in, background=color, backgroundcolor=e0e0e0, foreground=color, foregroundcolor=434343, frame=off, leftframe=on]
+            {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?} $x^2 + y^2 = z^2$. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
+            % {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?}. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
+        \stoppostponingnotes
+
+        \blank
+
+        \startpostponingnotes
         % table B3:B29
-        \setupxtable[s__000__t__B3_B24__22][split=repeat, header=repeat, loffset=0.05in, roffset=0.05in, frame=none]
+        \setupTABLE[split=repeat, header=repeat, loffset=0.05in, roffset=0.05in, frame=on]
+        \setupTABLE[1][width=0.5in]
+        \setupTABLE[2][width=1.5in]
+        \setupTABLE[3][width=1.5in]
+        \setupTABLE[4][width=1.5in]
+        \setupTABLE[5][width=1.5in]
 
-        \defineframed[B3l][leftframe=on, framecolor=a0a0a0, rulethickness=0.5pt]
-        \defineframed[B3t][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
-        \setupxtable[B3] [width=0.5in, foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0, align={middle, center}, frame=off, leftframe=B3l, topframe=B3t]
-        % \setupxtable[B3] [B3][leftframe=on, framecolor=a0a0a0, rulethickness=0.5pt]
-        % \setupxtable[B3] [B3][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
+        % formatting setup for B3
+        \setupTABLE[1][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+        \setupTABLE[1][1][leftframe=on, framecolor=ff0000, rulethickness=0.5pt]
+        \setupTABLE[1][1][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
 
-        \setupxtable[C3][width=1.5in, foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-        \setupxtable[D3][width=1.5in, foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-        \setupxtable[E3][width=1.5in, foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-        \setupxtable[F3][width=1.5in, foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+        % formatting setup for C3
+        \setupTABLE[2][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
 
-        \startxtable[s__000__t__B3_B24__22]
+        % formatting setup for D3
+        \setupTABLE[3][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+        % formatting setup for E3
+        \setupTABLE[4][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+        % formatting setup for F3
+        \setupTABLE[5][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+        % formatting setup for F3
+        \setupTABLE[5][2][align={lohi}]
+
+        \bTABLE
 
             % table header, only for first page
-            \startxtablehead
+            \bTABLEhead
 
                 % row 3
-                \startxrow
+                \bTR
 
                     % cell B3
-                    \startxcell[B3]
+                    \bTD
                         {\#}
-                    \stopxcell
+                    \eTD
 
                     % cell C3
-                    \startxcell[C3]
+                    \bTD
                         {\alpha}
-                    \stopxcell
+                    \eTD
 
                     % cell D3
-                    \startxcell[D3]
+                    \bTD
                         {\beta}
-                    \stopxcell
+                    \eTD
 
                     % cell E3
-                    \startxcell[E3]
+                    \bTD
                         {\gamma}
-                    \stopxcell
+                    \eTD
 
                     % cell F3
-                    \startxcell[F3]
+                    \bTD
                         {\delta}
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
-            \stopxtablehead
+            \eTABLEhead
 
             % non-repeating rows
-            \startxtablebody
+            \bTABLEbody
 
                 % row 4
-                \startxrow
+                \bTR
 
                     % cell B4
-                    \startxcell
+                    \bTD
                         1
-                    \stopxcell
+                    \eTD
 
                     % cell C4
-                    \startxcell
+                    \bTD
                         alpha 1
-                    \stopxcell
+                    \eTD
 
                     % cell D4
-                    \startxcell
+                    \bTD
                         beta 1
-                    \stopxcell
+                    \eTD
 
                     % cell E4
-                    \startxcell
+                    \bTD
                         gamma 1
-                    \stopxcell
+                    \eTD
 
                     % cell F4
-                    \startxcell
-                        \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                    \stopxcell
+                    \bTD[nr=2]
+                        \middlealigned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 5
-                \startxrow
+                \bTR
 
                     % cell B5
-                    \startxcell 
+                    \bTD 
                         2
-                    \stopxcell
+                    \eTD
 
                     % cell C5
-                    \startxcell 
+                    \bTD 
                         alpha 2
-                    \stopxcell
+                    \eTD
 
                     % cell D5
-                    \startxcell 
+                    \bTD 
                         beta 2
-                    \stopxcell
+                    \eTD
 
                     % cell E5
-                    \startxcell 
-                        gamma 2
-                    \stopxcell
+                    \bTD 
+                        gamma\footnote{This is greek Gamma} 2
+                    \eTD
 
                     % cell F5
-                    \startxcell 
-                        delta 2
-                    \stopxcell
+                    % \bTD 
+                    %     delta 2
+                    % \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 6
-                \startxrow
+                \bTR
 
                     % cell B6
-                    \startxcell 
+                    \bTD 
                         3
-                    \stopxcell
+                    \eTD
 
                     % cell C6
-                    \startxcell 
+                    \bTD 
                         alpha 3
-                    \stopxcell
+                    \eTD
 
                     % cell D6
-                    \startxcell 
+                    \bTD 
                         beta 3
-                    \stopxcell
+                    \eTD
 
                     % cell E6
-                    \startxcell 
+                    \bTD 
                         gamma 3
-                    \stopxcell
+                    \eTD
 
                     % cell F6
-                    \startxcell 
+                    \bTD 
                         delta 3
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 7
-                \startxrow
+                \bTR
 
                     % cell B7
-                    \startxcell 
+                    \bTD 
                         4
-                    \stopxcell
+                    \eTD
 
                     % cell C7
-                    \startxcell 
+                    \bTD 
                         alpha 4
-                    \stopxcell
+                    \eTD
 
                     % cell D7
-                    \startxcell 
+                    \bTD 
                         beta 4
-                    \stopxcell
+                    \eTD
 
                     % cell E7
-                    \startxcell 
+                    \bTD 
                         gamma 4
-                    \stopxcell
+                    \eTD
 
                     % cell F7
-                    \startxcell 
+                    \bTD 
                         delta 4
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 8
-                \startxrow
+                \bTR
 
                     % cell B8
-                    \startxcell 
+                    \bTD 
                         5
-                    \stopxcell
+                    \eTD
 
                     % cell C8
-                    \startxcell 
+                    \bTD 
                         alpha 5
-                    \stopxcell
+                    \eTD
 
                     % cell D8
-                    \startxcell 
+                    \bTD 
                         beta 5
-                    \stopxcell
+                    \eTD
 
                     % cell E8
-                    \startxcell 
+                    \bTD 
                         gamma 5
-                    \stopxcell
+                    \eTD
 
                     % cell F8
-                    \startxcell 
+                    \bTD 
                         delta 5
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 9
-                \startxrow
+                \bTR
 
                     % cell B9
-                    \startxcell 
+                    \bTD 
                         6
-                    \stopxcell
+                    \eTD
 
                     % cell C9
-                    \startxcell 
+                    \bTD 
                         alpha 6
-                    \stopxcell
+                    \eTD
 
                     % cell D9
-                    \startxcell 
+                    \bTD 
                         beta 6
-                    \stopxcell
+                    \eTD
 
                     % cell E9
-                    \startxcell 
+                    \bTD 
                         gamma 6
-                    \stopxcell
+                    \eTD
 
                     % cell F9
-                    \startxcell 
+                    \bTD 
                         delta 6
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 10
-                \startxrow
+                \bTR
 
                     % cell B10
-                    \startxcell 
+                    \bTD 
                         7
-                    \stopxcell
+                    \eTD
 
                     % cell C10
-                    \startxcell 
+                    \bTD 
                         alpha 7
-                    \stopxcell
+                    \eTD
 
                     % cell D10
-                    \startxcell 
+                    \bTD 
                         beta 7
-                    \stopxcell
+                    \eTD
 
                     % cell E10
-                    \startxcell 
+                    \bTD 
                         gamma 7
-                    \stopxcell
+                    \eTD
 
                     % cell F10
-                    \startxcell 
+                    \bTD 
                         delta 7
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 11
-                \startxrow
+                \bTR
 
                     % cell B11
-                    \startxcell 
+                    \bTD 
                         8
-                    \stopxcell
+                    \eTD
 
                     % cell C11
-                    \startxcell 
+                    \bTD 
                         alpha 8
-                    \stopxcell
+                    \eTD
 
                     % cell D11
-                    \startxcell 
+                    \bTD 
                         beta 8
-                    \stopxcell
+                    \eTD
 
                     % cell E11
-                    \startxcell 
+                    \bTD 
                         gamma 8
-                    \stopxcell
+                    \eTD
 
                     % cell F11
-                    \startxcell 
+                    \bTD 
                         delta 8
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 12
-                \startxrow
+                \bTR
 
                     % cell B12
-                    \startxcell 
+                    \bTD 
                         9
-                    \stopxcell
+                    \eTD
 
                     % cell C12
-                    \startxcell 
+                    \bTD 
                         alpha 9
-                    \stopxcell
+                    \eTD
 
                     % cell D12
-                    \startxcell 
+                    \bTD 
                         beta 9
-                    \stopxcell
+                    \eTD
 
                     % cell E12
-                    \startxcell 
+                    \bTD 
                         gamma 9
-                    \stopxcell
+                    \eTD
 
                     % cell F12
-                    \startxcell 
+                    \bTD 
                         delta 9
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 13
-                \startxrow
+                \bTR
 
                     % cell B13
-                    \startxcell 
+                    \bTD 
                         10
-                    \stopxcell
+                    \eTD
 
                     % cell C13
-                    \startxcell 
+                    \bTD 
                         alpha 10
-                    \stopxcell
+                    \eTD
 
                     % cell D13
-                    \startxcell 
+                    \bTD 
                         beta 10
-                    \stopxcell
+                    \eTD
 
                     % cell E13
-                    \startxcell 
+                    \bTD 
                         gamma 10
-                    \stopxcell
+                    \eTD
 
                     % cell F13
-                    \startxcell 
+                    \bTD 
                         delta 10
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 14
-                \startxrow
+                \bTR
 
                     % cell B14
-                    \startxcell 
+                    \bTD 
                         11
-                    \stopxcell
+                    \eTD
 
                     % cell C14
-                    \startxcell 
+                    \bTD 
                         alpha 11
-                    \stopxcell
+                    \eTD
 
                     % cell D14
-                    \startxcell 
+                    \bTD 
                         beta 11
-                    \stopxcell
+                    \eTD
 
                     % cell E14
-                    \startxcell 
+                    \bTD 
                         gamma 11
-                    \stopxcell
+                    \eTD
 
                     % cell F14
-                    \startxcell 
+                    \bTD 
                         delta 11
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 15
-                \startxrow
+                \bTR
 
                     % cell B15
-                    \startxcell 
+                    \bTD 
                         12
-                    \stopxcell
+                    \eTD
 
                     % cell C15
-                    \startxcell 
+                    \bTD 
                         alpha 12
-                    \stopxcell
+                    \eTD
 
                     % cell D15
-                    \startxcell 
+                    \bTD 
                         beta 12
-                    \stopxcell
+                    \eTD
 
                     % cell E15
-                    \startxcell 
+                    \bTD 
                         gamma 12
-                    \stopxcell
+                    \eTD
 
                     % cell F15
-                    \startxcell 
+                    \bTD 
                         delta 12
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 16
-                \startxrow
+                \bTR
 
                     % cell B16
-                    \startxcell 
+                    \bTD 
                         13
-                    \stopxcell
+                    \eTD
 
                     % cell C16
-                    \startxcell 
+                    \bTD 
                         alpha 13
-                    \stopxcell
+                    \eTD
 
                     % cell D16
-                    \startxcell 
+                    \bTD 
                         beta 13
-                    \stopxcell
+                    \eTD
 
                     % cell E16
-                    \startxcell 
+                    \bTD 
                         gamma 13
-                    \stopxcell
+                    \eTD
 
                     % cell F16
-                    \startxcell 
+                    \bTD 
                         delta 13
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 17
-                \startxrow
+                \bTR
 
                     % cell B17
-                    \startxcell 
+                    \bTD 
                         14
-                    \stopxcell
+                    \eTD
 
                     % cell C17
-                    \startxcell 
+                    \bTD 
                         alpha 14
-                    \stopxcell
+                    \eTD
 
                     % cell D17
-                    \startxcell 
+                    \bTD 
                         beta 14
-                    \stopxcell
+                    \eTD
 
                     % cell E17
-                    \startxcell 
+                    \bTD 
                         gamma 14
-                    \stopxcell
+                    \eTD
 
                     % cell F17
-                    \startxcell 
+                    \bTD 
                         delta 14
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 18
-                \startxrow
+                \bTR
 
                     % cell B18
-                    \startxcell 
+                    \bTD 
                         15
-                    \stopxcell
+                    \eTD
 
                     % cell C18
-                    \startxcell 
+                    \bTD 
                         alpha 15
-                    \stopxcell
+                    \eTD
 
                     % cell D18
-                    \startxcell 
+                    \bTD 
                         beta 15
-                    \stopxcell
+                    \eTD
 
                     % cell E18
-                    \startxcell 
+                    \bTD 
                         gamma 15
-                    \stopxcell
+                    \eTD
 
                     % cell F18
-                    \startxcell 
+                    \bTD 
                         delta 15
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 19
-                \startxrow
+                \bTR
 
                     % cell B19
-                    \startxcell 
+                    \bTD 
                         16
-                    \stopxcell
+                    \eTD
 
                     % cell C19
-                    \startxcell 
+                    \bTD 
                         alpha 16
-                    \stopxcell
+                    \eTD
 
                     % cell D19
-                    \startxcell 
+                    \bTD 
                         beta 16
-                    \stopxcell
+                    \eTD
 
                     % cell E19
-                    \startxcell 
+                    \bTD 
                         gamma 16
-                    \stopxcell
+                    \eTD
 
                     % cell F19
-                    \startxcell 
+                    \bTD 
                         delta 16
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 20
-                \startxrow
+                \bTR
 
                     % cell B20
-                    \startxcell 
+                    \bTD 
                         17
-                    \stopxcell
+                    \eTD
 
                     % cell C20
-                    \startxcell 
+                    \bTD 
                         alpha 17
-                    \stopxcell
+                    \eTD
 
                     % cell D20
-                    \startxcell 
+                    \bTD 
                         beta 17
-                    \stopxcell
+                    \eTD
 
                     % cell E20
-                    \startxcell 
+                    \bTD 
                         gamma 17
-                    \stopxcell
+                    \eTD
 
                     % cell F20
-                    \startxcell 
+                    \bTD 
                         delta 17
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 21
-                \startxrow
+                \bTR
 
                     % cell B21
-                    \startxcell 
+                    \bTD 
                         18
-                    \stopxcell
+                    \eTD
 
                     % cell C21
-                    \startxcell 
+                    \bTD 
                         alpha 18
-                    \stopxcell
+                    \eTD
 
                     % cell D21
-                    \startxcell 
+                    \bTD 
                         beta 18
-                    \stopxcell
+                    \eTD
 
                     % cell E21
-                    \startxcell 
+                    \bTD 
                         gamma 18
-                    \stopxcell
+                    \eTD
 
                     % cell F21
-                    \startxcell 
+                    \bTD 
                         delta 18
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 22
-                \startxrow
+                \bTR
 
                     % cell B22
-                    \startxcell 
+                    \bTD 
                         19
-                    \stopxcell
+                    \eTD
 
                     % cell C22
-                    \startxcell 
+                    \bTD 
                         alpha 19
-                    \stopxcell
+                    \eTD
 
                     % cell D22
-                    \startxcell 
+                    \bTD 
                         beta 19
-                    \stopxcell
+                    \eTD
 
                     % cell E22
-                    \startxcell 
+                    \bTD 
                         gamma 19
-                    \stopxcell
+                    \eTD
 
                     % cell F22
-                    \startxcell 
+                    \bTD 
                         delta 19
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 23
-                \startxrow
+                \bTR
 
                     % cell B23
-                    \startxcell 
+                    \bTD 
                         20
-                    \stopxcell
+                    \eTD
 
                     % cell C23
-                    \startxcell 
+                    \bTD 
                         alpha 20
-                    \stopxcell
+                    \eTD
 
                     % cell D23
-                    \startxcell 
+                    \bTD 
                         beta 20
-                    \stopxcell
+                    \eTD
 
                     % cell E23
-                    \startxcell 
+                    \bTD 
                         gamma 20
-                    \stopxcell
+                    \eTD
 
                     % cell F23
-                    \startxcell 
+                    \bTD 
                         delta 20
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 24
-                \startxrow
+                \bTR
 
                     % cell B24
-                    \startxcell 
+                    \bTD 
                         21
-                    \stopxcell
+                    \eTD
 
                     % cell C24
-                    \startxcell 
+                    \bTD 
                         alpha 21
-                    \stopxcell
+                    \eTD
 
                     % cell D24
-                    \startxcell 
+                    \bTD 
                         beta 21
-                    \stopxcell
+                    \eTD
 
                     % cell E24
-                    \startxcell 
+                    \bTD 
                         gamma 21
-                    \stopxcell
+                    \eTD
 
                     % cell F24
-                    \startxcell 
+                    \bTD 
                         delta 21
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 25
-                \startxrow
+                \bTR
 
                     % cell B25
-                    \startxcell 
+                    \bTD 
                         22
-                    \stopxcell
+                    \eTD
 
                     % cell C25
-                    \startxcell 
+                    \bTD 
                         alpha 22
-                    \stopxcell
+                    \eTD
 
                     % cell D25
-                    \startxcell 
+                    \bTD 
                         beta 22
-                    \stopxcell
+                    \eTD
 
                     % cell E25
-                    \startxcell 
+                    \bTD 
                         gamma 22
-                    \stopxcell
+                    \eTD
 
                     % cell F25
-                    \startxcell 
+                    \bTD 
                         delta 22
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 26
-                \startxrow
+                \bTR
 
                     % cell B26
-                    \startxcell 
+                    \bTD 
                         23
-                    \stopxcell
+                    \eTD
 
                     % cell C26
-                    \startxcell 
+                    \bTD 
                         alpha 23
-                    \stopxcell
+                    \eTD
 
                     % cell D26
-                    \startxcell 
+                    \bTD 
                         beta 23
-                    \stopxcell
+                    \eTD
 
                     % cell E26
-                    \startxcell 
+                    \bTD 
                         gamma 23
-                    \stopxcell
+                    \eTD
 
                     % cell F26
-                    \startxcell 
+                    \bTD 
                         delta 23
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 27
-                \startxrow
+                \bTR
 
                     % cell B27
-                    \startxcell 
+                    \bTD 
                         24
-                    \stopxcell
+                    \eTD
 
                     % cell C27
-                    \startxcell 
+                    \bTD 
                         alpha 24
-                    \stopxcell
+                    \eTD
 
                     % cell D27
-                    \startxcell 
+                    \bTD 
                         beta 24
-                    \stopxcell
+                    \eTD
 
                     % cell E27
-                    \startxcell 
+                    \bTD 
                         gamma 24
-                    \stopxcell
+                    \eTD
 
                     % cell F27
-                    \startxcell 
+                    \bTD 
                         delta 24
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 28
-                \startxrow
+                \bTR
 
                     % cell B28
-                    \startxcell 
+                    \bTD 
                         25
-                    \stopxcell
+                    \eTD
 
                     % cell C28
-                    \startxcell 
+                    \bTD 
                         alpha 25
-                    \stopxcell
+                    \eTD
 
                     % cell D28
-                    \startxcell 
+                    \bTD 
                         beta 25
-                    \stopxcell
+                    \eTD
 
                     % cell E28
-                    \startxcell 
+                    \bTD 
                         gamma 25
-                    \stopxcell
+                    \eTD
 
                     % cell F28
-                    \startxcell 
+                    \bTD 
                         delta 25
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 29
-                \startxrow
+                \bTR
 
                     % cell B29
-                    \startxcell 
+                    \bTD 
                         26
-                    \stopxcell
+                    \eTD
 
                     % cell C29
-                    \startxcell 
+                    \bTD 
                         alpha 26
-                    \stopxcell
+                    \eTD
 
                     % cell D29
-                    \startxcell 
+                    \bTD 
                         beta 26
-                    \stopxcell
+                    \eTD
 
                     % cell E29
-                    \startxcell 
+                    \bTD 
                         gamma 26
-                    \stopxcell
+                    \eTD
 
                     % cell F29
-                    \startxcell 
+                    \bTD 
                         delta 26
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 30
-                \startxrow
+                \bTR
 
                     % cell B30
-                    \startxcell 
+                    \bTD 
                         27
-                    \stopxcell
+                    \eTD
 
                     % cell C30
-                    \startxcell 
+                    \bTD 
                         alpha 27
-                    \stopxcell
+                    \eTD
 
                     % cell D30
-                    \startxcell 
+                    \bTD 
                         beta 27
-                    \stopxcell
+                    \eTD
 
                     % cell E30
-                    \startxcell 
+                    \bTD 
                         gamma 27
-                    \stopxcell
+                    \eTD
 
                     % cell F30
-                    \startxcell 
+                    \bTD 
                         delta 27
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 31
-                \startxrow
+                \bTR
 
                     % cell B31
-                    \startxcell 
+                    \bTD 
                         28
-                    \stopxcell
+                    \eTD
 
                     % cell C31
-                    \startxcell 
+                    \bTD 
                         alpha 28
-                    \stopxcell
+                    \eTD
 
                     % cell D31
-                    \startxcell 
+                    \bTD 
                         beta 28
-                    \stopxcell
+                    \eTD
 
                     % cell E31
-                    \startxcell 
+                    \bTD 
                         gamma 28
-                    \stopxcell
+                    \eTD
 
                     % cell F31
-                    \startxcell 
+                    \bTD 
                         delta 28
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 32
-                \startxrow
+                \bTR
 
                     % cell B32
-                    \startxcell 
+                    \bTD 
                         29
-                    \stopxcell
+                    \eTD
 
                     % cell C32
-                    \startxcell 
+                    \bTD 
                         alpha 29
-                    \stopxcell
+                    \eTD
 
                     % cell D32
-                    \startxcell 
+                    \bTD 
                         beta 29
-                    \stopxcell
+                    \eTD
 
                     % cell E32
-                    \startxcell 
+                    \bTD 
                         gamma 29
-                    \stopxcell
+                    \eTD
 
                     % cell F32
-                    \startxcell 
+                    \bTD 
                         delta 29
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 33
-                \startxrow
+                \bTR
 
                     % cell B33
-                    \startxcell 
+                    \bTD 
                         30
-                    \stopxcell
+                    \eTD
 
                     % cell C33
-                    \startxcell 
+                    \bTD 
                         alpha 30
-                    \stopxcell
+                    \eTD
 
                     % cell D33
-                    \startxcell 
+                    \bTD 
                         beta 30
-                    \stopxcell
+                    \eTD
 
                     % cell E33
-                    \startxcell 
+                    \bTD 
                         gamma 30
-                    \stopxcell
+                    \eTD
 
                     % cell F33
-                    \startxcell 
+                    \bTD 
                         delta 30
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 34
-                \startxrow
+                \bTR
 
                     % cell B34
-                    \startxcell 
+                    \bTD 
                         31
-                    \stopxcell
+                    \eTD
 
                     % cell C34
-                    \startxcell 
+                    \bTD 
                         alpha 31
-                    \stopxcell
+                    \eTD
 
                     % cell D34
-                    \startxcell 
+                    \bTD 
                         beta 31
-                    \stopxcell
+                    \eTD
 
                     % cell E34
-                    \startxcell 
+                    \bTD 
                         gamma 31
-                    \stopxcell
+                    \eTD
 
                     % cell F34
-                    \startxcell 
+                    \bTD 
                         delta 31
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 35
-                \startxrow
+                \bTR
 
                     % cell B35
-                    \startxcell 
+                    \bTD 
                         33
-                    \stopxcell
+                    \eTD
 
                     % cell C35
-                    \startxcell 
+                    \bTD 
                         alpha 33
-                    \stopxcell
+                    \eTD
 
                     % cell D35
-                    \startxcell 
+                    \bTD 
                         beta 33
-                    \stopxcell
+                    \eTD
 
                     % cell E35
-                    \startxcell 
+                    \bTD 
                         gamma 33
-                    \stopxcell
+                    \eTD
 
                     % cell F35
-                    \startxcell 
+                    \bTD 
                         delta 33
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 36
-                \startxrow
+                \bTR
 
                     % cell B36
-                    \startxcell 
+                    \bTD 
                         33
-                    \stopxcell
+                    \eTD
 
                     % cell C36
-                    \startxcell 
+                    \bTD 
                         alpha 33
-                    \stopxcell
+                    \eTD
 
                     % cell D36
-                    \startxcell 
+                    \bTD 
                         beta 33
-                    \stopxcell
+                    \eTD
 
                     % cell E36
-                    \startxcell 
+                    \bTD 
                         gamma 33
-                    \stopxcell
+                    \eTD
 
                     % cell F36
-                    \startxcell 
+                    \bTD 
                         delta 33
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 37
-                \startxrow
+                \bTR
 
                     % cell B37
-                    \startxcell 
+                    \bTD 
                         34
-                    \stopxcell
+                    \eTD
 
                     % cell C37
-                    \startxcell 
+                    \bTD 
                         alpha 34
-                    \stopxcell
+                    \eTD
 
                     % cell D37
-                    \startxcell 
+                    \bTD 
                         beta 34
-                    \stopxcell
+                    \eTD
 
                     % cell E37
-                    \startxcell 
+                    \bTD 
                         gamma 34
-                    \stopxcell
+                    \eTD
 
                     % cell F37
-                    \startxcell 
+                    \bTD 
                         delta 34
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 38
-                \startxrow
+                \bTR
 
                     % cell B38
-                    \startxcell 
+                    \bTD 
                         35
-                    \stopxcell
+                    \eTD
 
                     % cell C38
-                    \startxcell 
+                    \bTD 
                         alpha 35
-                    \stopxcell
+                    \eTD
 
                     % cell D38
-                    \startxcell 
+                    \bTD 
                         beta 35
-                    \stopxcell
+                    \eTD
 
                     % cell E38
-                    \startxcell 
+                    \bTD 
                         gamma 35
-                    \stopxcell
+                    \eTD
 
                     % cell F38
-                    \startxcell 
+                    \bTD 
                         delta 35
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
                 % row 39
-                \startxrow
+                \bTR
 
                     % cell B39
-                    \startxcell 
+                    \bTD 
                         36
-                    \stopxcell
+                    \eTD
 
                     % cell C39
-                    \startxcell 
+                    \bTD 
                         alpha 36
-                    \stopxcell
+                    \eTD
 
                     % cell D39
-                    \startxcell 
+                    \bTD 
                         beta 36
-                    \stopxcell
+                    \eTD
 
                     % cell E39
-                    \startxcell 
+                    \bTD 
                         gamma 36
-                    \stopxcell
+                    \eTD
 
                     % cell F39
-                    \startxcell 
+                    \bTD 
                         delta 36
-                    \stopxcell
+                    \eTD
 
-                \stopxrow
+                \eTR
 
-            \stopxtablebody
+            \eTABLEbody
 
-        \stopxtable
+        \eTABLE
+        \stoppostponingnotes
         
-    \stoptitle
+    \stopchapter
 
-\stoptext 
+\stoptext
 % End of document
