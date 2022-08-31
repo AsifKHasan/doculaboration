@@ -100,6 +100,99 @@ COLUMNS = [
 ]
 
 
+''' ConTeXt page_layout from specs
+    % A4, portrait, narrow
+    \definelayout[a4-portrait-narrow][
+        % gutter + left-margin
+        backspace=0.50in,
+        % page-width - backspace - rightmargin
+        width=7.27in,
+        % right-margin
+        rightmargin=0.50in,
+        % top-margin
+        topspace=0.25in,
+        % header height
+        header=0.25in,
+        headerdistance=0.10in,
+        % page-height - top-margin - bottom-margin
+        height=11.19in,
+        % footer
+        footerdistance=0.10in,
+        footer=0.25in,
+        % bottom-margin
+        bottomdistance=0.00in,
+        bottom=0.25in
+    ]
+'''
+def create_page_layout(page_layout_key, page_spec, landscape, margin_spec, page_specs):
+    page_layout_lines = []
+    if page_spec in page_specs['page-spec'] and margin_spec in page_specs['margin-spec']:
+        if landscape:
+            page_layout_lines.append(f"% {page_spec}, landscape, {margin_spec}")
+        else:
+            page_layout_lines.append(f"% {page_spec}, portrait, {margin_spec}")
+
+        page_layout_lines.append(f"\\definelayout[{page_layout_key}][")
+
+        page_layout_lines.append(f"\t% gutter + left-margin")
+        backspace = 0.50
+        page_layout_lines.append(f"\tbackspace={backspace}in,")
+
+        page_layout_lines.append(f"\t% page-width - backspace - rightmargin")
+        width = 7.27
+        page_layout_lines.append(f"\twidth={width}in,")
+
+        page_layout_lines.append(f"\t% right-margin")
+        rightmargin = 0.50
+        page_layout_lines.append(f"\trightmargin={rightmargin}in,")
+        
+        page_layout_lines.append(f"\t% top-margin")
+        topspace = 0.25
+        page_layout_lines.append(f"\ttopspace={topspace}in,")
+        
+        page_layout_lines.append(f"\t% header height")
+        header = 0.25
+        headerdistance = 0.10
+        page_layout_lines.append(f"\theader={header}in,")
+        page_layout_lines.append(f"\theaderdistance={headerdistance}in,")
+        
+        page_layout_lines.append(f"\t% page-height - top-margin - bottom-margin")
+        height = 11.19
+        page_layout_lines.append(f"\theight={height}in,")
+        
+        page_layout_lines.append(f"\t% footer")
+        footerdistance = 0.10
+        footer = 0.25
+        page_layout_lines.append(f"\tfooterdistance={footerdistance}in,")
+        page_layout_lines.append(f"\tfooter={footer}in,")
+        
+        page_layout_lines.append(f"\t% bottom-margin")
+        bottomdistance = 0.00
+        bottom = 0.25
+        page_layout_lines.append(f"\tbottomdistance={bottomdistance}in,")
+        page_layout_lines.append(f"\tbottom={bottom}in")
+
+        page_layout_lines.append(f"]")
+
+
+    return page_layout_lines
+
+
+
+''' deefine foonote symbols
+'''
+def define_fn_symbols(name, item_list):
+    lines = []
+    lines.append(f"\\DefineFNsymbols{{{name}_symbols}}{{")
+    for item in item_list:
+        lines.append(f"\t{item['key']}")
+
+    lines.append(f"}}")
+
+    return lines
+
+
+
 ''' :param path: a path string
     :return: the path that the OS accepts
 '''

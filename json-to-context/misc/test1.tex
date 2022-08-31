@@ -1,4 +1,4 @@
-% Start of document
+% BEGIN Document
 
 \replacemissingcharacters
 \enabletrackers[fonts.missing]
@@ -6,76 +6,82 @@
 % Language = English
 \mainlanguage[en]
 
-\definefontfeature[default]
-  [mode=node,kern=yes,
-  liga=yes,tlig=yes,
-  ccmp=yes,language=dflt,
-  protrusion=quality,
-  expansion=quality,
-  analyze=yes,
-  devanagari=yes,keepligatures=yes,compat-ligatures=yes,char-ligatures=yes,compose=yes]
+% Fonts and fallbacks
+    \definefontfeature[default][
+        mode=node,kern=yes,
+        liga=yes,tlig=yes,
+        ccmp=yes,language=dflt,
+        protrusion=quality,
+        expansion=quality,
+        analyze=yes,
+        devanagari=yes,
+        keepligatures=yes,
+        compat-ligatures=yes,
+        char-ligatures=yes,
+        compose=yes
+    ]
 
-\definefallbackfamily [mainfont] [rm] [notoserifbengali] [range=bengali]
-\definefontfamily     [mainfont] [rm] [Latin Modern Roman]
-
-\definefallbackfamily [mainfont] [ss] [notosansbengali] [range=bengali]
-\definefontfamily     [mainfont] [ss] [Latin Modern Sans]
-
-\definefontfamily     [mainfont] [tf] [Latin Modern Roman]
-
-\definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
-
-\setupbodyfont        [mainfont, 10pt]
-
-
-% fallbacks for Bangla
-% \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
-%                     [0x0980:0x09FF] [force=yes]
-% \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
-%                     [0x0980:0x09FF] [force=yes]
-% \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
-%                     [0x0980:0x09FF] [force=yes]
-% \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
-%                     [0x0980:0x09FF] [force=yes]
-
-%% Now we hook the fallbacks into their respective type faces.
-% \starttypescript [serif] [mainfont]
-%     \setups[font:fallback:serif]
-%         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
-%         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
-%         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
-%         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
-% \stoptypescript
-
-%% Complete the typescript for all four type faces. Note that we default
-%% to the predefined Latin Modern setups for the three other faces.
-% \starttypescript [mainfont]
-%     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
-%     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
-%     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
-%     \definetypeface [mainfont] [mm] [math]  [modern] [default]
-% \stoptypescript
+    \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
+    \definefontfamily     [mainfont] [rm] [Latin Modern Roman]
+    \definefallbackfamily [mainfont] [ss] [notosansbengali]     [range=bengali]
+    \definefontfamily     [mainfont] [ss] [Latin Modern Sans]
+    \definefontfamily     [mainfont] [tf] [Latin Modern Roman]
+    \definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
+    \setupbodyfont        [mainfont, 10pt]
 
 
-% Font = Latin Modern, 10 point
-% \setupbodyfont[mainfont,10pt]
+    % fallbacks for Bangla
+    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
+    %                     [0x0980:0x09FF] [force=yes]
 
-\define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+    %% Now we hook the fallbacks into their respective type faces.
+    % \starttypescript [serif] [mainfont]
+    %     \setups[font:fallback:serif]
+    %         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
+    %         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
+    %         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
+    %         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
+    % \stoptypescript
 
-% Heading 0
-\setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+    %% Complete the typescript for all four type faces. Note that we default
+    %% to the predefined Latin Modern setups for the three other faces.
+    % \starttypescript [mainfont]
+    %     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
+    %     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
+    %     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
+    %     \definetypeface [mainfont] [mm] [math]  [modern] [default]
+    % \stoptypescript
 
-% Heading 1
-\setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
-% Heading 2
-\setuphead[section][style=\bfb]
+    % Font = Latin Modern, 10 point
+    % \setupbodyfont[mainfont,10pt]
 
-% Heading 3
-\setuphead[subsection][style=\bfa]
 
-% Heading 4
-\setuphead[subsubsection][style=\bf]
+    % macro for changing font size
+    \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+
+
+% Heading styles
+    % Heading 0
+    \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+
+    % Heading 1
+    \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+
+    % Heading 2
+    \setuphead[section][style=\bfb]
+
+    % Heading 3
+    \setuphead[subsection][style=\bfa]
+
+    % Heading 4
+    \setuphead[subsubsection][style=\bf]
 
 
 % double sided
@@ -84,149 +90,155 @@
 \setupnotation[footnote][way=bypage]
 \setupnote[footnote][]
 
-% define colors for tables
-\definecolor[ffffff][x=ffffff]
-\definecolor[ff0000][x=ff0000]
-\definecolor[e0e0e0][x=e0e0e0]
-\definecolor[a0a0a0][x=a0a0a0]
-\definecolor[808080][x=808080]
-\definecolor[666666][x=666666]
-\definecolor[000000][x=000000]
-\definecolor[434343][x=434343]
+
+% Define Colors
+    \definecolor[ffffff][x=ffffff]
+    \definecolor[ff0000][x=ff0000]
+    \definecolor[e0e0e0][x=e0e0e0]
+    \definecolor[a0a0a0][x=a0a0a0]
+    \definecolor[808080][x=808080]
+    \definecolor[666666][x=666666]
+    \definecolor[000000][x=000000]
+    \definecolor[434343][x=434343]
 
 
-\definelayout[a4-portrait-narrow][
-    % gutter + left-margin
-    backspace=0.50in,
-    % page-width - backspace - rightmargin
-    width=7.27in,
-    % right-margin
-    rightmargin=0.50in,
-    % top-margin
-    topspace=0.25in,
-    % header height
-    header=0.25in,
-    headerdistance=0.10in,
-    % page-height - top-margin - bottom-margin
-    height=11.19in,
-    % footer
-    footerdistance=0.10in,
-    footer=0.25in,
-    % bottom-margin
-    bottomdistance=0.00in,
-    bottom=0.25in
-]
+% Page Layouts
+    % A4, portrait, narrow
+    \definelayout[a4-portrait-narrow][
+        % gutter + left-margin
+        backspace=0.50in,
+        % page-width - backspace - rightmargin
+        width=7.27in,
+        % right-margin
+        rightmargin=0.50in,
+        % top-margin
+        topspace=0.25in,
+        % header height
+        header=0.25in,
+        headerdistance=0.10in,
+        % page-height - top-margin - bottom-margin
+        height=11.19in,
+        % footer
+        footerdistance=0.10in,
+        footer=0.25in,
+        % bottom-margin
+        bottomdistance=0.00in,
+        bottom=0.25in
+    ]
 
-\definelayout[a4-landscape-narrow][
-    % gutter + left-margin
-    backspace=0.50in,
-    % page-width - backspace - rightmargin
-    width=10.69in,
-    % right-margin
-    rightmargin=0.50in,
-    % top-margin
-    topspace=0.25in,
-    % header height
-    header=0.25in,
-    headerdistance=0.10in,
-    % page-height - top-margin - bottom-margin
-    height=7.77in,
-    % footer
-    footerdistance=0.10in,
-    footer=0.25in,
-    % bottom-margin
-    bottomdistance=0.00in,
-    bottom=0.25in
-]
+    % A4, landscape, narrow
+    \definelayout[a4-landscape-narrow][
+        % gutter + left-margin
+        backspace=0.50in,
+        % page-width - backspace - rightmargin
+        width=10.69in,
+        % right-margin
+        rightmargin=0.50in,
+        % top-margin
+        topspace=0.25in,
+        % header height
+        header=0.25in,
+        headerdistance=0.10in,
+        % page-height - top-margin - bottom-margin
+        height=7.77in,
+        % footer
+        footerdistance=0.10in,
+        footer=0.25in,
+        % bottom-margin
+        bottomdistance=0.00in,
+        bottom=0.25in
+    ]
+
 
 % Table definition for headers and footers
-% HeaderTable A4 Portrait
-\startsetups [header-odd-A4-portrait]
-    \bTABLEnested[frame=off]
-    \setupTABLE[c][1][width=6.27in]
-    \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
-    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
-        % row 3
-        \bTR
-            % cell B3
-            \bTD
-                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-            \eTD
-            % cell C3
-            \bTD
-                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-            \eTD
-        \eTR
-    \eTABLEnested
-\stopsetups
+    % HeaderTable A4 Portrait
+    \startsetups [header-odd-A4-portrait]
+        \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=6.27in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
+        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+                \eTD
+                % cell C3
+                \bTD
+                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
 
-% FooterTable A4 Portrait
-\startsetups [footer-odd-A4-portrait]
-    \bTABLEnested[frame=off]
-    \setupTABLE[c][1][width=6.27in]
-    \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-        % row 3
-        \bTR
-            % cell B3
-            \bTD
-                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-            \eTD
-            % cell C3
-            \bTD
-                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
-            \eTD
-        \eTR
-    \eTABLEnested
-\stopsetups
+    % FooterTable A4 Portrait
+    \startsetups [footer-odd-A4-portrait]
+        \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=6.27in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                \eTD
+                % cell C3
+                \bTD
+                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
 
-% HeaderTable A4 Landscape
-\startsetups [header-odd-A4-landscape]
-    \bTABLEnested[frame=off]
-    \setupTABLE[c][1][width=9.69in]
-    \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-    \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-        % row 3
-        \bTR
-            % cell B3
-            \bTD
-                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-            \eTD
-            % cell C3
-            \bTD
-                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-            \eTD
-        \eTR
-    \eTABLEnested
-\stopsetups
+    % HeaderTable A4 Landscape
+    \startsetups [header-odd-A4-landscape]
+        \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=9.69in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+                \eTD
+                % cell C3
+                \bTD
+                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
 
-% FooterTable A4 Landscape
-\startsetups [footer-odd-A4-landscape]
-    \bTABLEnested[frame=off]
-    \setupTABLE[c][1][width=9.69in]
-    \setupTABLE[c][2][width=1.00in]
-    \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-    \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-        % row 3
-        \bTR
-            % cell B3
-            \bTD
-                \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-            \eTD
-            % cell C3
-            \bTD
-                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
-            \eTD
-        \eTR
-    \eTABLEnested
-\stopsetups
+    % FooterTable A4 Landscape
+    \startsetups [footer-odd-A4-landscape]
+        \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=9.69in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                \eTD
+                % cell C3
+                \bTD
+                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
 
 
+% BEGIN Text
 \starttext
 
     % Section ToC
@@ -1475,4 +1487,6 @@
     \stopchapter
 
 \stoptext
-% End of document
+% END Text
+
+% END Document

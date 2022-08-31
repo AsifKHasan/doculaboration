@@ -36,9 +36,14 @@ class ContextHelper(object):
         first_section = True
         section_index = 0
 
-        self.document_lines = ["% BEGIN Document", "\\begin{document}"]
+        self.document_lines = []
+        self.document_lines.append("% BEGIN Text")
+        self.document_lines.append("\\starttext")
+
         self.color_dict = {}
+        self._config
         self.document_footnotes = {}
+        page_layouts = {}
         for section in section_list:
             section['nesting-level'] = nesting_level
             section['parent-section-index-text'] = parent_section_index_text
@@ -50,6 +55,15 @@ class ContextHelper(object):
 
             section['first-section'] = True if first_section else False
             section['section-index'] = section_index
+            if section['landscape']:
+                section['page-layout'] = f"{section['page-spec']}-landscape-{section['margin-spec']}"
+            else:
+                section['page-layout'] = f"{section['page-spec']}-portrait-{section['margin-spec']}"
+
+            # create the page-layout
+            if section['page-layout'] not in page_layouts:
+                page_layouts[section['page-layout']] = create_page_layout(page_layout_key=section['page-layout'], page_spec=section['page-spec'], landscape=section['landscape'], margin_spec=section['margin-spec'], page_specs=self._config['page-specs'])
+
 
             module = importlib.import_module("context.context_api")
             func = getattr(module, f"process_{section['content-type']}")
@@ -61,32 +75,38 @@ class ContextHelper(object):
             
 
         # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
+        self.header_lines.append("% Define Colors")
         for k,v in self.color_dict.items():
-            self.header_lines.append(f"\t\definecolor{{{k}}}{{HTML}}{{{v}}}")
-
-        # define the footnote sysmbols through DefineFNsymbols
-        for k,v in self.document_footnotes.items():
-            if len(v):
-                self.header_lines = self.header_lines + define_fn_symbols(name=k, item_list=v)
+            self.header_lines.append(f"\t\definecolor[{k}][x={v}]")
 
         self.header_lines.append("\n")
 
-        
-        self.document_lines.append("\n\\end{document}")
+
+        # define the footnote sysmbols through DefineFNsymbols
+        self.header_lines.append("% Footnote Symbols")
+        for k, v in self.document_footnotes.items():
+            if len(v):
+                self.header_lines = self.header_lines + list(map(lambda x: f"\t{x}", define_fn_symbols(name=k, item_list=v)))
+                self.header_lines.append('')
+
+        self.header_lines.append("")
+
+
+        # Page Layouts
+        self.header_lines.append("% Page Layouts")
+        for k, v in page_layouts.items():
+            self.header_lines = self.header_lines + list(map(lambda x: f"\t{x}", v))
+            self.header_lines.append('')
+
+        self.header_lines.append("")
+
+
+        # document closing tags/comments        
+        self.document_lines.append("\\stoptext")
+        self.document_lines.append("% END Text")
+        self.document_lines.append("% END Document")
 
         # save the markdown document string in a file
         with open(self._config['files']['output-context'], "w", encoding="utf-8") as f:
             f.write('\n'.join(self.header_lines + self.document_lines))
-
-
-def define_fn_symbols(name, item_list):
-    lines = []
-    lines.append(f"")
-    lines.append(f"\\DefineFNsymbols{{{name}_symbols}}{{")
-    for item in item_list:
-        lines.append(f"\t{item['key']}")
-
-    lines.append(f"}}")
-
-    return lines
 

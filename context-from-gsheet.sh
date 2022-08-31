@@ -9,7 +9,7 @@ PYTHON=python3
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
-${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
+# ${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1
@@ -29,8 +29,8 @@ fi
 
 # context -> pdf
 pushd ./out
-time lualatex ${DOCUMENT}.tex --output-format=pdf
-mv ${DOCUMENT}.pdf ${DOCUMENT}.tex.pdf
+# time lualatex ${DOCUMENT}.tex --output-format=pdf
+# mv ${DOCUMENT}.pdf ${DOCUMENT}.tex.pdf
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1
