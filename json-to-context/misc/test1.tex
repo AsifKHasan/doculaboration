@@ -27,18 +27,14 @@
     \definefontfamily     [mainfont] [ss] [Latin Modern Sans]
     \definefontfamily     [mainfont] [tf] [Latin Modern Roman]
     \definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
-    \setupbodyfont        [mainfont, 10pt]
+    \setupbodyfont        [mainfont,10pt]
 
 
-    % fallbacks for Bangla
-    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
-    %                     [0x0980:0x09FF] [force=yes]
+    %% fallbacks for Bangla
+    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]             [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]        [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]      [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic] [0x0980:0x09FF] [force=yes]
 
     %% Now we hook the fallbacks into their respective type faces.
     % \starttypescript [serif] [mainfont]
@@ -52,14 +48,14 @@
     %% Complete the typescript for all four type faces. Note that we default
     %% to the predefined Latin Modern setups for the three other faces.
     % \starttypescript [mainfont]
-    %     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
-    %     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
-    %     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
-    %     \definetypeface [mainfont] [mm] [math]  [modern] [default]
+    %     \definetypeface [mainfont] [rm] [serif] [mainfont]    [default]
+    %     \definetypeface [mainfont] [ss] [sans]  [modern]      [default]
+    %     \definetypeface [mainfont] [tt] [mono]  [modern]      [default]
+    %     \definetypeface [mainfont] [mm] [math]  [modern]      [default]
     % \stoptypescript
 
 
-    % Font = Latin Modern, 10 point
+    %% Font = Latin Modern, 10 point
     % \setupbodyfont[mainfont,10pt]
 
 
@@ -151,7 +147,7 @@
 
 
 % Table definition for headers and footers
-    % HeaderTable A4 Portrait
+    % HeaderTable A4, portrait, narrow
     \startsetups [header-odd-A4-portrait]
         \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=6.27in]
@@ -173,7 +169,7 @@
         \eTABLEnested
     \stopsetups
 
-    % FooterTable A4 Portrait
+    % FooterTable A4, portrait, narrow
     \startsetups [footer-odd-A4-portrait]
         \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=6.27in]
@@ -194,7 +190,7 @@
         \eTABLEnested
     \stopsetups
 
-    % HeaderTable A4 Landscape
+    % HeaderTable A4, landscape, narrow
     \startsetups [header-odd-A4-landscape]
         \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=9.69in]
@@ -216,7 +212,7 @@
         \eTABLEnested
     \stopsetups
 
-    % FooterTable A4 Landscape
+    % FooterTable A4, landscape, narrow
     \startsetups [footer-odd-A4-landscape]
         \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=9.69in]
