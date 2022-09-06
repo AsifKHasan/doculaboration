@@ -254,10 +254,10 @@ def fancy_pagestyle_header(page_style_name):
 ''' insert LaTeX blocks inside text
 '''
 def process_latex_blocks(text_content):
-    # find out if there is any match with LATEX{...} inside the text_content
+    # find out if there is any match with LATEX$...$ inside the text_content
     texts_and_latex = []
 
-    pattern = r'LATEX[$].+[$]'
+    pattern = r'LATEX\$[^$]+\$'
     current_index = 0
     for match in re.finditer(pattern, text_content):
         latex_content = match.group()[5:]
