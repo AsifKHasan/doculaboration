@@ -63,10 +63,9 @@ class ContextSectionBase(object):
         self.section_width = self._section_data['width']
         self.section_height = self._section_data['height']
 
-        self.page_style_name = f"pagestyle{COLUMNS[self.section_index]}"
+        self.page_layout_name = self._section_data['page-layout']
 
         # headers and footers
-        # print(f".. orientation: {landscape}, section_width: {self.section_width}")
         self.header_first = ContextPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
         self.header_odd   = ContextPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
         self.header_even  = ContextPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
@@ -77,29 +76,6 @@ class ContextSectionBase(object):
         self.section_contents = ContextContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
 
 
-
-    ''' generates section geometry
-    '''
-    def get_geometry(self):
-        geometry_lines = []
-
-        paper = self.page_spec['name']
-        page_width = self.page_spec['width']
-        page_height = self.page_spec['height']
-        top_margin = self.margin_spec['top']
-        bottom_margin = self.margin_spec['bottom']
-        left_margin = self.margin_spec['left']
-        right_margin = self.margin_spec['right']
-
-        geometry_lines.append(f"\t\\pagebreak")
-
-        geometry_lines.append(f"\t\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.landscape}}}")
-
-        geometry_lines = mark_as_context(lines=geometry_lines)
-
-        return geometry_lines
-
- 
 
     ''' generates section heading
     '''
@@ -149,25 +125,6 @@ class ContextSectionBase(object):
         if self.footer_even.has_content:
             hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_even.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
 
-        # now the pagestyle
-        hf_lines = hf_lines + fancy_pagestyle_header(self.page_style_name)
-        if self.header_odd.has_content:
-            hf_lines.append(f"\t\t\t\\fancyhead[O]{{\\{self.header_odd.page_header_footer_id}}}")
-
-        if self.header_even.has_content:
-            hf_lines.append(f"\t\t\t\\fancyhead[E]{{\\{self.header_even.page_header_footer_id}}}")
-
-        if self.footer_odd.has_content:
-            hf_lines.append(f"\t\t\t\\fancyfoot[O]{{\\{self.footer_odd.page_header_footer_id}}}")
-
-        if self.footer_even.has_content:
-            hf_lines.append(f"\t\t\t\\fancyfoot[E]{{\\{self.footer_even.page_header_footer_id}}}")
-
-        hf_lines.append(f"\t\t}}")
-        hf_lines.append(f"\t\\pagestyle{{{self.page_style_name}}}")
-
-        # TODO
-        hf_lines = [f"% PageStyle: [{self.page_style_name}]"] + hf_lines
 
         hf_lines = mark_as_context(lines=hf_lines)
 
@@ -180,30 +137,27 @@ class ContextSectionBase(object):
     def section_to_context(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = [f"\n% BEGIN ContextSection: [{self.section_id}]"]
+        section_lines = []
 
-        geometry_lines = []
-        # page geometry changes only when a new section starts or if it is the first section
+        # page layout changes only when a new section starts or if it is the first section
         if self.section_break or self.first_section:
-            geometry_lines = self.get_geometry()
+            section_lines.append(f"\\setuppapersize[{self._section_data['page-spec']},{self.landscape}]")
+            section_lines.append(f"\\setuplayout[{self.page_layout_name}]")
 
 
         # header/footer lines
         hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
-        content_lines = []
         # the section may have a page-break
         if self.page_break:
-            content_lines.append(f"\t\\pagebreak")
-
-        content_lines = mark_as_context(lines=content_lines)
+            section_lines.append(f"\t\\page")
 
 
         # section heading is always applicable
-        heading_lines = self.get_heading()
+        section_lines = section_lines + self.get_heading()
 
-        return section_lines + geometry_lines + hf_lines + content_lines + heading_lines
+        return section_lines
 
 
 
@@ -227,11 +181,14 @@ class ContextTableSection(ContextSectionBase):
         section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # get the contents
-        content_lines = self.section_contents.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = section_lines + self.section_contents.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
-        section_end_lines = [f"\n% END   ContextSection: [{self.section_id}]"]
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        return section_lines + content_lines + section_end_lines
+        section_lines = [''] + section_lines + ['']
+
+        return section_lines
 
 
 
@@ -299,18 +256,26 @@ class ContextToCSection(ContextSectionBase):
     ''' generates the ConTeXt code
     '''
     def section_to_context(self, color_dict, document_footnotes):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
-        content_lines.append("\\renewcommand{\\contentsname}{}")
-        content_lines.append("\\vspace{-0.5in}")
-        content_lines.append("\\tableofcontents")
-        content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_context(lines=content_lines)
+        content_lines.append("\\placecontent")
 
-        section_end_lines = [f"\n% END   ContextSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        # wrap in start/stop title
+        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=Table of Contents', indent_level=1)
+
+        # merge contents in section
+        section_lines = section_lines + content_lines + ['']
+
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
+
+        section_lines = [''] + section_lines + ['']
+
+        return section_lines
 
 
 
@@ -327,18 +292,26 @@ class ContextLoTSection(ContextSectionBase):
     ''' generates the ConTeXt code
     '''
     def section_to_context(self, color_dict, document_footnotes):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
-        content_lines.append("\\renewcommand{\\listtablename}{}")
-        content_lines.append("\\vspace{-0.4in}")
-        content_lines.append("\\listoftables")
-        content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_context(lines=content_lines)
+        content_lines.append("\\placelistoftables")
 
-        section_end_lines = [f"\n% END   ContextSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        # wrap in start/stop title
+        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=List of Tables', indent_level=1)
+
+        # merge contents in section
+        section_lines = section_lines + content_lines + ['']
+
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
+
+        section_lines = [''] + section_lines + ['']
+
+        return section_lines
 
 
 
@@ -355,18 +328,26 @@ class ContextLoFSection(ContextSectionBase):
     ''' generates the ConTeXt code
     '''
     def section_to_context(self, color_dict, document_footnotes):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
-        content_lines.append("\\renewcommand{\\listfigurename}{}")
-        content_lines.append("\\vspace{-0.4in}")
-        content_lines.append("\\listoffigures")
-        content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
-        content_lines = mark_as_context(lines=content_lines)
+        content_lines.append("\\placelistoffigures")
 
-        section_end_lines = [f"\n% END   ContextSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        # wrap in start/stop title
+        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=List of Figures', indent_level=1)
+
+        # merge contents in section
+        section_lines = section_lines + content_lines + ['']
+
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
+
+        section_lines = [''] + section_lines + ['']
+
+        return section_lines
 
 
 
@@ -740,7 +721,8 @@ class ContextTable(ContextBlock):
             template_lines.append(f"\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
             table_type = "longtblr"
             table_start_lines = [f"% BEGIN ContextTable: [{self.table_id}]\n"]
-            table_end_lines = [f"\n% END   ContextTable: [{self.table_id}]"]
+            # table_end_lines = [f"\t\n% END   ContextTable: [{self.table_id}]"]
+            table_end_lines = []
         else:
             table_type = "tblr"
             table_start_lines = []
@@ -875,7 +857,8 @@ class ContextParagraph(ContextBlock):
             # \\setfnsymbol for the footnotes, this needs to go before the table
             block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
 
-        return [f"\n\n% BEGIN ContextParagraph: [{self.paragraph_id}]\n"] + block_lines + [f"\n% END   ContextParagraph: [{self.paragraph_id}]\n\n"]
+        # return [f"\n\n% BEGIN ContextParagraph: [{self.paragraph_id}]\n"] + block_lines + [f"\n% END   ContextParagraph: [{self.paragraph_id}]\n\n"]
+        return [] + block_lines + []
 
 
 

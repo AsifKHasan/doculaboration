@@ -1,93 +1,101 @@
 % BEGIN Document
+% BEGIN Macros and configs
 
-\replacemissingcharacters
-\enabletrackers[fonts.missing]
+  \replacemissingcharacters
+  \enabletrackers[fonts.missing]
 
-% Language = English
-\mainlanguage[en]
+  % Language = English
+  \mainlanguage[en]
 
-% Fonts and fallbacks
-    \definefontfeature[default][
-      mode=node,kern=yes,
-      liga=yes,tlig=yes,
-      ccmp=yes,language=dflt,
-      protrusion=quality,
-      expansion=quality,
-      analyze=yes,
-      devanagari=yes,
-      keepligatures=yes,
-      compat-ligatures=yes,
-      char-ligatures=yes,
-      compose=yes
-    ]
+  % macro for changing font size
+  \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
 
-    \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
-    \definefontfamily     [mainfont] [rm] [Latin Modern Roman]
-    \definefallbackfamily [mainfont] [ss] [notosansbengali]     [range=bengali]
-    \definefontfamily     [mainfont] [ss] [Latin Modern Sans]
-    \definefontfamily     [mainfont] [tf] [Latin Modern Roman]
-    \definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
-    \setupbodyfont        [mainfont,10pt]
+  %% double sided
+  % \setuppagenumbering[alternative=doublesided]
+
+  % footnote configuration
+  \setupnotation[footnote][way=bypage]
+  \setupnote[footnote][]
+  
+% END   Macros and configs
 
 
-    %% fallbacks for Bangla
-    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
-    %                     [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
-    %                     [0x0980:0x09FF] [force=yes]
+% BEGIN Fonts and fallbacks
+  \definefontfeature[default][
+    mode=node,kern=yes,
+    liga=yes,tlig=yes,
+    ccmp=yes,language=dflt,
+    protrusion=quality,
+    expansion=quality,
+    analyze=yes,
+    devanagari=yes,
+    keepligatures=yes,
+    compat-ligatures=yes,
+    char-ligatures=yes,
+    compose=yes
+  ]
 
-    %% Now we hook the fallbacks into their respective type faces.
-    % \starttypescript [serif] [mainfont]
-    %     \setups[font:fallback:serif]
-    %         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
-    %         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
-    %         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
-    %         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
-    % \stoptypescript
-
-    %% Complete the typescript for all four type faces. Note that we default
-    %% to the predefined Latin Modern setups for the three other faces.
-    % \starttypescript [mainfont]
-    %     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
-    %     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
-    %     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
-    %     \definetypeface [mainfont] [mm] [math]  [modern] [default]
-    % \stoptypescript
+  \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
+  \definefontfamily     [mainfont] [rm] [Latin Modern Roman]
+  \definefallbackfamily [mainfont] [ss] [notosansbengali]     [range=bengali]
+  \definefontfamily     [mainfont] [ss] [Latin Modern Sans]
+  \definefontfamily     [mainfont] [tf] [Latin Modern Roman]
+  \definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
+  \setupbodyfont        [mainfont,10pt]
 
 
-    %% Font = Latin Modern, 10 point
-    % \setupbodyfont[mainfont,10pt]
+  %% fallbacks for Bangla
+  % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
+  %                     [0x0980:0x09FF] [force=yes]
+  % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
+  %                     [0x0980:0x09FF] [force=yes]
+  % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
+  %                     [0x0980:0x09FF] [force=yes]
+  % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
+  %                     [0x0980:0x09FF] [force=yes]
+
+  %% Now we hook the fallbacks into their respective type faces.
+  % \starttypescript [serif] [mainfont]
+  %     \setups[font:fallback:serif]
+  %         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
+  %         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
+  %         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
+  %         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
+  % \stoptypescript
+
+  %% Complete the typescript for all four type faces. Note that we default
+  %% to the predefined Latin Modern setups for the three other faces.
+  % \starttypescript [mainfont]
+  %     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
+  %     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
+  %     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
+  %     \definetypeface [mainfont] [mm] [math]  [modern] [default]
+  % \stoptypescript
 
 
-    % macro for changing font size
-    \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+  %% Font = Latin Modern, 10 point
+  % \setupbodyfont[mainfont,10pt]
+
+% END   Fonts and fallbacks
 
 
-% Heading styles
-    % Heading 0
-    \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+% BEGIN Heading styles
 
-    % Heading 1
-    \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+  % Heading 0
+  \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
-    % Heading 2
-    \setuphead[section][style=\bfb]
+  % Heading 1
+  \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
-    % Heading 3
-    \setuphead[subsection][style=\bfa]
+  % Heading 2
+  \setuphead[section][style=\bfb]
 
-    % Heading 4
-    \setuphead[subsubsection][style=\bf]
+  % Heading 3
+  \setuphead[subsection][style=\bfa]
 
+  % Heading 4
+  \setuphead[subsubsection][style=\bf]
 
-%% double sided
-% \setuppagenumbering[alternative=doublesided]
-
-\setupnotation[footnote][way=bypage]
-\setupnote[footnote][]
+% END   Heading styles
 
 

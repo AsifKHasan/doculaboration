@@ -1,24 +1,38 @@
 % BEGIN Document
+% BEGIN Macros and configs
 
-\replacemissingcharacters
-\enabletrackers[fonts.missing]
+    \replacemissingcharacters
+    \enabletrackers[fonts.missing]
 
-% Language = English
-\mainlanguage[en]
+    % Language = English
+    \mainlanguage[en]
 
-% Fonts and fallbacks
+    % macro for changing font size
+    \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+
+    %% double sided
+    % \setuppagenumbering[alternative=doublesided]
+
+    % footnote configuration
+    \setupnotation[footnote][way=bypage]
+    \setupnote[footnote][]
+
+% END   Macros and configs
+
+
+% BEGIN Fonts and fallbacks
     \definefontfeature[default][
-        mode=node,kern=yes,
-        liga=yes,tlig=yes,
-        ccmp=yes,language=dflt,
-        protrusion=quality,
-        expansion=quality,
-        analyze=yes,
-        devanagari=yes,
-        keepligatures=yes,
-        compat-ligatures=yes,
-        char-ligatures=yes,
-        compose=yes
+    mode=node,kern=yes,
+    liga=yes,tlig=yes,
+    ccmp=yes,language=dflt,
+    protrusion=quality,
+    expansion=quality,
+    analyze=yes,
+    devanagari=yes,
+    keepligatures=yes,
+    compat-ligatures=yes,
+    char-ligatures=yes,
+    compose=yes
     ]
 
     \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
@@ -31,10 +45,14 @@
 
 
     %% fallbacks for Bangla
-    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]             [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]        [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]      [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic] [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
+    %                     [0x0980:0x09FF] [force=yes]
+    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
+    %                     [0x0980:0x09FF] [force=yes]
 
     %% Now we hook the fallbacks into their respective type faces.
     % \starttypescript [serif] [mainfont]
@@ -48,22 +66,21 @@
     %% Complete the typescript for all four type faces. Note that we default
     %% to the predefined Latin Modern setups for the three other faces.
     % \starttypescript [mainfont]
-    %     \definetypeface [mainfont] [rm] [serif] [mainfont]    [default]
-    %     \definetypeface [mainfont] [ss] [sans]  [modern]      [default]
-    %     \definetypeface [mainfont] [tt] [mono]  [modern]      [default]
-    %     \definetypeface [mainfont] [mm] [math]  [modern]      [default]
+    %     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
+    %     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
+    %     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
+    %     \definetypeface [mainfont] [mm] [math]  [modern] [default]
     % \stoptypescript
 
 
     %% Font = Latin Modern, 10 point
     % \setupbodyfont[mainfont,10pt]
 
-
-    % macro for changing font size
-    \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+% END   Fonts and fallbacks
 
 
-% Heading styles
+% BEGIN Heading styles
+
     % Heading 0
     \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
@@ -79,15 +96,11 @@
     % Heading 4
     \setuphead[subsubsection][style=\bf]
 
-
-% double sided
-% \setuppagenumbering[alternative=doublesided]
-
-\setupnotation[footnote][way=bypage]
-\setupnote[footnote][]
+% END Heading styles
 
 
-% Define Colors
+% BEGIN Define Colors
+
     \definecolor[ffffff][x=ffffff]
     \definecolor[ff0000][x=ff0000]
     \definecolor[e0e0e0][x=e0e0e0]
@@ -97,8 +110,11 @@
     \definecolor[000000][x=000000]
     \definecolor[434343][x=434343]
 
+% END   Define Colors
 
-% Page Layouts
+
+% BEGIN Page Layouts
+
     % A4, portrait, narrow
     \definelayout[a4-portrait-narrow][
         % gutter + left-margin
@@ -145,8 +161,11 @@
         bottom=0.25in
     ]
 
+% END   Page Layouts
 
-% Table definition for headers and footers
+
+% BEGIN Table definition for headers and footers
+
     % HeaderTable A4, portrait, narrow
     \startsetups [header-odd-A4-portrait]
         \bTABLEnested[frame=off]
@@ -232,6 +251,8 @@
             \eTR
         \eTABLEnested
     \stopsetups
+
+% END   Table definition for headers and footers
 
 
 % BEGIN Text

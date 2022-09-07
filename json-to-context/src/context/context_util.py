@@ -220,6 +220,53 @@ def tex_escape(text):
     return regex.sub(lambda match: CONV[match.group()], text)
 
 
+
+''' wrap with BEGIN/END comments
+'''
+def wrap_with_comment(lines, object_type=None, object_id=None, indent_level=0):
+    indent = "\t" * indent_level
+    output_lines =  list(map(lambda x: f"{indent}{x}", lines))
+
+    if object_type:
+        if object_id:
+            comment = f"{object_type}: [{object_id}]"
+
+        else:
+            comment = f"{object_type}"
+
+        # BEGIN comment
+        output_lines = [f"% BEGIN {comment}"] + output_lines
+
+        # END comment
+        output_lines.append(f"% END   {comment}")
+
+
+    return output_lines
+
+
+
+''' wrap (in start/stop) ad indent ConTeXt lines
+'''
+def indent_and_wrap(lines, wrap_in, param_string=None, indent_level=1):
+    output_lines = []
+
+    # start wrap
+    if param_string:
+        output_lines.append(f"\\start{wrap_in}[{param_string}]")
+    else:
+        output_lines.append(f"\\start{wrap_in}")
+
+    indent = "\t" * indent_level
+    output_lines = output_lines + list(map(lambda x: f"{indent}{x}", lines))
+
+    # stop wrap
+    output_lines.append(f"\\stop{wrap_in}")
+
+
+    return output_lines
+
+
+
 '''
 '''
 def mark_as_context(lines):
@@ -235,19 +282,6 @@ def mark_as_context(lines):
 
     else:
         return lines
-
-
-
-''' fancy pagestyle
-'''
-def fancy_pagestyle_header(page_style_name):
-    lines = []
-    lines.append(f"\t\\fancypagestyle{{{page_style_name}}}{{")
-    lines.append(f"\t\t\\fancyhf{{}}")
-    lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
-    lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
-
-    return lines
 
 
 

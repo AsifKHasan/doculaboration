@@ -37,8 +37,6 @@ class ContextHelper(object):
         section_index = 0
 
         self.document_lines = []
-        self.document_lines.append("% BEGIN Text")
-        self.document_lines.append("\\starttext")
 
         self.color_dict = {}
         self._config
@@ -72,39 +70,61 @@ class ContextHelper(object):
 
             first_section = False
             section_index = section_index + 1
-            
 
-        # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
-        self.header_lines.append("% Define Colors")
+
+
+        # \definecolor
+        color_lines = []
         for k,v in self.color_dict.items():
-            self.header_lines.append(f"\t\definecolor[{k}][x={v}]")
+            color_lines.append(f"\\definecolor[{k}][x={v}]")
 
-        self.header_lines.append("\n")
+        # wrap in BEGIN/end comments
+        color_lines = wrap_with_comment(lines=color_lines, object_type='Define Colors', indent_level=1)
+
+        color_lines.append("\n")
+        self.header_lines = self.header_lines + color_lines
+
 
 
         # define the footnote sysmbols through DefineFNsymbols
-        self.header_lines.append("% Footnote Symbols")
+        footnote_symbol_lines = []
         for k, v in self.document_footnotes.items():
             if len(v):
-                self.header_lines = self.header_lines + list(map(lambda x: f"\t{x}", define_fn_symbols(name=k, item_list=v)))
-                self.header_lines.append('')
+                footnote_symbol_lines = footnote_symbol_lines + list(map(lambda x: f"\t{x}", define_fn_symbols(name=k, item_list=v)))
+                footnote_symbol_lines.append('')
 
-        self.header_lines.append("")
+        # wrap in BEGIN/end comments
+        footnote_symbol_lines = wrap_with_comment(lines=footnote_symbol_lines, object_type='Footnote Symbols')
+
+        footnote_symbol_lines.append("\n")
+        self.header_lines = self.header_lines + footnote_symbol_lines
 
 
         # Page Layouts
-        self.header_lines.append("% Page Layouts")
+        page_layout_lines = []
         for k, v in page_layouts.items():
-            self.header_lines = self.header_lines + list(map(lambda x: f"\t{x}", v))
-            self.header_lines.append('')
+            page_layout_lines = page_layout_lines + list(map(lambda x: f"\t{x}", v))
+            page_layout_lines.append('')
 
-        self.header_lines.append("")
+        # wrap in BEGIN/end comments
+        page_layout_lines = wrap_with_comment(lines=page_layout_lines, object_type='Page Layouts')
+
+        page_layout_lines.append("\n")
+        self.header_lines = self.header_lines + page_layout_lines
 
 
-        # document closing tags/comments        
-        self.document_lines.append("\\stoptext")
-        self.document_lines.append("% END Text")
-        self.document_lines.append("% END Document")
+
+
+
+        # wrap in start/stop text
+        self.document_lines = indent_and_wrap(lines=self.document_lines, wrap_in='text', indent_level=1)
+
+        # wrap in BEGIN/end comments
+        self.document_lines = wrap_with_comment(lines=self.document_lines, object_type='Text', object_id=None)
+
+        # Document END comment
+        self.document_lines.append("% END   Document")
+
 
         # save the markdown document string in a file
         with open(self._config['files']['output-context'], "w", encoding="utf-8") as f:
