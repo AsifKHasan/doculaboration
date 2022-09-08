@@ -80,24 +80,22 @@ class ContextSectionBase(object):
     ''' generates section heading
     '''
     def get_heading(self):
-        heading_lines = []
         if not self.hide_heading:
-            heading_text = self.heading
+            heading_title = self.heading
             if self.section != '':
-                heading_text = f"{self.section} {heading_text}".strip()
+                heading_title = f"{self.section} {heading_title}".strip()
 
-            heading_text = tex_escape(heading_text)
+            heading_title = tex_escape(heading_title)
 
             # headings are styles based on level
             outline_level = self.level + self.nesting_level
-            if outline_level == 0:
-                heading_lines.append(f"\\titlestyle{{ {heading_text} }}")
-            else:
-                heading_tag = LATEX_HEADING_MAP.get(f"Heading {outline_level}")
-                heading_lines.append(f"\\phantomsection")
-                heading_lines.append(f"\\{heading_tag}{{ {heading_text} }}")
 
-        return mark_as_context(lines=heading_lines)
+        else:
+            heading_title = None
+            outline_level = -1
+
+
+        return heading_title, outline_level
 
 
 
@@ -145,7 +143,7 @@ class ContextSectionBase(object):
             section_lines.append(f"\\setuplayout[{self.page_layout_name}]")
 
 
-        # header/footer lines
+        # TODO: header/footer lines
         hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
@@ -153,9 +151,6 @@ class ContextSectionBase(object):
         if self.page_break:
             section_lines.append(f"\t\\page")
 
-
-        # section heading is always applicable
-        section_lines = section_lines + self.get_heading()
 
         return section_lines
 
@@ -183,12 +178,16 @@ class ContextTableSection(ContextSectionBase):
         # get the contents
         section_lines = section_lines + self.section_contents.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
+        # wrap in start/stop title/chapter/section/subsection/subsubsection etc.
+        heading_title, outline_level = self.get_heading()
+        if heading_title:
+            section_lines = indent_and_wrap(lines=section_lines, wrap_in=LEVEL_TO_TITLE[outline_level], param_string=f"title={heading_title}", indent_level=1)
+
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines + ['']
 
-        return section_lines
+        return [''] + section_lines + ['']
 
 
 
@@ -596,21 +595,9 @@ class ContextContent(object):
         context_lines = []
 
         # iterate through tables and blocks contents
-        last_block_is_a_paragraph = False
         for block in self.content_list:
-            # if current block is a paragraph and last block was also a paragraph, insert a newline
-            if isinstance(block, ContextParagraph) and last_block_is_a_paragraph:
-                context_lines.append(f"\t\\\\[{0}pt]")
-
             context_lines = context_lines + block.block_to_context(longtable=True, color_dict=color_dict, document_footnotes=document_footnotes)
 
-            # keep track of the block as the previous block
-            if isinstance(block, ContextParagraph):
-                last_block_is_a_paragraph = True
-            else:
-                last_block_is_a_paragraph = False
-
-        context_lines = mark_as_context(lines=context_lines)
 
         return context_lines
 
@@ -709,85 +696,81 @@ class ContextTable(ContextBlock):
         if (self.table_id not in document_footnotes):
             document_footnotes[self.table_id] = []
 
-        # table template
-        template_lines = []
-        if longtable:
-            template_lines.append(f"\\DefTblrTemplate{{caption-tag}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{caption-sep}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{caption-text}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{conthead}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{contfoot}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{conthead-text}}{{default}}{{}}")
-            template_lines.append(f"\\DefTblrTemplate{{contfoot-text}}{{default}}{{}}")
-            table_type = "longtblr"
-            table_start_lines = [f"% BEGIN ContextTable: [{self.table_id}]\n"]
-            # table_end_lines = [f"\t\n% END   ContextTable: [{self.table_id}]"]
-            table_end_lines = []
-        else:
-            table_type = "tblr"
-            table_start_lines = []
-            table_end_lines = []
+        # table setups
+        setup_lines = []
 
-        # optional inner keys
-        table_inner_keys = [f"caption=,", f"entry=none,", f"label=none,", f"presep={0}pt,", f"postsep={0}pt,"]
-        table_inner_keys = list(map(lambda x: f"\t\t{x}", table_inner_keys))
-
-        # table spec keys
-        table_col_spec = ''.join([f"p{{{i}in}}" for i in self.column_widths])
-        table_col_spec = f"colspec={{{table_col_spec}}},"
-        table_rulesep = f"rulesep={0}pt,"
-        table_stretch = f"stretch={1.0},"
-        table_vspan = f"vspan=even,"
-        table_hspan = f"hspan=minimal,"
-        table_rows = f"rows={{ht={12}pt}},"
-        table_rowhead = f"rowhead={self.header_row_count},"
-
-        # table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_rows]
-        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan]
-        if longtable:
-            table_spec_keys.append(table_rowhead)
-
-        table_spec_keys = list(map(lambda x: f"\t\t{x}", table_spec_keys))
-
-        table_lines = []
-        table_lines = table_lines + template_lines
-        table_lines.append(f"\\begin{{{table_type}}}[")
-        table_lines = table_lines + table_inner_keys
-        table_lines.append("\t]{")
-        table_lines = table_lines + table_spec_keys
-
+        setup_lines.append(f"\\setupTABLE{context_option(split='repeat', header='repeat', loffset='0.05in', roffset='0.05in', frame='on')}")
+        c = 1
+        for col_width in self.column_widths:
+            col_width = f"{col_width}in"
+            setup_lines.append(f"\\setupTABLE[{c}]{context_option(width=col_width)}")
+            c = c + 1
 
         # generate row formats
         r = 1
         for row in self.table_cell_matrix:
-            row_format_line = f"\t\t{row.row_format_to_context(r=r, color_dict=color_dict)}"
-            table_lines.append(row_format_line)
+            # row_format_line = f"\t\t{row.row_format_to_context(r=r, color_dict=color_dict)}"
+            # table_lines.append(row_format_line)
             r = r + 1
 
         # generate cell formats
         r = 1
         for row in self.table_cell_matrix:
-            cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_formats_to_context(r=r, color_dict=color_dict)))
-            table_lines = table_lines + cell_format_lines
+            # cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_formats_to_context(r=r, color_dict=color_dict)))
+            # table_lines = table_lines + cell_format_lines
             r = r + 1
 
         # generate vertical borders
         r = 1
         for row in self.table_cell_matrix:
-            v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_to_context(r=r, color_dict=color_dict)))
-            table_lines = table_lines + v_lines
+            # v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_to_context(r=r, color_dict=color_dict)))
+            # table_lines = table_lines + v_lines
             r = r + 1
 
-        # close the table definition
-        table_lines.append(f"\t}}")
 
-        # generate cell values
-        for row in self.table_cell_matrix:
-            row_lines = list(map(lambda x: f"\t{x}", row.cell_contents_to_context(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)))
-            table_lines = table_lines + row_lines
+        # repeat-rows should go under TABLEhead
+        table_header_lines = []
+        if self.header_row_count > 0:
 
-        table_lines.append(f"\t\\end{{{table_type}}}")
-        table_lines = list(map(lambda x: f"\t{x}", table_lines))
+            # generate cell values
+            for row in self.table_cell_matrix[0:self.header_row_count]:
+                row_lines = row.row_contents_to_context(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+
+                # wrap in b/e TR
+                row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+                # wrap in BEGIN/end comments
+                row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
+                row_lines = [''] + row_lines + ['']
+
+                table_header_lines = table_header_lines + row_lines
+
+            # wrap in b/e TABLEhead
+            table_header_lines = indent_and_wrap(lines=table_header_lines, wrap_in='TABLEhead', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+
+        # 
+        # generate bTABLEbody cell values
+        table_body_lines = []
+        for row in self.table_cell_matrix[self.header_row_count:]:
+            row_lines = row.row_contents_to_context(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+
+            # wrap in b/e TR
+            row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+            # wrap in BEGIN/end comments
+            row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
+            row_lines = [''] + row_lines + ['']
+
+            table_body_lines = table_body_lines + row_lines
+
+
+        # wrap in b/e TABLEbody
+        table_body_lines = indent_and_wrap(lines=table_body_lines, wrap_in='TABLEbody', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+
+        # actual table
+        table_lines = table_header_lines + table_body_lines
 
         # ConTeXt footnotes
         footnote_texts = document_footnotes[self.table_id]
@@ -798,13 +781,24 @@ class ContextTable(ContextBlock):
                 footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
                 table_lines.append(footnote_text)
 
-            # \\setfnsymbol for the footnotes, this needs to go before the table
-            table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
+            # TODO: \\setfnsymbol for the footnotes, this needs to go before the table
+            # table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
 
-        # if not strip_comments:
-        #     table_lines = [f"% ContextTable: ({self.start_row+1}-{self.end_row+1}) : {self.row_count} rows"] + table_lines
+        
+        # wrap in b/e TABLE
+        table_lines = indent_and_wrap(lines=table_lines, wrap_in='TABLE', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
-        return table_start_lines + table_lines + table_end_lines
+
+        # TODO: merge all lines
+        table_lines = setup_lines + table_lines
+
+        # wrap in start/stop postponingnotes
+        table_lines = indent_and_wrap(lines=table_lines, wrap_in='postponingnotes', indent_level=1)
+
+        # wrap in BEGIN/end comments
+        table_lines = wrap_with_comment(lines=table_lines, object_type='ContextTable', object_id=self.table_id, indent_level=1)
+
+        return [''] + table_lines + ['']
 
 
 
@@ -826,7 +820,7 @@ class ContextParagraph(ContextBlock):
 
     ''' generates the ConTeXt code
     '''
-    def block_to_context(self, longtable, color_dict, document_footnotes, strip_comments=False):
+    def block_to_context(self, longtable, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # for storing the footnotes (if any) for this block
@@ -834,8 +828,6 @@ class ContextParagraph(ContextBlock):
             document_footnotes[self.paragraph_id] = []
 
         block_lines = []
-        # if not strip_comments:
-        #     block_lines.append(f"% ContextParagraph: row {self.row_number+1}")
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
@@ -857,8 +849,14 @@ class ContextParagraph(ContextBlock):
             # \\setfnsymbol for the footnotes, this needs to go before the table
             block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
 
-        # return [f"\n\n% BEGIN ContextParagraph: [{self.paragraph_id}]\n"] + block_lines + [f"\n% END   ContextParagraph: [{self.paragraph_id}]\n\n"]
-        return [] + block_lines + []
+        # wrap in start/stop postponingnotes
+        block_lines = indent_and_wrap(lines=block_lines, wrap_in='postponingnotes', indent_level=1)
+        block_lines = []
+
+        # wrap in BEGIN/end comments
+        block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
+
+        return [''] + block_lines + ['']
 
 
 
@@ -874,7 +872,8 @@ class Cell(object):
     '''
     def __init__(self, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
         self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
-        self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_name = self.cell_id
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
@@ -961,57 +960,59 @@ class Cell(object):
                 # get the ConTeXt code
                 cell_value = self.cell_value.value_to_context(block_id=block_id, container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=self.note.footnotes)
 
-                # paragraphs need formatting to be included, table cells do not need them
-                if include_formatting:
-                    # alignments and bgcolor
-                    if self.effective_format:
-                        halign = PARA_HALIGN.get(self.effective_format.halign.halign)
-                    else:
-                        halign = PARA_HALIGN.get('LEFT')
+                # # paragraphs need formatting to be included, table cells do not need them
+                # if include_formatting:
+                #     # alignments and bgcolor
+                #     if self.effective_format:
+                #         halign = PARA_HALIGN.get(self.effective_format.halign.halign)
+                #     else:
+                #         halign = PARA_HALIGN.get('LEFT')
 
-                    cell_value = f"{halign}{{{cell_value}}}"
+                #     cell_value = f"{halign}{{{cell_value}}}"
 
 
-                # the cell may have a left_hspace or right_hspace
-                if left_hspace:
-                    cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
+                # # the cell may have a left_hspace or right_hspace
+                # if left_hspace:
+                #     cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
 
-                if right_hspace:
-                    cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
+                # if right_hspace:
+                #     cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
 
-                # handle new-page defined in notes
-                if self.note.new_page:
-                    content_lines.append(f"\\pagebreak")
+                # # handle new-page defined in notes
+                # if self.note.new_page:
+                #     content_lines.append(f"\\pagebreak")
 
-                # handle keep-with-previous defined in notes
-                if self.note.keep_with_previous:
-                    content_lines.append(f"\\nopagebreak")
+                # # handle keep-with-previous defined in notes
+                # if self.note.keep_with_previous:
+                #     content_lines.append(f"\\nopagebreak")
 
-                # the actual content
+                # # the actual content
+                # content_lines.append(cell_value)
+
+                # # handle styles defined in notes
+                # if self.note.style == 'Figure':
+                #     # caption for figure
+                #     # content_lines.append(f"\\neeedspace{{2em}}")
+                #     content_lines.append(f"\\phantomsection")
+                #     content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.formatted_value)}}}")
+
+                # elif self.note.style == 'Table':
+                #     # caption for table
+                #     # content_lines.append(f"\\neeedspace{{2em}}")
+                #     content_lines.append(f"\\phantomsection")
+                #     content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.formatted_value)}}}")
+
+                # elif self.note.style:
+                #     # some custom style needs to be applied
+                #     heading_tag = LATEX_HEADING_MAP.get(self.note.style)
+                #     if heading_tag:
+                #         # content_lines.append(f"\\neeedspace{{2em}}")
+                #         content_lines.append(f"\\phantomsection")
+                #         content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.formatted_value)}}}")
+                #     else:
+                #         warn(f"style : {self.note.style} not defined")
+
                 content_lines.append(cell_value)
-
-                # handle styles defined in notes
-                if self.note.style == 'Figure':
-                    # caption for figure
-                    # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\phantomsection")
-                    content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.formatted_value)}}}")
-
-                elif self.note.style == 'Table':
-                    # caption for table
-                    # content_lines.append(f"\\neeedspace{{2em}}")
-                    content_lines.append(f"\\phantomsection")
-                    content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.formatted_value)}}}")
-
-                elif self.note.style:
-                    # some custom style needs to be applied
-                    heading_tag = LATEX_HEADING_MAP.get(self.note.style)
-                    if heading_tag:
-                        # content_lines.append(f"\\neeedspace{{2em}}")
-                        content_lines.append(f"\\phantomsection")
-                        content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.formatted_value)}}}")
-                    else:
-                        warn(f"style : {self.note.style} not defined")
 
         return content_lines
 
@@ -1161,7 +1162,8 @@ class Row(object):
     '''
     def __init__(self, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
         self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
-        self.row_name = f"row: [{self.row_num+1}]"
+        self.row_id = f"{self.row_num+1}"
+        self.row_name = f"row: [{self.row_id}]"
 
         self.cells = []
         c = 0
@@ -1306,25 +1308,10 @@ class Row(object):
 
     ''' generates the ConTeXt code
     '''
-    def cell_contents_to_context(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, header_footer=None):
+    def row_contents_to_context(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
-        # if not strip_comments:
-        row_lines.append(f"% {self.row_name}")
-
-        # borders
-        top_border_lines = self.top_borders_to_context(color_dict=color_dict)
-        top_border_lines = list(map(lambda x: f"\t{x}", top_border_lines))
-
-        bottom_border_lines = self.bottom_borders_to_context(color_dict=color_dict)
-        bottom_border_lines = list(map(lambda x: f"\t{x}", bottom_border_lines))
-
-        # left_border_lines = self.left_borders_context(color_dict)
-        # left_border_lines = list(map(lambda x: f"\t{x}", left_border_lines))
-
-        # right_border_lines = self.right_borders_context(color_dict)
-        # right_border_lines = list(map(lambda x: f"\t{x}", right_border_lines))
 
         # gets the cell ConTeXt lines
         all_cell_lines = []
@@ -1334,41 +1321,31 @@ class Row(object):
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
+
+            elif cell.is_empty:
+                cell_lines = []
+
             else:
                 left_hspace = None
                 right_hspace = None
-                # if the cell is for a header/footer based on column add hspace
-                if header_footer in ['header', 'footer']:
-                    # first column has a left -ve hspace
-                    if c == 0:
-                        left_hspace = HEADER_FOOTER_FIRST_COL_HSPACE
-
-                    # first column has a left -ve hspace
-                    if c == len(self.cells) - 1:
-                        right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
 
                 cell_lines = cell.cell_content_to_context(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
-            if c > 0:
-                all_cell_lines.append('&')
+                # wrap in b/e TR
+                # param_string is the marge spec
+                cell_lines = indent_and_wrap(lines=cell_lines, wrap_in='TD', param_string=cell.merge_spec.to_context_option(), wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+                # wrap in BEGIN/end comments
+                cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, indent_level=1)
+                cell_lines = [''] + cell_lines + ['']
+
 
             all_cell_lines = all_cell_lines + cell_lines
             c = c + 1
 
-        all_cell_lines.append(f"\\\\")
-        all_cell_lines = list(map(lambda x: f"\t{x}", all_cell_lines))
-
-
-        # top border
-        row_lines = row_lines + top_border_lines
-        # row_lines = row_lines + left_border_lines
-        # row_lines = row_lines + right_border_lines
 
         # all cells
-        row_lines = row_lines + all_cell_lines
-
-        # bottom border
-        row_lines = row_lines + bottom_border_lines
+        row_lines = all_cell_lines
 
         return row_lines
 
@@ -1506,7 +1483,8 @@ class StringValue(CellValue):
     '''
     def value_to_context(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = False
-        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        context_code = f"{{{self.value}}}"
 
         return context_code
 
@@ -1902,9 +1880,27 @@ class CellMergeSpec(object):
         self.col_span = 1
         self.row_span = 1
 
+
     def to_string(self):
         return f"multicolumn: {self.multi_col}, multirow: {self.multi_row}"
 
+
+    ''' return something like [nr=n, nc=m]
+    '''
+    def to_context_option(self):
+        if self.row_span > 1:
+            if self.col_span > 1:
+                return context_option(nr=self.row_span, nc=self.col_span)
+            else:
+                return context_option(nr=self.row_span)
+
+        else:
+            if self.col_span > 1:
+                return context_option(nc=self.col_span)
+            else:
+                return None
+
+        return None
 
 
 ''' gsheet rowMetadata object wrapper

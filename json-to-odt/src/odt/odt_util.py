@@ -49,6 +49,7 @@ def create_graphic_style(odt, valign, halign):
     return style_name
 
 
+
 ''' frame and image
     <draw:frame draw:style-name="fr1" draw:name="Image1" text:anchor-type="paragraph" svg:width="1.5in" svg:height="1.9in" draw:z-index="0">
       <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
@@ -102,10 +103,12 @@ def create_table(odt, table_name, table_style_attributes, table_properties_attri
     return tbl
 
 
+
 ''' create table-header-rows
 '''
 def create_table_header_rows():
     return table.TableHeaderRows()
+
 
 
 ''' create TableColumn
@@ -126,6 +129,7 @@ def create_table_column(odt, table_column_name, table_column_style_attributes, t
     return table_column
 
 
+
 ''' create TableRow
 '''
 def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
@@ -143,6 +147,7 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
     table_row = table.TableRow(attributes=table_row_properties)
 
     return table_row
+
 
 
 ''' create TableCell
@@ -166,6 +171,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     table_cell = table.TableCell(attributes=table_cell_attributes)
 
     return table_cell
+
 
 
 ''' create CoveredTableCell
@@ -220,6 +226,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     return paragraph_style.getAttribute('name')
 
 
+
 ''' page number
     <text:p text:style-name="MP1">Page <text:page-number text:select-page="current">1</text:page-number>
         <text:s/>of <text:page-count>1</text:page-count>
@@ -244,6 +251,7 @@ def create_page_number(style_name, page_numbering='long'):
         paragraph.addElement(page_count)
 
     return paragraph
+
 
 
 ''' write a paragraph in a given style
@@ -276,6 +284,7 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 
     return paragraph
+
 
 
 ''' create a P or H or span
@@ -447,6 +456,7 @@ def create_mathml(odt, style_name, latex_content):
     return paragraph
 
 
+
 ''' odf.math.Math element
 '''
 def mathml_odf(mathml_content):
@@ -457,6 +467,7 @@ def mathml_odf(mathml_content):
     odf_math = mathml_odf_(math_)
 
     return odf_math
+
 
 
 ''' odf.math.Math element generator
@@ -493,6 +504,7 @@ def update_indexes(odt, odt_path):
     macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
     subprocess.call(command_line, shell=True)
+
 
 
 ''' given an odt file generates pdf in the given directory
@@ -549,6 +561,7 @@ def create_toc():
     return toc
 
 
+
 ''' create illustration-index
 '''
 def create_lof():
@@ -582,6 +595,7 @@ def create_lof():
     toc.addElement(toc_source)
 
     return toc
+
 
 
 ''' create Table-index
@@ -634,6 +648,7 @@ def get_master_page(odt, master_page_name):
     return None
 
 
+
 ''' get page-layout by name
 '''
 def get_page_layout(odt, page_layout_name):
@@ -645,6 +660,7 @@ def get_page_layout(odt, page_layout_name):
     return None
 
 
+
 ''' update page-layout of Standard master-page with the given page-layout
 '''
 def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
@@ -652,6 +668,7 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
 
     if master_page is not None:
         master_page.attributes[(master_page.qname[0], 'page-layout-name')] = new_page_layout_name
+
 
 
 ''' create (section-specific) page-layout
@@ -678,6 +695,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     return page_layout
 
 
+
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
@@ -688,6 +706,7 @@ def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_
     odt.masterstyles.addElement(master_page)
 
     return master_page
+
 
 
 ''' create header/footer
@@ -747,11 +766,13 @@ def row_height_in_inches(pixel_size):
     return float((pixel_size) / 96)
 
 
+
 ''' get a random string
 '''
 def random_string(length=12):
     letters = string.ascii_uppercase
     return ''.join(random.choice(letters) for i in range(length))
+
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
@@ -776,7 +797,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 
 
 
-'''
+''' strip LaTeX math mode delimeter ($)
 '''
 def strip_math_mode_delimeters(latex_content):
     # strip SPACES
@@ -795,12 +816,22 @@ def strip_math_mode_delimeters(latex_content):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
+# seperation (in inches) between two ODT table columns
 COLSEP = (0/72)
+
+# seperation (in inches) between two ODT table rows
 # ROWSEP = (2/72)
 
+# FACTOR by which to divide gsheet border width to get a reasonable ODT border width
+ODT_BORDER_WIDTH_FACTOR = 4
+
+# ODT page header height
 HEADER_HEIGHT = 1.8
+
+# ODT page footer height
 FOOTER_HEIGHT = 0.3
 
+# gsheet border style to ODT border style map
 GSHEET_ODT_BORDER_MAPPING = {
     'DOTTED': 'dotted',
     'DASHED': 'dash',
@@ -808,6 +839,7 @@ GSHEET_ODT_BORDER_MAPPING = {
 }
 
 
+# ODT style name to outline level map
 HEADING_TO_LEVEL = {
     'Heading 1': {'outline-level': 1},
     'Heading 2': {'outline-level': 2},
@@ -821,7 +853,7 @@ HEADING_TO_LEVEL = {
     'Heading 10': {'outline-level': 10},
 }
 
-
+# outline level to ODT style name map
 LEVEL_TO_HEADING = [
     'Title',
     'Heading 1',
@@ -837,14 +869,19 @@ LEVEL_TO_HEADING = [
 ]
 
 
+# gsheet text horizontal alignment to ODT text horizontal alignment maap
 TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
-# TEXT_HALIGN_MAP = {'LEFT': 'start', 'CENTER': 'center', 'RIGHT': 'end', 'JUSTIFY': 'justify'}
+
+# gsheet text vertical alignment to ODT text vertical alignment maap
 TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
 
+# gsheet image alignment to ODT image alignment maap
 IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
 
+# gsheet wrap strategy to ODT iwrap strategy maap
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
+# 0-based gsheet column number to column letter MAP
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
             'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']

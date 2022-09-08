@@ -1457,7 +1457,7 @@ class Border(object):
         self.color = None
 
         if border_dict:
-            self.width = border_dict.get('width') / 2
+            self.width = border_dict.get('width') / ODT_BORDER_WIDTH_FACTOR
             self.color = RgbColor(border_dict.get('color'))
 
             # TODO: handle double

@@ -92,6 +92,15 @@ LEVEL_TO_HEADING = [
     'Heading 10',
 ]
 
+LEVEL_TO_TITLE = [
+    'title',
+    'chapter',
+    'section',
+    'subsection',
+    'subsubsection',
+]
+
+
 COLUMNS = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
     'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 
@@ -189,7 +198,8 @@ def define_fn_symbols(name, item_list):
 
     lines.append(f"}}")
 
-    return lines
+    return []
+    # return lines
 
 
 
@@ -221,9 +231,25 @@ def tex_escape(text):
 
 
 
+''' build context option string from keywords
+'''
+def context_option(**kwargs):
+    result = '['
+
+    # Iterating over the Python kwargs dictionary
+    for k,v in kwargs.items():
+        result = result + f"{k}={v}, "
+    
+    result = result + ']'
+
+    return result
+
+
+
+
 ''' wrap with BEGIN/END comments
 '''
-def wrap_with_comment(lines, object_type=None, object_id=None, indent_level=0):
+def wrap_with_comment(lines, object_type=None, object_id=None, comment_prefix_start='BEGIN', comment_prefix_stop='END  ', indent_level=0):
     indent = "\t" * indent_level
     output_lines =  list(map(lambda x: f"{indent}{x}", lines))
 
@@ -235,10 +261,10 @@ def wrap_with_comment(lines, object_type=None, object_id=None, indent_level=0):
             comment = f"{object_type}"
 
         # BEGIN comment
-        output_lines = [f"% BEGIN {comment}"] + output_lines
+        output_lines = [f"% {comment_prefix_start} {comment}"] + output_lines
 
         # END comment
-        output_lines.append(f"% END   {comment}")
+        output_lines.append(f"% {comment_prefix_stop} {comment}")
 
 
     return output_lines
@@ -247,20 +273,21 @@ def wrap_with_comment(lines, object_type=None, object_id=None, indent_level=0):
 
 ''' wrap (in start/stop) ad indent ConTeXt lines
 '''
-def indent_and_wrap(lines, wrap_in, param_string=None, indent_level=1):
+def indent_and_wrap(lines, wrap_in, param_string=None, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1):
     output_lines = []
 
     # start wrap
     if param_string:
-        output_lines.append(f"\\start{wrap_in}[{param_string}]")
+        param_string = param_string.strip('[').strip(']')
+        output_lines.append(f"\\{wrap_prefix_start}{wrap_in}[{param_string}]")
     else:
-        output_lines.append(f"\\start{wrap_in}")
+        output_lines.append(f"\\{wrap_prefix_start}{wrap_in}")
 
     indent = "\t" * indent_level
     output_lines = output_lines + list(map(lambda x: f"{indent}{x}", lines))
 
     # stop wrap
-    output_lines.append(f"\\stop{wrap_in}")
+    output_lines.append(f"\\{wrap_prefix_stop}{wrap_in}")
 
 
     return output_lines
