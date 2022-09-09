@@ -7,7 +7,7 @@ set DOCUMENT=%1
 
 :: json-from-gsheet
 pushd .\gsheet-to-json\src
-.\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
+@REM .\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -29,7 +29,7 @@ popd
 
 :: context -> pdf
 pushd .\out
-ptime lualatex %DOCUMENT%.tex --output-format=pdf
+ptime context --run %DOCUMENT%.tex
 move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (

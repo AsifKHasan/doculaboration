@@ -1545,7 +1545,7 @@ class ImageValue(CellValue):
             pass
 
         image_options = context_option(width=f"{image_width_in_inches}in", height=f"{image_height_in_inches}in")
-        context_code = f"\\externalfigure[{os_specific_path(self.value['path'])}]{image_options}"
+        context_code = f"{{\\externalfigure[{os_specific_path(self.value['path'])}]{image_options}}}"
 
         # image horizontal alignment
         image_halign = self.effective_format.halign.image_halign()
