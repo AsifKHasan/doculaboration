@@ -699,33 +699,31 @@ class ContextTable(ContextBlock):
         # table setups
         setup_lines = []
 
-        setup_lines.append(f"\\setupTABLE{context_option(split='repeat', header='repeat', loffset='0.05in', roffset='0.05in', frame='on')}")
+        setup_lines.append(f"\\setupTABLE{context_option(split='repeat', header='repeat', loffset='0.05in', roffset='0.05in', frame='off')}")
         c = 1
         for col_width in self.column_widths:
             col_width = f"{col_width}in"
-            setup_lines.append(f"\\setupTABLE[{c}]{context_option(width=col_width)}")
+            setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width=col_width)}")
             c = c + 1
 
-        # generate row formats
+        setup_lines.append('')
+
+
+        # generate row setups
         r = 1
         for row in self.table_cell_matrix:
-            # row_format_line = f"\t\t{row.row_format_to_context(r=r, color_dict=color_dict)}"
-            # table_lines.append(row_format_line)
+            row_setup_lines = row.row_setups_to_context(r=r, color_dict=color_dict)
+            setup_lines = setup_lines + row_setup_lines
             r = r + 1
 
-        # generate cell formats
+
+        # generate cell setups
         r = 1
         for row in self.table_cell_matrix:
-            # cell_format_lines = list(map(lambda x: f"\t\t{x}", row.cell_formats_to_context(r=r, color_dict=color_dict)))
-            # table_lines = table_lines + cell_format_lines
+            cell_setup_lines = row.cell_setups_to_context(r=r, color_dict=color_dict)
+            setup_lines = setup_lines + cell_setup_lines
             r = r + 1
 
-        # generate vertical borders
-        r = 1
-        for row in self.table_cell_matrix:
-            # v_lines = list(map(lambda x: f"\t\t{x}", row.vertical_borders_to_context(r=r, color_dict=color_dict)))
-            # table_lines = table_lines + v_lines
-            r = r + 1
 
 
         # repeat-rows should go under TABLEhead
@@ -964,7 +962,7 @@ class Cell(object):
                 # if include_formatting:
                 #     # alignments and bgcolor
                 #     if self.effective_format:
-                #         halign = PARA_HALIGN.get(self.effective_format.halign.halign)
+                #         halign = PARA_HALIGN.get(self.effective_format.halign.cell_halign())
                 #     else:
                 #         halign = PARA_HALIGN.get('LEFT')
 
@@ -1017,29 +1015,21 @@ class Cell(object):
         return content_lines
 
 
-
-    ''' ConTeXt code for cell format
+    ''' ConTeXt code for cell setups
     '''
-    def cell_format_to_context(self, r, color_dict):
-        context_lines = []
+    def cell_setups_to_context(self, r, color_dict):
+        cell_setup_lines = []
 
-        # alignments and bgcolor
-        if self.effective_format:
-            halign = self.effective_format.halign.halign
-            valign = self.effective_format.valign.valign
-            bgcolor = self.effective_format.bgcolor
-        else:
-            halign = TBLR_HALIGN.get('LEFT')
-            valign = TBLR_VALIGN.get('MIDDLE')
-            bgcolor = self.default_format.bgcolor
-
-        # finally build the cell content
-        color_dict[bgcolor.key()] = bgcolor.value()
+        color_dict[self.effective_format.bgcolor.key()] = self.effective_format.bgcolor.value()
         if not self.is_empty:
-            cell_format_context = f"cell{{{r}}}{{{self.col_num+1}}} = {{r={self.merge_spec.row_span},c={self.merge_spec.col_span}}}{{valign={valign},halign={halign},bg={bgcolor.key()},wd={self.cell_width}in}},"
-            context_lines.append(cell_format_context)
+            cell_format_lines = self.effective_format.cellformat_to_context_options(color_dict)
+            cell_setup_lines.append(f"% Cell setups[{self.cell_id}]")
+            for line in cell_format_lines:
+                cell_setup_lines.append(f"\\setupTABLE[{self.col_num+1}][{r}]{line}")
+    
+            cell_setup_lines.append('')
 
-        return context_lines
+        return cell_setup_lines
 
 
     ''' Copy format from the cell passed
@@ -1286,24 +1276,28 @@ class Row(object):
         return v_lines
 
 
-    ''' generates the ConTeXt code for row formats
+    ''' generates the ConTeXt code for row setups
     '''
-    def row_format_to_context(self, r, color_dict):
-        row_format_line = f"row{{{r}}} = {{ht={self.row_height}in}},"
+    def row_setups_to_context(self, r, color_dict):
+        row_setup_lines = []
+        row_setup_options = context_option(height=f"{self.row_height}in")
+        row_setup_lines.append(f"% Row setups [{self.row_id}]")
+        row_setup_lines.append(f"\\setupTABLE[r][{r}]{row_setup_options}")
+        row_setup_lines.append('')
 
-        return row_format_line
+        return row_setup_lines
 
 
-    ''' generates the ConTeXt code for cell formats
+    ''' generates the ConTeXt code for cell setups
     '''
-    def cell_formats_to_context(self, r, color_dict):
-        cell_format_lines = []
+    def cell_setups_to_context(self, r, color_dict):
+        cell_setup_lines = []
         for cell in self.cells:
             if cell is not None:
                 if not cell.is_empty:
-                    cell_format_lines = cell_format_lines + cell.cell_format_to_context(r=r, color_dict=color_dict)
+                    cell_setup_lines = cell_setup_lines + cell.cell_setups_to_context(r=r, color_dict=color_dict)
 
-        return cell_format_lines
+        return cell_setup_lines
 
 
     ''' generates the ConTeXt code
@@ -1348,95 +1342,6 @@ class Row(object):
         row_lines = all_cell_lines
 
         return row_lines
-
-
-
-''' gsheet text format object wrapper
-'''
-class TextFormat(object):
-
-    ''' constructor
-    '''
-    def __init__(self, text_format_dict=None):
-        self.source = text_format_dict
-        if self.source:
-            self.fgcolor = RgbColor(rgb_dict=text_format_dict.get('foregroundColor'))
-            if 'fontFamily' in text_format_dict:
-                font_family = text_format_dict['fontFamily']
-
-                if font_family == DEFAULT_FONT:
-                    # it is the default font, so we do not need to set it
-                    self.font_family = ''
-
-                else:
-                    if font_family in FONT_MAP:
-                        # we have the font in our FONT_MAP, we replace it as per the map
-                        self.font_family = FONT_MAP.get(font_family)
-                        if self.font_family != font_family:
-                            warn(f"{font_family} is mapped to {self.font_family}")
-
-                    else:
-                        # the font is not in our FONT_MAP, use it anyway and let us see
-                        self.font_family = font_family
-
-                        # self.font_family = DEFAULT_FONT
-                        # warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
-            else:
-                self.font_family = ''
-
-            self.font_size = int(text_format_dict.get('fontSize', 0))
-            self.is_bold = text_format_dict.get('bold')
-            self.is_italic = text_format_dict.get('italic')
-            self.is_strikethrough = text_format_dict.get('strikethrough')
-            self.is_underline = text_format_dict.get('underline')
-        else:
-            self.fgcolor = RgbColor()
-            self.font_family = ''
-            self.font_size = 0
-            self.is_bold = False
-            self.is_italic = False
-            self.is_strikethrough = False
-            self.is_underline = False
-
-
-    ''' generate ConTeXt code
-    '''
-    def text_format_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
-        color_dict[self.fgcolor.key()] = self.fgcolor.value()
-
-        # process inline blocks (footnotes, LaTeX, etc. (if any))
-        content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
-
-        styled = False
-        if self.is_underline:
-            content = f"\\underline{{{content}}}"
-            styled = True
-
-        if self.is_strikethrough:
-            content = f"\\sout{{{content}}}"
-            styled = True
-
-        if self.is_italic:
-            content = f"\\textit{{{content}}}"
-            styled = True
-
-        if self.is_bold:
-            content = f"\\textbf{{{content}}}"
-            styled = True
-
-        if not styled:
-            content = f"{{{content}}}"
-
-        # color, font, font-size
-        if self.font_family != '':
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
-        else:
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\color{{{self.fgcolor.key()}}}"
-            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
-
-        context_code = f"{font_spec}{content}"
-
-        return context_code
 
 
 
@@ -1518,7 +1423,8 @@ class ContextValue(CellValue):
     '''
     def value_to_context(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = True
-        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        context_code = f"{{{self.value}}}"
 
         return context_code
 
@@ -1638,7 +1544,25 @@ class ImageValue(CellValue):
             # treat it as if image mode is 3
             pass
 
-        context_code = f"\includegraphics[width={image_width_in_inches}in]{{{os_specific_path(self.value['path'])}}}"
+        image_options = context_option(width=f"{image_width_in_inches}in", height=f"{image_height_in_inches}in")
+        context_code = f"\\externalfigure[{os_specific_path(self.value['path'])}]{image_options}"
+
+        # image horizontal alignment
+        image_halign = self.effective_format.halign.image_halign()
+        # print(image_halign)
+        image_valign = self.effective_format.valign.image_valign()
+        # print(image_halign)
+        if image_halign:
+            image_halign = f"\\{image_halign}"
+        else:
+            image_halign = ''
+
+        if image_valign:
+            image_valign = f"\\{image_valign}"
+        else:
+            image_valign = ''
+
+        context_code = f"{image_halign}{image_valign}{context_code}"
 
         return context_code
 
@@ -1724,6 +1648,116 @@ class CellFormat(object):
         self.borders.override_bottom_border(border_color=color, forced=True)
 
 
+    ''' CellFormat to ConTeXt setups
+    '''
+    def cellformat_to_context_options(self, color_dict):
+        cell_setup_options = []
+
+        # formatting
+        background = 'color'
+        backgroundcolor = self.bgcolor
+        foregroundcolor = self.text_format.fgcolor
+        align = f"{{{self.halign.cell_halign()},{self.valign.cell_valign()}}}"
+        # font_family = self.text_format.font_family
+        # font_size = self.text_format.font_size
+        cellformat_options = context_option(background=background, backgroundcolor=backgroundcolor, foregroundcolor=foregroundcolor, align=align)
+        cell_setup_options.append(cellformat_options)
+
+        # TODO: borders
+        cell_setup_options = cell_setup_options + self.borders.borders_to_context_options(color_dict)
+
+        return cell_setup_options
+
+
+
+''' gsheet text format object wrapper
+'''
+class TextFormat(object):
+
+    ''' constructor
+    '''
+    def __init__(self, text_format_dict=None):
+        self.source = text_format_dict
+        if self.source:
+            self.fgcolor = RgbColor(rgb_dict=text_format_dict.get('foregroundColor'))
+            if 'fontFamily' in text_format_dict:
+                font_family = text_format_dict['fontFamily']
+
+                if font_family == DEFAULT_FONT:
+                    # it is the default font, so we do not need to set it
+                    self.font_family = ''
+
+                else:
+                    if font_family in FONT_MAP:
+                        # we have the font in our FONT_MAP, we replace it as per the map
+                        self.font_family = FONT_MAP.get(font_family)
+                        if self.font_family != font_family:
+                            warn(f"{font_family} is mapped to {self.font_family}")
+
+                    else:
+                        # the font is not in our FONT_MAP, use it anyway and let us see
+                        self.font_family = font_family
+
+                        # self.font_family = DEFAULT_FONT
+                        # warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
+            else:
+                self.font_family = ''
+
+            self.font_size = int(text_format_dict.get('fontSize', 0))
+            self.is_bold = text_format_dict.get('bold')
+            self.is_italic = text_format_dict.get('italic')
+            self.is_strikethrough = text_format_dict.get('strikethrough')
+            self.is_underline = text_format_dict.get('underline')
+        else:
+            self.fgcolor = RgbColor()
+            self.font_family = ''
+            self.font_size = 0
+            self.is_bold = False
+            self.is_italic = False
+            self.is_strikethrough = False
+            self.is_underline = False
+
+
+    ''' generate ConTeXt code
+    '''
+    def text_format_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
+        color_dict[self.fgcolor.key()] = self.fgcolor.value()
+
+        # process inline blocks (footnotes, LaTeX, etc. (if any))
+        content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
+
+        styled = False
+        if self.is_underline:
+            content = f"\\underline{{{content}}}"
+            styled = True
+
+        if self.is_strikethrough:
+            content = f"\\sout{{{content}}}"
+            styled = True
+
+        if self.is_italic:
+            content = f"\\textit{{{content}}}"
+            styled = True
+
+        if self.is_bold:
+            content = f"\\textbf{{{content}}}"
+            styled = True
+
+        if not styled:
+            content = f"{{{content}}}"
+
+        # color, font, font-size
+        if self.font_family != '':
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
+        else:
+            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\color{{{self.fgcolor.key()}}}"
+            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
+
+        context_code = f"{font_spec}{content}"
+
+        return context_code
+
+
 
 ''' gsheet cell borders object wrapper
 '''
@@ -1793,44 +1827,31 @@ class Borders(object):
                 self.right = Border(border_dict=None)
 
 
-    ''' top border
+    ''' borders as cConTeXt options
     '''
-    def borders_to_context_t(self, color_dict):
-        t = None
+    def borders_to_context_options(self, color_dict):
+        option_lines = []
         if self.top:
-            t = self.top.border_to_context(color_dict=color_dict)
+            self.top.border_to_context(color_dict=color_dict)
+            option_line = context_option(topframe='on', framecolor=self.top.color.key(), rulethickness=f"{self.top.width}pt")
+            option_lines.append(option_line)
 
-        return t
-
-
-    ''' bottom border
-    '''
-    def borders_to_context_b(self, color_dict):
-        b = None
         if self.bottom:
-            b = self.bottom.border_to_context(color_dict=color_dict)
+            self.bottom.border_to_context(color_dict=color_dict)
+            option_line = context_option(bottomframe='on', framecolor=self.bottom.color.key(), rulethickness=f"{self.bottom.width}pt")
+            option_lines.append(option_line)
 
-        return b
-
-
-    ''' left border
-    '''
-    def borders_to_context_l(self, color_dict):
-        l = None
         if self.left:
-            l = self.left.border_to_context(color_dict=color_dict)
+            self.left.border_to_context(color_dict=color_dict)
+            option_line = context_option(leftframe='on', framecolor=self.left.color.key(), rulethickness=f"{self.left.width}pt")
+            option_lines.append(option_line)
 
-        return l
-
-
-    ''' right border
-    '''
-    def borders_to_context_r(self, color_dict):
-        r = None
         if self.right:
-            r = self.right.border_to_context(color_dict=color_dict)
+            self.right.border_to_context(color_dict=color_dict)
+            option_line = context_option(rightframe='on', framecolor=self.right.color.key(), rulethickness=f"{self.right.width}pt")
+            option_lines.append(option_line)
 
-        return r
+        return option_lines
 
 
 
@@ -1864,9 +1885,6 @@ class Border(object):
     '''
     def border_to_context(self, color_dict):
         color_dict[self.color.key()] = self.color.value()
-        context_code = f"fg={self.color.key()},wd={self.width}pt,dash={self.style}"
-
-        return context_code
 
 
 
@@ -2025,7 +2043,8 @@ class TextFormatRun(object):
     ''' generates the ConTeXt code
     '''
     def text_format_run_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
-        context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        context_code = text=text[self.start_index:]
 
         return context_code
 
@@ -2115,11 +2134,25 @@ class VerticalAlignment(object):
     ''' constructor
     '''
     def __init__(self, valign=None):
-        if valign:
-            self.valign = TBLR_VALIGN.get(valign, 'p')
-        else:
-            self.valign = TBLR_VALIGN.get('TOP')
+        self.valign = valign
 
+
+    ''' cell vertical alignment for ConTeXt
+    '''
+    def cell_valign(self):
+        if self.valign:
+            self.valign = CELL_VALIGN_MAP.get(self.valign)
+        else:
+            self.valign = CELL_VALIGN_MAP.get('TOP')
+
+
+    ''' image vertical alignment for ConTeXt
+    '''
+    def image_valign(self):
+        if self.valign:
+            return IMAGE_POSITION.get(self.valign)
+        else:
+            return IMAGE_POSITION.get('middle')
 
 
 ''' gsheet horizontal alignment object wrapper
@@ -2129,11 +2162,25 @@ class HorizontalAlignment(object):
     ''' constructor
     '''
     def __init__(self, halign=None):
-        if halign:
-            self.halign = TBLR_HALIGN.get(halign, 'LEFT')
-        else:
-            self.halign = TBLR_HALIGN.get('LEFT')
+        self.halign = halign
 
+
+    ''' cell horizontal alignment for ConTeXt
+    '''
+    def cell_halign(self):
+        if self.halign:
+            return CELL_HALIGN_MAP.get(self.halign)
+        else:
+            return CELL_HALIGN_MAP.get('LEFT')
+
+
+    ''' image horizontal alignment for ConTeXt
+    '''
+    def image_halign(self):
+        if self.halign:
+            return IMAGE_POSITION.get(self.halign)
+        else:
+            return IMAGE_POSITION.get('center')
 
 
 ''' gsheet wrapping object wrapper

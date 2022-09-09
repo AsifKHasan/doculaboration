@@ -19,7 +19,7 @@ fi
 
 # context-from-json
 pushd ./json-to-context/src
-# ${PYTHON} context-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
+${PYTHON} context-from-json.py --config "../conf/config.yml" --json ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1

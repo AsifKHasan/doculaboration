@@ -869,19 +869,19 @@ LEVEL_TO_HEADING = [
 ]
 
 
-# gsheet text horizontal alignment to ODT text horizontal alignment maap
+# gsheet text vertical alignment to ODT text vertical alignment map
 TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
 
-# gsheet text vertical alignment to ODT text vertical alignment maap
+# gsheet text horizontal alignment to ODT text horizontal alignment map
 TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
 
-# gsheet image alignment to ODT image alignment maap
+# gsheet image alignment to ODT image alignment map
 IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
 
-# gsheet wrap strategy to ODT iwrap strategy maap
+# gsheet wrap strategy to ODT iwrap strategy map
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
-# 0-based gsheet column number to column letter MAP
+# 0-based gsheet column number to column letter map
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
             'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']

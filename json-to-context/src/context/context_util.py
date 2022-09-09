@@ -9,9 +9,12 @@ import re
 
 from helper.logger import *
 
+# default Font
 DEFAULT_FONT = 'Calibri'
 # DEFAULT_FONT = 'LiberationSerif'
 
+
+# font (substitute) map
 FONT_MAP = {
     'Calibri': '',
     'Arial': 'Arial',
@@ -20,6 +23,7 @@ FONT_MAP = {
     'Bree Serif': 'FreeSerif',
 }
 
+# ConTeXt escape sequences
 CONV = {
     '&': r'\&',
     '%': r'\%',
@@ -36,26 +40,67 @@ CONV = {
     '\n': r'\linebreak{}',
 }
 
+
+# gsheet border style to ConTeXt border style map
 GSHEET_LATEX_BORDER_MAPPING = {
     'DOTTED': 'dotted',
     'DASHED': 'dashed',
     'SOLID': 'solid'
 }
 
-WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
+
+# gsheet cell vertical alignment to ConTeXt cell vertical alignment map (bottom high low lohi middle)
+CELL_VALIGN_MAP = {
+    'TOP': 'high', 
+    'MIDDLE': 'lohi', 
+    'BOTTOM': 'low'
+}
 
 
-TBLR_VALIGN = {'TOP': 'h', 'MIDDLE': 'm', 'BOTTOM': 'f'}
-PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
-TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
-PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
+# gsheet cell horizontal alignment to ConTeXt cell horizontal alignment map (flushright flushleft left right center last end)
+CELL_HALIGN_MAP = {
+    'LEFT': 'flushleft', 
+    'CENTER': 'center', 
+    'RIGHT': 'flushright', 
+    'JUSTIFY': 'flushleft'
+}
 
+
+# gsheet image alignment to ConTeXt image alignment map
+IMAGE_POSITION = {
+    'CENTER': 'center', 
+    'MIDDLE': 'middlealigned', 
+    'LEFT': 'leftaligned', 
+    'RIGHT': 'rightaligned', 
+    'TOP': 'top', 
+    'BOTTOM': 'bottom'
+}
+
+# gsheet wrap strategy to ConTeXt wrap strategy map
+WRAP_STRATEGY_MAP = {
+    'OVERFLOW': 'no-wrap', 
+    'CLIP': 'no-wrap', 
+    'WRAP': 'wrap'
+}
+
+# 0-based gsheet column number to column letter map
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+
+# seperation (in inches) between two ConTeXt table columns
 COLSEP = (6/72)
+
+# seperation (in inches) between two ConTeXt table rows
 ROWSEP = (2/72)
+
 
 HEADER_FOOTER_FIRST_COL_HSPACE = -6
 HEADER_FOOTER_LAST_COL_HSPACE = -6
 
+
+# outline level to ConTeXt style name map
 LATEX_HEADING_MAP = {
     'Heading 1' : 'section',
     'Heading 2' : 'subsection',
@@ -64,6 +109,7 @@ LATEX_HEADING_MAP = {
     'Heading 5' : 'subparagraph',
 }
 
+# style name to outline level map
 HEADING_TO_LEVEL = {
     'Heading 1': {'outline-level': 1},
     'Heading 2': {'outline-level': 2},
@@ -78,6 +124,7 @@ HEADING_TO_LEVEL = {
 }
 
 
+# outline level to style name map
 LEVEL_TO_HEADING = [
     'Title',
     'Heading 1',
@@ -92,20 +139,13 @@ LEVEL_TO_HEADING = [
     'Heading 10',
 ]
 
+# outline level to ConTeXt style name map
 LEVEL_TO_TITLE = [
     'title',
     'chapter',
     'section',
     'subsection',
     'subsubsection',
-]
-
-
-COLUMNS = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
-    'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 
-    'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ', 
-    'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CI', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CO', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 
 ]
 
 
