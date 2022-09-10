@@ -41,6 +41,9 @@ CONV = {
 }
 
 
+# FACTOR by which to multiply gsheet border width to get a reasonable ConTeXt border width (pt)
+CONTEXT_BORDER_WIDTH_FACTOR = 0.4
+
 # gsheet border style to ConTeXt border style map
 GSHEET_LATEX_BORDER_MAPPING = {
     'DOTTED': 'dotted',
@@ -60,9 +63,9 @@ CELL_VALIGN_MAP = {
 # gsheet cell horizontal alignment to ConTeXt cell horizontal alignment map (flushright flushleft left right center last end)
 CELL_HALIGN_MAP = {
     'LEFT': 'flushleft', 
-    'CENTER': 'center', 
+    'CENTER': 'middle', 
     'RIGHT': 'flushright', 
-    'JUSTIFY': 'flushleft'
+    'JUSTIFY': 'normal'
 }
 
 
@@ -90,14 +93,10 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 
 
 # seperation (in inches) between two ConTeXt table columns
-COLSEP = (6/72)
+COLSEP = (0/72)
 
 # seperation (in inches) between two ConTeXt table rows
-ROWSEP = (2/72)
-
-
-HEADER_FOOTER_FIRST_COL_HSPACE = -6
-HEADER_FOOTER_LAST_COL_HSPACE = -6
+ROWSEP = (0/72)
 
 
 # outline level to ConTeXt style name map

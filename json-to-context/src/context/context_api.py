@@ -698,8 +698,14 @@ class ContextTable(ContextBlock):
 
         # table setups
         setup_lines = []
-
-        setup_lines.append(f"\\setupTABLE{context_option(split='repeat', header='repeat', loffset='0.05in', roffset='0.05in', frame='off')}")
+        loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        rulethickness = '0.00pt'
+        columndistance = f"{COLSEP}in"
+        spaceinbetween = f"{ROWSEP}in"
+        setup_lines.append(f"\\setupTABLE{context_option(split='repeat', header='repeat', frame='off', columndistance=columndistance, spaceinbetween=spaceinbetween, loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness)}")
         c = 1
         for col_width in self.column_widths:
             col_width = f"{col_width}in"
@@ -938,7 +944,6 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        # s = f"[{self.row_num+1},{self.col_num+1:>2}], value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
         s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
         return s
 
@@ -1280,7 +1285,7 @@ class Row(object):
     '''
     def row_setups_to_context(self, r, color_dict):
         row_setup_lines = []
-        row_setup_options = context_option(height=f"{self.row_height}in")
+        row_setup_options = context_option(minheight=f"{self.row_height}in")
         row_setup_lines.append(f"% Row setups [{self.row_id}]")
         row_setup_lines.append(f"\\setupTABLE[r][{r}]{row_setup_options}")
         row_setup_lines.append('')
@@ -1545,24 +1550,18 @@ class ImageValue(CellValue):
             pass
 
         image_options = context_option(width=f"{image_width_in_inches}in", height=f"{image_height_in_inches}in")
-        context_code = f"{{\\externalfigure[{os_specific_path(self.value['path'])}]{image_options}}}"
+        context_code = f"\\externalfigure[{os_specific_path(self.value['path'])}]{image_options}"
 
         # image horizontal alignment
         image_halign = self.effective_format.halign.image_halign()
-        # print(image_halign)
         image_valign = self.effective_format.valign.image_valign()
-        # print(image_halign)
+
         if image_halign:
-            image_halign = f"\\{image_halign}"
-        else:
-            image_halign = ''
+            context_code = f"\\{image_halign}{{{context_code}}}"
 
         if image_valign:
-            image_valign = f"\\{image_valign}"
-        else:
-            image_valign = ''
+            context_code = f"\\{image_valign}{{{context_code}}}"
 
-        context_code = f"{image_halign}{image_valign}{context_code}"
 
         return context_code
 
@@ -1868,7 +1867,7 @@ class Border(object):
 
         if border_dict:
             self.style = border_dict.get('style')
-            self.width = int(border_dict.get('width')) * 0.4
+            self.width = int(border_dict.get('width')) * CONTEXT_BORDER_WIDTH_FACTOR
             self.color = RgbColor(rgb_dict=border_dict.get('color'))
 
             # TODO: handle double
@@ -2141,9 +2140,9 @@ class VerticalAlignment(object):
     '''
     def cell_valign(self):
         if self.valign:
-            self.valign = CELL_VALIGN_MAP.get(self.valign)
+            return CELL_VALIGN_MAP.get(self.valign)
         else:
-            self.valign = CELL_VALIGN_MAP.get('TOP')
+            return CELL_VALIGN_MAP.get('TOP')
 
 
     ''' image vertical alignment for ConTeXt
