@@ -30,7 +30,7 @@ popd
 :: context -> pdf
 pushd .\out
 ptime context --run %DOCUMENT%.tex
-move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
+@REM move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (
   popd

@@ -777,13 +777,13 @@ class ContextTable(ContextBlock):
         table_lines = table_header_lines + table_body_lines
 
         # ConTeXt footnotes
-        footnote_texts = document_footnotes[self.table_id]
-        if len(footnote_texts):
-            # append footnotetexts 
-            table_lines.append(f"")
-            for footnote_text_dict in footnote_texts:
-                footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
-                table_lines.append(footnote_text)
+        # footnote_texts = document_footnotes[self.table_id]
+        # if len(footnote_texts):
+        #     # append footnotetexts 
+        #     table_lines.append(f"")
+        #     for footnote_text_dict in footnote_texts:
+        #         footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
+        #         table_lines.append(footnote_text)
 
             # TODO: \\setfnsymbol for the footnotes, this needs to go before the table
             # table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
@@ -963,59 +963,35 @@ class Cell(object):
                 # get the ConTeXt code
                 cell_value = self.cell_value.value_to_context(block_id=block_id, container_width=self.cell_width, container_height=self.cell_height, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=self.note.footnotes)
 
-                # # paragraphs need formatting to be included, table cells do not need them
-                # if include_formatting:
-                #     # alignments and bgcolor
-                #     if self.effective_format:
-                #         halign = PARA_HALIGN.get(self.effective_format.halign.cell_halign())
-                #     else:
-                #         halign = PARA_HALIGN.get('LEFT')
+                # handle new-page defined in notes
+                if self.note.new_page:
+                    content_lines.append(f"\\page")
 
-                #     cell_value = f"{halign}{{{cell_value}}}"
+                # handle keep-with-previous defined in notes
+                if self.note.keep_with_previous:
+                    content_lines.append(f"\\page[no]")
 
+                if self.note.style:
+                    # handle styles defined in notes
+                    if self.note.style == 'Figure':
+                        # caption for figure
+                        content_lines.append(f"% Figure heading")
 
-                # # the cell may have a left_hspace or right_hspace
-                # if left_hspace:
-                #     cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
+                    elif self.note.style == 'Table':
+                        # caption for table
+                        content_lines.append(f"% Table heading")
 
-                # if right_hspace:
-                #     cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
+                    elif self.note.style:
+                        # some custom style needs to be applied
+                        heading_tag = CONTEXT_HEADING_MAP.get(self.note.style)
+                        if heading_tag:
+                            content_lines.append(f"% {heading_tag}")
 
-                # # handle new-page defined in notes
-                # if self.note.new_page:
-                #     content_lines.append(f"\\pagebreak")
+                        else:
+                            warn(f"style : {self.note.style} not defined")
 
-                # # handle keep-with-previous defined in notes
-                # if self.note.keep_with_previous:
-                #     content_lines.append(f"\\nopagebreak")
-
-                # # the actual content
-                # content_lines.append(cell_value)
-
-                # # handle styles defined in notes
-                # if self.note.style == 'Figure':
-                #     # caption for figure
-                #     # content_lines.append(f"\\neeedspace{{2em}}")
-                #     content_lines.append(f"\\phantomsection")
-                #     content_lines.append(f"\\addcontentsline{{lof}}{{figure}}{{{tex_escape(self.formatted_value)}}}")
-
-                # elif self.note.style == 'Table':
-                #     # caption for table
-                #     # content_lines.append(f"\\neeedspace{{2em}}")
-                #     content_lines.append(f"\\phantomsection")
-                #     content_lines.append(f"\\addcontentsline{{lot}}{{table}}{{{tex_escape(self.formatted_value)}}}")
-
-                # elif self.note.style:
-                #     # some custom style needs to be applied
-                #     heading_tag = LATEX_HEADING_MAP.get(self.note.style)
-                #     if heading_tag:
-                #         # content_lines.append(f"\\neeedspace{{2em}}")
-                #         content_lines.append(f"\\phantomsection")
-                #         content_lines.append(f"\\addcontentsline{{toc}}{{{heading_tag}}}{{{tex_escape(self.formatted_value)}}}")
-                #     else:
-                #         warn(f"style : {self.note.style} not defined")
-
-                content_lines.append(cell_value)
+                else:
+                    content_lines.append(cell_value)
 
         return content_lines
 
@@ -1393,8 +1369,8 @@ class StringValue(CellValue):
     '''
     def value_to_context(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = False
-        # context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
-        context_code = f"{{{self.value}}}"
+        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # context_code = f"{{{self.value}}}"
 
         return context_code
 
@@ -1725,34 +1701,35 @@ class TextFormat(object):
         # process inline blocks (footnotes, LaTeX, etc. (if any))
         content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
 
-        styled = False
+        style = None
+        if self.is_bold:
+            if self.is_italic:
+                style = f"\\bi"
+
+            else:
+                style = f"\\bf"
+        else:
+            if self.is_italic:
+                style = f"\\it"
+
+        if style:
+            content = f"{style}{{{content}}}"
+
         if self.is_underline:
-            content = f"\\underline{{{content}}}"
-            styled = True
+            content = f"\\underbar{{{content}}}"
 
         if self.is_strikethrough:
-            content = f"\\sout{{{content}}}"
-            styled = True
+            content = f"\\overstrike{{{content}}}"
 
-        if self.is_italic:
-            content = f"\\textit{{{content}}}"
-            styled = True
-
-        if self.is_bold:
-            content = f"\\textbf{{{content}}}"
-            styled = True
-
-        if not styled:
-            content = f"{{{content}}}"
 
         # color, font, font-size
+        font_spec = ''
         if self.font_family != '':
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\fontspec{{{self.font_family}}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\globalfsize{{{self.font_size}pt}}\\switchtobodyfont[{self.font_family}]\\color[{self.fgcolor.key()}]"
         else:
-            font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size + 2}pt}}\\color{{{self.fgcolor.key()}}}"
-            # font_spec = f"\\fontsize{{{self.font_size}pt}}{{{self.font_size}pt}}\\color{{{self.fgcolor.key()}}}"
+            font_spec = f"\\globalfsize{{{self.font_size}pt}}\\color[{self.fgcolor.key()}]"
 
-        context_code = f"{font_spec}{content}"
+        context_code = f"{font_spec}{{{content}}}"
 
         return context_code
 

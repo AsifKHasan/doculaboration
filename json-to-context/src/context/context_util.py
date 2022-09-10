@@ -100,7 +100,7 @@ ROWSEP = (0/72)
 
 
 # outline level to ConTeXt style name map
-LATEX_HEADING_MAP = {
+CONTEXT_HEADING_MAP = {
     'Heading 1' : 'section',
     'Heading 2' : 'subsection',
     'Heading 3' : 'subsubsection',
@@ -405,7 +405,7 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list)
                 text = text_content[current_index:footnote_start_index]
                 texts_and_footnotes.append({'text': text})
 
-                footnote_mark_context = f"\\footnotemark[{next_footnote_number}]"
+                footnote_mark_context = f"\\footnote{{{text}}}"
                 texts_and_footnotes.append({'fn': footnote_mark_context})
 
                 # this block has this footnote
