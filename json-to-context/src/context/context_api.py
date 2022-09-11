@@ -106,7 +106,7 @@ class ContextSectionBase(object):
 
         # get headers and footers
         if self.header_first.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t\{x}", self.header_first.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_first.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
 
         if self.header_odd.has_content:
             hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_odd.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
