@@ -181,13 +181,16 @@ class ContextTableSection(ContextSectionBase):
         # wrap in start/stop title/chapter/section/subsection/subsubsection etc.
         heading_title, outline_level = self.get_heading()
         if heading_title:
-            section_lines = indent_and_wrap(lines=section_lines, wrap_in=LEVEL_TO_TITLE[outline_level], param_string=f"title={heading_title}", indent_level=1)
+            heading_lines = []
+            heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
+            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{context_option(title=heading_title)}")
+            section_lines = heading_lines + section_lines
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
 
-        return [''] + section_lines + ['']
+        return [''] + section_lines
 
 
 
@@ -272,7 +275,7 @@ class ContextToCSection(ContextSectionBase):
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines + ['']
+        section_lines = [''] + section_lines
 
         return section_lines
 
@@ -308,7 +311,7 @@ class ContextLoTSection(ContextSectionBase):
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines + ['']
+        section_lines = [''] + section_lines
 
         return section_lines
 
@@ -344,7 +347,7 @@ class ContextLoFSection(ContextSectionBase):
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines + ['']
+        section_lines = [''] + section_lines
 
         return section_lines
 
@@ -709,7 +712,7 @@ class ContextTable(ContextBlock):
         c = 1
         for col_width in self.column_widths:
             col_width = f"{col_width}in"
-            setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width=col_width)}")
+            setup_lines.append(f"\\setupTABLE[{c}]{context_option(width=col_width)}")
             c = c + 1
 
         setup_lines.append('')
@@ -730,6 +733,9 @@ class ContextTable(ContextBlock):
             setup_lines = setup_lines + cell_setup_lines
             r = r + 1
 
+        # wrap in start/stop setups
+        param_string = context_option(self.table_id)
+        setup_lines = indent_and_wrap(lines=setup_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
 
 
         # repeat-rows should go under TABLEhead
@@ -745,7 +751,7 @@ class ContextTable(ContextBlock):
 
                 # wrap in BEGIN/end comments
                 row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
-                row_lines = [''] + row_lines + ['']
+                row_lines = [''] + row_lines
 
                 table_header_lines = table_header_lines + row_lines
 
@@ -764,7 +770,7 @@ class ContextTable(ContextBlock):
 
             # wrap in BEGIN/end comments
             row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
-            row_lines = [''] + row_lines + ['']
+            row_lines = [''] + row_lines
 
             table_body_lines = table_body_lines + row_lines
 
@@ -785,24 +791,22 @@ class ContextTable(ContextBlock):
         #         footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
         #         table_lines.append(footnote_text)
 
-            # TODO: \\setfnsymbol for the footnotes, this needs to go before the table
-            # table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
+        #     TODO: \\setfnsymbol for the footnotes, this needs to go before the table
+        #     table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
 
         
         # wrap in b/e TABLE
-        table_lines = indent_and_wrap(lines=table_lines, wrap_in='TABLE', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
-
-
-        # TODO: merge all lines
-        table_lines = setup_lines + table_lines
+        param_string = context_option(setups=self.table_id)
+        table_lines = indent_and_wrap(lines=table_lines, wrap_in='TABLE', param_string=param_string, wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
         # wrap in start/stop postponingnotes
         table_lines = indent_and_wrap(lines=table_lines, wrap_in='postponingnotes', indent_level=1)
 
         # wrap in BEGIN/end comments
-        table_lines = wrap_with_comment(lines=table_lines, object_type='ContextTable', object_id=self.table_id, indent_level=1)
+        all_lines = setup_lines + table_lines
+        all_lines = wrap_with_comment(lines=all_lines, object_type='ContextTable', object_id=self.table_id, indent_level=1)
 
-        return [''] + table_lines + ['']
+        return [''] + all_lines
 
 
 
@@ -860,7 +864,7 @@ class ContextParagraph(ContextBlock):
         # wrap in BEGIN/end comments
         block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
 
-        return [''] + block_lines + ['']
+        return [''] + block_lines
 
 
 
@@ -1037,93 +1041,6 @@ class Cell(object):
         self.merge_spec.multi_row = span
 
 
-    ''' whether top border is allowed for the cell
-    '''
-    def top_border_allowed(self):
-        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-                return True
-
-        return False
-
-
-    ''' whether bottom border is allowed for the cell
-    '''
-    def bottom_border_allowed(self):
-        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.LastCell]:
-            if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-                return True
-
-        return False
-
-
-    ''' whether left border is allowed for the cell
-    '''
-    def left_border_allowed(self):
-        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            return True
-
-        return False
-
-
-    ''' whether right border is allowed for the cell
-    '''
-    def right_border_allowed(self):
-        if self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.LastCell]:
-            return True
-
-        return False
-
-
-    ''' ConTeXt code for top border
-    '''
-    def top_border_to_context(self, color_dict):
-        t = None
-        if self.effective_format and self.effective_format.borders:
-            if self.top_border_allowed():
-                t = self.effective_format.borders.borders_to_context_t(color_dict=color_dict)
-                if t is not None:
-                    # t = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{t}}}"
-                    t = f"[{t}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
-
-        return t
-
-
-    ''' ConTeXt code for bottom border
-    '''
-    def bottom_border_to_context(self, color_dict):
-        b = None
-        if self.effective_format and self.effective_format.borders:
-            if self.bottom_border_allowed():
-                b = self.effective_format.borders.borders_to_context_b(color_dict=color_dict)
-                if b is not None:
-                    # b = f"{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}{{{b}}}"
-                    b = f"[{b}]{{{self.col_num+1}-{self.col_num+self.merge_spec.col_span}}}"
-
-        return b
-
-
-    ''' ConTeXt code for left and right borders
-        r is row numbner (1 based)
-    '''
-    def cell_vertical_borders_to_context(self, r, color_dict):
-        lr_borders = []
-        if self.effective_format and self.effective_format.borders:
-            if self.left_border_allowed():
-                lb = self.effective_format.borders.borders_to_context_l(color_dict=color_dict)
-                if lb is not None:
-                    lb = f"vline{{{self.col_num+1}}} = {{{r}}}{{{lb}}},"
-                    lr_borders.append(lb)
-
-            if self.right_border_allowed():
-                rb = self.effective_format.borders.borders_to_context_r(color_dict=color_dict)
-                if rb is not None:
-                    rb = f"vline{{{self.col_num+2}}} = {{{r}}}{{{rb}}},"
-                    lr_borders.append(rb)
-
-        return lr_borders
-
-
 
 ''' gsheet Row object wrapper
 '''
@@ -1203,60 +1120,6 @@ class Row(object):
             return False
 
 
-    ''' generates the top borders
-    '''
-    def top_borders_to_context(self, color_dict):
-        top_borders = []
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                t = cell.top_border_to_context(color_dict=color_dict)
-                if t is not None:
-                    # top_borders.append(f"\\SetHline{t}")
-                    top_borders.append(f"\\cline{t}")
-
-            c = c + 1
-
-        return top_borders
-
-
-    ''' generates the bottom borders
-    '''
-    def bottom_borders_to_context(self, color_dict):
-        bottom_borders = []
-        c = 0
-        for cell in self.cells:
-            if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}")
-
-            else:
-                b = cell.bottom_border_to_context(color_dict=color_dict)
-                if b is not None:
-                    # bottom_borders.append(f"\\SetHline{b}")
-                    bottom_borders.append(f"\\cline{b}")
-
-            c = c + 1
-
-        return bottom_borders
-
-
-    ''' generates the vertical borders
-    '''
-    def vertical_borders_to_context(self, r, color_dict):
-        v_lines = []
-        c = 0
-        for cell in self.cells:
-            if cell is not None:
-                v_lines = v_lines + cell.cell_vertical_borders_to_context(r=r, color_dict=color_dict)
-
-            c = c + 1
-
-        return v_lines
-
-
     ''' generates the ConTeXt code for row setups
     '''
     def row_setups_to_context(self, r, color_dict):
@@ -1292,10 +1155,12 @@ class Row(object):
         all_cell_lines = []
         first_cell = True
         c = 0
+        produce_cell = True
         for cell in self.cells:
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
+                produce_cell = False
 
             elif cell.is_empty:
                 cell_lines = []
@@ -1306,16 +1171,18 @@ class Row(object):
 
                 cell_lines = cell.cell_content_to_context(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
 
+            if produce_cell:
                 # wrap in b/e TR
                 # param_string is the marge spec
                 cell_lines = indent_and_wrap(lines=cell_lines, wrap_in='TD', param_string=cell.merge_spec.to_context_option(), wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
                 # wrap in BEGIN/end comments
                 cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, indent_level=1)
-                cell_lines = [''] + cell_lines + ['']
+                cell_lines = [''] + cell_lines
 
 
-            all_cell_lines = all_cell_lines + cell_lines
+                all_cell_lines = all_cell_lines + cell_lines
+
             c = c + 1
 
 
@@ -1632,6 +1499,7 @@ class CellFormat(object):
         background = 'color'
         backgroundcolor = self.bgcolor
         foregroundcolor = self.text_format.fgcolor
+        # align = f"{self.halign.cell_halign()}"
         align = f"{{{self.halign.cell_halign()},{self.valign.cell_valign()}}}"
         # font_family = self.text_format.font_family
         # font_size = self.text_format.font_size
@@ -2019,8 +1887,8 @@ class TextFormatRun(object):
     ''' generates the ConTeXt code
     '''
     def text_format_run_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
-        # context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
-        context_code = text=text[self.start_index:]
+        context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
+        # context_code = text=text[self.start_index:]
 
         return context_code
 

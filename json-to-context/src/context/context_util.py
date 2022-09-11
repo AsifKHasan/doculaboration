@@ -35,9 +35,9 @@ CONV = {
     '~': r'\textasciitilde{}',
     '^': r'\^{}',
     '\\': r'\textbackslash{}',
-    '<': r'\textless{}',
-    '>': r'\textgreater{}',
-    '\n': r'\linebreak{}',
+    # '<': r'\textless{}',
+    # '>': r'\textgreater{}',
+    # '\n': r'\linebreak{}',
 }
 
 
@@ -71,12 +71,12 @@ CELL_HALIGN_MAP = {
 
 # gsheet image alignment to ConTeXt image alignment map
 IMAGE_POSITION = {
-    'CENTER': 'center', 
-    'MIDDLE': 'middlealigned', 
+    'CENTER': 'middlealigned', 
     'LEFT': 'leftaligned', 
     'RIGHT': 'rightaligned', 
-    'TOP': 'top', 
-    'BOTTOM': 'bottom'
+    'TOP': '', 
+    'MIDDLE': '', 
+    'BOTTOM': ''
 }
 
 # gsheet wrap strategy to ConTeXt wrap strategy map
@@ -272,12 +272,18 @@ def tex_escape(text):
 
 ''' build context option string from keywords
 '''
-def context_option(**kwargs):
+def context_option(*args, **kwargs):
     result = '['
 
-    # Iterating over the Python kwargs dictionary
+    # iterating over the args list
+    for v in args:
+        result = result + f"{v}, "
+
+    # iterating over the kwargs dictionary
     for k,v in kwargs.items():
         result = result + f"{k}={v}, "
+
+    result = result.strip().strip(',')
     
     result = result + ']'
 

@@ -82,19 +82,19 @@
 % BEGIN Heading styles
 
     % Heading 0
-    \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+    \setuphead[title][style=\bfd\sc, align={center}, color=darkgray, after={\startcolor[darkgray]\hrule\stopcolor\medskip}]
 
     % Heading 1
     \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
     % Heading 2
-    \setuphead[section][style=\bfb]
+    \setuphead[section][hidenumber=yes, number=no, style=\bfb]
 
     % Heading 3
-    \setuphead[subsection][style=\bfa]
+    \setuphead[subsection][hidenumber=yes, number=no, style=\bfa]
 
     % Heading 4
-    \setuphead[subsubsection][style=\bf]
+    \setuphead[subsubsection][hidenumber=yes, number=no, style=\bf]
 
 % END Heading styles
 
@@ -114,27 +114,26 @@
 
 
 % BEGIN Page Layouts
-
     % A4, portrait, narrow
     \definelayout[a4-portrait-narrow][
         % gutter + left-margin
-        backspace=0.50in,
+        backspace=0.5in,
         % page-width - backspace - rightmargin
         width=7.27in,
         % right-margin
-        rightmargin=0.50in,
+        rightmargin=0.5in,
         % top-margin
         topspace=0.25in,
         % header height
         header=0.25in,
-        headerdistance=0.10in,
+        headerdistance=0.1in,
         % page-height - top-margin - bottom-margin
         height=11.19in,
         % footer
-        footerdistance=0.10in,
+        footerdistance=0.1in,
         footer=0.25in,
         % bottom-margin
-        bottomdistance=0.00in,
+        bottomdistance=0.0in,
         bottom=0.25in
     ]
 
@@ -354,7 +353,7 @@
             \blank
 
             % BEGIN table B3:B29
-                \startpostponingnotes
+    			\startsetups[s__000__00-coverpage__t__B3-B7__5]
                     \setupTABLE[split=repeat, header=repeat, loffset=0.05in, roffset=0.05in, frame=on]
                     \setupTABLE[1][width=1.0in]
                     \setupTABLE[2][width=1.5in]
@@ -362,8 +361,14 @@
                     \setupTABLE[4][width=1.5in]
                     \setupTABLE[5][width=1.5in]
 
+                    % Row setups [3]
+                    \setupTABLE[r][1][minheight=0.4305555555555556in]
+
+                    % Row setups [3]
+                    \setupTABLE[r][2][minheight=0.4305555555555556in]
+
                     % formatting setup for B3
-                    \setupTABLE[1][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+                    \setupTABLE[1][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0, align={lohi}]
                     \setupTABLE[1][1][leftframe=on, framecolor=ff0000, rulethickness=0.5pt]
                     \setupTABLE[1][1][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
 
@@ -379,10 +384,17 @@
                     % formatting setup for F3
                     \setupTABLE[5][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
 
-                    % formatting setup for F3
+                    % formatting setup for B4
+                    \setupTABLE[1][2][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0, align={middle,low}]
+
+                    % formatting setup for F4
                     \setupTABLE[5][2][align={lohi}]
 
-                    \bTABLE
+                \stopsetups
+
+                \startpostponingnotes
+
+                    \bTABLE[setups=s__000__00-coverpage__t__B3-B7__5]
 
                         % table header, only for first page
                         \bTABLEhead
@@ -428,7 +440,7 @@
 
                                 % cell B4
                                 \bTD
-                                    1
+                                \globalfsize{14pt}\color[990000]{1}
                                 \eTD
 
                                 % cell C4
