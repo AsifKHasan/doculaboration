@@ -709,7 +709,7 @@ class ContextTable(ContextBlock):
             document_footnotes[self.table_id] = []
 
         # table setups
-        setup_lines = []
+        setup_lines = ['']
         loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
         roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
         toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
@@ -756,7 +756,7 @@ class ContextTable(ContextBlock):
 
             # generate cell values
             for row in self.table_cell_matrix[0:self.header_row_count]:
-                row_lines = row.row_contents_to_context(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+                row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
 
                 # wrap in b/e TR
                 row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -775,7 +775,7 @@ class ContextTable(ContextBlock):
         # generate bTABLEbody cell values
         table_body_lines = []
         for row in self.table_cell_matrix[self.header_row_count:]:
-            row_lines = row.row_contents_to_context(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
 
             # wrap in b/e TR
             row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -809,18 +809,7 @@ class ContextTable(ContextBlock):
         # actual table
         table_lines = table_header_lines + table_body_lines
 
-        # ConTeXt footnotes
-        # footnote_texts = document_footnotes[self.table_id]
-        # if len(footnote_texts):
-        #     # append footnotetexts 
-        #     table_lines.append(f"")
-        #     for footnote_text_dict in footnote_texts:
-        #         footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
-        #         table_lines.append(footnote_text)
-
-        #     TODO: \\setfnsymbol for the footnotes, this needs to go before the table
-        #     table_lines = [f"\\setfnsymbol{{{self.table_id}_symbols}}"] + table_lines
-
+        # TODO: ConTeXt footnotes
         
         # wrap in b/e TABLE
         param_string = context_option(setups=self.table_id)
@@ -862,34 +851,42 @@ class ContextParagraph(ContextBlock):
         if (self.paragraph_id not in document_footnotes):
             document_footnotes[self.paragraph_id] = []
 
-        block_lines = []
-
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(c=0).cell_content_to_context(block_id=self.paragraph_id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
-            row_lines = list(map(lambda x: f"\t{x}", row_text))
-            block_lines = block_lines + row_lines
+            cell = self.data_row.get_cell(c=0)
 
-        # ConTeXt footnotes
-        footnote_texts = document_footnotes[self.paragraph_id]
-        if len(footnote_texts):
-            # append footnotetexts 
-            block_lines.append(f"")
-            for footnote_text_dict in footnote_texts:
-                footnote_text = f"\t\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
-                block_lines.append(footnote_text)
+            setup_lines = ['']
 
-            block_lines.append(f"")
+            loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+            roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+            toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+            boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+            rulethickness = '0.0pt'
+            minheight = f"{self.data_row.row_height}in"
+            setup_lines.append(f"\\setupframed{context_option(width='broad', frame='off', loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness, minheight=minheight)}")
 
-            # \\setfnsymbol for the footnotes, this needs to go before the table
-            block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
+            # paragraph cell setups
+            setup_lines = setup_lines + cell.cell_setups_to_context(r=None, color_dict=color_dict)
 
-        # wrap in start/stop postponingnotes
-        block_lines = indent_and_wrap(lines=block_lines, wrap_in='postponingnotes', indent_level=1)
-        block_lines = []
+            # wrap in start/stop setups
+            param_string = context_option(self.paragraph_id)
+            setup_lines = indent_and_wrap(lines=setup_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
 
-        # wrap in BEGIN/end comments
-        block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
+            # paragraph cell value
+            content_lines = cell.cell_content_to_context(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes)
+
+            # wrap in start/stop framed
+            param_string = context_option(extras=f"\\setup{{{self.paragraph_id}}}")
+            content_lines = indent_and_wrap(lines=content_lines, wrap_in='framed', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
+
+            # wrap in start/stop postponingnotes
+            content_lines = indent_and_wrap(lines=content_lines, wrap_in='postponingnotes', indent_level=1)
+
+            block_lines = setup_lines + content_lines
+
+            # wrap in BEGIN/end comments
+            block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
+
 
         return [''] + block_lines
 
@@ -979,7 +976,7 @@ class Cell(object):
 
     ''' ConTeXt code for cell content
     '''
-    def cell_content_to_context(self, block_id, include_formatting, color_dict, document_footnotes):
+    def cell_content_to_context(self, block_id, color_dict, document_footnotes):
         content_lines = []
 
         # the content is not valid for multirow LastCell and InnerCell
@@ -1035,7 +1032,10 @@ class Cell(object):
             cell_format_lines = self.effective_format.cellformat_to_context_options(color_dict=color_dict)
             cell_setup_lines.append(f"% Cell setups [{self.cell_id}]")
             for line in cell_format_lines:
-                cell_setup_lines.append(f"\\setupTABLE[{self.col_num+1}][{r}]{line}")
+                if r:
+                    cell_setup_lines.append(f"\\setupTABLE[{self.col_num+1}][{r}]{line}")
+                else:
+                    cell_setup_lines.append(f"\\setupframed{line}")
     
             cell_setup_lines.append('')
 
@@ -1171,7 +1171,7 @@ class Row(object):
 
     ''' generates the ConTeXt code
     '''
-    def row_contents_to_context(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, header_footer=None):
+    def row_contents_to_context(self, block_id, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         row_lines = []
 
         # gets the cell ConTeXt lines
@@ -1184,7 +1184,7 @@ class Row(object):
                 produce_cell = False
 
             else:
-                cell_lines = cell.cell_content_to_context(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes)
+                cell_lines = cell.cell_content_to_context(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             if produce_cell and len(cell_lines):
                 # wrap in b/e TR, param_string is the marge spec
