@@ -9,6 +9,10 @@ import re
 
 from helper.logger import *
 
+# height in inches for dummy row
+DUMMY_ROW_HEIGHT = 0.10
+
+
 # default Font
 DEFAULT_FONT = 'Calibri'
 # DEFAULT_FONT = 'LiberationSerif'
@@ -281,7 +285,8 @@ def context_option(*args, **kwargs):
 
     # iterating over the kwargs dictionary
     for k,v in kwargs.items():
-        result = result + f"{k}={v}, "
+        if v:
+            result = result + f"{k}={v}, "
 
     result = result.strip().strip(',')
     
@@ -294,7 +299,7 @@ def context_option(*args, **kwargs):
 
 ''' wrap with BEGIN/END comments
 '''
-def wrap_with_comment(lines, object_type=None, object_id=None, comment_prefix_start='BEGIN', comment_prefix_stop='END  ', indent_level=0):
+def wrap_with_comment(lines, object_type=None, object_id=None, comment_prefix_start='BEGIN', comment_prefix_stop='END  ', begin_suffix=None, indent_level=0):
     indent = "\t" * indent_level
     output_lines =  list(map(lambda x: f"{indent}{x}", lines))
 
@@ -306,10 +311,15 @@ def wrap_with_comment(lines, object_type=None, object_id=None, comment_prefix_st
             comment = f"{object_type}"
 
         # BEGIN comment
-        output_lines = [f"% {comment_prefix_start} {comment}"] + output_lines
+        begin_comment = f"% {comment_prefix_start} {comment}"
+        if begin_suffix:
+            begin_comment = f"{begin_comment} {begin_suffix}"
+
+        output_lines = [begin_comment] + output_lines
 
         # END comment
-        output_lines.append(f"% {comment_prefix_stop} {comment}")
+        end_comment = f"% {comment_prefix_stop} {comment}"
+        output_lines.append(end_comment)
 
 
     return output_lines

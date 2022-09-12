@@ -30,7 +30,7 @@ fi
 # latex -> pdf
 pushd ./out
 time lualatex ${DOCUMENT}.tex --output-format=pdf
-mv ${DOCUMENT}.pdf ${DOCUMENT}.tex.pdf
+mv ${DOCUMENT}.pdf ${DOCUMENT}.latex.pdf
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1

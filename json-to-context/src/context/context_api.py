@@ -175,16 +175,17 @@ class ContextTableSection(ContextSectionBase):
 
         section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
+        # title/chapter/section/subsection/subsubsection etc.
+        heading_title, outline_level = self.get_heading()
+        if heading_title:
+            heading_lines = ['']
+            heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
+            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{context_option(title=heading_title)}")
+            section_lines =  section_lines + heading_lines
+
         # get the contents
         section_lines = section_lines + self.section_contents.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
 
-        # wrap in start/stop title/chapter/section/subsection/subsubsection etc.
-        heading_title, outline_level = self.get_heading()
-        if heading_title:
-            heading_lines = []
-            heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
-            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{context_option(title=heading_title)}")
-            section_lines = heading_lines + section_lines
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
@@ -695,6 +696,14 @@ class ContextTable(ContextBlock):
     def block_to_context(self, longtable, color_dict, document_footnotes, strip_comments=False, header_footer=None):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
+        # DEBUG
+        # r = 1
+        # print(f"Table : [{self.table_id}]")
+        # for row in self.table_cell_matrix:
+        #     print(f".. Row : [{row.row_id}] - {len(row.cells)} cells")
+        #     r = r + 1
+
+
         # for storing the footnotes (if any) for this block
         if (self.table_id not in document_footnotes):
             document_footnotes[self.table_id] = []
@@ -712,8 +721,11 @@ class ContextTable(ContextBlock):
         c = 1
         for col_width in self.column_widths:
             col_width = f"{col_width}in"
-            setup_lines.append(f"\\setupTABLE[{c}]{context_option(width=col_width)}")
+            setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width=col_width)}")
             c = c + 1
+
+        # add a dummy column
+        setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width='0.0in')}")
 
         setup_lines.append('')
 
@@ -774,6 +786,21 @@ class ContextTable(ContextBlock):
 
             table_body_lines = table_body_lines + row_lines
 
+
+        # FIX: we need a dummy row for resolving issue with ConTeXt
+        num_columns = len(self.table_cell_matrix[0].cells) + 1
+        dummy_row_lines = []
+        for i in range(0, num_columns):
+            # wrap in b/e TD
+            dummy_row_lines = dummy_row_lines + indent_and_wrap(lines=[], wrap_in='TD', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+        # wrap in b/e TR
+        param_string = f"[height={DUMMY_ROW_HEIGHT}in]"
+        dummy_row_lines = indent_and_wrap(lines=dummy_row_lines, wrap_in='TR', param_string=param_string, wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+        # wrap in BEGIN/end comments
+        dummy_row_lines = wrap_with_comment(lines=dummy_row_lines, object_type='Row', object_id='dummy', indent_level=1)
+        table_body_lines = table_body_lines + [''] + dummy_row_lines + ['']
 
         # wrap in b/e TABLEbody
         table_body_lines = indent_and_wrap(lines=table_body_lines, wrap_in='TABLEbody', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -932,8 +959,6 @@ class Cell(object):
             else:
                 self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
-
-
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
             self.merge_spec.multi_col = MultiSpan.No
@@ -954,11 +979,8 @@ class Cell(object):
 
     ''' ConTeXt code for cell content
     '''
-    def cell_content_to_context(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, left_hspace=None, right_hspace=None):
+    def cell_content_to_context(self, block_id, include_formatting, color_dict, document_footnotes):
         content_lines = []
-
-        if not strip_comments:
-            content_lines.append(f"% {self.merge_spec.to_string()}")
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
@@ -997,6 +1019,9 @@ class Cell(object):
                 else:
                     content_lines.append(cell_value)
 
+            else:
+                warn(f"NO VALUE : {self.cell_id}")
+
         return content_lines
 
 
@@ -1007,8 +1032,8 @@ class Cell(object):
 
         color_dict[self.effective_format.bgcolor.key()] = self.effective_format.bgcolor.value()
         if not self.is_empty:
-            cell_format_lines = self.effective_format.cellformat_to_context_options(color_dict)
-            cell_setup_lines.append(f"% Cell setups[{self.cell_id}]")
+            cell_format_lines = self.effective_format.cellformat_to_context_options(color_dict=color_dict)
+            cell_setup_lines.append(f"% Cell setups [{self.cell_id}]")
             for line in cell_format_lines:
                 cell_setup_lines.append(f"\\setupTABLE[{self.col_num+1}][{r}]{line}")
     
@@ -1147,47 +1172,40 @@ class Row(object):
     ''' generates the ConTeXt code
     '''
     def row_contents_to_context(self, block_id, include_formatting, color_dict, document_footnotes, strip_comments=False, header_footer=None):
-        # debug(f"processing {self.row_name}")
-
         row_lines = []
 
         # gets the cell ConTeXt lines
-        all_cell_lines = []
-        first_cell = True
         c = 0
         produce_cell = True
         for cell in self.cells:
+            cell_lines = []
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}")
-                cell_lines = []
                 produce_cell = False
 
-            elif cell.is_empty:
-                cell_lines = []
-
             else:
-                left_hspace = None
-                right_hspace = None
+                cell_lines = cell.cell_content_to_context(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes)
 
-                cell_lines = cell.cell_content_to_context(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, left_hspace=left_hspace, right_hspace=right_hspace)
-
-            if produce_cell:
-                # wrap in b/e TR
-                # param_string is the marge spec
+            if produce_cell and len(cell_lines):
+                # wrap in b/e TR, param_string is the marge spec
                 cell_lines = indent_and_wrap(lines=cell_lines, wrap_in='TD', param_string=cell.merge_spec.to_context_option(), wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
                 # wrap in BEGIN/end comments
-                cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, indent_level=1)
+                cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, begin_suffix=cell.merge_spec.to_string(), indent_level=1)
                 cell_lines = [''] + cell_lines
 
 
-                all_cell_lines = all_cell_lines + cell_lines
+                row_lines = row_lines + cell_lines
 
             c = c + 1
 
+        # FIX: add a dummy cell
+        # wrap in b/e TD
+        dummy_cell_lines = indent_and_wrap(lines=[], wrap_in='TD', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
-        # all cells
-        row_lines = all_cell_lines
+        # wrap in BEGIN/end comments
+        dummy_cell_lines = wrap_with_comment(lines=dummy_cell_lines, object_type='Cell', object_id='dummy', indent_level=1)
+        row_lines = row_lines + [''] + dummy_cell_lines + ['']
 
         return row_lines
 
@@ -1499,14 +1517,10 @@ class CellFormat(object):
         background = 'color'
         backgroundcolor = self.bgcolor
         foregroundcolor = self.text_format.fgcolor
-        # align = f"{self.halign.cell_halign()}"
         align = f"{{{self.halign.cell_halign()},{self.valign.cell_valign()}}}"
-        # font_family = self.text_format.font_family
-        # font_size = self.text_format.font_size
         cellformat_options = context_option(background=background, backgroundcolor=backgroundcolor, foregroundcolor=foregroundcolor, align=align)
         cell_setup_options.append(cellformat_options)
 
-        # TODO: borders
         cell_setup_options = cell_setup_options + self.borders.borders_to_context_options(color_dict)
 
         return cell_setup_options
@@ -1750,19 +1764,20 @@ class CellMergeSpec(object):
     ''' return something like [nr=n, nc=m]
     '''
     def to_context_option(self):
-        if self.row_span > 1:
-            if self.col_span > 1:
+        if self.col_span > 1:
+            if self.row_span > 1:
                 return context_option(nr=self.row_span, nc=self.col_span)
             else:
-                return context_option(nr=self.row_span)
+                return context_option(nc=self.col_span)
 
         else:
-            if self.col_span > 1:
-                return context_option(nc=self.col_span)
+            if self.row_span > 1:
+                return context_option(nr=self.row_span)
             else:
                 return None
 
         return None
+
 
 
 ''' gsheet rowMetadata object wrapper
@@ -1999,6 +2014,7 @@ class VerticalAlignment(object):
             return IMAGE_POSITION.get('middle')
 
 
+
 ''' gsheet horizontal alignment object wrapper
 '''
 class HorizontalAlignment(object):
@@ -2025,6 +2041,7 @@ class HorizontalAlignment(object):
             return IMAGE_POSITION.get(self.halign)
         else:
             return IMAGE_POSITION.get('center')
+
 
 
 ''' gsheet wrapping object wrapper
