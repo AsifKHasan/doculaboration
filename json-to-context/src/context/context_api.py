@@ -180,7 +180,8 @@ class ContextTableSection(ContextSectionBase):
         if heading_title:
             heading_lines = ['']
             heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
-            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{context_option(title=heading_title)}")
+            options = context_option(title=f"{{{heading_title}}}")
+            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{options}")
             section_lines =  section_lines + heading_lines
 
         # get the contents
@@ -268,7 +269,7 @@ class ContextToCSection(ContextSectionBase):
         content_lines.append("\\placecontent")
 
         # wrap in start/stop title
-        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=Table of Contents', indent_level=1)
+        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title={Table of Contents}', indent_level=1)
 
         # merge contents in section
         section_lines = section_lines + content_lines + ['']
@@ -304,7 +305,7 @@ class ContextLoTSection(ContextSectionBase):
         content_lines.append("\\placelistoftables")
 
         # wrap in start/stop title
-        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=List of Tables', indent_level=1)
+        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title={List of Tables}', indent_level=1)
 
         # merge contents in section
         section_lines = section_lines + content_lines + ['']
@@ -998,17 +999,23 @@ class Cell(object):
                     # handle styles defined in notes
                     if self.note.style == 'Figure':
                         # caption for figure
-                        content_lines.append(f"% Figure heading")
+                        content_lines.append(f"% Figure caption")
+                        options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
+                        content_lines.append(f"\\placefloatcaption[figure]{options}")
 
                     elif self.note.style == 'Table':
                         # caption for table
-                        content_lines.append(f"% Table heading")
+                        content_lines.append(f"% Table caption")
+                        options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
+                        content_lines.append(f"\\placefloatcaption[table]{options}")
 
                     elif self.note.style:
                         # some custom style needs to be applied
                         heading_tag = CONTEXT_HEADING_MAP.get(self.note.style)
                         if heading_tag:
-                            content_lines.append(f"% {heading_tag}")
+                            content_lines.append(f"% {self.note.style}")
+                            options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
+                            content_lines.append(f"\\{heading_tag}{options}")
 
                         else:
                             warn(f"style : {self.note.style} not defined")

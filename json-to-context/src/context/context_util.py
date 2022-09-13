@@ -421,7 +421,8 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list)
                 text = text_content[current_index:footnote_start_index]
                 texts_and_footnotes.append({'text': text})
 
-                footnote_mark_context = f"\\footnote{{{text}}}"
+                footnote_mark_context = f"\\footnote{{{footnote_list[footnote_key]}}}"
+                print(footnote_mark_context)
                 texts_and_footnotes.append({'fn': footnote_mark_context})
 
                 # this block has this footnote

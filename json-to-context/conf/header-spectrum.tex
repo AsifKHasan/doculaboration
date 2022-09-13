@@ -82,20 +82,38 @@
 % BEGIN Heading styles
 
   % Heading 0
-  \setuphead[title][style=\bfd\sc, align={center}, color=darkgray, after={\startcolor[darkgray]\hrule\stopcolor\medskip}]
+  \setuphead[title][style=\bfd\sc, align={center}, color=darkgray, before={\vskip 0pt}, after={\startcolor[darkgray]\hrule\stopcolor\medskip}]
 
   % Heading 1
-  \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+  \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, before={\vskip 0pt}, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
 
   % Heading 2
-  \setuphead[section][hidenumber=yes, number=no, style=\bfb]
+  \setuphead[section][hidenumber=yes, number=no, style=\bfb, before={\vskip 0pt}]
 
   % Heading 3
-  \setuphead[subsection][hidenumber=yes, number=no, style=\bfa]
+  \setuphead[subsection][hidenumber=yes, number=no, style=\bfa, before={\vskip 0pt}]
 
   % Heading 4
-  \setuphead[subsubsection][hidenumber=yes, number=no, style=\bf]
+  \setuphead[subsubsection][hidenumber=yes, number=no, style=\bf, before={\vskip 0pt}]
 
+  % figure caption
+  \setupcaption[figure][number=no, style=\bi\sc, align=center, color=darkgray]
+  
+  % table caption
+  \setupcaption[figure][number=no, style=\bi\sc, align=center, color=darkgray]
+  
 % END   Heading styles
+
+
+% BEGIN ToC Formatting
+
+  \setupcombinedlist[content][list={chapter,section,subsection,subsubsection}, alternative=c,]
+
+  \setuplist[chapter][width=0.1in, style=bold]
+  \setuplist[section][width=0.2in, style=bold, margin=0.1in]
+  \setuplist[subsection][width=0.3in, margin=0.2in]
+  \setuplist[subsubsection][width=0.4in, style=slanted, pagestyle=normal, margin=0.3in]
+
+% END   ToC Formatting
 
 
