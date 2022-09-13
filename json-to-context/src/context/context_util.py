@@ -29,19 +29,17 @@ FONT_MAP = {
 
 # ConTeXt escape sequences
 CONV = {
-    '&': r'\&',
+    '\\': r'\backslash',
     '%': r'\%',
-    '$': r'\$',
-    '#': r'\#',
-    '_': r'\_',
     '{': r'\{',
     '}': r'\}',
-    '~': r'\textasciitilde{}',
-    '^': r'\^{}',
-    '\\': r'\textbackslash{}',
-    # '<': r'\textless{}',
-    # '>': r'\textgreater{}',
-    # '\n': r'\linebreak{}',
+    '#': r'\#',
+    '~': r'\lettertilde',
+    '|': r'\|',
+    '$': r'\$',
+    '_': r'\_',
+    '^': r'\letterhat',
+    '&': r'\&',
 }
 
 
