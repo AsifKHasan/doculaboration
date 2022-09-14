@@ -3,6 +3,9 @@
 
     \replacemissingcharacters
     \enabletrackers[fonts.missing]
+    % \setupinteraction[state=start]
+    % \setuppagenumbering[alternative=doublesided, location=]
+    \setuppagenumbering[alternative=singlesided, location=]
 
     % Language = English
     \mainlanguage[en]
@@ -165,7 +168,7 @@
 
 % BEGIN Table definition for headers and footers
 
-    % HeaderTable A4, portrait, narrow
+    % HeaderTable odd page, A4, portrait, narrow
     \startsetups [header-odd-A4-portrait]
         \bTABLEnested[frame=off]
             \setupTABLE[c][1][width=6.27in]
@@ -176,7 +179,7 @@
             \bTR
                 % cell B3
                 \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
                     % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
                 \eTD
                 % cell C3
@@ -187,7 +190,29 @@
         \eTABLEnested
     \stopsetups
 
-    % FooterTable A4, portrait, narrow
+    % HeaderTable odd page, A4, portrait, narrow
+    \startsetups [header-even-A4-portrait]
+        \bTABLEnested[frame=off]
+            \setupTABLE[c][1][width=6.27in]
+            \setupTABLE[c][2][width=1.00in]
+            \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
+            \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+                    % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+                \eTD
+                % cell C3
+                \bTD
+                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
+
+    % FooterTable odd page, A4, portrait, narrow
     \startsetups [footer-odd-A4-portrait]
         \bTABLEnested[frame=off]
             \setupTABLE[c][1][width=6.27in]
@@ -202,13 +227,34 @@
                 \eTD
                 % cell C3
                 \bTD
-                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+                    \globalfsize{8pt}{\sc{Odd Page \pagenumber{} of \totalnumberofpages}}
                 \eTD
             \eTR
         \eTABLEnested
     \stopsetups
 
-    % HeaderTable A4, landscape, narrow
+    % FooterTable even page A4, portrait, narrow
+    \startsetups [footer-even-A4-portrait]
+        \bTABLEnested[frame=off]
+            \setupTABLE[c][1][width=6.27in]
+            \setupTABLE[c][2][width=1.00in]
+            \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+            \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                \eTD
+                % cell C3
+                \bTD
+                    \globalfsize{8pt}{\sc{Even Page \pagenumber{} of \totalnumberofpages}}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
+
+    % HeaderTable odd page, A4, landscape, narrow
     \startsetups [header-odd-A4-landscape]
         \setupTABLE[c][1][width=9.69in]
         \setupTABLE[c][2][width=1.00in]
@@ -219,7 +265,7 @@
             \bTR
                 % cell B3
                 \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
                     % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
                 \eTD
                 % cell C3
@@ -230,7 +276,29 @@
         \eTABLEnested
     \stopsetups
 
-    % FooterTable A4, landscape, narrow
+    % HeaderTable even page, A4, landscape, narrow
+    \startsetups [header-even-A4-landscape]
+        \setupTABLE[c][1][width=9.69in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+        \bTABLEnested[frame=off]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+                    % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+                \eTD
+                % cell C3
+                \bTD
+                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
+
+    % FooterTable odd page, A4, landscape, narrow
     \startsetups [footer-odd-A4-landscape]
         \bTABLEnested[frame=off]
             \setupTABLE[c][1][width=9.69in]
@@ -245,7 +313,28 @@
                 \eTD
                 % cell C3
                 \bTD
-                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+                    \globalfsize{8pt}{\sc{Odd Page \pagenumber{} of \totalnumberofpages}}
+                \eTD
+            \eTR
+        \eTABLEnested
+    \stopsetups
+
+    % FooterTable even page, A4, landscape, narrow
+    \startsetups [footer-even-A4-landscape]
+        \bTABLEnested[frame=off]
+            \setupTABLE[c][1][width=9.69in]
+            \setupTABLE[c][2][width=1.00in]
+            \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+            \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+            % row 3
+            \bTR
+                % cell B3
+                \bTD
+                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                \eTD
+                % cell C3
+                \bTD
+                    \globalfsize{8pt}{\sc{Even Page \pagenumber{} of \totalnumberofpages}}
                 \eTD
             \eTR
         \eTABLEnested
@@ -257,59 +346,62 @@
 % BEGIN Text
 \starttext
 
-    % BEGIN Section ToC
+    % BEGIN section ToC
         \setuppapersize[A4,portrait]
         \setuplayout[a4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
-
-        \page
+        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
+        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
 
         \starttitle[title=Table of Contents]
             \placecontent
         \stoptitle
-    % END   Section ToC
+    % END   section ToC
     
+    % \page
 
-    % BEGIN Section LoF
+    % BEGIN section LoF
+        \page
+
         \setuppapersize[A4,portrait]
         \setuplayout[a4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
+        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
+        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
 
         \page
 
         \starttitle[title=List of Figures]
             \placelistoffigures
         \stoptitle
-    % END   Section LoF
+    % END   chapter LoF
 
+    % \page
 
-    % BEGIN Section LoT
+    % BEGIN section LoT
+        \page
+
         \setuppapersize[A4,portrait]
         \setuplayout[a4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
-
-        \page
+        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
+        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
 
         \starttitle[title=List of Tables]
             \placelistoftables
         \stoptitle
-    % END   Section LoT
+    % END   section LoT
 
+    % \page
 
-    % BEGIN Section 1
+    % BEGIN section 1
+        \page
+
         \setuppapersize[A4,portrait]
         \setuplayout[a4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
-
-        \page
+        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
+        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
 
         \startchapter[title=Some information required]
 
@@ -329,18 +421,19 @@
             \stopitemize
                     
         \stopchapter
-    % END   Section 1
+    % END   section 1
 
+    % BEGIN section 2
+        \page
 
-    % BEGIN Section 2
         \setuppapersize[A4,landscape]
         \setuplayout[a4-landscape-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-landscape}]
-        \setupfootertexts[\directsetup{footer-odd-A4-landscape}]
+        \setupheadertexts[\directsetup{header-odd-A4-landscape}][\directsetup{header-odd-A4-landscape}][\directsetup{header-even-A4-landscape}][\directsetup{header-even-A4-landscape}]
+        \setupfootertexts[\directsetup{footer-odd-A4-landscape}][\directsetup{footer-odd-A4-landscape}][\directsetup{footer-even-A4-landscape}][\directsetup{footer-even-A4-landscape}]
 
         \startchapter
-            [title=Chapter 2]
+            [title=chapter 2]
 
             % BEGIN paragraph B3
                 \startpostponingnotes
@@ -1522,7 +1615,7 @@
             % END   table B3:B29
         
         \stopchapter
-    % END   Section 2
+    % END   section 2
 
 \stoptext
 % END Text
