@@ -40,8 +40,9 @@ class ContextHelper(object):
 
         self.color_dict = {}
         self._config
-        self.document_footnotes = {}
         page_layouts = {}
+        self.headers_footers = {}
+        self.document_footnotes = {}
         for section in section_list:
             section['nesting-level'] = nesting_level
             section['parent-section-index-text'] = parent_section_index_text
@@ -65,7 +66,7 @@ class ContextHelper(object):
 
             module = importlib.import_module("context.context_api")
             func = getattr(module, f"process_{section['content-type']}")
-            section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict, document_footnotes=self.document_footnotes)
+            section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict, headers_footers=self.headers_footers, document_footnotes=self.document_footnotes)
             self.document_lines = self.document_lines + section_lines
 
             first_section = False
@@ -73,7 +74,7 @@ class ContextHelper(object):
 
 
 
-        # \definecolor
+        # definecolor
         color_lines = []
         for k,v in self.color_dict.items():
             color_lines.append(f"\\definecolor[{k}][x={v}]")
@@ -87,17 +88,17 @@ class ContextHelper(object):
 
 
         # define the footnote sysmbols through DefineFNsymbols
-        footnote_symbol_lines = []
-        for k, v in self.document_footnotes.items():
-            if len(v):
-                footnote_symbol_lines = footnote_symbol_lines + list(map(lambda x: f"\t{x}", define_fn_symbols(name=k, item_list=v)))
-                footnote_symbol_lines.append('')
+        # footnote_symbol_lines = []
+        # for k, v in self.document_footnotes.items():
+        #     if len(v):
+        #         footnote_symbol_lines = footnote_symbol_lines + list(map(lambda x: f"\t{x}", define_fn_symbols(name=k, item_list=v)))
+        #         footnote_symbol_lines.append('')
 
-        # wrap in BEGIN/end comments
-        footnote_symbol_lines = wrap_with_comment(lines=footnote_symbol_lines, object_type='Footnote Symbols')
+        # # wrap in BEGIN/end comments
+        # footnote_symbol_lines = wrap_with_comment(lines=footnote_symbol_lines, object_type='Footnote Symbols')
 
-        footnote_symbol_lines.append("\n")
-        self.header_lines = self.header_lines + footnote_symbol_lines
+        # footnote_symbol_lines.append("\n")
+        # self.header_lines = self.header_lines + footnote_symbol_lines
 
 
         # Page Layouts
@@ -113,6 +114,17 @@ class ContextHelper(object):
         self.header_lines = self.header_lines + page_layout_lines
 
 
+        # Header/Footer
+        header_footer_lines = []
+        for k, v in self.headers_footers.items():
+            header_footer_lines = header_footer_lines + list(map(lambda x: f"\t{x}", v))
+            header_footer_lines.append('')
+
+        # wrap in BEGIN/end comments
+        header_footer_lines = wrap_with_comment(lines=header_footer_lines, object_type='Headers and Footers')
+
+        page_layout_lines.append("\n")
+        self.header_lines = self.header_lines + header_footer_lines
 
 
 

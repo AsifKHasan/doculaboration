@@ -100,18 +100,28 @@ class ContextSectionBase(object):
 
     ''' get header/fotter contents
     '''
-    def get_header_footer(self, color_dict, document_footnotes):
+    def get_header_footer(self, color_dict, headers_footers, document_footnotes):
         # get headers and footers
         if self.header_first.has_content:
             pass
 
         if self.header_odd.has_content:
+            # if it is not in the global header/footer dict, create it
+            if self.header_odd.page_header_footer_id not in headers_footers:
+                headers_footers[self.header_odd.page_header_footer_id] = self.header_odd.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+
             odd_header_text = f"[\\directsetup{{{self.header_odd.page_header_footer_id}}}]"
+
         else:
             odd_header_text = '[]'
 
         if self.header_even.has_content:
+            # if it is not in the global header/footer dict, create it
+            if self.header_even.page_header_footer_id not in headers_footers:
+                headers_footers[self.header_even.page_header_footer_id] = self.header_even.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+
             even_header_text = f"[\\directsetup{{{self.header_even.page_header_footer_id}}}]"
+
         else:
             even_header_text = '[]'
 
@@ -119,12 +129,22 @@ class ContextSectionBase(object):
             pass
 
         if self.footer_odd.has_content:
+            # if it is not in the global header/footer dict, create it
+            if self.footer_odd.page_header_footer_id not in headers_footers:
+                headers_footers[self.footer_odd.page_header_footer_id] = self.footer_odd.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+
             odd_footer_text = f"[\\directsetup{{{self.footer_odd.page_header_footer_id}}}]"
+
         else:
             odd_footer_text = '[]'
 
         if self.footer_even.has_content:
+            # if it is not in the global header/footer dict, create it
+            if self.footer_even.page_header_footer_id not in headers_footers:
+                headers_footers[self.footer_even.page_header_footer_id] = self.footer_even.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+
             even_footer_text = f"[\\directsetup{{{self.footer_even.page_header_footer_id}}}]"
+
         else:
             even_footer_text = '[]'
 
@@ -137,7 +157,7 @@ class ContextSectionBase(object):
 
     ''' generates the ConTeXt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         section_lines = []
@@ -152,17 +172,17 @@ class ContextSectionBase(object):
 
 
         # header/footer lines
-        hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
+        hf_lines = self.get_header_footer(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
         
         # wrap section in BEGIN/END comments
         hf_lines = wrap_with_comment(lines=hf_lines, object_type='Header Footer', indent_level=1)
 
-        section_lines = section_lines + [''] + hf_lines
+        section_lines = section_lines + [''] + hf_lines + ['']
 
         # the section may have a page-break
         if self.page_break:
-            section_lines.append('')
             section_lines.append(f"\\page")
+            section_lines.append('')
 
         return section_lines
 
@@ -182,18 +202,20 @@ class ContextTableSection(ContextSectionBase):
  
     ''' generates the ConTeXt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # title/chapter/section/subsection/subsubsection etc.
         heading_title, outline_level = self.get_heading()
         if heading_title:
-            heading_lines = ['']
+            heading_lines = []
             heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
             options = context_option(title=f"{{{heading_title}}}")
             heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{options}")
+            heading_lines.append('')
+
             section_lines =  section_lines + heading_lines
 
         # get the contents
@@ -222,10 +244,10 @@ class ContextGsheetSection(ContextSectionBase):
 
     ''' generates the odt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
@@ -271,10 +293,10 @@ class ContextToCSection(ContextSectionBase):
 
     ''' generates the ConTeXt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -307,10 +329,10 @@ class ContextLoTSection(ContextSectionBase):
 
     ''' generates the ConTeXt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -343,10 +365,10 @@ class ContextLoFSection(ContextSectionBase):
 
     ''' generates the ConTeXt code
     '''
-    def section_to_context(self, color_dict, document_footnotes):
+    def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -373,7 +395,7 @@ class ContextContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, section_index, section_id, nesting_level):
+    def __init__(self, content_data, content_width, section_index, section_id, nesting_level, header_footer=False):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         self.content_width, self.section_index, self.section_id, self.nesting_level = content_width, section_index, section_id, nesting_level
@@ -395,11 +417,20 @@ class ContextContent(object):
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
+
+
         # content_data must have 'properties' and 'data'
         if content_data and 'properties' in content_data and 'data' in content_data:
             self.has_content = True
             sheet_properties = content_data.get('properties')
             self.title = sheet_properties.get('title')
+
+            # HACK: headers and footers get section_index and section_id from parent, that needs to be overridden
+            if header_footer:
+                self.section_index = 0
+                self.section_id = f"s__{str(self.section_index).zfill(3)}__{self.title}"
+            
+            print(f"{self.title} {self.section_index} {self.section_id}")
 
             if 'gridProperties' in sheet_properties:
                 self.row_count = max(int(sheet_properties['gridProperties'].get('rowCount', 0)) - 2, 0)
@@ -631,9 +662,9 @@ class ContextPageHeaderFooter(ContextContent):
     def __init__(self, content_data, section_width, section_index, section_id, page_spec, orientation, margin_spec, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
+        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level, header_footer=True)
         self.page_spec, self.orientation, self.margin_spec = page_spec, orientation, margin_spec
-        self.page_header_footer_id = f"{self.section_id}-{self.page_spec}-{self.orientation}-{self.margin_spec}"
+        self.page_header_footer_id = f"{self.title}-{self.page_spec}-{self.orientation}-{self.margin_spec}"
 
 
     ''' generates the ConTeXt code
@@ -641,21 +672,18 @@ class ContextPageHeaderFooter(ContextContent):
     def content_to_context(self, color_dict, document_footnotes):
         context_lines = []
 
-        context_lines.append(f"\\providecommand\\{self.page_header_footer_id}{{}}")
-        context_lines.append(f"\\renewcommand\\{self.page_header_footer_id}{{%")
-
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.block_to_context(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=True, header_footer=self.header_footer)
-            # block_lines = list(map(lambda x: f"\t{x}", block_lines))
+            block_lines = block.block_to_context(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=True, header_footer=None)
             context_lines = context_lines + block_lines
 
             first_block = False
 
-        context_lines.append(f"\t}}")
+        # wrap in BEGIN/end comments
+        context_lines = wrap_with_comment(lines=context_lines, object_type='ContextPageHeaderFooter', object_id=self.page_header_footer_id, indent_level=1)
 
-        return [f"% ContextPageHeaderFooter: [{self.page_header_footer_id}]"] + context_lines
+        return context_lines
 
 
 
@@ -835,7 +863,7 @@ class ContextTable(ContextBlock):
         all_lines = setup_lines + table_lines
         all_lines = wrap_with_comment(lines=all_lines, object_type='ContextTable', object_id=self.table_id, indent_level=1)
 
-        return [''] + all_lines
+        return  all_lines + ['']
 
 
 
@@ -901,7 +929,7 @@ class ContextParagraph(ContextBlock):
             block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
 
 
-        return [''] + block_lines
+        return block_lines + ['']
 
 
 
@@ -2093,61 +2121,61 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config, color_dict, document_footnotes):
+def process_table(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextTableSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config, color_dict, document_footnotes):
+def process_gsheet(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextGsheetSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config, color_dict, document_footnotes):
+def process_toc(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextToCSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config, color_dict, document_footnotes):
+def process_lof(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextLoFSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config, color_dict, document_footnotes):
+def process_lot(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextLoTSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config, color_dict, document_footnotes):
+def process_pdf(section_data, config, color_dict, headers_footers, document_footnotes):
     context_section = ContextPdfSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
 
 ''' odt processor
 '''
-def process_odt(section_data, config, color_dict, document_footnotes):
+def process_odt(section_data, config, color_dict, headers_footers, document_footnotes):
     warn(f"content type [odt] not supported")
 
     return []
@@ -2155,7 +2183,7 @@ def process_odt(section_data, config, color_dict, document_footnotes):
 
 ''' docx processor
 '''
-def process_doc(self, section_data, config, color_dict):
+def process_doc(section_data, config, color_dict, headers_footers, document_footnotes):
     warn(f"content type [docx] not supported")
 
     return []
