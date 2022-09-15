@@ -43,7 +43,6 @@ class ContextSectionBase(object):
         else:
             self.section_index_text = zfilled_index
 
-        # self.section_id = f"s_{self.section_index_text}"
         if self._section_data['link'] != '':
             self.section_id = f"s__{self.section_index_text}__{self._section_data['link']}"
         else:
@@ -66,12 +65,12 @@ class ContextSectionBase(object):
         self.page_layout_name = self._section_data['page-layout']
 
         # headers and footers
-        self.header_first = ContextPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = ContextPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = ContextPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = ContextPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = ContextPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = ContextPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.header_first = ContextPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
+        self.header_odd   = ContextPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
+        self.header_even  = ContextPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
+        self.footer_first = ContextPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
+        self.footer_odd   = ContextPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
+        self.footer_even  = ContextPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self._section_data['page-spec'], orientation=self.landscape, margin_spec=self._section_data['margin-spec'], nesting_level=self.nesting_level)
 
         self.section_contents = ContextContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
 
@@ -102,31 +101,37 @@ class ContextSectionBase(object):
     ''' get header/fotter contents
     '''
     def get_header_footer(self, color_dict, document_footnotes):
-        hf_lines = []
-
         # get headers and footers
         if self.header_first.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_first.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            pass
 
         if self.header_odd.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_odd.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            odd_header_text = f"[\\directsetup{{{self.header_odd.page_header_footer_id}}}]"
+        else:
+            odd_header_text = '[]'
 
         if self.header_even.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.header_even.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            even_header_text = f"[\\directsetup{{{self.header_even.page_header_footer_id}}}]"
+        else:
+            even_header_text = '[]'
 
         if self.footer_first.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_first.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            pass
 
         if self.footer_odd.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_odd.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            odd_footer_text = f"[\\directsetup{{{self.footer_odd.page_header_footer_id}}}]"
+        else:
+            odd_footer_text = '[]'
 
         if self.footer_even.has_content:
-            hf_lines = hf_lines +  list(map(lambda x: f"\t{x}", self.footer_even.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)))
+            even_footer_text = f"[\\directsetup{{{self.footer_even.page_header_footer_id}}}]"
+        else:
+            even_footer_text = '[]'
 
+        header_text_line = f"\\setupheadertexts{odd_header_text}{odd_header_text}{even_header_text}{even_header_text}"
+        footer_text_line = f"\\setupfootertexts{odd_footer_text}{odd_footer_text}{even_footer_text}{even_footer_text}"
 
-        hf_lines = mark_as_context(lines=hf_lines)
-
-        return hf_lines
+        return [header_text_line, footer_text_line]
 
 
 
@@ -137,20 +142,27 @@ class ContextSectionBase(object):
 
         section_lines = []
 
-        # page layout changes only when a new section starts or if it is the first section
+        # Page Layout - changes only when a new section starts or if it is the first section
         if self.section_break or self.first_section:
             section_lines.append(f"\\setuppapersize[{self._section_data['page-spec']},{self.landscape}]")
             section_lines.append(f"\\setuplayout[{self.page_layout_name}]")
 
+        # wrap section in BEGIN/END comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='Page Layout', indent_level=1)
 
-        # TODO: header/footer lines
+
+        # header/footer lines
         hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
+        
+        # wrap section in BEGIN/END comments
+        hf_lines = wrap_with_comment(lines=hf_lines, object_type='Header Footer', indent_level=1)
 
+        section_lines = section_lines + [''] + hf_lines
 
         # the section may have a page-break
         if self.page_break:
-            section_lines.append(f"\t\\page")
-
+            section_lines.append('')
+            section_lines.append(f"\\page")
 
         return section_lines
 
@@ -616,12 +628,12 @@ class ContextPageHeaderFooter(ContextContent):
         header_footer : header/footer
         odd_even      : first/odd/even
     '''
-    def __init__(self, content_data, section_width, section_index, section_id, header_footer, odd_even, nesting_level):
+    def __init__(self, content_data, section_width, section_index, section_id, page_spec, orientation, margin_spec, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
-        self.header_footer, self.odd_even = header_footer, odd_even
-        self.page_header_footer_id = f"{self.header_footer}{self.odd_even}{COLUMNS[self.section_index]}"
+        self.page_spec, self.orientation, self.margin_spec = page_spec, orientation, margin_spec
+        self.page_header_footer_id = f"{self.section_id}-{self.page_spec}-{self.orientation}-{self.margin_spec}"
 
 
     ''' generates the ConTeXt code
