@@ -166,6 +166,11 @@ class ContextSectionBase(object):
 
         section_lines = []
 
+        # the section may have a page-break or section-break
+        if self.page_break or self.section_break:
+            section_lines.append(f"\\page")
+            section_lines.append('')
+
         # Page Layout - changes only when a new section starts or if it is the first section
         if self.section_break or self.first_section:
             section_lines.append(f"\\setuppapersize[{self._section_data['page-spec']},{self.landscape}]")
@@ -182,11 +187,6 @@ class ContextSectionBase(object):
         hf_lines = wrap_with_comment(lines=hf_lines, object_type='Header Footer', indent_level=1)
 
         section_lines = section_lines + [''] + hf_lines + ['']
-
-        # the section may have a page-break
-        if self.page_break:
-            section_lines.append(f"\\page")
-            section_lines.append('')
 
         return section_lines
 
@@ -434,7 +434,7 @@ class ContextContent(object):
                 self.section_index = 0
                 self.section_id = f"s__{str(self.section_index).zfill(3)}__{self.title}"
             
-            print(f"{self.title} {self.section_index} {self.section_id}")
+            # print(f"{self.title} {self.section_index} {self.section_id}")
 
             if 'gridProperties' in sheet_properties:
                 self.row_count = max(int(sheet_properties['gridProperties'].get('rowCount', 0)) - 2, 0)
