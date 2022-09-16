@@ -56,8 +56,13 @@ class ContextSectionBase(object):
 
         self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
         self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
-        self._section_data['width'] = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-        self._section_data['height'] = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+
+        if self.landscape == 'landscape':
+            self._section_data['width'] = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self._section_data['height'] = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+        else:
+            self._section_data['width'] = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self._section_data['height'] = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
         self.section_width = self._section_data['width']
         self.section_height = self._section_data['height']
@@ -788,7 +793,7 @@ class ContextTable(ContextBlock):
         r = 1
         for row in self.table_cell_matrix:
             row_setup_lines = row.row_setups_to_context(r=r, color_dict=color_dict)
-            setup_lines = setup_lines + row_setup_lines
+            # setup_lines = setup_lines + row_setup_lines
             r = r + 1
 
 

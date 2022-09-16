@@ -9,6 +9,16 @@ import re
 
 from helper.logger import *
 
+# distance/gap below header with the content in inches
+HEADER_DISTANCE = 0.10
+
+# distance/gap above footer with the content in inches
+FOOTER_DISTANCE = 0.10
+
+# distance/gap below footer from the bottom edge of the page
+BOTTOM_DISTANCE = 0.00
+
+
 # height in inches for dummy row
 DUMMY_ROW_HEIGHT = 0.10
 
@@ -26,6 +36,7 @@ FONT_MAP = {
     'Cambria': 'Cambria',
     'Bree Serif': 'FreeSerif',
 }
+
 
 # ConTeXt escape sequences
 CONV = {
@@ -174,52 +185,61 @@ LEVEL_TO_TITLE = [
         bottom=0.25in
     ]
 '''
-def create_page_layout(page_layout_key, page_spec, landscape, margin_spec, page_specs):
+def create_page_layout(page_layout_key, page_spec_name, landscape, margin_spec_name, page_specs):
     page_layout_lines = []
-    if page_spec in page_specs['page-spec'] and margin_spec in page_specs['margin-spec']:
+    if page_spec_name in page_specs['page-spec'] and margin_spec_name in page_specs['margin-spec']:
+        page_spec = page_specs['page-spec'][page_spec_name]
+        margin_spec = page_specs['margin-spec'][margin_spec_name]
+
         if landscape:
-            page_layout_lines.append(f"% {page_spec}, landscape, {margin_spec}")
+            page_layout_lines.append(f"% {page_spec_name}, landscape, {margin_spec_name}")
+            width = page_spec['height']
+            height = page_spec['width']
+
         else:
-            page_layout_lines.append(f"% {page_spec}, portrait, {margin_spec}")
+            page_layout_lines.append(f"% {page_spec_name}, portrait, {margin_spec_name}")
+            width = page_spec['width']
+            height = page_spec['height']
 
         page_layout_lines.append(f"\\definelayout[{page_layout_key}][")
 
+        left = margin_spec['left']
+        right = margin_spec['right']
+        top = margin_spec['top']
+        bottom = margin_spec['bottom']
+        gutter = margin_spec['gutter']
+
+        header_height = margin_spec['header-height']
+        footer_height = margin_spec['footer-height']
+
         page_layout_lines.append(f"\t% gutter + left-margin")
-        backspace = 0.50
+        backspace = gutter + left
         page_layout_lines.append(f"\tbackspace={backspace}in,")
 
         page_layout_lines.append(f"\t% page-width - backspace - rightmargin")
-        width = 7.27
-        page_layout_lines.append(f"\twidth={width}in,")
+        content_width = width - backspace - right
+        page_layout_lines.append(f"\twidth={content_width}in,")
 
         page_layout_lines.append(f"\t% right-margin")
-        rightmargin = 0.50
-        page_layout_lines.append(f"\trightmargin={rightmargin}in,")
+        page_layout_lines.append(f"\trightmargin={right}in,")
         
         page_layout_lines.append(f"\t% top-margin")
-        topspace = 0.25
-        page_layout_lines.append(f"\ttopspace={topspace}in,")
+        page_layout_lines.append(f"\ttopspace={top}in,")
         
         page_layout_lines.append(f"\t% header height")
-        header = 0.25
-        headerdistance = 0.10
-        page_layout_lines.append(f"\theader={header}in,")
-        page_layout_lines.append(f"\theaderdistance={headerdistance}in,")
+        page_layout_lines.append(f"\theader={header_height}in,")
+        page_layout_lines.append(f"\theaderdistance={HEADER_DISTANCE}in,")
         
         page_layout_lines.append(f"\t% page-height - top-margin - bottom-margin")
-        height = 11.19
-        page_layout_lines.append(f"\theight={height}in,")
+        content_height = height - top - bottom
+        page_layout_lines.append(f"\theight={content_height}in,")
         
         page_layout_lines.append(f"\t% footer")
-        footerdistance = 0.10
-        footer = 0.25
-        page_layout_lines.append(f"\tfooterdistance={footerdistance}in,")
-        page_layout_lines.append(f"\tfooter={footer}in,")
+        page_layout_lines.append(f"\tfooterdistance={FOOTER_DISTANCE}in,")
+        page_layout_lines.append(f"\tfooter={footer_height}in,")
         
         page_layout_lines.append(f"\t% bottom-margin")
-        bottomdistance = 0.00
-        bottom = 0.25
-        page_layout_lines.append(f"\tbottomdistance={bottomdistance}in,")
+        page_layout_lines.append(f"\tbottomdistance={BOTTOM_DISTANCE}in,")
         page_layout_lines.append(f"\tbottom={bottom}in")
 
         page_layout_lines.append(f"]")

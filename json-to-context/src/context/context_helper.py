@@ -61,7 +61,7 @@ class ContextHelper(object):
 
             # create the page-layout
             if section['page-layout'] not in page_layouts:
-                page_layouts[section['page-layout']] = create_page_layout(page_layout_key=section['page-layout'], page_spec=section['page-spec'], landscape=section['landscape'], margin_spec=section['margin-spec'], page_specs=self._config['page-specs'])
+                page_layouts[section['page-layout']] = create_page_layout(page_layout_key=section['page-layout'], page_spec_name=section['page-spec'], landscape=section['landscape'], margin_spec_name=section['margin-spec'], page_specs=self._config['page-specs'])
 
 
             module = importlib.import_module("context.context_api")
