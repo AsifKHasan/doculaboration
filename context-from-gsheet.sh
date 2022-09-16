@@ -9,7 +9,7 @@ PYTHON=python3
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src
-# ${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
+${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}
 
 if [ ${?} -ne 0 ]; then
   popd && exit 1
@@ -30,7 +30,7 @@ fi
 # context -> pdf
 pushd ./out
 time context --run ${DOCUMENT}.tex
-mv ${DOCUMENT}.pdf ${DOCUMENT}.context.pdf
+# mv ${DOCUMENT}.pdf ${DOCUMENT}.context.pdf
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1

@@ -1,289 +1,407 @@
 % BEGIN Document
+% BEGIN Macros and configs
+
 \replacemissingcharacters
 \enabletrackers[fonts.missing]
+\setupinteraction[state=start]
+% \setuppagenumbering[alternative=doublesided, location=]
+\setuppagenumbering[alternative=singlesided, location=]
 
 % Language = English
 \mainlanguage[en]
 
-% Fonts and fallbacks
-    \definefontfeature[default][
-        mode=node,kern=yes,
-        liga=yes,tlig=yes,
-        ccmp=yes,language=dflt,
-        protrusion=quality,
-        expansion=quality,
-        analyze=yes,
-        devanagari=yes,
-        keepligatures=yes,
-        compat-ligatures=yes,
-        char-ligatures=yes,
-        compose=yes
-    ]
+% macro for changing font size
+\define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
 
-    \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
-    \definefontfamily     [mainfont] [rm] [Latin Modern Roman]
-    \definefallbackfamily [mainfont] [ss] [notosansbengali]     [range=bengali]
-    \definefontfamily     [mainfont] [ss] [Latin Modern Sans]
-    \definefontfamily     [mainfont] [tf] [Latin Modern Roman]
-    \definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
-    \setupbodyfont        [mainfont,10pt]
-
-
-    %% fallbacks for Bangla
-    % \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]             [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]        [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]      [0x0980:0x09FF] [force=yes]
-    % \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic] [0x0980:0x09FF] [force=yes]
-
-    %% Now we hook the fallbacks into their respective type faces.
-    % \starttypescript [serif] [mainfont]
-    %     \setups[font:fallback:serif]
-    %         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
-    %         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
-    %         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
-    %         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
-    % \stoptypescript
-
-    %% Complete the typescript for all four type faces. Note that we default
-    %% to the predefined Latin Modern setups for the three other faces.
-    % \starttypescript [mainfont]
-    %     \definetypeface [mainfont] [rm] [serif] [mainfont]    [default]
-    %     \definetypeface [mainfont] [ss] [sans]  [modern]      [default]
-    %     \definetypeface [mainfont] [tt] [mono]  [modern]      [default]
-    %     \definetypeface [mainfont] [mm] [math]  [modern]      [default]
-    % \stoptypescript
-
-
-    %% Font = Latin Modern, 10 point
-    % \setupbodyfont[mainfont,10pt]
-
-
-    % macro for changing font size
-    \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
-
-
-% Heading styles
-    % Heading 0
-    \setuphead[title][style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
-
-    % Heading 1
-    \setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
-
-    % Heading 2
-    \setuphead[section][style=\bfb]
-
-    % Heading 3
-    \setuphead[subsection][style=\bfa]
-
-    % Heading 4
-    \setuphead[subsubsection][style=\bf]
-
-
-% double sided
+%% double sided
 % \setuppagenumbering[alternative=doublesided]
 
+% footnote configuration
 \setupnotation[footnote][way=bypage]
 \setupnote[footnote][]
 
-
-% Define Colors
-    \definecolor[ffffff][x=ffffff]
-    \definecolor[ff0000][x=ff0000]
-    \definecolor[e0e0e0][x=e0e0e0]
-    \definecolor[a0a0a0][x=a0a0a0]
-    \definecolor[808080][x=808080]
-    \definecolor[666666][x=666666]
-    \definecolor[000000][x=000000]
-    \definecolor[434343][x=434343]
+% END   Macros and configs
 
 
-% Page Layouts
-    % A4, portrait, narrow
-    \definelayout[a4-portrait-narrow][
-        % gutter + left-margin
-        backspace=0.50in,
-        % page-width - backspace - rightmargin
-        width=7.27in,
-        % right-margin
-        rightmargin=0.50in,
-        % top-margin
-        topspace=0.25in,
-        % header height
-        header=0.25in,
-        headerdistance=0.10in,
-        % page-height - top-margin - bottom-margin
-        height=11.19in,
-        % footer
-        footerdistance=0.10in,
-        footer=0.25in,
-        % bottom-margin
-        bottomdistance=0.00in,
-        bottom=0.25in
-    ]
+% BEGIN Fonts and fallbacks
+\definefontfeature[default][
+mode=node,kern=yes,
+liga=yes,tlig=yes,
+ccmp=yes,language=dflt,
+protrusion=quality,
+expansion=quality,
+analyze=yes,
+devanagari=yes,
+keepligatures=yes,
+compat-ligatures=yes,
+char-ligatures=yes,
+compose=yes
+]
 
-    % A4, landscape, narrow
-    \definelayout[a4-landscape-narrow][
-        % gutter + left-margin
-        backspace=0.50in,
-        % page-width - backspace - rightmargin
-        width=10.69in,
-        % right-margin
-        rightmargin=0.50in,
-        % top-margin
-        topspace=0.25in,
-        % header height
-        header=0.25in,
-        headerdistance=0.10in,
-        % page-height - top-margin - bottom-margin
-        height=7.77in,
-        % footer
-        footerdistance=0.10in,
-        footer=0.25in,
-        % bottom-margin
-        bottomdistance=0.00in,
-        bottom=0.25in
-    ]
+\definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]
+\definefontfamily     [mainfont] [rm] [Latin Modern Roman]
+\definefallbackfamily [mainfont] [ss] [notosansbengali]     [range=bengali]
+\definefontfamily     [mainfont] [ss] [Latin Modern Sans]
+\definefontfamily     [mainfont] [tf] [Latin Modern Roman]
+\definefontfamily     [mainfont] [mm] [TeX Gyre Pagella Math]
+\setupbodyfont        [mainfont,10pt]
 
 
-% Table definition for headers and footers
-    % HeaderTable A4, portrait, narrow
-    \startsetups [header-odd-A4-portrait]
-        \bTABLEnested[frame=off]
+%% fallbacks for Bangla
+% \definefontfallback [bangla_regular]    [name:Noto Serif Bengali]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_bold]       [name:Noto Serif Bengali Bold]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_italic]     [name:Noto Serif Bengali Italic]
+%                     [0x0980:0x09FF] [force=yes]
+% \definefontfallback [bangla_bolditalic] [name:Noto Serif Bengali Bold Italic]
+%                     [0x0980:0x09FF] [force=yes]
+
+%% Now we hook the fallbacks into their respective type faces.
+% \starttypescript [serif] [mainfont]
+%     \setups[font:fallback:serif]
+%         \definefontsynonym [Serif]           [name:Computer Modern Roman]             [fallbacks=bangla_regular]
+%         \definefontsynonym [SerifBold]       [name:Computer Modern Roman Bold]        [fallbacks=bangla_bold]
+%         \definefontsynonym [SerifItalic]     [name:Computer Modern Roman Italic]      [fallbacks=bangla_italic]
+%         \definefontsynonym [SerifBoldItalic] [name:Computer Modern Roman Bold Italic] [fallbacks=bangla_bolditalic]
+% \stoptypescript
+
+%% Complete the typescript for all four type faces. Note that we default
+%% to the predefined Latin Modern setups for the three other faces.
+% \starttypescript [mainfont]
+%     \definetypeface [mainfont] [rm] [serif] [mainfont]     [default]
+%     \definetypeface [mainfont] [ss] [sans]  [modern] [default]
+%     \definetypeface [mainfont] [tt] [mono]  [modern] [default]
+%     \definetypeface [mainfont] [mm] [math]  [modern] [default]
+% \stoptypescript
+
+
+%% Font = Latin Modern, 10 point
+% \setupbodyfont[mainfont,10pt]
+
+% END   Fonts and fallbacks
+
+
+% BEGIN Heading styles
+
+% Heading 0
+\setuphead[title][style=\bfd\sc, align={center}, color=darkgray, after={\startcolor[darkgray]\hrule\stopcolor\medskip}]
+
+% Heading 1
+\setuphead[chapter][hidenumber=yes, number=no, style=\bfc\sc, align={center}, color=darkcyan, after={\startcolor[darkcyan]\hrule\stopcolor\medskip}]
+
+% Heading 2
+\setuphead[section][hidenumber=yes, number=no, style=\bfb]
+
+% Heading 3
+\setuphead[subsection][hidenumber=yes, number=no, style=\bfa]
+
+% Heading 4
+\setuphead[subsubsection][hidenumber=yes, number=no, style=\bf]
+
+% END Heading styles
+
+
+% BEGIN Define Colors
+
+\definecolor[ffffff][x=ffffff]
+\definecolor[ff0000][x=ff0000]
+\definecolor[e0e0e0][x=e0e0e0]
+\definecolor[a0a0a0][x=a0a0a0]
+\definecolor[808080][x=808080]
+\definecolor[666666][x=666666]
+\definecolor[000000][x=000000]
+\definecolor[434343][x=434343]
+
+% END   Define Colors
+
+
+% BEGIN Page Layouts
+% A4, portrait, narrow
+\definelayout[A4-portrait-narrow][
+    % gutter + left-margin
+    backspace=0.5in,
+    % page-width - backspace - rightmargin
+    width=7.27in,
+    % right-margin
+    rightmargin=0.5in,
+    % top-margin
+    topspace=0.25in,
+    % header height
+    header=0.25in,
+    headerdistance=0.1in,
+    % page-height - top-margin - bottom-margin
+    height=11.19in,
+    % footer
+    footerdistance=0.1in,
+    footer=0.25in,
+    % bottom-margin
+    bottomdistance=0.0in,
+    bottom=0.25in
+]
+
+% A4, landscape, narrow
+\definelayout[A4-landscape-narrow][
+    % gutter + left-margin
+    backspace=0.50in,
+    % page-width - backspace - rightmargin
+    width=10.69in,
+    % right-margin
+    rightmargin=0.50in,
+    % top-margin
+    topspace=0.25in,
+    % header height
+    header=0.25in,
+    headerdistance=0.10in,
+    % page-height - top-margin - bottom-margin
+    height=7.77in,
+    % footer
+    footerdistance=0.10in,
+    footer=0.25in,
+    % bottom-margin
+    bottomdistance=0.00in,
+    bottom=0.25in
+]
+
+% END   Page Layouts
+
+
+% BEGIN Table definition for headers and footers
+
+% HeaderTable odd page, A4, portrait, narrow
+\startsetups [z-header-odd-A4-portrait-narrow]
+    \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=6.27in]
         \setupTABLE[c][2][width=1.00in]
         \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
         \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                    % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-                \eTD
-                % cell C3
-                \bTD
-                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                \eTD
-            \eTR
-        \eTABLEnested
-    \stopsetups
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
+                % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+            \eTD
+            % cell C3
+            \bTD
+                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
 
-    % FooterTable A4, portrait, narrow
-    \startsetups [footer-odd-A4-portrait]
-        \bTABLEnested[frame=off]
+% HeaderTable odd page, A4, portrait, narrow
+\startsetups [z-header-even-A4-portrait-narrow]
+    \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=6.27in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
+        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+                % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+            \eTD
+            % cell C3
+            \bTD
+                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
+
+% FooterTable odd page, A4, portrait, narrow
+\startsetups [z-footer-odd-A4-portrait-narrow]
+    \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=6.27in]
         \setupTABLE[c][2][width=1.00in]
         \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
         \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                \eTD
-                % cell C3
-                \bTD
-                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
-                \eTD
-            \eTR
-        \eTABLEnested
-    \stopsetups
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
+            \eTD
+            % cell C3
+            \bTD
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
 
-    % HeaderTable A4, landscape, narrow
-    \startsetups [header-odd-A4-landscape]
-        \bTABLEnested[frame=off]
+% FooterTable even page A4, portrait, narrow
+\startsetups [z-footer-even-A4-portrait-narrow]
+    \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=6.27in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+            \eTD
+            % cell C3
+            \bTD
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
+
+% HeaderTable odd page, A4, landscape, narrow
+\startsetups [z-header-odd-A4-landscape-narrow]
+    \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=9.69in]
         \setupTABLE[c][2][width=1.00in]
         \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
         \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                    % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-                \eTD
-                % cell C3
-                \bTD
-                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                \eTD
-            \eTR
-        \eTABLEnested
-    \stopsetups
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
+                % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+            \eTD
+            % cell C3
+            \bTD
+                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
 
-    % FooterTable A4, landscape, narrow
-    \startsetups [footer-odd-A4-landscape]
-        \bTABLEnested[frame=off]
+% HeaderTable even page, A4, landscape, narrow
+\startsetups [z-header-even-A4-landscape-narrow]
+    \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=9.69in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+                % {গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
+            \eTD
+            % cell C3
+            \bTD
+                \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
+
+% FooterTable odd page, A4, landscape, narrow
+\startsetups [z-footer-odd-A4-landscape-narrow]
+    \bTABLEnested[frame=off]
         \setupTABLE[c][1][width=9.69in]
         \setupTABLE[c][2][width=1.00in]
         \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
         \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                \eTD
-                % cell C3
-                \bTD
-                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
-                \eTD
-            \eTR
-        \eTABLEnested
-    \stopsetups
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
+            \eTD
+            % cell C3
+            \bTD
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
+
+% FooterTable even page, A4, landscape, narrow
+\startsetups [z-footer-even-A4-landscape-narrow]
+    \bTABLEnested[frame=off]
+        \setupTABLE[c][1][width=9.69in]
+        \setupTABLE[c][2][width=1.00in]
+        \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+        \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+        % row 3
+        \bTR
+            % cell B3
+            \bTD
+                \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
+            \eTD
+            % cell C3
+            \bTD
+                \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
+            \eTD
+        \eTR
+    \eTABLEnested
+\stopsetups
+
+% END   Table definition for headers and footers
 
 
 % BEGIN Text
 \starttext
 
-    % Section ToC
+% BEGIN section ToC
     \setuppapersize[A4,portrait]
-    \setuplayout[a4-portrait-narrow]
+    \setuplayout[A4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
+    \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+    \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
     \starttitle[title=Table of Contents]
         \placecontent
     \stoptitle
+% END   section ToC
+
+% \page
+
+% BEGIN section LoF
+    \page
+
+    \setuppapersize[A4,portrait]
+    \setuplayout[A4-portrait-narrow]
+
+    \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+    \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
     \page
-    
-
-    % Section LoF
-    \setuppapersize[A4,portrait]
-    \setuplayout[a4-portrait-narrow]
-
-    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
 
     \starttitle[title=List of Figures]
         \placelistoffigures
     \stoptitle
+% END   chapter LoF
 
+% \page
+
+% BEGIN section LoT
     \page
 
-
-    % Section LoT
     \setuppapersize[A4,portrait]
-    \setuplayout[a4-portrait-narrow]
+    \setuplayout[A4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
+    \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+    \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
     \starttitle[title=List of Tables]
         \placelistoftables
     \stoptitle
+% END   section LoT
 
+% \page
+
+% BEGIN section 1
     \page
 
-
-    % Section 1
     \setuppapersize[A4,portrait]
-    \setuplayout[a4-portrait-narrow]
+    \setuplayout[A4-portrait-narrow]
 
-    \setupheadertexts[\directsetup{header-odd-A4-portrait}]
-    \setupfootertexts[\directsetup{footer-odd-A4-portrait}]
+    \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+    \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
     \startchapter[title=Some information required]
 
@@ -303,1183 +421,1201 @@
         \stopitemize
                 
     \stopchapter
+% END   section 1
 
+% BEGIN section 2
     \page
 
-    % Section 2
     \setuppapersize[A4,landscape]
-    \setuplayout[a4-landscape-narrow]
+    \setuplayout[A4-landscape-narrow]
 
-    \setupheadertexts[\directsetup{header-odd-A4-landscape}]
-    \setupfootertexts[\directsetup{footer-odd-A4-landscape}]
+    \setupheadertexts[\directsetup{z-header-odd-A4-landscape-narrow}][\directsetup{z-header-odd-A4-landscape-narrow}][\directsetup{z-header-even-A4-landscape-narrow}][\directsetup{z-header-even-A4-landscape-narrow}]
+    \setupfootertexts[\directsetup{z-footer-odd-A4-landscape-narrow}][\directsetup{z-footer-odd-A4-landscape-narrow}][\directsetup{z-footer-even-A4-landscape-narrow}][\directsetup{z-footer-even-A4-landscape-narrow}]
 
     \startchapter
-        [title=Chapter 2]
+        [title=chapter 2]
 
-        \startpostponingnotes
-        % paragraph B3
-        \framed[align={flushleft}, width=10.69in, background=color, backgroundcolor=e0e0e0, foreground=color, foregroundcolor=434343, frame=off, leftframe=on]
-            {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?} $x^2 + y^2 = z^2$. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
-            % {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?}. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
-        \stoppostponingnotes
+        % BEGIN paragraph B3
+            \startpostponingnotes
+                \framed[align={flushleft}, width=10.69in, background=color, backgroundcolor=e0e0e0, foreground=color, foregroundcolor=434343, frame=off, leftframe=on]
+                    {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?} $x^2 + y^2 = z^2$. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
+                    % {This is an example\footnote{It is a poor example to be truthful} with (\$) of inline latex\footnote{You know latex, eh?}. Can you see it? If you can not see it it means, we have sone something wrong somewhere. In that case we will have to correct it. Please wait for the correction.}
+            \stoppostponingnotes
+        % END   paragraph B3
 
         \blank
 
-        \startpostponingnotes
-        % table B3:B29
-        \setupTABLE[split=repeat, header=repeat, loffset=0.05in, roffset=0.05in, frame=on]
-        \setupTABLE[1][width=0.5in]
-        \setupTABLE[2][width=1.5in]
-        \setupTABLE[3][width=1.5in]
-        \setupTABLE[4][width=1.5in]
-        \setupTABLE[5][width=1.5in]
+        % BEGIN table B3:B29
+            \startsetups[s__000__00-coverpage__t__B3-B7__5]
+                \setupTABLE[split=repeat, header=repeat, loffset=0.05in, roffset=0.05in, frame=on]
+                \setupTABLE[1][width=1.0in]
+                \setupTABLE[2][width=1.5in]
+                \setupTABLE[3][width=1.5in]
+                \setupTABLE[4][width=1.5in]
+                \setupTABLE[5][width=1.5in]
 
-        % formatting setup for B3
-        \setupTABLE[1][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-        \setupTABLE[1][1][leftframe=on, framecolor=ff0000, rulethickness=0.5pt]
-        \setupTABLE[1][1][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
-
-        % formatting setup for C3
-        \setupTABLE[2][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-
-        % formatting setup for D3
-        \setupTABLE[3][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-
-        % formatting setup for E3
-        \setupTABLE[4][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-
-        % formatting setup for F3
-        \setupTABLE[5][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
-
-        % formatting setup for F3
-        \setupTABLE[5][2][align={lohi}]
-
-        \bTABLE
-
-            % table header, only for first page
-            \bTABLEhead
-
-                % row 3
-                \bTR
-
-                    % cell B3
-                    \bTD
-                        {\#}
-                    \eTD
-
-                    % cell C3
-                    \bTD
-                        {\alpha}
-                    \eTD
-
-                    % cell D3
-                    \bTD
-                        {\beta}
-                    \eTD
-
-                    % cell E3
-                    \bTD
-                        {\gamma}
-                    \eTD
-
-                    % cell F3
-                    \bTD
-                        {\delta}
-                    \eTD
-
-                \eTR
-
-            \eTABLEhead
-
-            % non-repeating rows
-            \bTABLEbody
-
-                % row 4
-                \bTR
-
-                    % cell B4
-                    \bTD
-                        1
-                    \eTD
-
-                    % cell C4
-                    \bTD
-                        alpha 1
-                    \eTD
-
-                    % cell D4
-                    \bTD
-                        beta 1
-                    \eTD
-
-                    % cell E4
-                    \bTD
-                        gamma 1
-                    \eTD
-
-                    % cell F4
-                    \bTD[nr=2]
-                        \middlealigned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                    \eTD
-
-                \eTR
-
-                % row 5
-                \bTR
-
-                    % cell B5
-                    \bTD 
-                        2
-                    \eTD
-
-                    % cell C5
-                    \bTD 
-                        alpha 2
-                    \eTD
-
-                    % cell D5
-                    \bTD 
-                        beta 2
-                    \eTD
-
-                    % cell E5
-                    \bTD 
-                        gamma\footnote{This is greek Gamma} 2
-                    \eTD
-
-                    % cell F5
-                    % \bTD 
-                    %     delta 2
-                    % \eTD
-
-                \eTR
-
-                % row 6
-                \bTR
-
-                    % cell B6
-                    \bTD 
-                        3
-                    \eTD
-
-                    % cell C6
-                    \bTD 
-                        alpha 3
-                    \eTD
-
-                    % cell D6
-                    \bTD 
-                        beta 3
-                    \eTD
-
-                    % cell E6
-                    \bTD 
-                        gamma 3
-                    \eTD
-
-                    % cell F6
-                    \bTD 
-                        delta 3
-                    \eTD
-
-                \eTR
-
-                % row 7
-                \bTR
-
-                    % cell B7
-                    \bTD 
-                        4
-                    \eTD
-
-                    % cell C7
-                    \bTD 
-                        alpha 4
-                    \eTD
-
-                    % cell D7
-                    \bTD 
-                        beta 4
-                    \eTD
-
-                    % cell E7
-                    \bTD 
-                        gamma 4
-                    \eTD
-
-                    % cell F7
-                    \bTD 
-                        delta 4
-                    \eTD
-
-                \eTR
-
-                % row 8
-                \bTR
-
-                    % cell B8
-                    \bTD 
-                        5
-                    \eTD
-
-                    % cell C8
-                    \bTD 
-                        alpha 5
-                    \eTD
-
-                    % cell D8
-                    \bTD 
-                        beta 5
-                    \eTD
-
-                    % cell E8
-                    \bTD 
-                        gamma 5
-                    \eTD
-
-                    % cell F8
-                    \bTD 
-                        delta 5
-                    \eTD
-
-                \eTR
-
-                % row 9
-                \bTR
-
-                    % cell B9
-                    \bTD 
-                        6
-                    \eTD
-
-                    % cell C9
-                    \bTD 
-                        alpha 6
-                    \eTD
-
-                    % cell D9
-                    \bTD 
-                        beta 6
-                    \eTD
-
-                    % cell E9
-                    \bTD 
-                        gamma 6
-                    \eTD
-
-                    % cell F9
-                    \bTD 
-                        delta 6
-                    \eTD
-
-                \eTR
-
-                % row 10
-                \bTR
-
-                    % cell B10
-                    \bTD 
-                        7
-                    \eTD
-
-                    % cell C10
-                    \bTD 
-                        alpha 7
-                    \eTD
-
-                    % cell D10
-                    \bTD 
-                        beta 7
-                    \eTD
-
-                    % cell E10
-                    \bTD 
-                        gamma 7
-                    \eTD
-
-                    % cell F10
-                    \bTD 
-                        delta 7
-                    \eTD
-
-                \eTR
-
-                % row 11
-                \bTR
-
-                    % cell B11
-                    \bTD 
-                        8
-                    \eTD
-
-                    % cell C11
-                    \bTD 
-                        alpha 8
-                    \eTD
-
-                    % cell D11
-                    \bTD 
-                        beta 8
-                    \eTD
-
-                    % cell E11
-                    \bTD 
-                        gamma 8
-                    \eTD
-
-                    % cell F11
-                    \bTD 
-                        delta 8
-                    \eTD
-
-                \eTR
-
-                % row 12
-                \bTR
-
-                    % cell B12
-                    \bTD 
-                        9
-                    \eTD
-
-                    % cell C12
-                    \bTD 
-                        alpha 9
-                    \eTD
-
-                    % cell D12
-                    \bTD 
-                        beta 9
-                    \eTD
-
-                    % cell E12
-                    \bTD 
-                        gamma 9
-                    \eTD
-
-                    % cell F12
-                    \bTD 
-                        delta 9
-                    \eTD
-
-                \eTR
-
-                % row 13
-                \bTR
-
-                    % cell B13
-                    \bTD 
-                        10
-                    \eTD
-
-                    % cell C13
-                    \bTD 
-                        alpha 10
-                    \eTD
-
-                    % cell D13
-                    \bTD 
-                        beta 10
-                    \eTD
-
-                    % cell E13
-                    \bTD 
-                        gamma 10
-                    \eTD
-
-                    % cell F13
-                    \bTD 
-                        delta 10
-                    \eTD
-
-                \eTR
-
-                % row 14
-                \bTR
-
-                    % cell B14
-                    \bTD 
-                        11
-                    \eTD
-
-                    % cell C14
-                    \bTD 
-                        alpha 11
-                    \eTD
-
-                    % cell D14
-                    \bTD 
-                        beta 11
-                    \eTD
-
-                    % cell E14
-                    \bTD 
-                        gamma 11
-                    \eTD
-
-                    % cell F14
-                    \bTD 
-                        delta 11
-                    \eTD
-
-                \eTR
-
-                % row 15
-                \bTR
-
-                    % cell B15
-                    \bTD 
-                        12
-                    \eTD
-
-                    % cell C15
-                    \bTD 
-                        alpha 12
-                    \eTD
-
-                    % cell D15
-                    \bTD 
-                        beta 12
-                    \eTD
-
-                    % cell E15
-                    \bTD 
-                        gamma 12
-                    \eTD
-
-                    % cell F15
-                    \bTD 
-                        delta 12
-                    \eTD
-
-                \eTR
-
-                % row 16
-                \bTR
-
-                    % cell B16
-                    \bTD 
-                        13
-                    \eTD
-
-                    % cell C16
-                    \bTD 
-                        alpha 13
-                    \eTD
-
-                    % cell D16
-                    \bTD 
-                        beta 13
-                    \eTD
-
-                    % cell E16
-                    \bTD 
-                        gamma 13
-                    \eTD
-
-                    % cell F16
-                    \bTD 
-                        delta 13
-                    \eTD
-
-                \eTR
-
-                % row 17
-                \bTR
-
-                    % cell B17
-                    \bTD 
-                        14
-                    \eTD
-
-                    % cell C17
-                    \bTD 
-                        alpha 14
-                    \eTD
-
-                    % cell D17
-                    \bTD 
-                        beta 14
-                    \eTD
-
-                    % cell E17
-                    \bTD 
-                        gamma 14
-                    \eTD
-
-                    % cell F17
-                    \bTD 
-                        delta 14
-                    \eTD
-
-                \eTR
-
-                % row 18
-                \bTR
-
-                    % cell B18
-                    \bTD 
-                        15
-                    \eTD
-
-                    % cell C18
-                    \bTD 
-                        alpha 15
-                    \eTD
-
-                    % cell D18
-                    \bTD 
-                        beta 15
-                    \eTD
-
-                    % cell E18
-                    \bTD 
-                        gamma 15
-                    \eTD
-
-                    % cell F18
-                    \bTD 
-                        delta 15
-                    \eTD
-
-                \eTR
-
-                % row 19
-                \bTR
-
-                    % cell B19
-                    \bTD 
-                        16
-                    \eTD
-
-                    % cell C19
-                    \bTD 
-                        alpha 16
-                    \eTD
-
-                    % cell D19
-                    \bTD 
-                        beta 16
-                    \eTD
-
-                    % cell E19
-                    \bTD 
-                        gamma 16
-                    \eTD
-
-                    % cell F19
-                    \bTD 
-                        delta 16
-                    \eTD
-
-                \eTR
-
-                % row 20
-                \bTR
-
-                    % cell B20
-                    \bTD 
-                        17
-                    \eTD
-
-                    % cell C20
-                    \bTD 
-                        alpha 17
-                    \eTD
-
-                    % cell D20
-                    \bTD 
-                        beta 17
-                    \eTD
-
-                    % cell E20
-                    \bTD 
-                        gamma 17
-                    \eTD
-
-                    % cell F20
-                    \bTD 
-                        delta 17
-                    \eTD
-
-                \eTR
-
-                % row 21
-                \bTR
-
-                    % cell B21
-                    \bTD 
-                        18
-                    \eTD
-
-                    % cell C21
-                    \bTD 
-                        alpha 18
-                    \eTD
-
-                    % cell D21
-                    \bTD 
-                        beta 18
-                    \eTD
-
-                    % cell E21
-                    \bTD 
-                        gamma 18
-                    \eTD
-
-                    % cell F21
-                    \bTD 
-                        delta 18
-                    \eTD
-
-                \eTR
-
-                % row 22
-                \bTR
-
-                    % cell B22
-                    \bTD 
-                        19
-                    \eTD
-
-                    % cell C22
-                    \bTD 
-                        alpha 19
-                    \eTD
-
-                    % cell D22
-                    \bTD 
-                        beta 19
-                    \eTD
-
-                    % cell E22
-                    \bTD 
-                        gamma 19
-                    \eTD
-
-                    % cell F22
-                    \bTD 
-                        delta 19
-                    \eTD
-
-                \eTR
-
-                % row 23
-                \bTR
-
-                    % cell B23
-                    \bTD 
-                        20
-                    \eTD
-
-                    % cell C23
-                    \bTD 
-                        alpha 20
-                    \eTD
-
-                    % cell D23
-                    \bTD 
-                        beta 20
-                    \eTD
-
-                    % cell E23
-                    \bTD 
-                        gamma 20
-                    \eTD
-
-                    % cell F23
-                    \bTD 
-                        delta 20
-                    \eTD
-
-                \eTR
-
-                % row 24
-                \bTR
-
-                    % cell B24
-                    \bTD 
-                        21
-                    \eTD
-
-                    % cell C24
-                    \bTD 
-                        alpha 21
-                    \eTD
-
-                    % cell D24
-                    \bTD 
-                        beta 21
-                    \eTD
-
-                    % cell E24
-                    \bTD 
-                        gamma 21
-                    \eTD
-
-                    % cell F24
-                    \bTD 
-                        delta 21
-                    \eTD
-
-                \eTR
-
-                % row 25
-                \bTR
-
-                    % cell B25
-                    \bTD 
-                        22
-                    \eTD
-
-                    % cell C25
-                    \bTD 
-                        alpha 22
-                    \eTD
-
-                    % cell D25
-                    \bTD 
-                        beta 22
-                    \eTD
-
-                    % cell E25
-                    \bTD 
-                        gamma 22
-                    \eTD
-
-                    % cell F25
-                    \bTD 
-                        delta 22
-                    \eTD
-
-                \eTR
-
-                % row 26
-                \bTR
-
-                    % cell B26
-                    \bTD 
-                        23
-                    \eTD
-
-                    % cell C26
-                    \bTD 
-                        alpha 23
-                    \eTD
-
-                    % cell D26
-                    \bTD 
-                        beta 23
-                    \eTD
-
-                    % cell E26
-                    \bTD 
-                        gamma 23
-                    \eTD
-
-                    % cell F26
-                    \bTD 
-                        delta 23
-                    \eTD
-
-                \eTR
-
-                % row 27
-                \bTR
-
-                    % cell B27
-                    \bTD 
-                        24
-                    \eTD
-
-                    % cell C27
-                    \bTD 
-                        alpha 24
-                    \eTD
-
-                    % cell D27
-                    \bTD 
-                        beta 24
-                    \eTD
-
-                    % cell E27
-                    \bTD 
-                        gamma 24
-                    \eTD
-
-                    % cell F27
-                    \bTD 
-                        delta 24
-                    \eTD
-
-                \eTR
-
-                % row 28
-                \bTR
-
-                    % cell B28
-                    \bTD 
-                        25
-                    \eTD
-
-                    % cell C28
-                    \bTD 
-                        alpha 25
-                    \eTD
-
-                    % cell D28
-                    \bTD 
-                        beta 25
-                    \eTD
-
-                    % cell E28
-                    \bTD 
-                        gamma 25
-                    \eTD
-
-                    % cell F28
-                    \bTD 
-                        delta 25
-                    \eTD
-
-                \eTR
-
-                % row 29
-                \bTR
-
-                    % cell B29
-                    \bTD 
-                        26
-                    \eTD
-
-                    % cell C29
-                    \bTD 
-                        alpha 26
-                    \eTD
-
-                    % cell D29
-                    \bTD 
-                        beta 26
-                    \eTD
-
-                    % cell E29
-                    \bTD 
-                        gamma 26
-                    \eTD
-
-                    % cell F29
-                    \bTD 
-                        delta 26
-                    \eTD
-
-                \eTR
-
-                % row 30
-                \bTR
-
-                    % cell B30
-                    \bTD 
-                        27
-                    \eTD
-
-                    % cell C30
-                    \bTD 
-                        alpha 27
-                    \eTD
-
-                    % cell D30
-                    \bTD 
-                        beta 27
-                    \eTD
-
-                    % cell E30
-                    \bTD 
-                        gamma 27
-                    \eTD
-
-                    % cell F30
-                    \bTD 
-                        delta 27
-                    \eTD
-
-                \eTR
-
-                % row 31
-                \bTR
-
-                    % cell B31
-                    \bTD 
-                        28
-                    \eTD
-
-                    % cell C31
-                    \bTD 
-                        alpha 28
-                    \eTD
-
-                    % cell D31
-                    \bTD 
-                        beta 28
-                    \eTD
-
-                    % cell E31
-                    \bTD 
-                        gamma 28
-                    \eTD
-
-                    % cell F31
-                    \bTD 
-                        delta 28
-                    \eTD
-
-                \eTR
-
-                % row 32
-                \bTR
-
-                    % cell B32
-                    \bTD 
-                        29
-                    \eTD
-
-                    % cell C32
-                    \bTD 
-                        alpha 29
-                    \eTD
-
-                    % cell D32
-                    \bTD 
-                        beta 29
-                    \eTD
-
-                    % cell E32
-                    \bTD 
-                        gamma 29
-                    \eTD
-
-                    % cell F32
-                    \bTD 
-                        delta 29
-                    \eTD
-
-                \eTR
-
-                % row 33
-                \bTR
-
-                    % cell B33
-                    \bTD 
-                        30
-                    \eTD
-
-                    % cell C33
-                    \bTD 
-                        alpha 30
-                    \eTD
-
-                    % cell D33
-                    \bTD 
-                        beta 30
-                    \eTD
-
-                    % cell E33
-                    \bTD 
-                        gamma 30
-                    \eTD
-
-                    % cell F33
-                    \bTD 
-                        delta 30
-                    \eTD
-
-                \eTR
-
-                % row 34
-                \bTR
-
-                    % cell B34
-                    \bTD 
-                        31
-                    \eTD
-
-                    % cell C34
-                    \bTD 
-                        alpha 31
-                    \eTD
-
-                    % cell D34
-                    \bTD 
-                        beta 31
-                    \eTD
-
-                    % cell E34
-                    \bTD 
-                        gamma 31
-                    \eTD
-
-                    % cell F34
-                    \bTD 
-                        delta 31
-                    \eTD
-
-                \eTR
-
-                % row 35
-                \bTR
-
-                    % cell B35
-                    \bTD 
-                        33
-                    \eTD
-
-                    % cell C35
-                    \bTD 
-                        alpha 33
-                    \eTD
-
-                    % cell D35
-                    \bTD 
-                        beta 33
-                    \eTD
-
-                    % cell E35
-                    \bTD 
-                        gamma 33
-                    \eTD
-
-                    % cell F35
-                    \bTD 
-                        delta 33
-                    \eTD
-
-                \eTR
-
-                % row 36
-                \bTR
-
-                    % cell B36
-                    \bTD 
-                        33
-                    \eTD
-
-                    % cell C36
-                    \bTD 
-                        alpha 33
-                    \eTD
-
-                    % cell D36
-                    \bTD 
-                        beta 33
-                    \eTD
-
-                    % cell E36
-                    \bTD 
-                        gamma 33
-                    \eTD
-
-                    % cell F36
-                    \bTD 
-                        delta 33
-                    \eTD
-
-                \eTR
-
-                % row 37
-                \bTR
-
-                    % cell B37
-                    \bTD 
-                        34
-                    \eTD
-
-                    % cell C37
-                    \bTD 
-                        alpha 34
-                    \eTD
-
-                    % cell D37
-                    \bTD 
-                        beta 34
-                    \eTD
-
-                    % cell E37
-                    \bTD 
-                        gamma 34
-                    \eTD
-
-                    % cell F37
-                    \bTD 
-                        delta 34
-                    \eTD
-
-                \eTR
-
-                % row 38
-                \bTR
-
-                    % cell B38
-                    \bTD 
-                        35
-                    \eTD
-
-                    % cell C38
-                    \bTD 
-                        alpha 35
-                    \eTD
-
-                    % cell D38
-                    \bTD 
-                        beta 35
-                    \eTD
-
-                    % cell E38
-                    \bTD 
-                        gamma 35
-                    \eTD
-
-                    % cell F38
-                    \bTD 
-                        delta 35
-                    \eTD
-
-                \eTR
-
-                % row 39
-                \bTR
-
-                    % cell B39
-                    \bTD 
-                        36
-                    \eTD
-
-                    % cell C39
-                    \bTD 
-                        alpha 36
-                    \eTD
-
-                    % cell D39
-                    \bTD 
-                        beta 36
-                    \eTD
-
-                    % cell E39
-                    \bTD 
-                        gamma 36
-                    \eTD
-
-                    % cell F39
-                    \bTD 
-                        delta 36
-                    \eTD
-
-                \eTR
-
-            \eTABLEbody
-
-        \eTABLE
-        \stoppostponingnotes
-        
+                % Row setups [3]
+                \setupTABLE[r][1][minheight=0.4305555555555556in]
+
+                % Row setups [3]
+                \setupTABLE[r][2][minheight=0.4305555555555556in]
+
+                % formatting setup for B3
+                \setupTABLE[1][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0, align={lohi}]
+                \setupTABLE[1][1][leftframe=on, framecolor=ff0000, rulethickness=0.5pt]
+                \setupTABLE[1][1][topframe=on, framecolor=ff0000, rulethickness=0.5pt]
+
+                % formatting setup for C3
+                \setupTABLE[2][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+                % formatting setup for D3
+                \setupTABLE[3][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+                % formatting setup for E3
+                \setupTABLE[4][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+                % formatting setup for F3
+                \setupTABLE[5][1][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0]
+
+                % formatting setup for B4
+                \setupTABLE[1][2][foregroundcolor=ff0000, background=color, backgroundcolor=e0e0e0, align={middle,low}]
+
+                % formatting setup for F4
+                \setupTABLE[5][2][align={lohi}]
+
+            \stopsetups
+
+            \startpostponingnotes
+
+                \bTABLE[setups=s__000__00-coverpage__t__B3-B7__5]
+
+                    % table header, only for first page
+                    \bTABLEhead
+
+                        % row 3
+                        \bTR
+
+                            % cell B3
+                            \bTD
+                            % \switchtobodyfont[dejavu]
+                            \globalfsize{14pt}\color[990000]{\overstrike{\underbar{\bi{For}}}}
+                            \eTD
+
+                            % cell C3
+                            \bTD
+                                {\alpha}
+                            \eTD
+
+                            % cell D3
+                            \bTD
+                                {\beta}
+                            \eTD
+
+                            % cell E3
+                            \bTD
+                                {\gamma}
+                            \eTD
+
+                            % cell F3
+                            \bTD
+                                {\delta}
+                            \eTD
+
+                        \eTR
+
+                    \eTABLEhead
+
+                    % non-repeating rows
+                    \bTABLEbody
+
+                        % row 4
+                        \bTR
+
+                            % cell B4
+                            \bTD
+                            \globalfsize{14pt}\color[990000]{1}
+                            \eTD
+
+                            % cell C4
+                            \bTD
+                                alpha 1
+                            \eTD
+
+                            % cell D4
+                            \bTD
+                                beta 1
+                            \eTD
+
+                            % cell E4
+                            \bTD
+                                gamma 1
+                            \eTD
+
+                            % cell F4
+                            \bTD[nr=2]
+                                \middlealigned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
+                            \eTD
+
+                        \eTR
+
+                        % row 5
+                        \bTR
+
+                            % cell B5
+                            \bTD 
+                                2
+                            \eTD
+
+                            % cell C5
+                            \bTD 
+                                alpha 2
+                            \eTD
+
+                            % cell D5
+                            \bTD 
+                                beta 2
+                            \eTD
+
+                            % cell E5
+                            \bTD 
+                                gamma\footnote{This is greek Gamma} 2
+                            \eTD
+
+                            % cell F5
+                            % \bTD 
+                            %     delta 2
+                            % \eTD
+
+                        \eTR
+
+                        % row 6
+                        \bTR
+
+                            % cell B6
+                            \bTD 
+                                3
+                            \eTD
+
+                            % cell C6
+                            \bTD 
+                                alpha 3
+                            \eTD
+
+                            % cell D6
+                            \bTD 
+                                beta 3
+                            \eTD
+
+                            % cell E6
+                            \bTD 
+                                gamma 3
+                            \eTD
+
+                            % cell F6
+                            \bTD 
+                                delta 3
+                            \eTD
+
+                        \eTR
+
+                        % row 7
+                        \bTR
+
+                            % cell B7
+                            \bTD 
+                                4
+                            \eTD
+
+                            % cell C7
+                            \bTD 
+                                alpha 4
+                            \eTD
+
+                            % cell D7
+                            \bTD 
+                                beta 4
+                            \eTD
+
+                            % cell E7
+                            \bTD 
+                                gamma 4
+                            \eTD
+
+                            % cell F7
+                            \bTD 
+                                delta 4
+                            \eTD
+
+                        \eTR
+
+                        % row 8
+                        \bTR
+
+                            % cell B8
+                            \bTD 
+                                5
+                            \eTD
+
+                            % cell C8
+                            \bTD 
+                                alpha 5
+                            \eTD
+
+                            % cell D8
+                            \bTD 
+                                beta 5
+                            \eTD
+
+                            % cell E8
+                            \bTD 
+                                gamma 5
+                            \eTD
+
+                            % cell F8
+                            \bTD 
+                                delta 5
+                            \eTD
+
+                        \eTR
+
+                        % row 9
+                        \bTR
+
+                            % cell B9
+                            \bTD 
+                                6
+                            \eTD
+
+                            % cell C9
+                            \bTD 
+                                alpha 6
+                            \eTD
+
+                            % cell D9
+                            \bTD 
+                                beta 6
+                            \eTD
+
+                            % cell E9
+                            \bTD 
+                                gamma 6
+                            \eTD
+
+                            % cell F9
+                            \bTD 
+                                delta 6
+                            \eTD
+
+                        \eTR
+
+                        % row 10
+                        \bTR
+
+                            % cell B10
+                            \bTD 
+                                7
+                            \eTD
+
+                            % cell C10
+                            \bTD 
+                                alpha 7
+                            \eTD
+
+                            % cell D10
+                            \bTD 
+                                beta 7
+                            \eTD
+
+                            % cell E10
+                            \bTD 
+                                gamma 7
+                            \eTD
+
+                            % cell F10
+                            \bTD 
+                                delta 7
+                            \eTD
+
+                        \eTR
+
+                        % row 11
+                        \bTR
+
+                            % cell B11
+                            \bTD 
+                                8
+                            \eTD
+
+                            % cell C11
+                            \bTD 
+                                alpha 8
+                            \eTD
+
+                            % cell D11
+                            \bTD 
+                                beta 8
+                            \eTD
+
+                            % cell E11
+                            \bTD 
+                                gamma 8
+                            \eTD
+
+                            % cell F11
+                            \bTD 
+                                delta 8
+                            \eTD
+
+                        \eTR
+
+                        % row 12
+                        \bTR
+
+                            % cell B12
+                            \bTD 
+                                9
+                            \eTD
+
+                            % cell C12
+                            \bTD 
+                                alpha 9
+                            \eTD
+
+                            % cell D12
+                            \bTD 
+                                beta 9
+                            \eTD
+
+                            % cell E12
+                            \bTD 
+                                gamma 9
+                            \eTD
+
+                            % cell F12
+                            \bTD 
+                                delta 9
+                            \eTD
+
+                        \eTR
+
+                        % row 13
+                        \bTR
+
+                            % cell B13
+                            \bTD 
+                                10
+                            \eTD
+
+                            % cell C13
+                            \bTD 
+                                alpha 10
+                            \eTD
+
+                            % cell D13
+                            \bTD 
+                                beta 10
+                            \eTD
+
+                            % cell E13
+                            \bTD 
+                                gamma 10
+                            \eTD
+
+                            % cell F13
+                            \bTD 
+                                delta 10
+                            \eTD
+
+                        \eTR
+
+                        % row 14
+                        \bTR
+
+                            % cell B14
+                            \bTD 
+                                11
+                            \eTD
+
+                            % cell C14
+                            \bTD 
+                                alpha 11
+                            \eTD
+
+                            % cell D14
+                            \bTD 
+                                beta 11
+                            \eTD
+
+                            % cell E14
+                            \bTD 
+                                gamma 11
+                            \eTD
+
+                            % cell F14
+                            \bTD 
+                                delta 11
+                            \eTD
+
+                        \eTR
+
+                        % row 15
+                        \bTR
+
+                            % cell B15
+                            \bTD 
+                                12
+                            \eTD
+
+                            % cell C15
+                            \bTD 
+                                alpha 12
+                            \eTD
+
+                            % cell D15
+                            \bTD 
+                                beta 12
+                            \eTD
+
+                            % cell E15
+                            \bTD 
+                                gamma 12
+                            \eTD
+
+                            % cell F15
+                            \bTD 
+                                delta 12
+                            \eTD
+
+                        \eTR
+
+                        % row 16
+                        \bTR
+
+                            % cell B16
+                            \bTD 
+                                13
+                            \eTD
+
+                            % cell C16
+                            \bTD 
+                                alpha 13
+                            \eTD
+
+                            % cell D16
+                            \bTD 
+                                beta 13
+                            \eTD
+
+                            % cell E16
+                            \bTD 
+                                gamma 13
+                            \eTD
+
+                            % cell F16
+                            \bTD 
+                                delta 13
+                            \eTD
+
+                        \eTR
+
+                        % row 17
+                        \bTR
+
+                            % cell B17
+                            \bTD 
+                                14
+                            \eTD
+
+                            % cell C17
+                            \bTD 
+                                alpha 14
+                            \eTD
+
+                            % cell D17
+                            \bTD 
+                                beta 14
+                            \eTD
+
+                            % cell E17
+                            \bTD 
+                                gamma 14
+                            \eTD
+
+                            % cell F17
+                            \bTD 
+                                delta 14
+                            \eTD
+
+                        \eTR
+
+                        % row 18
+                        \bTR
+
+                            % cell B18
+                            \bTD 
+                                15
+                            \eTD
+
+                            % cell C18
+                            \bTD 
+                                alpha 15
+                            \eTD
+
+                            % cell D18
+                            \bTD 
+                                beta 15
+                            \eTD
+
+                            % cell E18
+                            \bTD 
+                                gamma 15
+                            \eTD
+
+                            % cell F18
+                            \bTD 
+                                delta 15
+                            \eTD
+
+                        \eTR
+
+                        % row 19
+                        \bTR
+
+                            % cell B19
+                            \bTD 
+                                16
+                            \eTD
+
+                            % cell C19
+                            \bTD 
+                                alpha 16
+                            \eTD
+
+                            % cell D19
+                            \bTD 
+                                beta 16
+                            \eTD
+
+                            % cell E19
+                            \bTD 
+                                gamma 16
+                            \eTD
+
+                            % cell F19
+                            \bTD 
+                                delta 16
+                            \eTD
+
+                        \eTR
+
+                        % row 20
+                        \bTR
+
+                            % cell B20
+                            \bTD 
+                                17
+                            \eTD
+
+                            % cell C20
+                            \bTD 
+                                alpha 17
+                            \eTD
+
+                            % cell D20
+                            \bTD 
+                                beta 17
+                            \eTD
+
+                            % cell E20
+                            \bTD 
+                                gamma 17
+                            \eTD
+
+                            % cell F20
+                            \bTD 
+                                delta 17
+                            \eTD
+
+                        \eTR
+
+                        % row 21
+                        \bTR
+
+                            % cell B21
+                            \bTD 
+                                18
+                            \eTD
+
+                            % cell C21
+                            \bTD 
+                                alpha 18
+                            \eTD
+
+                            % cell D21
+                            \bTD 
+                                beta 18
+                            \eTD
+
+                            % cell E21
+                            \bTD 
+                                gamma 18
+                            \eTD
+
+                            % cell F21
+                            \bTD 
+                                delta 18
+                            \eTD
+
+                        \eTR
+
+                        % row 22
+                        \bTR
+
+                            % cell B22
+                            \bTD 
+                                19
+                            \eTD
+
+                            % cell C22
+                            \bTD 
+                                alpha 19
+                            \eTD
+
+                            % cell D22
+                            \bTD 
+                                beta 19
+                            \eTD
+
+                            % cell E22
+                            \bTD 
+                                gamma 19
+                            \eTD
+
+                            % cell F22
+                            \bTD 
+                                delta 19
+                            \eTD
+
+                        \eTR
+
+                        % row 23
+                        \bTR
+
+                            % cell B23
+                            \bTD 
+                                20
+                            \eTD
+
+                            % cell C23
+                            \bTD 
+                                alpha 20
+                            \eTD
+
+                            % cell D23
+                            \bTD 
+                                beta 20
+                            \eTD
+
+                            % cell E23
+                            \bTD 
+                                gamma 20
+                            \eTD
+
+                            % cell F23
+                            \bTD 
+                                delta 20
+                            \eTD
+
+                        \eTR
+
+                        % row 24
+                        \bTR
+
+                            % cell B24
+                            \bTD 
+                                21
+                            \eTD
+
+                            % cell C24
+                            \bTD 
+                                alpha 21
+                            \eTD
+
+                            % cell D24
+                            \bTD 
+                                beta 21
+                            \eTD
+
+                            % cell E24
+                            \bTD 
+                                gamma 21
+                            \eTD
+
+                            % cell F24
+                            \bTD 
+                                delta 21
+                            \eTD
+
+                        \eTR
+
+                        % row 25
+                        \bTR
+
+                            % cell B25
+                            \bTD 
+                                22
+                            \eTD
+
+                            % cell C25
+                            \bTD 
+                                alpha 22
+                            \eTD
+
+                            % cell D25
+                            \bTD 
+                                beta 22
+                            \eTD
+
+                            % cell E25
+                            \bTD 
+                                gamma 22
+                            \eTD
+
+                            % cell F25
+                            \bTD 
+                                delta 22
+                            \eTD
+
+                        \eTR
+
+                        % row 26
+                        \bTR
+
+                            % cell B26
+                            \bTD 
+                                23
+                            \eTD
+
+                            % cell C26
+                            \bTD 
+                                alpha 23
+                            \eTD
+
+                            % cell D26
+                            \bTD 
+                                beta 23
+                            \eTD
+
+                            % cell E26
+                            \bTD 
+                                gamma 23
+                            \eTD
+
+                            % cell F26
+                            \bTD 
+                                delta 23
+                            \eTD
+
+                        \eTR
+
+                        % row 27
+                        \bTR
+
+                            % cell B27
+                            \bTD 
+                                24
+                            \eTD
+
+                            % cell C27
+                            \bTD 
+                                alpha 24
+                            \eTD
+
+                            % cell D27
+                            \bTD 
+                                beta 24
+                            \eTD
+
+                            % cell E27
+                            \bTD 
+                                gamma 24
+                            \eTD
+
+                            % cell F27
+                            \bTD 
+                                delta 24
+                            \eTD
+
+                        \eTR
+
+                        % row 28
+                        \bTR
+
+                            % cell B28
+                            \bTD 
+                                25
+                            \eTD
+
+                            % cell C28
+                            \bTD 
+                                alpha 25
+                            \eTD
+
+                            % cell D28
+                            \bTD 
+                                beta 25
+                            \eTD
+
+                            % cell E28
+                            \bTD 
+                                gamma 25
+                            \eTD
+
+                            % cell F28
+                            \bTD 
+                                delta 25
+                            \eTD
+
+                        \eTR
+
+                        % row 29
+                        \bTR
+
+                            % cell B29
+                            \bTD 
+                                26
+                            \eTD
+
+                            % cell C29
+                            \bTD 
+                                alpha 26
+                            \eTD
+
+                            % cell D29
+                            \bTD 
+                                beta 26
+                            \eTD
+
+                            % cell E29
+                            \bTD 
+                                gamma 26
+                            \eTD
+
+                            % cell F29
+                            \bTD 
+                                delta 26
+                            \eTD
+
+                        \eTR
+
+                        % row 30
+                        \bTR
+
+                            % cell B30
+                            \bTD 
+                                27
+                            \eTD
+
+                            % cell C30
+                            \bTD 
+                                alpha 27
+                            \eTD
+
+                            % cell D30
+                            \bTD 
+                                beta 27
+                            \eTD
+
+                            % cell E30
+                            \bTD 
+                                gamma 27
+                            \eTD
+
+                            % cell F30
+                            \bTD 
+                                delta 27
+                            \eTD
+
+                        \eTR
+
+                        % row 31
+                        \bTR
+
+                            % cell B31
+                            \bTD 
+                                28
+                            \eTD
+
+                            % cell C31
+                            \bTD 
+                                alpha 28
+                            \eTD
+
+                            % cell D31
+                            \bTD 
+                                beta 28
+                            \eTD
+
+                            % cell E31
+                            \bTD 
+                                gamma 28
+                            \eTD
+
+                            % cell F31
+                            \bTD 
+                                delta 28
+                            \eTD
+
+                        \eTR
+
+                        % row 32
+                        \bTR
+
+                            % cell B32
+                            \bTD 
+                                29
+                            \eTD
+
+                            % cell C32
+                            \bTD 
+                                alpha 29
+                            \eTD
+
+                            % cell D32
+                            \bTD 
+                                beta 29
+                            \eTD
+
+                            % cell E32
+                            \bTD 
+                                gamma 29
+                            \eTD
+
+                            % cell F32
+                            \bTD 
+                                delta 29
+                            \eTD
+
+                        \eTR
+
+                        % row 33
+                        \bTR
+
+                            % cell B33
+                            \bTD 
+                                30
+                            \eTD
+
+                            % cell C33
+                            \bTD 
+                                alpha 30
+                            \eTD
+
+                            % cell D33
+                            \bTD 
+                                beta 30
+                            \eTD
+
+                            % cell E33
+                            \bTD 
+                                gamma 30
+                            \eTD
+
+                            % cell F33
+                            \bTD 
+                                delta 30
+                            \eTD
+
+                        \eTR
+
+                        % row 34
+                        \bTR
+
+                            % cell B34
+                            \bTD 
+                                31
+                            \eTD
+
+                            % cell C34
+                            \bTD 
+                                alpha 31
+                            \eTD
+
+                            % cell D34
+                            \bTD 
+                                beta 31
+                            \eTD
+
+                            % cell E34
+                            \bTD 
+                                gamma 31
+                            \eTD
+
+                            % cell F34
+                            \bTD 
+                                delta 31
+                            \eTD
+
+                        \eTR
+
+                        % row 35
+                        \bTR
+
+                            % cell B35
+                            \bTD 
+                                33
+                            \eTD
+
+                            % cell C35
+                            \bTD 
+                                alpha 33
+                            \eTD
+
+                            % cell D35
+                            \bTD 
+                                beta 33
+                            \eTD
+
+                            % cell E35
+                            \bTD 
+                                gamma 33
+                            \eTD
+
+                            % cell F35
+                            \bTD 
+                                delta 33
+                            \eTD
+
+                        \eTR
+
+                        % row 36
+                        \bTR
+
+                            % cell B36
+                            \bTD 
+                                33
+                            \eTD
+
+                            % cell C36
+                            \bTD 
+                                alpha 33
+                            \eTD
+
+                            % cell D36
+                            \bTD 
+                                beta 33
+                            \eTD
+
+                            % cell E36
+                            \bTD 
+                                gamma 33
+                            \eTD
+
+                            % cell F36
+                            \bTD 
+                                delta 33
+                            \eTD
+
+                        \eTR
+
+                        % row 37
+                        \bTR
+
+                            % cell B37
+                            \bTD 
+                                34
+                            \eTD
+
+                            % cell C37
+                            \bTD 
+                                alpha 34
+                            \eTD
+
+                            % cell D37
+                            \bTD 
+                                beta 34
+                            \eTD
+
+                            % cell E37
+                            \bTD 
+                                gamma 34
+                            \eTD
+
+                            % cell F37
+                            \bTD 
+                                delta 34
+                            \eTD
+
+                        \eTR
+
+                        % row 38
+                        \bTR
+
+                            % cell B38
+                            \bTD 
+                                35
+                            \eTD
+
+                            % cell C38
+                            \bTD 
+                                alpha 35
+                            \eTD
+
+                            % cell D38
+                            \bTD 
+                                beta 35
+                            \eTD
+
+                            % cell E38
+                            \bTD 
+                                gamma 35
+                            \eTD
+
+                            % cell F38
+                            \bTD 
+                                delta 35
+                            \eTD
+
+                        \eTR
+
+                        % row 39
+                        \bTR
+
+                            % cell B39
+                            \bTD 
+                                36
+                            \eTD
+
+                            % cell C39
+                            \bTD 
+                                alpha 36
+                            \eTD
+
+                            % cell D39
+                            \bTD 
+                                beta 36
+                            \eTD
+
+                            % cell E39
+                            \bTD 
+                                gamma 36
+                            \eTD
+
+                            % cell F39
+                            \bTD 
+                                delta 36
+                            \eTD
+
+                        \eTR
+
+                    \eTABLEbody
+
+                \eTABLE
+            \stoppostponingnotes
+        % END   table B3:B29
+    
     \stopchapter
+% END   section 2
 
 \stoptext
 % END Text

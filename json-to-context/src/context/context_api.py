@@ -148,8 +148,12 @@ class ContextSectionBase(object):
         else:
             even_footer_text = '[]'
 
+        # TODO: issues with doubesided, falling back to singlesided
         header_text_line = f"\\setupheadertexts{odd_header_text}{odd_header_text}{even_header_text}{even_header_text}"
         footer_text_line = f"\\setupfootertexts{odd_footer_text}{odd_footer_text}{even_footer_text}{even_footer_text}"
+
+        # header_text_line = f"\\setupheadertexts{odd_header_text}"
+        # footer_text_line = f"\\setupfootertexts{odd_footer_text}"
 
         return [header_text_line, footer_text_line]
 
@@ -644,7 +648,7 @@ class ContextContent(object):
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            context_lines = context_lines + block.block_to_context(longtable=True, color_dict=color_dict, document_footnotes=document_footnotes)
+            context_lines = context_lines + block.block_to_context(nested=False, color_dict=color_dict, document_footnotes=document_footnotes)
 
 
         return context_lines
@@ -656,8 +660,6 @@ class ContextContent(object):
 class ContextPageHeaderFooter(ContextContent):
 
     ''' constructor
-        header_footer : header/footer
-        odd_even      : first/odd/even
     '''
     def __init__(self, content_data, section_width, section_index, section_id, page_spec, orientation, margin_spec, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
@@ -675,7 +677,7 @@ class ContextPageHeaderFooter(ContextContent):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.block_to_context(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=True, header_footer=None)
+            block_lines = block.block_to_context(nested=True, color_dict=color_dict, document_footnotes=document_footnotes, setups_name=self.page_header_footer_id)
             context_lines = context_lines + block_lines
 
             first_block = False
@@ -699,10 +701,9 @@ class ContextBlock(object):
         self.section_index, self.section_id = section_index, section_id
 
 
-
     ''' generates ConTeXt code
     '''
-    def block_to_context(self, longtable, color_dict, document_footnotes, strip_comments=False, header_footer=None):
+    def block_to_context(self, nested, color_dict, document_footnotes):
         pass
 
 
@@ -734,7 +735,141 @@ class ContextTable(ContextBlock):
 
     ''' generates the ConTeXt code
     '''
-    def block_to_context(self, longtable, color_dict, document_footnotes, strip_comments=False, header_footer=None):
+    def block_to_context(self, nested, color_dict, document_footnotes, setups_name=None):
+        if nested:
+            return self.block_to_context_nested_table(color_dict=color_dict, document_footnotes=document_footnotes, setups_name=setups_name)
+
+        else:
+            return self.block_to_context_table(color_dict=color_dict, document_footnotes=document_footnotes)
+
+
+    ''' generates the ConTeXt code for nested table
+        \startsetups [name]
+            \bTABLEnested[frame=off]
+                \setupTABLE
+                ...
+                \setupTABLE
+                \bTR
+                ...
+                \eTR
+            \eTABLEnested
+        \stopsetups
+    '''
+    def block_to_context_nested_table(self, color_dict, document_footnotes, setups_name):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        # for storing the footnotes (if any) for this block
+        if (self.table_id not in document_footnotes):
+            document_footnotes[self.table_id] = []
+
+        # table setups
+        setup_lines = ['']
+        loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+        rulethickness = '0.00pt'
+        columndistance = f"{COLSEP}in"
+        spaceinbetween = f"{ROWSEP}in"
+        setup_lines.append(f"\\setupTABLE{context_option(frame='off', columndistance=columndistance, spaceinbetween=spaceinbetween, loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness)}")
+        c = 1
+        for col_width in self.column_widths:
+            col_width = f"{col_width}in"
+            setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width=col_width)}")
+            c = c + 1
+
+        # add a dummy column
+        setup_lines.append(f"\\setupTABLE[c][{c}]{context_option(width='0.0in')}")
+
+        setup_lines.append('')
+
+
+        # generate row setups
+        r = 1
+        for row in self.table_cell_matrix:
+            row_setup_lines = row.row_setups_to_context(r=r, color_dict=color_dict)
+            setup_lines = setup_lines + row_setup_lines
+            r = r + 1
+
+
+        # generate cell setups
+        r = 1
+        for row in self.table_cell_matrix:
+            cell_setup_lines = row.cell_setups_to_context(r=r, color_dict=color_dict)
+            setup_lines = setup_lines + cell_setup_lines
+            r = r + 1
+
+        # 
+        # generate bTABLEnested cell values
+        table_body_lines = []
+        for row in self.table_cell_matrix:
+            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
+
+            # wrap in b/e TR
+            row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+            # wrap in BEGIN/end comments
+            row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
+            row_lines = [''] + row_lines
+
+            table_body_lines = table_body_lines + row_lines
+
+
+        # FIX: we need a dummy row for resolving issue with ConTeXt
+        num_columns = len(self.table_cell_matrix[0].cells) + 1
+        dummy_row_lines = []
+        for i in range(0, num_columns):
+            # wrap in b/e TD
+            dummy_row_lines = dummy_row_lines + indent_and_wrap(lines=[], wrap_in='TD', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+        # wrap in b/e TR
+        param_string = f"[height={DUMMY_ROW_HEIGHT}in]"
+        dummy_row_lines = indent_and_wrap(lines=dummy_row_lines, wrap_in='TR', param_string=param_string, wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+        # wrap in BEGIN/end comments
+        dummy_row_lines = wrap_with_comment(lines=dummy_row_lines, object_type='Row', object_id='dummy', indent_level=1)
+        table_body_lines = table_body_lines + [''] + dummy_row_lines + ['']
+
+
+        # merge setups and tablenested
+        table_lines = setup_lines + table_body_lines
+
+        # wrap in b/e TABLEnested
+        table_lines = indent_and_wrap(lines=table_lines, wrap_in='TABLEnested', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+        # wrap in start/stop setups
+        param_string = context_option(setups_name)
+        table_lines = indent_and_wrap(lines=table_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
+
+
+        # wrap in BEGIN/end comments
+        table_lines = wrap_with_comment(lines=table_lines, object_type='ContextTable', object_id=self.table_id, indent_level=1)
+
+        return  table_lines + ['']
+
+
+    ''' generates the ConTeXt code for table
+        \startsetups[name]
+        \setupTABLE
+        \setupTABLE
+        ...
+        \stopsetups
+        \startpostponingnotes
+        \bTABLE[setups=name]
+            \bTABLEhead
+                \bTR
+                \eTR
+                ...
+            \eTABLEhead
+            \bTABLEbody
+                \bTR
+                \eTR
+                ....
+            \eTABLEbody
+        \eTABLE
+        \stoppostponingnotes
+    '''
+    def block_to_context_table(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # DEBUG
@@ -797,7 +932,7 @@ class ContextTable(ContextBlock):
 
             # generate cell values
             for row in self.table_cell_matrix[0:self.header_row_count]:
-                row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+                row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
                 # wrap in b/e TR
                 row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -816,7 +951,7 @@ class ContextTable(ContextBlock):
         # generate bTABLEbody cell values
         table_body_lines = []
         for row in self.table_cell_matrix[self.header_row_count:]:
-            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, strip_comments=strip_comments, header_footer=header_footer)
+            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             # wrap in b/e TR
             row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -885,7 +1020,7 @@ class ContextParagraph(ContextBlock):
 
     ''' generates the ConTeXt code
     '''
-    def block_to_context(self, longtable, color_dict, document_footnotes):
+    def block_to_context(self, nested, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # for storing the footnotes (if any) for this block
@@ -1218,7 +1353,7 @@ class Row(object):
 
     ''' generates the ConTeXt code
     '''
-    def row_contents_to_context(self, block_id, color_dict, document_footnotes, strip_comments=False, header_footer=None):
+    def row_contents_to_context(self, block_id, color_dict, document_footnotes):
         row_lines = []
 
         # gets the cell ConTeXt lines
@@ -1399,9 +1534,11 @@ class PageNumberValue(CellValue):
     '''
     def value_to_context(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         if self.page_numbering == 'short':
-            context_code = "\\thepage"
+            value = "\\pagenumber{}"
         else:
-            context_code = "\\thepage\\ of \\pageref{LastPage}"
+            value = "Page \\pagenumber{} of \\totalnumberofpages"
+
+        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=True)
 
         return context_code
 

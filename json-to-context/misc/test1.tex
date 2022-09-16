@@ -118,7 +118,7 @@
 
 % BEGIN Page Layouts
     % A4, portrait, narrow
-    \definelayout[a4-portrait-narrow][
+    \definelayout[A4-portrait-narrow][
         % gutter + left-margin
         backspace=0.5in,
         % page-width - backspace - rightmargin
@@ -141,7 +141,7 @@
     ]
 
     % A4, landscape, narrow
-    \definelayout[a4-landscape-narrow][
+    \definelayout[A4-landscape-narrow][
         % gutter + left-margin
         backspace=0.50in,
         % page-width - backspace - rightmargin
@@ -169,98 +169,398 @@
 % BEGIN Table definition for headers and footers
 
     % HeaderTable odd page, A4, portrait, narrow
-    \startsetups [header-odd-A4-portrait]
-        \bTABLEnested[frame=off]
-            \setupTABLE[c][1][width=6.27in]
-            \setupTABLE[c][2][width=1.00in]
-            \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
-            \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
-                    % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-                \eTD
-                % cell C3
-                \bTD
-                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                \eTD
-            \eTR
+    \startsetups [z-header-odd-A4-portrait-narrow]
+        \bTABLEnested
+                        
+            \setupTABLE[frame=off, columndistance=0.0in, spaceinbetween=0.0in, loffset=1.2000000000000002pt, roffset=1.2000000000000002pt, toffset=1.2000000000000002pt, boffset=1.2000000000000002pt, rulethickness=0.00pt]
+            \setupTABLE[c][1][width=6.179499999999999in]
+            \setupTABLE[c][2][width=0.6361249999999999in]
+            \setupTABLE[c][3][width=0.454375in]
+            \setupTABLE[c][4][width=0.0in]
+            
+            % Row setups [3]
+            \setupTABLE[r][1][minheight=0.16666666666666666in]
+            
+            % Row setups [4]
+            \setupTABLE[r][2][minheight=0.16666666666666666in]
+            
+            % Row setups [5]
+            \setupTABLE[r][3][minheight=0.16666666666666666in]
+            
+            % Cell setups [B3]
+            \setupTABLE[1][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            
+            % Cell setups [C3]
+            \setupTABLE[2][1][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            \setupTABLE[2][1][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            % Cell setups [D3]
+            \setupTABLE[3][1][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            
+            % Cell setups [B4]
+            \setupTABLE[1][2][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            
+            % Cell setups [D4]
+            \setupTABLE[3][2][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            
+            % Cell setups [B5]
+            \setupTABLE[1][3][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            \setupTABLE[1][3][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            % Cell setups [D5]
+            \setupTABLE[3][3][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            \setupTABLE[3][3][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            
+            % BEGIN Row: [3]
+                \bTR
+                    
+                    % BEGIN Cell: [B3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{O Tender No. RFP-UDWL001-PNTP- BILLING -001}
+                        \eTD
+                    % END   Cell: [B3]
+                    
+                    % BEGIN Cell: [C3] multicolumn: No, multirow: FirstCell
+                        \bTD[nr=3]
+                            \rightaligned{\externalfigure[/home/asif/projects/asif@github/doculaboration/out/tmp/united-water-logo.png][width=0.5in, height=0.5in]}
+                        \eTD
+                    % END   Cell: [C3]
+                    
+                    % BEGIN Cell: [D3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[000000]{}
+                        \eTD
+                    % END   Cell: [D3]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [3]
+            
+            % BEGIN Row: [4]
+                \bTR
+                    
+                    % BEGIN Cell: [B4] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{BILLING SYSTEM}
+                        \eTD
+                    % END   Cell: [B4]
+                    
+                    % BEGIN Cell: [D4] multicolumn: No, multirow: No
+                        \bTD
+                            \rightaligned{\externalfigure[/home/asif/projects/asif@github/doculaboration/out/tmp/delcot-logo.png][width=0.14005602240896356in, height=0.16666666666666666in]}
+                        \eTD
+                    % END   Cell: [D4]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [4]
+            
+            % BEGIN Row: [5]
+                \bTR
+                    
+                    % BEGIN Cell: [B5] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{FOR Purbachal New Town Water Supply PPP Project}
+                        \eTD
+                    % END   Cell: [B5]
+                    
+                    % BEGIN Cell: [D5] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[000000]{}
+                        \eTD
+                    % END   Cell: [D5]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [5]
+            
+            % BEGIN Row: [dummy]
+                \bTR[height=0.1in]
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                \eTR
+            % END   Row: [dummy]
+            
         \eTABLEnested
     \stopsetups
 
-    % HeaderTable odd page, A4, portrait, narrow
-    \startsetups [header-even-A4-portrait]
-        \bTABLEnested[frame=off]
-            \setupTABLE[c][1][width=6.27in]
-            \setupTABLE[c][2][width=1.00in]
-            \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushleft,lohi}]
-            \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align={flushright,lohi}]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
-                    % \language[bn]{গণপ্রজাতন্ত্রী বাংলাদেশ সরকার}
-                \eTD
-                % cell C3
-                \bTD
-                    \rightaligned{\externalfigure[./tmp/delcot-logo.png][height=0.25in, frame=off]}
-                \eTD
-            \eTR
+    % HeaderTable even page, A4, portrait, narrow
+    \startsetups [z-header-even-A4-portrait-narrow]
+        \bTABLEnested
+                                
+            \setupTABLE[frame=off, columndistance=0.0in, spaceinbetween=0.0in, loffset=1.2000000000000002pt, roffset=1.2000000000000002pt, toffset=1.2000000000000002pt, boffset=1.2000000000000002pt, rulethickness=0.00pt]
+            \setupTABLE[c][1][width=6.179499999999999in]
+            \setupTABLE[c][2][width=0.6361249999999999in]
+            \setupTABLE[c][3][width=0.454375in]
+            \setupTABLE[c][4][width=0.0in]
+            
+            % Row setups [3]
+            \setupTABLE[r][1][minheight=0.16666666666666666in]
+            
+            % Row setups [4]
+            \setupTABLE[r][2][minheight=0.16666666666666666in]
+            
+            % Row setups [5]
+            \setupTABLE[r][3][minheight=0.16666666666666666in]
+            
+            % Cell setups [B3]
+            \setupTABLE[1][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            
+            % Cell setups [C3]
+            \setupTABLE[2][1][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            \setupTABLE[2][1][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            % Cell setups [D3]
+            \setupTABLE[3][1][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            
+            % Cell setups [B4]
+            \setupTABLE[1][2][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            
+            % Cell setups [D4]
+            \setupTABLE[3][2][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            
+            % Cell setups [B5]
+            \setupTABLE[1][3][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,lohi}]
+            \setupTABLE[1][3][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            % Cell setups [D5]
+            \setupTABLE[3][3][background=color, backgroundcolor=ffffff, foregroundcolor=000000, align={flushright,lohi}]
+            \setupTABLE[3][3][bottomframe=on, framecolor=660000, rulethickness=0.4pt]
+            
+            
+            % BEGIN Row: [3]
+                \bTR
+                    
+                    % BEGIN Cell: [B3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{E Tender No. RFP-UDWL001-PNTP- BILLING -001}
+                        \eTD
+                    % END   Cell: [B3]
+                    
+                    % BEGIN Cell: [C3] multicolumn: No, multirow: FirstCell
+                        \bTD[nr=3]
+                            \rightaligned{\externalfigure[/home/asif/projects/asif@github/doculaboration/out/tmp/united-water-logo.png][width=0.5in, height=0.5in]}
+                        \eTD
+                    % END   Cell: [C3]
+                    
+                    % BEGIN Cell: [D3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[000000]{}
+                        \eTD
+                    % END   Cell: [D3]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [3]
+            
+            % BEGIN Row: [4]
+                \bTR
+                    
+                    % BEGIN Cell: [B4] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{BILLING SYSTEM}
+                        \eTD
+                    % END   Cell: [B4]
+                    
+                    % BEGIN Cell: [D4] multicolumn: No, multirow: No
+                        \bTD
+                            \rightaligned{\externalfigure[/home/asif/projects/asif@github/doculaboration/out/tmp/delcot-logo.png][width=0.14005602240896356in, height=0.16666666666666666in]}
+                        \eTD
+                    % END   Cell: [D4]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [4]
+            
+            % BEGIN Row: [5]
+                \bTR
+                    
+                    % BEGIN Cell: [B5] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[666666]{FOR Purbachal New Town Water Supply PPP Project}
+                        \eTD
+                    % END   Cell: [B5]
+                    
+                    % BEGIN Cell: [D5] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{7pt}\color[000000]{}
+                        \eTD
+                    % END   Cell: [D5]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [5]
+            
+            % BEGIN Row: [dummy]
+                \bTR[height=0.1in]
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                \eTR
+            % END   Row: [dummy]
+            
         \eTABLEnested
     \stopsetups
 
     % FooterTable odd page, A4, portrait, narrow
-    \startsetups [footer-odd-A4-portrait]
-        \bTABLEnested[frame=off]
-            \setupTABLE[c][1][width=6.27in]
-            \setupTABLE[c][2][width=1.00in]
-            \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-            \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                \eTD
-                % cell C3
-                \bTD
-                    \globalfsize{8pt}{\sc{Odd Page \pagenumber{} of \totalnumberofpages}}
-                \eTD
-            \eTR
+    \startsetups [z-footer-odd-A4-portrait-narrow]
+        \bTABLEnested
+                        
+            \setupTABLE[frame=off, columndistance=0.0in, spaceinbetween=0.0in, loffset=1.2000000000000002pt, roffset=1.2000000000000002pt, toffset=1.2000000000000002pt, boffset=1.2000000000000002pt, rulethickness=0.00pt]
+            \setupTABLE[c][1][width=5.4525in]
+            \setupTABLE[c][2][width=1.8175in]
+            \setupTABLE[c][3][width=0.0in]
+            
+            % Row setups [3]
+            \setupTABLE[r][1][minheight=0.16666666666666666in]
+            
+            % Cell setups [B3]
+            \setupTABLE[1][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,high}]
+            \setupTABLE[1][1][topframe=on, framecolor=999999, rulethickness=0.4pt]
+            
+            % Cell setups [C3]
+            \setupTABLE[2][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushright,high}]
+            \setupTABLE[2][1][topframe=on, framecolor=999999, rulethickness=0.4pt]
+            
+            
+            % BEGIN Row: [3]
+                \bTR
+                    
+                    % BEGIN Cell: [B3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{9pt}\color[666666]{O}
+                        \eTD
+                    % END   Cell: [B3]
+                    
+                    % BEGIN Cell: [C3] multicolumn: No, multirow: No
+                        \bTD
+                        {\sc{Page \pagenumber{} of \totalnumberofpages}}
+                        \eTD
+                    % END   Cell: [C3]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [3]
+            
+            % BEGIN Row: [dummy]
+                \bTR[height=0.1in]
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                \eTR
+            % END   Row: [dummy]
+            
         \eTABLEnested
     \stopsetups
 
     % FooterTable even page A4, portrait, narrow
-    \startsetups [footer-even-A4-portrait]
-        \bTABLEnested[frame=off]
-            \setupTABLE[c][1][width=6.27in]
-            \setupTABLE[c][2][width=1.00in]
-            \setupTABLE[1][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-            \setupTABLE[2][1][topframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
-            % row 3
-            \bTR
-                % cell B3
-                \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
-                \eTD
-                % cell C3
-                \bTD
-                    \globalfsize{8pt}{\sc{Even Page \pagenumber{} of \totalnumberofpages}}
-                \eTD
-            \eTR
+    \startsetups [z-footer-even-A4-portrait-narrow]
+        \bTABLEnested
+                            
+            \setupTABLE[frame=off, columndistance=0.0in, spaceinbetween=0.0in, loffset=1.2000000000000002pt, roffset=1.2000000000000002pt, toffset=1.2000000000000002pt, boffset=1.2000000000000002pt, rulethickness=0.00pt]
+            \setupTABLE[c][1][width=5.4525in]
+            \setupTABLE[c][2][width=1.8175in]
+            \setupTABLE[c][3][width=0.0in]
+            
+            % Row setups [3]
+            \setupTABLE[r][1][minheight=0.16666666666666666in]
+            
+            % Cell setups [B3]
+            \setupTABLE[1][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushleft,high}]
+            \setupTABLE[1][1][topframe=on, framecolor=999999, rulethickness=0.4pt]
+            
+            % Cell setups [C3]
+            \setupTABLE[2][1][background=color, backgroundcolor=ffffff, foregroundcolor=666666, align={flushright,high}]
+            \setupTABLE[2][1][topframe=on, framecolor=999999, rulethickness=0.4pt]
+            
+            
+            % BEGIN Row: [3]
+                \bTR
+                    
+                    % BEGIN Cell: [B3] multicolumn: No, multirow: No
+                        \bTD
+                            \globalfsize{9pt}\color[666666]{E}
+                        \eTD
+                    % END   Cell: [B3]
+                    
+                    % BEGIN Cell: [C3] multicolumn: No, multirow: No
+                        \bTD
+                        {\sc{Page \pagenumber{} of \totalnumberofpages}}
+                        \eTD
+                    % END   Cell: [C3]
+                    
+                    % BEGIN Cell: [dummy]
+                        \bTD
+                        \eTD
+                    % END   Cell: [dummy]
+                    
+                \eTR
+            % END   Row: [3]
+            
+            % BEGIN Row: [dummy]
+                \bTR[height=0.1in]
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                    \bTD
+                    \eTD
+                \eTR
+            % END   Row: [dummy]
+            
         \eTABLEnested
     \stopsetups
 
     % HeaderTable odd page, A4, landscape, narrow
-    \startsetups [header-odd-A4-landscape]
-        \setupTABLE[c][1][width=9.69in]
-        \setupTABLE[c][2][width=1.00in]
-        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+    \startsetups [z-header-odd-A4-landscape-narrow]
         \bTABLEnested[frame=off]
+            \setupTABLE[c][1][width=9.69in]
+            \setupTABLE[c][2][width=1.00in]
+            \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+            \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
             % row 3
             \bTR
                 % cell B3
@@ -277,12 +577,12 @@
     \stopsetups
 
     % HeaderTable even page, A4, landscape, narrow
-    \startsetups [header-even-A4-landscape]
-        \setupTABLE[c][1][width=9.69in]
-        \setupTABLE[c][2][width=1.00in]
-        \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
-        \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
+    \startsetups [z-header-even-A4-landscape-narrow]
         \bTABLEnested[frame=off]
+            \setupTABLE[c][1][width=9.69in]
+            \setupTABLE[c][2][width=1.00in]
+            \setupTABLE[1][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushleft]
+            \setupTABLE[2][1][bottomframe=on, rulethickness=0.05pt, framecolor=e0e0e0, align=flushright]
             % row 3
             \bTR
                 % cell B3
@@ -299,7 +599,7 @@
     \stopsetups
 
     % FooterTable odd page, A4, landscape, narrow
-    \startsetups [footer-odd-A4-landscape]
+    \startsetups [z-footer-odd-A4-landscape-narrow]
         \bTABLEnested[frame=off]
             \setupTABLE[c][1][width=9.69in]
             \setupTABLE[c][2][width=1.00in]
@@ -309,18 +609,18 @@
             \bTR
                 % cell B3
                 \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    \globalfsize{8pt}{\sc{O Spectrum Engineering Consortium Ltd.}}
                 \eTD
                 % cell C3
                 \bTD
-                    \globalfsize{8pt}{\sc{Odd Page \pagenumber{} of \totalnumberofpages}}
+                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
                 \eTD
             \eTR
         \eTABLEnested
     \stopsetups
 
     % FooterTable even page, A4, landscape, narrow
-    \startsetups [footer-even-A4-landscape]
+    \startsetups [z-footer-even-A4-landscape-narrow]
         \bTABLEnested[frame=off]
             \setupTABLE[c][1][width=9.69in]
             \setupTABLE[c][2][width=1.00in]
@@ -330,11 +630,11 @@
             \bTR
                 % cell B3
                 \bTD
-                    \globalfsize{8pt}{\sc{Spectrum Engineering Consortium Ltd.}}
+                    \globalfsize{8pt}{\sc{E Spectrum Engineering Consortium Ltd.}}
                 \eTD
                 % cell C3
                 \bTD
-                    \globalfsize{8pt}{\sc{Even Page \pagenumber{} of \totalnumberofpages}}
+                    \globalfsize{8pt}{\sc{Page \pagenumber{} of \totalnumberofpages}}
                 \eTD
             \eTR
         \eTABLEnested
@@ -348,10 +648,10 @@
 
     % BEGIN section ToC
         \setuppapersize[A4,portrait]
-        \setuplayout[a4-portrait-narrow]
+        \setuplayout[A4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
+        \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+        \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
         \starttitle[title=Table of Contents]
             \placecontent
@@ -364,10 +664,10 @@
         \page
 
         \setuppapersize[A4,portrait]
-        \setuplayout[a4-portrait-narrow]
+        \setuplayout[A4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
+        \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+        \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
         \page
 
@@ -382,10 +682,10 @@
         \page
 
         \setuppapersize[A4,portrait]
-        \setuplayout[a4-portrait-narrow]
+        \setuplayout[A4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
+        \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+        \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
         \starttitle[title=List of Tables]
             \placelistoftables
@@ -398,10 +698,10 @@
         \page
 
         \setuppapersize[A4,portrait]
-        \setuplayout[a4-portrait-narrow]
+        \setuplayout[A4-portrait-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-portrait}][\directsetup{header-odd-A4-portrait}][\directsetup{header-even-A4-portrait}][\directsetup{header-even-A4-portrait}]
-        \setupfootertexts[\directsetup{footer-odd-A4-portrait}][\directsetup{footer-odd-A4-portrait}][\directsetup{footer-even-A4-portrait}][\directsetup{footer-even-A4-portrait}]
+        \setupheadertexts[\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-odd-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}][\directsetup{z-header-even-A4-portrait-narrow}]
+        \setupfootertexts[\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-odd-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}][\directsetup{z-footer-even-A4-portrait-narrow}]
 
         \startchapter[title=Some information required]
 
@@ -427,10 +727,10 @@
         \page
 
         \setuppapersize[A4,landscape]
-        \setuplayout[a4-landscape-narrow]
+        \setuplayout[A4-landscape-narrow]
 
-        \setupheadertexts[\directsetup{header-odd-A4-landscape}][\directsetup{header-odd-A4-landscape}][\directsetup{header-even-A4-landscape}][\directsetup{header-even-A4-landscape}]
-        \setupfootertexts[\directsetup{footer-odd-A4-landscape}][\directsetup{footer-odd-A4-landscape}][\directsetup{footer-even-A4-landscape}][\directsetup{footer-even-A4-landscape}]
+        \setupheadertexts[\directsetup{z-header-odd-A4-landscape-narrow}][\directsetup{z-header-odd-A4-landscape-narrow}][\directsetup{z-header-even-A4-landscape-narrow}][\directsetup{z-header-even-A4-landscape-narrow}]
+        \setupfootertexts[\directsetup{z-footer-odd-A4-landscape-narrow}][\directsetup{z-footer-odd-A4-landscape-narrow}][\directsetup{z-footer-even-A4-landscape-narrow}][\directsetup{z-footer-even-A4-landscape-narrow}]
 
         \startchapter
             [title=chapter 2]

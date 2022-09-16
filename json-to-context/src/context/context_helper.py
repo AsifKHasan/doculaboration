@@ -123,7 +123,7 @@ class ContextHelper(object):
         # wrap in BEGIN/end comments
         header_footer_lines = wrap_with_comment(lines=header_footer_lines, object_type='Headers and Footers')
 
-        page_layout_lines.append("\n")
+        header_footer_lines.append("\n")
         self.header_lines = self.header_lines + header_footer_lines
 
 
