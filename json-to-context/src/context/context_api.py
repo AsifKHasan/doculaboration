@@ -808,7 +808,7 @@ class ContextTable(ContextBlock):
         # generate bTABLEnested cell values
         table_body_lines = []
         for row in self.table_cell_matrix:
-            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
+            row_lines, _ = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             # wrap in b/e TR
             row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -937,7 +937,7 @@ class ContextTable(ContextBlock):
 
             # generate cell values
             for row in self.table_cell_matrix[0:self.header_row_count]:
-                row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
+                row_lines, _ = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
                 # wrap in b/e TR
                 row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
@@ -956,10 +956,15 @@ class ContextTable(ContextBlock):
         # generate bTABLEbody cell values
         table_body_lines = []
         for row in self.table_cell_matrix[self.header_row_count:]:
-            row_lines = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
+            row_lines, new_page = row.row_contents_to_context(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             # wrap in b/e TR
-            row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+            if new_page:
+                options = context_option(before='{\page}')
+                row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', param_string=options, wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
+
+            else:
+                row_lines = indent_and_wrap(lines=row_lines, wrap_in='TR', wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
             # wrap in BEGIN/end comments
             row_lines = wrap_with_comment(lines=row_lines, object_type='Row', object_id=row.row_id, indent_level=1)
@@ -1053,8 +1058,8 @@ class ContextParagraph(ContextBlock):
             param_string = context_option(self.paragraph_id)
             setup_lines = indent_and_wrap(lines=setup_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
 
-            # paragraph cell value
-            content_lines = cell.cell_content_to_context(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes)
+            # paragraph cell value, it may have a new-page note
+            content_lines, new_page = cell.cell_content_to_context(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             # wrap in start/stop framed
             param_string = context_option(extras=f"\\setup{{{self.paragraph_id}}}")
@@ -1068,8 +1073,16 @@ class ContextParagraph(ContextBlock):
             # wrap in BEGIN/end comments
             block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
 
+            # if it has a new-page note, handle it
+            if new_page:
+                new_page_lines = ['% new-page note found']
+                new_page_lines.append('\\page')
+                new_page_lines.append('')
+            else:
+                new_page_lines = []
 
-        return block_lines + ['']
+
+        return new_page_lines + block_lines + ['']
 
 
 
@@ -1159,6 +1172,7 @@ class Cell(object):
     '''
     def cell_content_to_context(self, block_id, color_dict, document_footnotes):
         content_lines = []
+        new_page = False
 
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
@@ -1169,7 +1183,8 @@ class Cell(object):
 
                 # handle new-page defined in notes
                 if self.note.new_page:
-                    content_lines.append(f"\\page")
+                    # content_lines.append(f"\\page")
+                    new_page = True
 
                 # handle keep-with-previous defined in notes
                 if self.note.keep_with_previous:
@@ -1206,7 +1221,7 @@ class Cell(object):
             else:
                 warn(f"NO VALUE : {self.cell_id}")
 
-        return content_lines
+        return content_lines, new_page
 
 
     ''' ConTeXt code for cell setups
@@ -1360,6 +1375,7 @@ class Row(object):
     '''
     def row_contents_to_context(self, block_id, color_dict, document_footnotes):
         row_lines = []
+        new_page = False
 
         # gets the cell ConTeXt lines
         c = 0
@@ -1371,7 +1387,10 @@ class Row(object):
                 produce_cell = False
 
             else:
-                cell_lines = cell.cell_content_to_context(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes)
+                # cell value, it may have a new-page note
+                cell_lines, cell_new_page = cell.cell_content_to_context(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes)
+                if cell_new_page:
+                    new_page = True
 
             if produce_cell and len(cell_lines):
                 # wrap in b/e TR, param_string is the marge spec
@@ -1394,7 +1413,7 @@ class Row(object):
         dummy_cell_lines = wrap_with_comment(lines=dummy_cell_lines, object_type='Cell', object_id='dummy', indent_level=1)
         row_lines = row_lines + [''] + dummy_cell_lines + ['']
 
-        return row_lines
+        return row_lines, new_page
 
 
 
@@ -1604,13 +1623,13 @@ class ImageValue(CellValue):
 
         # image horizontal alignment
         image_halign = self.effective_format.halign.image_halign()
-        image_valign = self.effective_format.valign.image_valign()
+        # image_valign = self.effective_format.valign.image_valign()
 
         if image_halign:
             context_code = f"\\{image_halign}{{{context_code}}}"
 
-        if image_valign:
-            context_code = f"\\{image_valign}{{{context_code}}}"
+        # if image_valign:
+        #     context_code = f"\\{image_valign}{{{context_code}}}"
 
 
         return context_code

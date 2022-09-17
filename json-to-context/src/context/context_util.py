@@ -10,13 +10,19 @@ import re
 from helper.logger import *
 
 # distance/gap below header with the content in inches
-HEADER_DISTANCE = 0.10
+HEADER_DISTANCE = 0.05
 
 # distance/gap above footer with the content in inches
-FOOTER_DISTANCE = 0.10
+FOOTER_DISTANCE = 0.05
 
 # distance/gap below footer from the bottom edge of the page
 BOTTOM_DISTANCE = 0.00
+
+# distance/gap between right margin and content 
+RIGHT_MARGIN_DISTANCE = 0.00
+
+# distance/gap between right margin and edge of page right edge 
+RIGHT_EDGE_DISTANCE = 0.00
 
 
 # height in inches for dummy row
@@ -170,6 +176,7 @@ LEVEL_TO_TITLE = [
         width=7.27in,
         % right-margin
         rightmargin=0.50in,
+
         % top-margin
         topspace=0.25in,
         % header height
@@ -217,12 +224,13 @@ def create_page_layout(page_layout_key, page_spec_name, landscape, margin_spec_n
         page_layout_lines.append(f"\tbackspace={backspace}in,")
 
         page_layout_lines.append(f"\t% page-width - backspace - rightmargin")
-        content_width = width - backspace - right
+        content_width = width - backspace - right - RIGHT_MARGIN_DISTANCE - RIGHT_EDGE_DISTANCE
         page_layout_lines.append(f"\twidth={content_width}in,")
 
         page_layout_lines.append(f"\t% right-margin")
         page_layout_lines.append(f"\trightmargin={right}in,")
         
+
         page_layout_lines.append(f"\t% top-margin")
         page_layout_lines.append(f"\ttopspace={top}in,")
         
@@ -231,7 +239,7 @@ def create_page_layout(page_layout_key, page_spec_name, landscape, margin_spec_n
         page_layout_lines.append(f"\theaderdistance={HEADER_DISTANCE}in,")
         
         page_layout_lines.append(f"\t% page-height - top-margin - bottom-margin")
-        content_height = height - top - bottom
+        content_height = height - top - bottom - BOTTOM_DISTANCE
         page_layout_lines.append(f"\theight={content_height}in,")
         
         page_layout_lines.append(f"\t% footer")

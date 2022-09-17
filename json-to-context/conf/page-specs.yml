@@ -26,9 +26,9 @@ margin-spec:
     header-height : 0.50
     footer-height : 0.20
   medium:
-    left          : 0.55
-    right         : 0.55
-    top           : 0.55
+    left          : 0.50
+    right         : 0.50
+    top           : 0.50
     bottom        : 0.50
     gutter        : 0
     header-height : 0.50
@@ -39,5 +39,5 @@ margin-spec:
     top           : 0.30
     bottom        : 0.20
     gutter        : 0
-    header-height : 0.70
-    footer-height : 0.40
+    header-height : 0.25
+    footer-height : 0.25

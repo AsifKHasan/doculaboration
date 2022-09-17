@@ -4,8 +4,8 @@ CRDT (gsheet, etc.) based documentation collaboration pipeline to generate edita
 * *gsheet-to-json* is for generating json output from gsheet data. The output json is meant to be fed as input for document generation components of the pipeline
 * *json-to-docx* is for generating docx (WordML) documents
 * *json-to-odt* is for generating odt (OpenOffice Text) documents
-* *json-to-latex* is for generating latex for generating printable outputs
-* *json-to-context* is for generating context for generating printable outputs
+* *json-to-latex* is for generating LaTex for generating printable outputs
+* *json-to-context* is for generating ConTeXt for generating printable outputs
 
 ## Get the scripts/programs
 1. cd to ```d:\projects``` (for Windows) or ```~/projects``` (for Linux)
