@@ -279,7 +279,7 @@ class ContextGsheetSection(ContextSectionBase):
 
                 module = importlib.import_module("context.context_api")
                 func = getattr(module, f"process_{section['content-type']}")
-                section_lines = section_lines + func(section_data=section, config=self._config, color_dict=color_dict, document_footnotes=document_footnotes)
+                section_lines = section_lines + func(section_data=section, config=self._config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
                 first_section = False
                 section_index = section_index + 1
@@ -550,7 +550,7 @@ class ContextContent(object):
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
                         # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height)
+                        next_cell_in_row = Cell(section_index=first_cell.section_index, section_id=first_cell.section_id, row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=first_cell.nesting_level)
                         next_row_object.insert_cell(pos=c, cell=next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
