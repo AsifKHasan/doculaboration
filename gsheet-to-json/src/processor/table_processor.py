@@ -15,7 +15,7 @@ from helper.gsheet.gsheet_util import *
 from helper.gdrive.gdrive_util import *
 
 
-def process(gsheet, section_data, context):
+def process(gsheet, section_data, context, current_document_index):
     ws_title = section_data['link']
 
     # if the worksheet has already been read earlier, use the content from cache
@@ -57,16 +57,12 @@ def process(gsheet, section_data, context):
                         # content can be a HYPERLINK/hyperlink to another worksheet
                         m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
-                            # debug(m.group('ws_gid'), m.group('ws_title'))
-                            cell_data['contents'] = process(gsheet=gsheet, section_data={'link': m.group('ws_title')}, context=context)
-                            # if worksheet_exists(gsheet, m.group('ws_title')):
-                            #     cell_data['contents'] = process(gsheet=gsheet, section_data={'link': m.group('ws_title')}, context=context)
+                            cell_data['contents'] = process(gsheet=gsheet, section_data={'link': m.group('ws_title')}, context=context, current_document_index=current_document_index)
 
                         # content can be a HYPERLINK/hyperlink to another gdrive file (for now we only allow text only content, that is a text file)
                         m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('link_url') is not None and m.group('link_title') is not None:
                             url = m.group('link_url')
-                            # debug(f".. found a link to [{url}] at [{m.group('link_url')}]")
 
                             # this may be a drive file
                             if url.startswith('https://drive.google.com/file/d/'):

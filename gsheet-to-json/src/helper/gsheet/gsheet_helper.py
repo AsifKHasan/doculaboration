@@ -28,7 +28,6 @@ class GsheetHelper(object):
         return GsheetHelper.__instance
 
 
-
     ''' initialize the helper
     '''
     def init(self, config):
@@ -59,7 +58,7 @@ class GsheetHelper(object):
 
     ''' read the gsheet
     '''
-    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None):
+    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None, current_document_index=None):
         wait_for = self._context['gsheet-read-wait-seconds']
         try_count = self._context['gsheet-read-try-count']
         gsheet = None
@@ -78,7 +77,6 @@ class GsheetHelper(object):
                 info(f"reading gsheet : [{gsheet_title}]")
                 self._context['gsheet-data'] = self.get_gsheet_data(gsheet)
                 info(f"read    gsheet : [{gsheet_title}]")
-                # return self._context['gsheet-data']
                 
                 break
 
@@ -90,8 +88,7 @@ class GsheetHelper(object):
             error('gsheet read request failed, quiting')
             sys.exit(1)
 
-        return process_gsheet(self._context, gsheet, parent)
-
+        return process_gsheet(context=self._context, gsheet=gsheet, parent=parent, current_document_index=current_document_index)
 
 
     ''' get data from the gsheet

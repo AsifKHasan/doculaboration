@@ -9,7 +9,7 @@ from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
 from helper.gsheet.gsheet_util import *
 
-def process(sheet, section_data, context):
+def process(gsheet, section_data, context, current_document_index):
     pdf_title = section_data['link']
     pdf_url = section_data['link-target']
     debug(f"processing file ... {pdf_title} : {pdf_url}")
@@ -63,4 +63,4 @@ def process(sheet, section_data, context):
 
             data['images'].append({'path': image, 'width': width_in_inches, 'height': height_in_inches})
 
-    return data
+    return data, current_document_index

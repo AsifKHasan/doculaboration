@@ -15,43 +15,59 @@ from helper.logger import *
 from helper.gsheet.gsheet_util import *
 
 
-def process_gsheet(context, sheet, parent=None):
-    data = {}
+def process_gsheet(context, gsheet, parent, current_document_index):
+    data = {'sections': []}
 
-    # worksheet-cache is nested dictionary of sheet->worksheet as two different sheets may have worksheets of same name
+    # worksheet-cache is nested dictionary of gsheet->worksheet as two different sheets may have worksheets of same name
     # so keying by only worksheet name is not feasible
     if 'worksheet-cache' not in context:
         context['worksheet-cache'] = {}
 
-    if sheet.title not in context['worksheet-cache']:
-        context['worksheet-cache'][sheet.title] = {}
+    if gsheet.title not in context['worksheet-cache']:
+        context['worksheet-cache'][gsheet.title] = {}
 
     ws_title = context['index-worksheet']
-    ws = sheet.worksheet('title', ws_title)
+    ws = gsheet.worksheet('title', ws_title)
 
     toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
-    data['sections'] = [process_section(context, sheet, toc, parent) for toc in toc_list]
+    # current_document_index None means it is the very first document
+    if current_document_index is None:
+        new_document_index = 0
+    else:
+        new_document_index = current_document_index + 1
 
-    return data
+    section_index = 0
+    for toc in toc_list:
+        data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=new_document_index, section_index=section_index, parent=parent))
+        section_index = section_index + 1
+
+    return data, new_document_index
 
 
-def process_section(context, sheet, toc, parent=None):
+def process_section(context, gsheet, toc, current_document_index, section_index, parent):
     # TODO: some columns may have formula, parse those
     # link column (F, toc[5] may be a formula), parse it
-    if toc[4] in ['gsheet', 'docx', 'pdf']:
+    if toc[4] in ['gsheet', 'pdf']:
         link_name, link_target = get_gsheet_link(toc[5])
+        worksheet_name = None
 
     elif toc[4] == 'table':
         link_name, link_target = get_worksheet_link(toc[5]), None
+        worksheet_name = link_name
 
     else:
         link_name, link_target = toc[5], None
+        worksheet_name = toc[4]
 
 
     # transform to a dict
     d = {
+        'document-name'         : gsheet.title,
+        'document-index'        : current_document_index,
+        'section-name'          : worksheet_name,
+        'section-index'         : section_index,
         'section'               : str(toc[0]),
         'heading'               : toc[1],
         'process'               : toc[2],
@@ -93,19 +109,19 @@ def process_section(context, sheet, toc, parent=None):
             module = importlib.import_module('processor.table_processor')
             if d['different-firstpage']:
                 if d['header-first'] != '' and d['header-first'] is not None:
-                    d['header-first'] = module.process(sheet, {'link': d['header-first']}, context)
+                    d['header-first'] = module.process(gsheet=gsheet, section_data={'link': d['header-first']}, context=context, current_document_index=current_document_index)
                 else:
                     d['header-first'] = None
             else:
                 d['header-first'] = None
 
             if d['header-odd'] != '' and d['header-odd'] is not None:
-                d['header-odd'] = module.process(sheet, {'link': d['header-odd']}, context)
+                d['header-odd'] = module.process(gsheet=gsheet, section_data={'link': d['header-odd']}, context=context, current_document_index=current_document_index)
             else:
                 d['header-odd'] = None
 
             if d['header-even'] != '' and d['header-even'] is not None:
-                d['header-even'] = module.process(sheet, {'link': d['header-even']}, context)
+                d['header-even'] = module.process(gsheet=gsheet, section_data={'link': d['header-even']}, context=context, current_document_index=current_document_index)
             else:
                 d['header-even'] = d['header-odd']
 
@@ -120,19 +136,19 @@ def process_section(context, sheet, toc, parent=None):
             module = importlib.import_module('processor.table_processor')
             if d['different-firstpage']:
                 if d['footer-first'] != '' and d['footer-first'] is not None:
-                    d['footer-first'] = module.process(sheet, {'link': d['footer-first']}, context)
+                    d['footer-first'] = module.process(gsheet=gsheet, section_data={'link': d['footer-first']}, context=context, current_document_index=current_document_index)
                 else:
                     d['footer-first'] = None
             else:
                 d['footer-first'] = None
 
             if d['footer-odd'] != '' and d['footer-odd'] is not None:
-                d['footer-odd'] = module.process(sheet, {'link': d['footer-odd']}, context)
+                d['footer-odd'] = module.process(gsheet=gsheet, section_data={'link': d['footer-odd']}, context=context, current_document_index=current_document_index)
             else:
                 d['footer-odd'] = None
 
             if d['footer-even'] != '' and d['footer-even'] is not None:
-                d['footer-even'] = module.process(sheet, {'link': d['footer-even']}, context)
+                d['footer-even'] = module.process(gsheet=gsheet, section_data={'link': d['footer-even']}, context=context, current_document_index=current_document_index)
             else:
                 d['footer-even'] = d['footer-odd']
     else:
@@ -141,12 +157,12 @@ def process_section(context, sheet, toc, parent=None):
         # process header, it may be text or link
         if d['different-firstpage']:
             if d['header-first'] != '' and d['header-first'] is not None:
-                d['header-first'] = module.process(sheet, {'link': d['header-first']}, context)
+                d['header-first'] = module.process(gsheet=gsheet, section_data={'link': d['header-first']}, context=context, current_document_index=current_document_index)
             else:
                 d['header-first'] = None
 
             if d['footer-first'] != '' and d['footer-first'] is not None:
-                d['footer-first'] = module.process(sheet, {'link': d['footer-first']}, context)
+                d['footer-first'] = module.process(gsheet=gsheet, section_data={'link': d['footer-first']}, context=context, current_document_index=current_document_index)
             else:
                 d['footer-first'] = None
         else:
@@ -154,22 +170,22 @@ def process_section(context, sheet, toc, parent=None):
             d['footer-first'] = None
 
         if d['header-odd'] != '' and d['header-odd'] is not None:
-            d['header-odd'] = module.process(sheet, {'link': d['header-odd']}, context)
+            d['header-odd'] = module.process(gsheet=gsheet, section_data={'link': d['header-odd']}, context=context, current_document_index=current_document_index)
         else:
             d['header-odd'] = None
 
         if d['header-even'] != '' and d['header-even'] is not None:
-            d['header-even'] = module.process(sheet, {'link': d['header-even']}, context)
+            d['header-even'] = module.process(gsheet=gsheet, section_data={'link': d['header-even']}, context=context, current_document_index=current_document_index)
         else:
             d['header-even'] = d['header-odd']
 
         if d['footer-odd'] != '' and d['footer-odd'] is not None:
-            d['footer-odd'] = module.process(sheet, {'link': d['footer-odd']}, context)
+            d['footer-odd'] = module.process(gsheet=gsheet, section_data={'link': d['footer-odd']}, context=context, current_document_index=current_document_index)
         else:
             d['footer-odd'] = None
 
         if d['footer-even'] != '' and d['footer-even'] is not None:
-            d['footer-even'] = module.process(sheet, {'link': d['footer-even']}, context)
+            d['footer-even'] = module.process(gsheet=gsheet, section_data={'link': d['footer-even']}, context=context, current_document_index=current_document_index)
         else:
             d['footer-even'] = d['footer-odd']
 
@@ -178,6 +194,6 @@ def process_section(context, sheet, toc, parent=None):
         d['contents'] = None
     else:
         module = importlib.import_module(f"processor.{d['content-type']}_processor")
-        d['contents'] = module.process(sheet, d, context)
+        d['contents'] = module.process(gsheet=gsheet, section_data=d, context=context, current_document_index=current_document_index)
 
     return d

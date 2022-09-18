@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-# import os.path
-# from os import path
 from pathlib import Path
 
 import requests
@@ -12,11 +10,6 @@ import pygsheets
 from PIL import Image
 
 from helper.logger import *
-
-
-COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
-            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
 
 def get_gsheet_link(value):
@@ -55,12 +48,6 @@ def worksheet_exists(sheet, ws_title):
     except:
         warn(f"no worksheet ... {ws_title}")
         return False
-
-
-
-def hex_to_rgba(color_hex):
-    color = tuple(int(color_hex[i:i+2], 16) for i in (0, 2, 4, 6))
-    return {'red': color[0]/255, 'green': color[1]/255, 'blue': color[2]/255, 'alpha': color[3]/255}
 
 
 

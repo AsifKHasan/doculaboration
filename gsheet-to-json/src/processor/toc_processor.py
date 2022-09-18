@@ -2,5 +2,5 @@
 '''
 '''
 
-def process(sheet, section_data, context):
-    return None
+def process(gsheet, section_data, context, current_document_index):
+    return None, current_document_index
