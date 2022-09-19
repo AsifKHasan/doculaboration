@@ -16,7 +16,8 @@ from helper.gdrive.gdrive_util import *
 
 
 def process(gsheet, section_data, context, current_document_index):
-    ws_title = section_data['link']
+    # print(section_data)
+    ws_title = section_data['section-prop']['link']
 
     # if the worksheet has already been read earlier, use the content from cache
     if ws_title in context['worksheet-cache'][gsheet.title]:
@@ -57,7 +58,8 @@ def process(gsheet, section_data, context, current_document_index):
                         # content can be a HYPERLINK/hyperlink to another worksheet
                         m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
-                            cell_data['contents'] = process(gsheet=gsheet, section_data={'link': m.group('ws_title')}, context=context, current_document_index=current_document_index)
+                            new_section_data = {'section-prop': {'link': m.group('ws_title')}}
+                            cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
 
                         # content can be a HYPERLINK/hyperlink to another gdrive file (for now we only allow text only content, that is a text file)
                         m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formulaValue, re.IGNORECASE)

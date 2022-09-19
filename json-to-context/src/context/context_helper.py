@@ -24,8 +24,6 @@ class ContextHelper(object):
     ''' generate and save the ConTeXt
     '''
     def generate_and_save(self, section_list):
-        # we have a concept of nesting_level where parent sections are at level 0 and nested gsheet sections are at subsequent level 1, 2, .....
-        nesting_level = 0
         parent_section_index_text = ''
 
         # load header and initialize document
@@ -33,45 +31,40 @@ class ContextHelper(object):
             self.header_lines = [line.rstrip() for line in f]
 
 
-        first_section = True
-        section_index = 0
 
         self.document_lines = []
 
-        self.color_dict = {}
         self._config
-        page_layouts = {}
+        self.color_dict = {}
         self.headers_footers = {}
         self.document_footnotes = {}
+        page_layouts = {}
+
+        first_section = True
         for section in section_list:
-            section['nesting-level'] = nesting_level
-            section['parent-section-index-text'] = parent_section_index_text
+            section_meta = section['section-meta']
+            section_prop = section['section-prop']
 
-            if section['section'] != '':
-                info(f"writing : {section['section'].strip()} {section['heading'].strip()}")
+            if section_prop['label'] != '':
+                info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}")
             else:
-                info(f"writing : {section['heading'].strip()}")
+                info(f"writing : {section_prop['heading'].strip()}")
 
-            section['first-section'] = True if first_section else False
-            section['section-index'] = section_index
-            if section['landscape']:
-                section['page-layout'] = f"{section['page-spec']}-landscape-{section['margin-spec']}"
+            if first_section:
+                section_meta['first-section'] = True
+                first_section = False
             else:
-                section['page-layout'] = f"{section['page-spec']}-portrait-{section['margin-spec']}"
+                section_meta['first-section'] = False
 
             # create the page-layout
-            if section['page-layout'] not in page_layouts:
-                page_layouts[section['page-layout']] = create_page_layout(page_layout_key=section['page-layout'], page_spec_name=section['page-spec'], landscape=section['landscape'], margin_spec_name=section['margin-spec'], page_specs=self._config['page-specs'])
+            if section_meta['page-layout'] not in page_layouts:
+                page_layouts[section_meta['page-layout']] = create_page_layout(page_layout_key=section_meta['page-layout'], page_spec_name=section_prop['page-spec'], landscape=section_prop['landscape'], margin_spec_name=section_prop['margin-spec'], page_specs=self._config['page-specs'])
 
 
             module = importlib.import_module("context.context_api")
-            func = getattr(module, f"process_{section['content-type']}")
+            func = getattr(module, f"process_{section_prop['content-type']}")
             section_lines = func(section_data=section, config=self._config, color_dict=self.color_dict, headers_footers=self.headers_footers, document_footnotes=self.document_footnotes)
             self.document_lines = self.document_lines + section_lines
-
-            first_section = False
-            section_index = section_index + 1
-
 
 
         # definecolor
@@ -141,4 +134,3 @@ class ContextHelper(object):
         # save the markdown document string in a file
         with open(self._config['files']['output-context'], "w", encoding="utf-8") as f:
             f.write('\n'.join(self.header_lines + self.document_lines))
-

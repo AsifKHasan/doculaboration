@@ -10,8 +10,8 @@ from helper.gsheet.gsheet_helper import GsheetHelper
 from helper.gsheet.gsheet_util import *
 
 def process(gsheet, section_data, context, current_document_index):
-    pdf_title = section_data['link']
-    pdf_url = section_data['link-target']
+    pdf_title = section_data['section-prop']['link']
+    pdf_url = section_data['section-prop']['link-target']
     debug(f"processing file ... {pdf_title} : {pdf_url}")
 
     if pdf_url.startswith('https://drive.google.com/file/d/'):

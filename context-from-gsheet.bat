@@ -7,7 +7,7 @@ set DOCUMENT=%1
 
 :: json-from-gsheet
 pushd .\gsheet-to-json\src
-.\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
+@REM .\json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -18,7 +18,7 @@ popd
 
 :: context-from-json
 pushd .\json-to-context\src
-@REM .\context-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+.\context-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
@@ -29,7 +29,7 @@ popd
 
 :: context -> pdf
 pushd .\out
-@REM ptime context --run %DOCUMENT%.tex
+ptime context --run %DOCUMENT%.tex
 @REM move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (
