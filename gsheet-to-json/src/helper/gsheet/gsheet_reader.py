@@ -32,18 +32,12 @@ def process_gsheet(context, gsheet, parent, current_document_index):
     toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
-    # current_document_index None means it is the very first document
-    if current_document_index is None:
-        new_document_index = 0
-    else:
-        new_document_index = current_document_index + 1
-
     section_index = 0
     for toc in toc_list:
-        data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=new_document_index, section_index=section_index, parent=parent))
+        data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=current_document_index, section_index=section_index, parent=parent))
         section_index = section_index + 1
 
-    return data, new_document_index
+    return data
 
 
 def process_section(context, gsheet, toc, current_document_index, section_index, parent):

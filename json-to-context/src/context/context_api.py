@@ -188,7 +188,16 @@ class ContextSectionBase(object):
         # wrap section in BEGIN/END comments
         hf_lines = wrap_with_comment(lines=hf_lines, object_type='Header Footer', indent_level=1)
 
-        section_lines = section_lines + [''] + hf_lines + ['']
+        # title/chapter/section/subsection/subsubsection etc.
+        heading_lines = []
+        heading_title, outline_level = self.get_heading()
+        if heading_title:
+            heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
+            options = context_option(title=f"{{{heading_title}}}")
+            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{options}")
+            heading_lines.append('')
+
+        section_lines = section_lines + [''] + hf_lines + [''] + heading_lines
 
         return section_lines
 
@@ -212,17 +221,6 @@ class ContextTableSection(ContextSectionBase):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
-
-        # title/chapter/section/subsection/subsubsection etc.
-        heading_title, outline_level = self.get_heading()
-        if heading_title:
-            heading_lines = []
-            heading_lines.append(f"% {LEVEL_TO_TITLE[outline_level]} [{heading_title}]")
-            options = context_option(title=f"{{{heading_title}}}")
-            heading_lines.append(f"\\{LEVEL_TO_TITLE[outline_level]}{options}")
-            heading_lines.append('')
-
-            section_lines =  section_lines + heading_lines
 
         # get the contents
         section_lines = section_lines + self.section_contents.content_to_context(color_dict=color_dict, document_footnotes=document_footnotes)
@@ -250,41 +248,69 @@ class ContextGsheetSection(ContextSectionBase):
 
     ''' generates the odt code
     '''
+    def section_to_context(self, color_dict, headers_footers, document_footnotes, page_layouts):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
+
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
+
+        # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
+        if self._section_data['contents'] and 'sections' in self._section_data['contents']:
+            gsheet_lines = section_list_to_context(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes, page_layouts=page_layouts)
+
+            # wrap gsheet in BEGIN/end comments
+            gsheet_lines = wrap_with_comment(lines=gsheet_lines, object_type='Gsheet', object_id=self.section_id, indent_level=1)
+
+        return [''] + section_lines + [''] + gsheet_lines
+
+
+
+''' ConTeXt Pdf section object
+'''
+class ContextPdfSection(ContextSectionBase):
+
+    ''' constructor
+    '''
+    def __init__(self, section_data, config):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        super().__init__(section_data=section_data, config=config)
+
+
+    ''' generates the ConTeXt code
+    '''
     def section_to_context(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         section_lines = super().section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
-        # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
-        if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
+        # the images go one after another
+        if 'contents' in self._section_data:
+            if self._section_data['contents'] and 'images' in self._section_data['contents']:
+                first_image = True
+                for image in self._section_data['contents']['images']:
+                    image_lines = []
+                    if not first_image:
+                        # add page-break
+                        image_lines.append('\\page')
 
-            first_section = False
-            for section in self._section_data['contents']['sections']:
-                section_meta = section['section-meta']
-                section_prop = section['section-prop']
+                    # adjust image as per section width/height
+                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
+                    image_options = context_option(width=f"{image_width_in_inches}in", height=f"{image_height_in_inches}in")
+                    context_code = f"\\externalfigure[{os_specific_path(image['path'])}]{image_options}"
 
-                if section_prop['label'] != '':
-                    info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=self.nesting_level)
-                else:
-                    info(f"writing : {section_prop['heading'].strip()}", nesting_level=self.nesting_level)
+                    image_lines.append(context_code)
 
+                    section_lines = section_lines + image_lines
 
-                if first_section:
-                    section_meta['first-section'] = True
-                    first_section = False
-                else:
-                    section_meta['first-section'] = False
+                    first_image = False
 
-                module = importlib.import_module("context.context_api")
-                func = getattr(module, f"process_{section_prop['content-type']}")
-                section_lines = section_lines + func(section_data=section, config=self._config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
+        # wrap section in BEGIN/end comments
+        section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-                first_section = False
-
-        section_end_lines = [f"\n% END   ContextSection: [{self.section_id}]"]
-
-        return section_lines + section_end_lines
-
+        return [''] + section_lines
 
 
 ''' ConTeXt ToC section object
@@ -308,18 +334,13 @@ class ContextToCSection(ContextSectionBase):
         content_lines = []
         content_lines.append("\\placecontent")
 
-        # wrap in start/stop title
-        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title={Table of Contents}', indent_level=1)
-
         # merge contents in section
         section_lines = section_lines + content_lines + ['']
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines
-
-        return section_lines
+        return [''] + section_lines
 
 
 
@@ -344,18 +365,13 @@ class ContextLoTSection(ContextSectionBase):
         content_lines = []
         content_lines.append("\\placelistoftables")
 
-        # wrap in start/stop title
-        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title={List of Tables}', indent_level=1)
-
         # merge contents in section
         section_lines = section_lines + content_lines + ['']
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines
-
-        return section_lines
+        return [''] + section_lines
 
 
 
@@ -380,18 +396,13 @@ class ContextLoFSection(ContextSectionBase):
         content_lines = []
         content_lines.append("\\placelistoffigures")
 
-        # wrap in start/stop title
-        content_lines = indent_and_wrap(lines=content_lines, wrap_in='title', param_string='title=List of Figures', indent_level=1)
-
         # merge contents in section
         section_lines = section_lines + content_lines + ['']
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
-        section_lines = [''] + section_lines
-
-        return section_lines
+        return [''] + section_lines
 
 
 
@@ -2279,7 +2290,7 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_table(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextTableSection(section_data=section_data, config=config)
     section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
@@ -2288,16 +2299,16 @@ def process_table(section_data, config, color_dict, headers_footers, document_fo
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_gsheet(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextGsheetSection(section_data=section_data, config=config)
-    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
+    section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes, page_layouts=page_layouts)
 
     return section_lines
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_toc(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextToCSection(section_data=section_data, config=config)
     section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
@@ -2306,7 +2317,7 @@ def process_toc(section_data, config, color_dict, headers_footers, document_foot
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_lof(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextLoFSection(section_data=section_data, config=config)
     section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
@@ -2315,7 +2326,7 @@ def process_lof(section_data, config, color_dict, headers_footers, document_foot
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_lot(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextLoTSection(section_data=section_data, config=config)
     section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
@@ -2324,7 +2335,7 @@ def process_lot(section_data, config, color_dict, headers_footers, document_foot
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_pdf(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_section = ContextPdfSection(section_data=section_data, config=config)
     section_lines = context_section.section_to_context(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
@@ -2333,7 +2344,7 @@ def process_pdf(section_data, config, color_dict, headers_footers, document_foot
 
 ''' odt processor
 '''
-def process_odt(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_odt(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     warn(f"content type [odt] not supported")
 
     return []
@@ -2341,7 +2352,7 @@ def process_odt(section_data, config, color_dict, headers_footers, document_foot
 
 ''' docx processor
 '''
-def process_doc(section_data, config, color_dict, headers_footers, document_footnotes):
+def process_doc(section_data, config, color_dict, headers_footers, document_footnotes, page_layouts):
     warn(f"content type [docx] not supported")
 
     return []

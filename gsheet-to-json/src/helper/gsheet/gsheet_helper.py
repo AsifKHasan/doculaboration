@@ -53,12 +53,14 @@ class GsheetHelper(object):
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
         self._context['gsheet-read-try-count'] = config['gsheet-read-try-count']
 
+        self.current_document_index = -1
+
         info(f"authorized  with Google")
 
 
     ''' read the gsheet
     '''
-    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None, current_document_index=None):
+    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None):
         wait_for = self._context['gsheet-read-wait-seconds']
         try_count = self._context['gsheet-read-try-count']
         gsheet = None
@@ -88,7 +90,10 @@ class GsheetHelper(object):
             error('gsheet read request failed, quiting')
             sys.exit(1)
 
-        return process_gsheet(context=self._context, gsheet=gsheet, parent=parent, current_document_index=current_document_index)
+        self.current_document_index = self.current_document_index + 1
+        data = process_gsheet(context=self._context, gsheet=gsheet, parent=parent, current_document_index=self.current_document_index)
+
+        return data
 
 
     ''' get data from the gsheet

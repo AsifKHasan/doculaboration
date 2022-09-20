@@ -6,6 +6,7 @@ various utilities for generating ConTeXt code
 
 import sys
 import re
+import importlib
 
 from helper.logger import *
 
@@ -165,6 +166,61 @@ LEVEL_TO_TITLE = [
     'subsection',
     'subsubsection',
 ]
+
+
+''' fit width/height into a given width/height maintaining aspect ratio
+'''
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+	WIDTH_OFFSET = 0.0
+	HEIGHT_OFFSET = 0.2
+
+	fit_within_width = fit_within_width - WIDTH_OFFSET
+	fit_within_height = fit_within_height - HEIGHT_OFFSET
+
+	aspect_ratio = width_to_fit / height_to_fit
+
+	if width_to_fit > fit_within_width:
+		width_to_fit = fit_within_width
+		height_to_fit = width_to_fit / aspect_ratio
+		if height_to_fit > fit_within_height:
+			height_to_fit = fit_within_height
+			width_to_fit = height_to_fit * aspect_ratio
+
+	return width_to_fit, height_to_fit
+
+
+
+''' process a list of section_date and generate context code
+'''
+def section_list_to_context(section_list, config, color_dict, headers_footers, document_footnotes, page_layouts):
+    context_lines = []
+    first_section = False
+    for section in section_list:
+        section_meta = section['section-meta']
+        section_prop = section['section-prop']
+
+        if section_prop['label'] != '':
+            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+        else:
+            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+
+
+        if first_section:
+            section_meta['first-section'] = True
+            first_section = False
+        else:
+            section_meta['first-section'] = False
+
+        # create the page-layout
+        if section_meta['page-layout'] not in page_layouts:
+            page_layouts[section_meta['page-layout']] = create_page_layout(page_layout_key=section_meta['page-layout'], page_spec_name=section_prop['page-spec'], landscape=section_prop['landscape'], margin_spec_name=section_prop['margin-spec'], page_specs=config['page-specs'])
+
+        module = importlib.import_module("context.context_api")
+        func = getattr(module, f"process_{section_prop['content-type']}")
+        context_lines = context_lines + func(section_data=section, config=config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes, page_layouts=page_layouts)
+
+    return context_lines
+
 
 
 ''' ConTeXt page_layout from specs

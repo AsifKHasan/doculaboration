@@ -63,4 +63,4 @@ def process(gsheet, section_data, context, current_document_index):
 
             data['images'].append({'path': image, 'width': width_in_inches, 'height': height_in_inches})
 
-    return data, current_document_index
+    return data

@@ -30,7 +30,7 @@ class JsonFromGsheet(object):
 		# process gsheets one by one
 		for gsheet_title in self._CONFIG['gsheets']:
 			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
-			self._data, self.current_document_index = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title)
+			self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title)
 			self.save_json()
 
 		self.tear_down()
@@ -63,7 +63,7 @@ class JsonFromGsheet(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"{self.current_document_index+1} documents/gsheets processed")
+		debug(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
 		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
 		# input("Press Enter to continue...")
 
