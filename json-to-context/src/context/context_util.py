@@ -328,6 +328,17 @@ def define_fn_symbols(name, item_list):
 
 
 
+''' process line-breaks
+'''
+def process_line_breaks(text, keep_line_breaks):
+    if keep_line_breaks:
+        return text.replace('\n', '\\\\ ')
+
+    else:
+        return text.replace('\n', ' ')
+
+
+
 ''' :param path: a path string
     :return: the path that the OS accepts
 '''
@@ -531,7 +542,7 @@ def process_footnotes(block_id, text_content, document_footnotes, footnote_list)
 ''' process inine contents inside the text
     inine contents are FN{...}, LATEX{...} etc.
 '''
-def process_inline_blocks(block_id, text_content, document_footnotes, footnote_list, verbatim=False):
+def process_inline_blocks(block_id, text_content, document_footnotes, footnote_list, verbatim=False, keep_line_breaks=False):
 
     # process FN{...} first, we get a list of block dicts
     inline_blocks = process_footnotes(block_id=block_id, text_content=text_content, document_footnotes=document_footnotes, footnote_list=footnote_list)
@@ -556,6 +567,7 @@ def process_inline_blocks(block_id, text_content, document_footnotes, footnote_l
 
             else:
                 final_content = final_content + tex_escape(inline_block['text'])
+                final_content = process_line_breaks(text=final_content, keep_line_breaks=keep_line_breaks)
 
         elif 'fn' in inline_block:
             final_content = final_content + inline_block['fn']

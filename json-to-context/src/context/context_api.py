@@ -154,9 +154,6 @@ class ContextSectionBase(object):
         header_text_line = f"\\setupheadertexts{odd_header_text}{odd_header_text}{even_header_text}{even_header_text}"
         footer_text_line = f"\\setupfootertexts{odd_footer_text}{odd_footer_text}{even_footer_text}{even_footer_text}"
 
-        # header_text_line = f"\\setupheadertexts{odd_header_text}"
-        # footer_text_line = f"\\setupfootertexts{odd_footer_text}"
-
         return [header_text_line, footer_text_line]
 
 
@@ -261,7 +258,7 @@ class ContextGsheetSection(ContextSectionBase):
             gsheet_lines = section_list_to_context(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes, page_layouts=page_layouts)
 
             # wrap gsheet in BEGIN/end comments
-            gsheet_lines = wrap_with_comment(lines=gsheet_lines, object_type='Gsheet', object_id=self.section_id, indent_level=1)
+            gsheet_lines = wrap_with_comment(lines=gsheet_lines, object_type='Gsheet', object_id=self.section_name, indent_level=1)
 
         return [''] + section_lines + [''] + gsheet_lines
 
@@ -1004,6 +1001,7 @@ class ContextTable(ContextBlock):
         table_lines = table_header_lines + table_body_lines
 
         # TODO: ConTeXt footnotes
+
         
         # wrap in b/e TABLE
         param_string = context_option(setups=self.table_id)
@@ -1049,37 +1047,41 @@ class ContextParagraph(ContextBlock):
         if len(self.data_row.cells) > 0:
             cell = self.data_row.get_cell(c=0)
 
-            setup_lines = ['']
-
-            loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
-            roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
-            toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
-            boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
-            rulethickness = '0.0pt'
-            minheight = f"{self.data_row.row_height}in"
-            setup_lines.append(f"\\setupframed{context_option(width='broad', frame='off', loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness, minheight=minheight)}")
-
-            # paragraph cell setups
-            setup_lines = setup_lines + cell.cell_setups_to_context(r=None, color_dict=color_dict)
-
-            # wrap in start/stop setups
-            param_string = context_option(self.paragraph_id)
-            setup_lines = indent_and_wrap(lines=setup_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
-
             # paragraph cell value, it may have a new-page note
             content_lines, new_page = cell.cell_content_to_context(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
-            # wrap in start/stop framed
-            param_string = context_option(extras=f"\\setup{{{self.paragraph_id}}}")
-            content_lines = indent_and_wrap(lines=content_lines, wrap_in='framed', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
+            # cell-value may be a content, in that case we do not frame the content
+            if cell.cell_value.is_content == False:
 
-            # wrap in start/stop postponingnotes
-            content_lines = indent_and_wrap(lines=content_lines, wrap_in='postponingnotes', indent_level=1)
+                setup_lines = ['']
 
-            block_lines = setup_lines + content_lines
+                loffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+                roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+                toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+                boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
+                rulethickness = '0.0pt'
+                minheight = f"{self.data_row.row_height}in"
+                setup_lines.append(f"\\setupframed{context_option(width='broad', frame='off', loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness, minheight=minheight)}")
+
+                # paragraph cell setups
+                setup_lines = setup_lines + cell.cell_setups_to_context(r=None, color_dict=color_dict)
+
+                # wrap in start/stop setups
+                param_string = context_option(self.paragraph_id)
+                setup_lines = indent_and_wrap(lines=setup_lines, wrap_in='setups', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
+
+                # wrap in start/stop framed
+                param_string = context_option(extras=f"\\setup{{{self.paragraph_id}}}")
+                content_lines = indent_and_wrap(lines=content_lines, wrap_in='framed', param_string=param_string, wrap_prefix_start='start', wrap_prefix_stop='stop', indent_level=1)
+
+                # wrap in start/stop postponingnotes
+                content_lines = indent_and_wrap(lines=content_lines, wrap_in='postponingnotes', indent_level=1)
+
+                content_lines = setup_lines + content_lines
+
 
             # wrap in BEGIN/end comments
-            block_lines = wrap_with_comment(lines=block_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
+            block_lines = wrap_with_comment(lines=content_lines, object_type='ContextParagraph', object_id=self.paragraph_id, indent_level=1)
 
             # if it has a new-page note, handle it
             if new_page:
@@ -1143,7 +1145,7 @@ class Cell(object):
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, keep_line_breaks=self.note.keep_line_breaks)
 
                     elif self.note.page_numbering:
                         self.cell_value = PageNumberValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, page_numbering=self.note.page_numbering)
@@ -1153,10 +1155,10 @@ class Cell(object):
                             self.cell_value = ContextValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
                         
                         else:
-                            self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
             else:
-                self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1198,33 +1200,40 @@ class Cell(object):
                 if self.note.keep_with_previous:
                     content_lines.append(f"\\page[no]")
 
-                if self.note.style:
-                    # handle styles defined in notes
-                    if self.note.style == 'Figure':
-                        # caption for figure
-                        content_lines.append(f"% Figure caption")
-                        options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
-                        content_lines.append(f"\\placefloatcaption[figure]{options}")
-
-                    elif self.note.style == 'Table':
-                        # caption for table
-                        content_lines.append(f"% Table caption")
-                        options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
-                        content_lines.append(f"\\placefloatcaption[table]{options}")
-
-                    elif self.note.style:
-                        # some custom style needs to be applied
-                        heading_tag = CONTEXT_HEADING_MAP.get(self.note.style)
-                        if heading_tag:
-                            content_lines.append(f"% {self.note.style}")
+                # cell_value is string for String/PageNumber/Image/Context type values, but list for Content
+                if self.cell_value.is_content == False:
+                        
+                    if self.note.style:
+                        # handle styles defined in notes
+                        if self.note.style == 'Figure':
+                            # caption for figure
+                            content_lines.append(f"% Figure caption")
                             options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
-                            content_lines.append(f"\\{heading_tag}{options}")
+                            content_lines.append(f"\\placefloatcaption[figure]{options}")
 
-                        else:
-                            warn(f"style : {self.note.style} not defined")
+                        elif self.note.style == 'Table':
+                            # caption for table
+                            content_lines.append(f"% Table caption")
+                            options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
+                            content_lines.append(f"\\placefloatcaption[table]{options}")
+
+                        elif self.note.style:
+                            # some custom style needs to be applied
+                            heading_tag = CONTEXT_HEADING_MAP.get(self.note.style)
+                            if heading_tag:
+                                content_lines.append(f"% {self.note.style}")
+                                options = context_option(title=f"{{{cell_value}}}", bookmark=f"{{{self.cell_value.value}}}")
+                                content_lines.append(f"\\{heading_tag}{options}")
+
+                            else:
+                                warn(f"style : {self.note.style} not defined")
+
+                    else:
+                        content_lines.append(cell_value)
 
                 else:
-                    content_lines.append(cell_value)
+                    content_lines = content_lines + cell_value
+                    # content_lines = content_lines + ['{a}']
 
             else:
                 warn(f"NO VALUE : {self.cell_id}")
@@ -1401,6 +1410,11 @@ class Row(object):
                     new_page = True
 
             if produce_cell and len(cell_lines):
+                if cell.cell_value.is_content == True:
+                    # TODO: it is an embedded content, do not output for now
+                    warn(f"{self.row_name} has embedded content at {c}")
+                    cell_lines = []
+
                 # wrap in b/e TR, param_string is the marge spec
                 cell_lines = indent_and_wrap(lines=cell_lines, wrap_in='TD', param_string=cell.merge_spec.to_context_option(), wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
@@ -1437,6 +1451,7 @@ class CellValue(object):
         self.outline_level = outline_level
         self.section_index = section_index
         self.section_id = section_id
+        self.is_content = False
 
 
 
@@ -1446,7 +1461,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
         super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1455,6 +1470,8 @@ class StringValue(CellValue):
                 self.value = string_value['stringValue']
             else:
                 self.value = ''
+
+        self.keep_line_breaks = keep_line_breaks
 
 
     ''' string representation
@@ -1468,8 +1485,8 @@ class StringValue(CellValue):
     '''
     def value_to_context(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         verbatim = False
-        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
-        # context_code = f"{{{self.value}}}"
+
+        context_code = self.effective_format.text_format.text_format_to_context(block_id=block_id, text=self.value, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim, keep_line_breaks=self.keep_line_breaks)
 
         return context_code
 
@@ -1516,10 +1533,11 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
+    def __init__(self, section_index, section_id, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
         super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
+        self.keep_line_breaks = keep_line_breaks
 
 
     ''' string representation
@@ -1537,7 +1555,8 @@ class TextRunValue(CellValue):
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
             text = self.formatted_value[:processed_idx]
-            run_value_list.insert(0, text_format_run.text_format_run_to_context(block_id=block_id, text=text, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim))
+
+            run_value_list.insert(0, text_format_run.text_format_run_to_context(block_id=block_id, text=text, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim, keep_line_breaks=self.keep_line_breaks))
             processed_idx = text_format_run.start_index
 
         return ''.join(run_value_list)
@@ -1653,6 +1672,7 @@ class ContentValue(CellValue):
     def __init__(self, section_index, section_id, effective_format, content_value, nesting_level=0, outline_level=0):
         super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.value = content_value
+        self.is_content = True
 
 
     ''' string representation
@@ -1793,11 +1813,11 @@ class TextFormat(object):
 
     ''' generate ConTeXt code
     '''
-    def text_format_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
+    def text_format_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False, keep_line_breaks=False):
         color_dict[self.fgcolor.key()] = self.fgcolor.value()
 
         # process inline blocks (footnotes, LaTeX, etc. (if any))
-        content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)}"
+        content = f"{process_inline_blocks(block_id=block_id, text_content=text, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim, keep_line_breaks=keep_line_breaks)}"
 
         style = None
         if self.is_bold:
@@ -2117,9 +2137,8 @@ class TextFormatRun(object):
 
     ''' generates the ConTeXt code
     '''
-    def text_format_run_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False):
-        context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
-        # context_code = text=text[self.start_index:]
+    def text_format_run_to_context(self, block_id, text, color_dict, document_footnotes, footnote_list, verbatim=False, keep_line_breaks=False):
+        context_code = self.format.text_format_to_context(block_id=block_id, text=text[self.start_index:], color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim, keep_line_breaks=keep_line_breaks)
 
         return context_code
 
