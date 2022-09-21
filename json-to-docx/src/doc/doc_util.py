@@ -8,6 +8,8 @@ import sys
 import lxml
 import random
 import string
+import importlib
+
 from pathlib import Path
 from copy import deepcopy
 
@@ -31,6 +33,32 @@ if sys.platform in ['win32', 'darwin']:
 	import win32com.client as client
 
 from helper.logger import *
+
+
+''' process a list of section_data and generate docx code
+'''
+def section_list_to_doc(section_list, config):
+    first_section = False
+    for section in section_list:
+        section_meta = section['section-meta']
+        section_prop = section['section-prop']
+
+        if section_prop['label'] != '':
+            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+        else:
+            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+
+
+        if first_section:
+            section_meta['first-section'] = True
+            first_section = False
+        else:
+            section_meta['first-section'] = False
+
+        module = importlib.import_module("doc.doc_api")
+        func = getattr(module, f"process_{section_prop['content-type']}")
+        func(section, config)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------

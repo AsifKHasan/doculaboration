@@ -7,6 +7,8 @@ import platform
 import subprocess
 import random
 import string
+import importlib
+
 from pathlib import Path
 from odf import style, text, draw, table
 from odf.element import Element
@@ -24,6 +26,32 @@ if platform.system() == 'Windows':
     LIBREOFFICE_EXECUTABLE = 'C:/Program Files/LibreOffice/program/soffice.exe'
 else:
     LIBREOFFICE_EXECUTABLE = 'soffice'
+
+
+''' process a list of section_data and generate odt code
+'''
+def section_list_to_odt(section_list, config):
+    first_section = False
+    for section in section_list:
+        section_meta = section['section-meta']
+        section_prop = section['section-prop']
+
+        if section_prop['label'] != '':
+            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+        else:
+            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+
+
+        if first_section:
+            section_meta['first-section'] = True
+            first_section = False
+        else:
+            section_meta['first-section'] = False
+
+        module = importlib.import_module("odt.odt_api")
+        func = getattr(module, f"process_{section_prop['content-type']}")
+        func(section, config)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +284,7 @@ def create_page_number(style_name, page_numbering='long'):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, keep_line_breaks=False):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -269,15 +297,15 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list)
+            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
             paragraph.addElement(fragment)
 
     # P or H
     elif text_content is not None:
         if outline_level == 0:
-            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list)
+            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
         else:
-            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list)
+            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -289,7 +317,7 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, keep_line_breaks=False):
     paragraph = None
 
     # process FN{...} first, we get a list of block dicts
@@ -318,10 +346,22 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
 
     # now fill the paragraph with texts and footnotes
-    # we are ready prepare the content
     for inline_block in new_inline_blocks:
         if 'text' in inline_block:
-            paragraph.addText(text=inline_block['text'])
+            if keep_line_breaks:
+                splits = inline_block['text'].split('\n')
+                if len(splits) == 1:
+                    paragraph.addText(text=inline_block['text'])
+
+                else:
+                    paragraph.addText(text=splits[0])
+                    for part in splits[1:]:
+                        paragraph.addElement(text.LineBreak())
+                        paragraph.addText(text=part)
+
+            else:
+                paragraph.addText(text=inline_block['text'])
+
 
         elif 'fn' in inline_block:
             footnote_object = create_footnote(inline_block['fn'])
@@ -758,6 +798,20 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
+
+''' process line-breaks
+'''
+def process_line_breaks(text, keep_line_breaks):
+    if keep_line_breaks:
+        print(text)
+        new_text = text.replace('\n', '<text:line-break/>')
+        print(new_text)
+        return new_text
+
+    else:
+        return text.replace('\n', ' ')
+
+
 
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)

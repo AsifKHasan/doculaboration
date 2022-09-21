@@ -190,7 +190,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 
 
 
-''' process a list of section_date and generate context code
+''' process a list of section_data and generate context code
 '''
 def section_list_to_context(section_list, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_lines = []

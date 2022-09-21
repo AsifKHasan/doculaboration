@@ -21,43 +21,55 @@ class DocxSectionBase(object):
     def __init__(self, section_data, config):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
+
         self._config = config
-        self._doc = self._config['docx']
         self._section_data = section_data
+        self._doc = self._config['docx']
 
-        self.section = self._section_data['section']
-        self.level = self._section_data['level']
-        self.page_numbering = self._section_data['hide-pageno']
-        self.section_index = self._section_data['section-index']
-        self.section_break = self._section_data['section-break']
-        self.page_break = self._section_data['page-break']
+        self.section_meta = self._section_data['section-meta']
+        self.section_prop = self._section_data['section-prop']
 
-        self.nesting_level = self._section_data['nesting-level']
-        self.parent_section_index_text = self._section_data['parent-section-index-text']
- 
-        zfilled_index = str(self.section_index).zfill(3)
-        if self.parent_section_index_text != '':
-            self.section_index_text = f"{self.parent_section_index_text}.{zfilled_index}"
+        self.label = self.section_prop['label']
+        self.heading = self.section_prop['heading']
+        self.level = self.section_prop['level']
+        self.page_numbering = self.section_prop['hide-pageno']
+        self.section_break = self.section_prop['section-break']
+        self.page_break = self.section_prop['page-break']
+        self.hide_heading = self.section_prop['hide-heading']
+        self.different_firstpage = self.section_prop['different-firstpage']
+
+        self.landscape = self.section_prop['landscape']
+
+        self.page_spec_name = self.section_prop['page-spec']
+        self.page_spec = self._config['page-specs']['page-spec'][self.page_spec_name]
+
+        self.margin_spec_name = self.section_prop['margin-spec']
+        self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
+
+
+        self.document_index = self.section_meta['document-index']
+        self.document_name = self.section_meta['document-name']
+        self.section_index = self.section_meta['section-index']
+        self.section_name = self.section_meta['section-name']
+        self.orientation = self.section_meta['orientation']
+        self.first_section = self.section_meta['first-section']
+        self.nesting_level = self.section_meta['nesting-level']
+        self.page_layout_name = self.section_meta['page-layout']
+
+        self.section_id = f"D{str(self.document_index).zfill(3)}--{self.document_name}__S{str(self.section_index).zfill(3)}--{self.section_name}"
+
+
+        if self.landscape:
+            self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
         else:
-            self.section_index_text = zfilled_index
+            self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
-        self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
-
-        # master-page name
-        page_spec = self._section_data['page-spec']
-        margin_spec = self._section_data['margin-spec']
-        orientation = self._section_data['landscape']
 
         # create or get the docx section
-        self.this_section, new_section = add_or_update_document_section(self._doc, self._config['page-specs'], page_spec, margin_spec, orientation, different_firstpage=self._section_data['different-firstpage'], section_break=self.section_break, page_break=self.page_break, first_section=self._section_data['first-section'])
+        self.this_section, new_section = add_or_update_document_section(self._doc, self._config['page-specs'], self.page_spec_name, self.margin_spec_name, self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section)
 
-        this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
-        this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
-        self._section_data['width'] = float(self.this_section.page_width.inches) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
-        self._section_data['height'] = float(self.this_section.page_height.inches) - float(this_section_margin_spec['top']) - float(this_section_margin_spec['bottom'])
-
-        self.section_width = self._section_data['width']
-        self.section_height = self._section_data['height']
 
         # headers and footers if it is a new section
         if new_section: 
@@ -81,27 +93,55 @@ class DocxSectionBase(object):
         self.section_contents = DocxContent(content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
 
+    ''' get section heading
+    '''
+    def get_heading(self):
+        style_attributes = {}
+
+        # identify what style the heading will be and its content
+        if not self.hide_heading:
+            heading_title = self.heading
+            if self.label != '':
+                heading_title = f"{self.label} {heading_title}".strip()
+
+            # headings are styles based on level
+            outline_level = self.level + self.nesting_level
+
+            if outline_level == 0:
+                style_name = 'Title'
+            else:
+                style_name = f"Heading{outline_level}"
+
+        else:
+            heading_title = ''
+            style_name = 'Normal'
+            outline_level = 0
+
+
+        return heading_title, outline_level, style_name
+
+
     ''' Header/Footer processing
     '''
     def process_header_footer(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        if self._section_data['header-odd'] and self.header_odd:
+        if self.header_odd:
             self.header_odd.content_to_doc(container=self.this_section.header)
 
-        if self._section_data['header-first'] and self.header_first:
+        if self.header_first:
             self.header_first.content_to_doc(container=self.this_section.first_page_header)
 
-        if self._section_data['header-even'] and self.header_even:
+        if self.header_even:
             self.header_even.content_to_doc(container=self.this_section.even_page_header)
 
-        if self._section_data['footer-odd'] and self.footer_odd:
+        if self.footer_odd:
             self.footer_odd.content_to_doc(container=self.this_section.footer)
 
-        if self._section_data['footer-first'] and self.footer_first:
+        if self.footer_first:
             self.footer_first.content_to_doc(container=self.this_section.first_page_footer)
 
-        if self._section_data['footer-even'] and self.footer_even:
+        if self.footer_even:
             self.footer_even.content_to_doc(container=self.this_section.even_page_footer)
 
 
@@ -112,25 +152,7 @@ class DocxSectionBase(object):
 
         self.process_header_footer()
 
-        style_attributes = {}
-
-        # identify what style the heading will be and its content
-        if not self._section_data['hide-heading']:
-            heading_text = self._section_data['heading']
-            if self._section_data['section'] != '':
-                heading_text = f"{self._section_data['section']} {heading_text}".strip()
-
-            outline_level = self._section_data['level'] + self.nesting_level
-            if outline_level == 0:
-                style_name = 'Title'
-            else:
-                style_name = f"Heading{outline_level}"
-
-        else:
-            heading_text = ''
-            style_name = 'Normal'
-            outline_level = 0
-
+        heading_text, outline_level, style_name = self.get_heading()
         paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level)
 
 
@@ -174,28 +196,8 @@ class DocxGsheetSection(DocxSectionBase):
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
-            # these are child contents, we need to assign indexes so that they do not overlap with parent indexes
-            nesting_level = self.nesting_level + 1
-
-            first_section = False
-            section_index = self.section_index * 100
-            for section in self._section_data['contents']['sections']:
-                section['nesting-level'] = nesting_level
-                section['parent-section-index-text'] = self.section_index_text
-                if section['section'] != '':
-                    info(msg=f"writing : {section['section'].strip()} {section['heading'].strip()}", nesting_level=nesting_level)
-                else:
-                    info(msg=f"writing : {section['heading'].strip()}", nesting_level=nesting_level)
-
-                section['first-section'] = True if first_section else False
-                section['section-index'] = section_index
-
-                module = importlib.import_module("doc.doc_api")
-                func = getattr(module, f"process_{section['content-type']}")
-                func(section, self._config)
-
-                first_section = False
-                section_index = section_index + 1
+            # process the sections
+            section_list_to_doc(self._section_data['contents']['sections'], self._config)
 
 
 

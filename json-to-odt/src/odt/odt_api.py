@@ -23,98 +23,80 @@ class OdtSectionBase(object):
         self._odt = self._config['odt']
         self._section_data = section_data
 
-        self.section = self._section_data['section']
-        self.level = self._section_data['level']
-        self.page_numbering = self._section_data['hide-pageno']
-        self.section_index = self._section_data['section-index']
-        self.section_break = self._section_data['section-break']
-        self.page_break = self._section_data['page-break']
+        self.section_meta = self._section_data['section-meta']
+        self.section_prop = self._section_data['section-prop']
 
-        self.nesting_level = self._section_data['nesting-level']
-        self.parent_section_index_text = self._section_data['parent-section-index-text']
+        self.label = self.section_prop['label']
+        self.level = self.section_prop['level']
+        self.page_numbering = self.section_prop['hide-pageno']
+        self.section_break = self.section_prop['section-break']
+        self.page_break = self.section_prop['page-break']
+        self.hide_heading = self.section_prop['hide-heading']
+        self.heading = self.section_prop['heading']
 
-        zfilled_index = str(self.section_index).zfill(3)
-        if self.parent_section_index_text != '':
-            self.section_index_text = f"{self.parent_section_index_text}.{zfilled_index}"
-        else:
-            self.section_index_text = zfilled_index
+        self.landscape = self.section_prop['landscape']
 
-        self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
+        self.page_spec_name = self.section_prop['page-spec']
+        self.page_spec = self._config['page-specs']['page-spec'][self.page_spec_name]
+
+        self.margin_spec_name = self.section_prop['margin-spec']
+        self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
+
+
+        self.document_index = self.section_meta['document-index']
+        self.document_name = self.section_meta['document-name']
+        self.section_index = self.section_meta['section-index']
+        self.section_name = self.section_meta['section-name']
+        self.orientation = self.section_meta['orientation']
+        self.first_section = self.section_meta['first-section']
+        self.nesting_level = self.section_meta['nesting-level']
+        # self.page_layout_name = self.section_meta['page-layout']
+
+        self.section_id = f"D{str(self.document_index).zfill(3)}--S{str(self.section_index).zfill(3)}"
 
 
         # master-page name
-        page_spec = self._section_data['page-spec']
-        margin_spec = self._section_data['margin-spec']
-        orientation = self._section_data['landscape']
-        self._section_data['master-page'] = f"mp-{self.section_index_text}"
-        self._section_data['page-layout'] = f"pl-{self.section_index_text}"
-        master_page = create_master_page(self._odt, self._config['page-specs'], self._section_data['master-page'], self._section_data['page-layout'], page_spec, margin_spec, orientation)
+        self.master_page_name = f"mp-{self.section_id}"
+        self.page_layout_name = f"pl-{self.section_id}"
+
+        self.master_page = create_master_page(self._odt, self._config['page-specs'], self.master_page_name, self.page_layout_name, self.page_spec_name, self.margin_spec_name, self.orientation)
+        self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
         # if it is the very first section, change the page-layout of the *Standard* master-page
-        if self._section_data['first-section']:
-            self._section_data['master-page'] = 'Standard'
-            update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=self._section_data['page-layout'])
+        if self.first_section:
+            self.master_page_name = 'Standard'
+            update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=self.page_layout_name)
 
-        this_section_page_spec = self._config['page-specs']['page-spec'][page_spec]
-        this_section_margin_spec = self._config['page-specs']['margin-spec'][margin_spec]
-        self._section_data['width'] = float(this_section_page_spec['width']) - float(this_section_margin_spec['left']) - float(this_section_margin_spec['right']) - float(this_section_margin_spec['gutter'])
-        self._section_data['height'] = float(this_section_page_spec['height']) - float(this_section_margin_spec['top']) - float(this_section_margin_spec['bottom'])
-
-        self.section_width = self._section_data['width']
-        self.section_height = self._section_data['height']
+        if self.landscape:
+            self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+        else:
+            self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
         # headers and footers
         self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd = OdtPageHeaderFooter(self._section_data['header-odd'], self.section_width, self.section_index, header_footer='header', odd_even='odd', nesting_level=self.nesting_level)
-        self.header_even = OdtPageHeaderFooter(self._section_data['header-even'], self.section_width, self.section_index, header_footer='header', odd_even='even', nesting_level=self.nesting_level)
+        self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
         self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd = OdtPageHeaderFooter(self._section_data['footer-odd'], self.section_width, self.section_index, header_footer='footer', odd_even='odd', nesting_level=self.nesting_level)
-        self.footer_even = OdtPageHeaderFooter(self._section_data['footer-even'], self.section_width, self.section_index, header_footer='footer', odd_even='even', nesting_level=self.nesting_level)
+        self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
-        self.section_contents = OdtContent(section_data.get('contents'), self.section_width, self.nesting_level)
+        self.section_contents = OdtContent(self._section_data.get('contents'), self.section_width, self.nesting_level)
 
 
-    ''' Header/Footer processing
+    ''' get section heading
     '''
-    def process_header_footer(self, master_page, page_layout):
-        if self._section_data['header-odd']:
-            self.header_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self._section_data['header-first']:
-            self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self._section_data['header-even']:
-            self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self._section_data['footer-odd']:
-            self.footer_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self._section_data['footer-first']:
-            self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self._section_data['footer-even']:
-            self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-
-    ''' generates the odt code
-    '''
-    def section_to_odt(self):
-        # master-page is created, decide on headers and footers
-        master_page = get_master_page(self._odt, self._section_data['master-page'])
-        page_layout = get_page_layout(self._odt, self._section_data['page-layout'])
-
-        if master_page and page_layout:
-            self.process_header_footer(master_page, page_layout)
-
+    def get_heading(self):
         style_attributes = {}
 
         # identify what style the heading will be and its content
-        if not self._section_data['hide-heading']:
-            heading_text = self._section_data['heading']
-            if self._section_data['section'] != '':
-                heading_text = f"{self._section_data['section']} {heading_text}"
+        if not self.hide_heading:
+            heading_text = self.heading
+            if self.label != '':
+                heading_text = f"{self.label} {heading_text}".strip()
 
-            outline_level = self._section_data['level'] + self.nesting_level
+            outline_level = self.level + self.nesting_level
             if outline_level == 0:
                 parent_style_name = 'Title'
             else:
@@ -127,19 +109,53 @@ class OdtSectionBase(object):
 
         style_attributes['parentstylename'] = parent_style_name
 
+        return heading_text, outline_level, style_attributes
+
+
+    ''' Header/Footer processing
+    '''
+    def process_header_footer(self, master_page, page_layout):
+        if self.header_odd:
+            self.header_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.header_first:
+            self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.header_even:
+            self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.footer_odd:
+            self.footer_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.footer_first:
+            self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.footer_even:
+            self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+
+    ''' generates the odt code
+    '''
+    def section_to_odt(self):
+        if self.master_page and self.page_layout:
+            self.process_header_footer(self.master_page, self.page_layout)
+
+        #  get heading
+        heading_text, outline_level, style_attributes = self.get_heading()
+
         paragraph_attributes = None
         # handle section-break and page-break
-        if self._section_data['section-break']:
+        if self.section_break:
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
-            style_name = f"P{self.section_index_text}-P0-with-section-break"
-            style_attributes['masterpagename'] = self._section_data['master-page']
+            style_name = f"P{self.section_id}-P0-with-section-break"
+            style_attributes['masterpagename'] = self.master_page_name
         else:
-            if self._section_data['page-break']:
+            if self.page_break:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
                 paragraph_attributes = {'breakbefore': 'page'}
-                style_name = f"P{self.section_index_text}-P0-with-page-break"
+                style_name = f"P{self.section_id}-P0-with-page-break"
             else:
-                style_name = f"P{self.section_index_text}-P0"
+                style_name = f"P{self.section_id}-P0"
 
         style_attributes['name'] = style_name
 
@@ -184,28 +200,8 @@ class OdtGsheetSection(OdtSectionBase):
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
-            # these are child contents, we need to assign indexes so that they do not overlap with parent indexes
-            nesting_level = self.nesting_level + 1
-
-            first_section = False
-            section_index = self.section_index * 100
-            for section in self._section_data['contents']['sections']:
-                section['nesting-level'] = nesting_level
-                section['parent-section-index-text'] = self.section_index_text
-                if section['section'] != '':
-                    info(msg=f"writing : {section['section'].strip()} {section['heading'].strip()}", nesting_level=nesting_level)
-                else:
-                    info(msg=f"writing : {section['heading'].strip()}", nesting_level=nesting_level)
-
-                section['first-section'] = True if first_section else False
-                section['section-index'] = section_index
-
-                module = importlib.import_module("odt.odt_api")
-                func = getattr(module, f"process_{section['content-type']}")
-                func(section, self._config)
-
-                first_section = False
-                section_index = section_index + 1
+            # process the sections
+            section_list_to_odt(self._section_data['contents']['sections'], self._config)
 
 
 
@@ -715,7 +711,7 @@ class Cell(object):
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, keep_line_breaks=self.note.keep_line_breaks)
 
                     elif self.note.page_numbering:
                         self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
@@ -725,10 +721,10 @@ class Cell(object):
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
                         
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1023,7 +1019,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1032,6 +1028,8 @@ class StringValue(CellValue):
                 self.value = string_value['stringValue']
             else:
                 self.value = ''
+
+        self.keep_line_breaks = keep_line_breaks
 
 
     ''' string representation
@@ -1048,7 +1046,7 @@ class StringValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
 
@@ -1095,10 +1093,11 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
+        self.keep_line_breaks = keep_line_breaks
 
 
     ''' string representation
@@ -1122,7 +1121,7 @@ class TextRunValue(CellValue):
             processed_idx = text_format_run.start_index
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
 

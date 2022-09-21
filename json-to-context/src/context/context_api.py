@@ -28,12 +28,12 @@ class ContextSectionBase(object):
         self.section_prop = self._section_data['section-prop']
 
         self.label = self.section_prop['label']
+        self.heading = self.section_prop['heading']
         self.level = self.section_prop['level']
         self.page_numbering = self.section_prop['hide-pageno']
         self.section_break = self.section_prop['section-break']
         self.page_break = self.section_prop['page-break']
         self.hide_heading = self.section_prop['hide-heading']
-        self.heading = self.section_prop['heading']
 
         self.landscape = self.section_prop['landscape']
 
@@ -57,28 +57,25 @@ class ContextSectionBase(object):
 
 
         if self.landscape:
-            self.section_meta['width'] = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-            self.section_meta['height'] = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+            self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
         else:
-            self.section_meta['width'] = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-            self.section_meta['height'] = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
-
-        self.section_width = self.section_meta['width']
-        self.section_height = self.section_meta['height']
+            self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
         # headers and footers
-        self.header_first = ContextPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
-        self.header_odd   = ContextPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
-        self.header_even  = ContextPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
-        self.footer_first = ContextPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
-        self.footer_odd   = ContextPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
-        self.footer_even  = ContextPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.section_prop['page-spec'], orientation=self.orientation, margin_spec=self.section_prop['margin-spec'], nesting_level=self.nesting_level)
+        self.header_first = ContextPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_odd   = ContextPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_even  = ContextPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_first = ContextPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_odd   = ContextPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_even  = ContextPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
 
         self.section_contents = ContextContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
 
 
 
-    ''' generates section heading
+    ''' get section heading
     '''
     def get_heading(self):
         if not self.hide_heading:
@@ -778,10 +775,11 @@ class ContextTable(ContextBlock):
         roffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
         toffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
         boffset = f"{CONTEXT_BORDER_WIDTH_FACTOR * 3}pt"
-        rulethickness = '0.00pt'
+        frame = 'off'
+        rulethickness = f"{0.0}pt"
         columndistance = f"{COLSEP}in"
         spaceinbetween = f"{ROWSEP}in"
-        setup_lines.append(f"\\setupTABLE{context_option(frame='off', columndistance=columndistance, spaceinbetween=spaceinbetween, loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness)}")
+        setup_lines.append(f"\\setupTABLE{context_option(frame=frame, columndistance=columndistance, spaceinbetween=spaceinbetween, loffset=loffset, roffset=roffset, toffset=toffset, boffset=boffset, rulethickness=rulethickness)}")
         c = 1
         for col_width in self.column_widths:
             col_width = f"{col_width}in"
