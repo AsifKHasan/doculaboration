@@ -181,7 +181,7 @@ class LatexSectionBase(object):
     def section_to_latex(self, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = [f"\n% BEGIN LatexSection: [{self.section_id}]"]
+        section_lines = []
 
         geometry_lines = []
         # page geometry changes only when a new section starts or if it is the first section
@@ -230,9 +230,7 @@ class LatexTableSection(LatexSectionBase):
         # get the contents
         content_lines = self.section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
-        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
-
-        return section_lines + content_lines + section_end_lines
+        return section_lines + content_lines
 
 
 
@@ -259,10 +257,7 @@ class LatexGsheetSection(LatexSectionBase):
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
             section_lines = section_lines + section_list_to_latex(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, document_footnotes=document_footnotes)
             
-
-        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
-
-        return section_lines + section_end_lines
+        return section_lines
 
 
 
@@ -289,8 +284,7 @@ class LatexToCSection(LatexSectionBase):
         content_lines.append("\\addtocontents{toc}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        return section_lines + content_lines
 
 
 
@@ -317,8 +311,7 @@ class LatexLoTSection(LatexSectionBase):
         content_lines.append("\\addtocontents{lot}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        return section_lines + content_lines
 
 
 
@@ -345,8 +338,7 @@ class LatexLoFSection(LatexSectionBase):
         content_lines.append("\\addtocontents{lof}{~\\hfill\\textbf{Page}\\par}")
         content_lines = mark_as_latex(lines=content_lines)
 
-        section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
-        return section_lines + content_lines + section_end_lines
+        return section_lines + content_lines
 
 
 
@@ -2171,6 +2163,9 @@ def process_table(section_data, config, color_dict, document_footnotes):
     latex_section = LatexTableSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
+    # wrap section in BEGIN/end comments
+    section_lines = wrap_with_comment(lines=section_lines, object_type='LatexSection', object_id=latex_section.section_id, indent_level=1)
+
     return section_lines
 
 
@@ -2189,6 +2184,9 @@ def process_toc(section_data, config, color_dict, document_footnotes):
     latex_section = LatexToCSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
+    # wrap section in BEGIN/end comments
+    section_lines = wrap_with_comment(lines=section_lines, object_type='LatexSection', object_id=latex_section.section_id, indent_level=1)
+
     return section_lines
 
 
@@ -2197,6 +2195,9 @@ def process_toc(section_data, config, color_dict, document_footnotes):
 def process_lof(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoFSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+
+    # wrap section in BEGIN/end comments
+    section_lines = wrap_with_comment(lines=section_lines, object_type='LatexSection', object_id=latex_section.section_id, indent_level=1)
 
     return section_lines
 
@@ -2207,6 +2208,9 @@ def process_lot(section_data, config, color_dict, document_footnotes):
     latex_section = LatexLoTSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
+    # wrap section in BEGIN/end comments
+    section_lines = wrap_with_comment(lines=section_lines, object_type='LatexSection', object_id=latex_section.section_id, indent_level=1)
+
     return section_lines
 
 
@@ -2215,6 +2219,9 @@ def process_lot(section_data, config, color_dict, document_footnotes):
 def process_pdf(section_data, config, color_dict, document_footnotes):
     latex_section = LatexPdfSection(section_data=section_data, config=config)
     section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+
+    # wrap section in BEGIN/end comments
+    section_lines = wrap_with_comment(lines=section_lines, object_type='LatexSection', object_id=latex_section.section_id, indent_level=1)
 
     return section_lines
 
