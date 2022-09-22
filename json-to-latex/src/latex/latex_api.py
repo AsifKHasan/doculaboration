@@ -24,55 +24,56 @@ class LatexSectionBase(object):
         self._config = config
         self._section_data = section_data
 
-        self.section = self._section_data['section']
-        self.level = self._section_data['level']
-        self.page_numbering = self._section_data['hide-pageno']
-        self.section_index = self._section_data['section-index']
-        self.section_break = self._section_data['section-break']
-        self.page_break = self._section_data['page-break']
-        self.first_section = self._section_data['first-section']
-        self.hide_heading = self._section_data['hide-heading']
-        self.heading = section_data['heading']
+        self.section_meta = self._section_data['section-meta']
+        self.section_prop = self._section_data['section-prop']
 
-        self.nesting_level = self._section_data['nesting-level']
-        self.parent_section_index_text = self._section_data['parent-section-index-text']
+        self.label = self.section_prop['label']
+        self.heading = self.section_prop['heading']
+        self.level = self.section_prop['level']
+        self.page_numbering = self.section_prop['hide-pageno']
+        self.section_break = self.section_prop['section-break']
+        self.page_break = self.section_prop['page-break']
+        self.hide_heading = self.section_prop['hide-heading']
 
-        zfilled_index = str(self.section_index).zfill(3)
-        if self.parent_section_index_text != '':
-            self.section_index_text = f"{self.parent_section_index_text}_{zfilled_index}"
+        self.landscape = self.section_prop['landscape']
+
+        self.page_spec_name = self.section_prop['page-spec']
+        self.page_spec = self._config['page-specs']['page-spec'][self.page_spec_name]
+
+        self.margin_spec_name = self.section_prop['margin-spec']
+        self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
+
+
+        self.document_index = self.section_meta['document-index']
+        self.document_name = self.section_meta['document-name']
+        self.section_index = self.section_meta['section-index']
+        self.section_name = self.section_meta['section-name']
+        self.orientation = self.section_meta['orientation']
+        self.first_section = self.section_meta['first-section']
+        self.nesting_level = self.section_meta['nesting-level']
+        self.page_layout_name = self.section_meta['page-layout']
+
+        self.section_id = f"D{str(self.document_index).zfill(3)}--{self.document_name}__S{str(self.section_index).zfill(3)}--{self.section_name}"
+
+
+        if self.landscape:
+            self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
         else:
-            self.section_index_text = zfilled_index
-
-        # self.section_id = f"s_{self.section_index_text}"
-        if self._section_data['link'] != '':
-            self.section_id = f"s__{self.section_index_text}__{self._section_data['link']}"
-        else:
-            self.section_id = f"s__{self.section_index_text}__{self._section_data['content-type']}"
-
-        self._section_data['landscape'] = 'landscape' if self._section_data['landscape'] else 'portrait'
+            self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
 
-        # master-page name
-        self.landscape = self._section_data['landscape']
-
-        self.page_spec = self._config['page-specs']['page-spec'][self._section_data['page-spec']]
-        self.margin_spec = self._config['page-specs']['margin-spec'][self._section_data['margin-spec']]
-        self._section_data['width'] = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-        self._section_data['height'] = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
-
-        self.section_width = self._section_data['width']
-        self.section_height = self._section_data['height']
-
+        # TODO: use page_layout_name istead of page_style_name
         self.page_style_name = f"pagestyle{COLUMNS[self.section_index]}"
 
         # headers and footers
-        # print(f".. orientation: {landscape}, section_width: {self.section_width}")
-        self.header_first = LatexPageHeaderFooter(content_data=section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = LatexPageHeaderFooter(content_data=section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = LatexPageHeaderFooter(content_data=section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = LatexPageHeaderFooter(content_data=section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = LatexPageHeaderFooter(content_data=section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = LatexPageHeaderFooter(content_data=section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.header_first = LatexPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+        self.header_odd   = LatexPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        self.header_even  = LatexPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+        self.footer_first = LatexPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+        self.footer_odd   = LatexPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        self.footer_even  = LatexPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
         self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
 
@@ -107,8 +108,8 @@ class LatexSectionBase(object):
         heading_lines = []
         if not self.hide_heading:
             heading_text = self.heading
-            if self.section != '':
-                heading_text = f"{self.section} {heading_text}".strip()
+            if self.label != '':
+                heading_text = f"{self.label} {heading_text}".strip()
 
             heading_text = tex_escape(heading_text)
 
@@ -256,29 +257,8 @@ class LatexGsheetSection(LatexSectionBase):
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
-            # these are child contents, we need to assign indexes so that they do not overlap with parent indexes
-            nesting_level = self.nesting_level + 1
-
-            first_section = False
-            # section_index = self.section_index * 100
-            section_index = 0
-            for section in self._section_data['contents']['sections']:
-                section['nesting-level'] = nesting_level
-                section['parent-section-index-text'] = self.section_index_text
-                if section['section'] != '':
-                    info(msg=f"writing : {section['section'].strip()} {section['heading'].strip()}", nesting_level=nesting_level)
-                else:
-                    info(msg=f"writing : {section['heading'].strip()}", nesting_level=nesting_level)
-
-                section['first-section'] = True if first_section else False
-                section['section-index'] = section_index
-
-                module = importlib.import_module("latex.latex_api")
-                func = getattr(module, f"process_{section['content-type']}")
-                section_lines = section_lines + func(section_data=section, config=self._config, color_dict=color_dict, document_footnotes=document_footnotes)
-
-                first_section = False
-                section_index = section_index + 1
+            section_lines = section_lines + section_list_to_latex(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, document_footnotes=document_footnotes)
+            
 
         section_end_lines = [f"\n% END   LatexSection: [{self.section_id}]"]
 

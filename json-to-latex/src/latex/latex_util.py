@@ -6,6 +6,7 @@ various utilities for generating LaTeX code
 
 import sys
 import re
+import importlib
 
 from helper.logger import *
 
@@ -98,6 +99,34 @@ COLUMNS = [
     'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ', 
     'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CI', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CO', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 
 ]
+
+
+''' process a list of section_data and generate latex code
+'''
+def section_list_to_latex(section_list, config, color_dict, document_footnotes):
+    section_lines = []
+    first_section = False
+    for section in section_list:
+        section_meta = section['section-meta']
+        section_prop = section['section-prop']
+
+        if section_prop['label'] != '':
+            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+        else:
+            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+
+
+        if first_section:
+            section_meta['first-section'] = True
+            first_section = False
+        else:
+            section_meta['first-section'] = False
+
+        module = importlib.import_module("latex.latex_api")
+        func = getattr(module, f"process_{section_prop['content-type']}")
+        section_lines = func(section_data=section, config=config, color_dict=color_dict, document_footnotes=document_footnotes)
+
+    return section_lines
 
 
 ''' :param path: a path string
