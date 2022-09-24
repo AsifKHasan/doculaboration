@@ -38,7 +38,7 @@ from helper.logger import *
 ''' process a list of section_data and generate docx code
 '''
 def section_list_to_doc(section_list, config):
-    first_section = False
+    first_section = True
     for section in section_list:
         section_meta = section['section-meta']
         section_prop = section['section-prop']
@@ -49,11 +49,10 @@ def section_list_to_doc(section_list, config):
             info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
 
 
+        section_meta['first-section'] = first_section
         if first_section:
-            section_meta['first-section'] = True
             first_section = False
-        else:
-            section_meta['first-section'] = False
+
 
         module = importlib.import_module("doc.doc_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
@@ -243,12 +242,20 @@ def set_cell_padding(cell: table._Cell, padding):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
-''' page number with/without page count
+''' page number with/without page count 
 '''
 def create_page_number(container, text_attributes=None, page_numbering='long', separator=' of '):
 	paragraph = create_paragraph(container=container)
 	run = paragraph.add_run()
 	set_text_style(run, text_attributes)
+
+	# page
+	fldPage = OxmlElement('w:t')
+	fldPage.set(qn('xml:space'), 'preserve')
+	fldPage.text = 'Page '
+
+	fldCharSeparate0 = OxmlElement('w:fldChar')
+	fldCharSeparate0.set(qn('w:fldCharType'), 'separate')
 
 	# create a new element and set attributes
 	fldCharBegin1 = OxmlElement('w:fldChar')
@@ -266,6 +273,8 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 	fldCharEnd1.set(qn('w:fldCharType'), 'end')
 
 	r_element = run._r
+	r_element.append(fldPage)
+	r_element.append(fldCharSeparate0)
 	r_element.append(fldCharBegin1)
 	r_element.append(instrText1)
 	r_element.append(fldCharSeparate1)
@@ -301,6 +310,7 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 	p_element = paragraph._p
 
 	return paragraph
+
 
 
 ''' write a paragraph in a given style
@@ -357,6 +367,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 
 	return paragraph
+
 
 
 ''' process inline blocks inside a text and add to a paragraph
@@ -535,6 +546,7 @@ def update_indexes(docx_path):
 		word.Quit()
 
 
+
 ''' set docx updateFields property true
 '''
 def set_updatefields_true(docx_path):
@@ -546,6 +558,7 @@ def set_updatefields_true(docx_path):
 	)
 	element_updatefields.set(f"{namespace}val", "true")
 	doc.save(docx_path)
+
 
 
 ''' given an docx file generates pdf in the given directory
@@ -573,6 +586,7 @@ def generate_pdf(infile, outdir):
 
 	finally:
 		word.Quit()
+
 
 
 ''' create table-of-contents
@@ -618,11 +632,11 @@ def create_index(doc, index_type):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section):
+def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
-		section = doc.add_section(WD_SECTION.NEW_PAGE)
+		docx_section = doc.add_section(WD_SECTION.NEW_PAGE)
 
 	else:
 		# we are continuing the last section
@@ -631,47 +645,47 @@ def add_or_update_document_section(doc, docx_specs, page_spec, margin_spec, orie
 		else:
 			new_section = False
 
-		section = doc.sections[-1]
+		docx_section = doc.sections[-1]
 
 		#  we may have a page break
 		if page_break:
 			doc.add_page_break()
 
 
-	section.first_page_header.is_linked_to_previous = False
-	section.header.is_linked_to_previous = False
-	section.even_page_header.is_linked_to_previous = False
+	docx_section.first_page_header.is_linked_to_previous = False
+	docx_section.header.is_linked_to_previous = False
+	docx_section.even_page_header.is_linked_to_previous = False
 
-	section.first_page_footer.is_linked_to_previous = False
-	section.footer.is_linked_to_previous = False
-	section.even_page_footer.is_linked_to_previous = False
+	docx_section.first_page_footer.is_linked_to_previous = False
+	docx_section.footer.is_linked_to_previous = False
+	docx_section.even_page_footer.is_linked_to_previous = False
 
 	if orientation == 'landscape':
-		section.orient = WD_ORIENT.LANDSCAPE
-		section.page_width = Inches(docx_specs['page-spec'][page_spec]['height'])
-		section.page_height = Inches(docx_specs['page-spec'][page_spec]['width'])
+		docx_section.orient = WD_ORIENT.LANDSCAPE
+		docx_section.page_width = Inches(page_spec['height'])
+		docx_section.page_height = Inches(page_spec['width'])
 	else:
-		section.orient = WD_ORIENT.PORTRAIT
-		section.page_width = Inches(docx_specs['page-spec'][page_spec]['width'])
-		section.page_height = Inches(docx_specs['page-spec'][page_spec]['height'])
+		docx_section.orient = WD_ORIENT.PORTRAIT
+		docx_section.page_width = Inches(page_spec['width'])
+		docx_section.page_height = Inches(page_spec['height'])
 
-	section.left_margin = Inches(docx_specs['margin-spec'][margin_spec]['left'])
-	section.right_margin = Inches(docx_specs['margin-spec'][margin_spec]['right'])
-	section.top_margin = Inches(docx_specs['margin-spec'][margin_spec]['top'])
-	section.bottom_margin = Inches(docx_specs['margin-spec'][margin_spec]['bottom'])
+	docx_section.left_margin = Inches(margin_spec['left'])
+	docx_section.right_margin = Inches(margin_spec['right'])
+	docx_section.top_margin = Inches(margin_spec['top'])
+	docx_section.bottom_margin = Inches(margin_spec['bottom'])
 
-	section.gutter = Inches(docx_specs['margin-spec'][margin_spec]['gutter'])
+	docx_section.gutter = Inches(margin_spec['gutter'])
 
-	section.header_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['header'])
-	section.footer_distance = Inches(docx_specs['margin-spec'][margin_spec]['distance']['footer'])
+	docx_section.header_distance = Inches(margin_spec['distance']['header'])
+	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
 
-	section.different_first_page_header_footer = different_firstpage
+	docx_section.different_first_page_header_footer = different_firstpage
 
 	# get the actual width
-	actual_width = section.page_width.inches - section.left_margin.inches - section.right_margin.inches - section.gutter.inches
+	actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
 
 
-	return section, new_section
+	return docx_section, new_section
 
 
 
@@ -688,6 +702,7 @@ def is_table_cell(container):
 		return False
 
 
+
 ''' given pixel size, calculate the row height in inches
 	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
@@ -695,11 +710,13 @@ def row_height_in_inches(pixel_size):
 	return float((pixel_size) / 96)
 
 
+
 ''' get a random string
 '''
 def random_string(length=12):
 	letters = string.ascii_uppercase
 	return ''.join(random.choice(letters) for i in range(length))
+
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
@@ -721,6 +738,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 			width_to_fit = height_to_fit * aspect_ratio
 
 	return width_to_fit, height_to_fit
+
 
 
 '''

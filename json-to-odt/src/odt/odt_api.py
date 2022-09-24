@@ -11,7 +11,7 @@ from helper.logger import *
 #   ----------------------------------------------------------------------------------------------------------------
 #   odt section (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
- 
+
 ''' Odt section base object
 '''
 class OdtSectionBase(object):
@@ -50,7 +50,7 @@ class OdtSectionBase(object):
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
         self.nesting_level = self.section_meta['nesting-level']
-        # self.page_layout_name = self.section_meta['page-layout']
+        self.page_layout_name = self.section_meta['page-layout']
 
         self.section_id = f"D{str(self.document_index).zfill(3)}--S{str(self.section_index).zfill(3)}"
 
@@ -739,8 +739,8 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
 

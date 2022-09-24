@@ -194,7 +194,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 '''
 def section_list_to_context(section_list, config, color_dict, headers_footers, document_footnotes, page_layouts):
     context_lines = []
-    first_section = False
+    first_section = True
     for section in section_list:
         section_meta = section['section-meta']
         section_prop = section['section-prop']
@@ -205,11 +205,10 @@ def section_list_to_context(section_list, config, color_dict, headers_footers, d
             info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
 
 
+        section_meta['first-section'] = first_section
         if first_section:
-            section_meta['first-section'] = True
             first_section = False
-        else:
-            section_meta['first-section'] = False
+
 
         # create the page-layout
         if section_meta['page-layout'] not in page_layouts:

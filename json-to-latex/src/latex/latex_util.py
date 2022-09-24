@@ -105,7 +105,7 @@ COLUMNS = [
 '''
 def section_list_to_latex(section_list, config, color_dict, document_footnotes):
     section_lines = []
-    first_section = False
+    first_section = True
     for section in section_list:
         section_meta = section['section-meta']
         section_prop = section['section-prop']
@@ -116,11 +116,10 @@ def section_list_to_latex(section_list, config, color_dict, document_footnotes):
             info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
 
 
+        section_meta['first-section'] = first_section
         if first_section:
-            section_meta['first-section'] = True
             first_section = False
-        else:
-            section_meta['first-section'] = False
+
 
         module = importlib.import_module("latex.latex_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
