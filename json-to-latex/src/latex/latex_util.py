@@ -13,6 +13,8 @@ from helper.logger import *
 DEFAULT_FONT = 'Calibri'
 # DEFAULT_FONT = 'LiberationSerif'
 
+
+# font (substitute) map
 FONT_MAP = {
     'Calibri': '',
     'Arial': 'Arial',
@@ -21,6 +23,8 @@ FONT_MAP = {
     'Bree Serif': 'FreeSerif',
 }
 
+
+# LaTeX escape sequences
 CONV = {
     '&': r'\&',
     '%': r'\%',
@@ -37,26 +41,54 @@ CONV = {
     '\n': r'\linebreak{}',
 }
 
+
+# gsheet border style to LaTeX border style map
 GSHEET_LATEX_BORDER_MAPPING = {
     'DOTTED': 'dotted',
     'DASHED': 'dashed',
     'SOLID': 'solid'
 }
 
+
+# gsheet wrap strategy to ConTeXt wrap strategy map
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
 
+# gsheet valign to LaTeX taaularray valign mapping
 TBLR_VALIGN = {'TOP': 'h', 'MIDDLE': 'm', 'BOTTOM': 'f'}
+
+
+# gsheet valign to LaTeX paragraph valign mapping
 PARA_VALIGN = {'TOP': 't', 'MIDDLE': 'm', 'BOTTOM': 'b'}
+
+
+# gsheet halign to LaTeX taaularray halign mapping
 TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
+
+
+# gsheet halign to LaTeX paragraph halign mapping
 PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
 
-COLSEP = (6/72)
-ROWSEP = (2/72)
 
+# seperation (in inches) between two ConTeXt table columns
+# COLSEP = (6/72)
+COLSEP = (0/72)
+
+
+# seperation (in inches) between two ConTeXt table rows
+# ROWSEP = (2/72)
+ROWSEP = (0/72)
+
+
+# Horizontal left spacing for first column in header/footer
 HEADER_FOOTER_FIRST_COL_HSPACE = -6
+
+
+# Horizontal right spacing for last column in header/footer
 HEADER_FOOTER_LAST_COL_HSPACE = -6
 
+
+# outline level to ConTeXt style name map
 LATEX_HEADING_MAP = {
     'Heading 1' : 'section',
     'Heading 2' : 'subsection',
@@ -65,6 +97,8 @@ LATEX_HEADING_MAP = {
     'Heading 5' : 'subparagraph',
 }
 
+
+# style name to outline level map
 HEADING_TO_LEVEL = {
     'Heading 1': {'outline-level': 1},
     'Heading 2': {'outline-level': 2},
@@ -79,6 +113,7 @@ HEADING_TO_LEVEL = {
 }
 
 
+# outline level to style name map
 LEVEL_TO_HEADING = [
     'Title',
     'Heading 1',
@@ -93,6 +128,8 @@ LEVEL_TO_HEADING = [
     'Heading 10',
 ]
 
+
+# 0-based gsheet column number to column letter map
 COLUMNS = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
     'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 
@@ -136,6 +173,28 @@ def os_specific_path(path):
         return path.replace('\\', '/')
     else:
         return path
+
+
+
+''' fit width/height into a given width/height maintaining aspect ratio
+'''
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+	WIDTH_OFFSET = 0.0
+	HEIGHT_OFFSET = 0.2
+
+	fit_within_width = fit_within_width - WIDTH_OFFSET
+	fit_within_height = fit_within_height - HEIGHT_OFFSET
+
+	aspect_ratio = width_to_fit / height_to_fit
+
+	if width_to_fit > fit_within_width:
+		width_to_fit = fit_within_width
+		height_to_fit = width_to_fit / aspect_ratio
+		if height_to_fit > fit_within_height:
+			height_to_fit = fit_within_height
+			width_to_fit = height_to_fit * aspect_ratio
+
+	return width_to_fit, height_to_fit
 
 
 
@@ -184,32 +243,15 @@ def tex_escape(text):
     return regex.sub(lambda match: CONV[match.group()], text)
 
 
-'''
-'''
-def mark_as_latex(lines):
-    # latex_lines = ["```{=latex}"]
-    # latex_lines = latex_lines + lines
-    # latex_lines.append("```\n\n")
-
-    if len(lines) > 0:
-        latex_lines = ['']
-        latex_lines = latex_lines + lines
-        latex_lines.append('')
-        return latex_lines
-
-    else:
-        return lines
-
-
 
 ''' fancy pagestyle
 '''
 def fancy_pagestyle_header(page_style_name):
     lines = []
-    lines.append(f"\t\\fancypagestyle{{{page_style_name}}}{{")
-    lines.append(f"\t\t\\fancyhf{{}}")
-    lines.append(f"\t\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
-    lines.append(f"\t\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
+    lines.append(f"\\fancypagestyle{{{page_style_name}}}{{")
+    lines.append(f"\t\\fancyhf{{}}")
+    lines.append(f"\t\\renewcommand{{\\headrulewidth}}{{0pt}}")
+    lines.append(f"\t\\renewcommand{{\\footrulewidth}}{{0pt}}")
 
     return lines
 

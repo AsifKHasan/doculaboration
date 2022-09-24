@@ -163,7 +163,13 @@ class ContextSectionBase(object):
         section_lines = []
 
         # the section may have a page-break or section-break
-        if self.page_break or self.section_break:
+        if self.section_break:
+            section_lines.append('% section-break note found')
+            section_lines.append(f"\\page")
+            section_lines.append('')
+
+        if self.page_break:
+            section_lines.append('% page-break found')
             section_lines.append(f"\\page")
             section_lines.append('')
 
@@ -289,6 +295,7 @@ class ContextPdfSection(ContextSectionBase):
                     if not first_image:
                         # add page-break
                         image_lines.append('\\page')
+                        image_lines.append('')
 
                     # adjust image as per section width/height
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
@@ -1191,12 +1198,13 @@ class Cell(object):
 
                 # handle new-page defined in notes
                 if self.note.new_page:
-                    # content_lines.append(f"\\page")
                     new_page = True
 
                 # handle keep-with-previous defined in notes
                 if self.note.keep_with_previous:
+                    content_lines.append('% keep-with-previous note found')
                     content_lines.append(f"\\page[no]")
+                    content_lines.append('')
 
                 # cell_value is string for String/PageNumber/Image/Context type values, but list for Content
                 if self.cell_value.is_content == False:
