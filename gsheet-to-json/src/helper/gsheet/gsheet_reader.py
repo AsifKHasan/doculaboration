@@ -55,6 +55,17 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
         link_name, link_target = toc[5], None
         worksheet_name = toc[4]
 
+    if section_index == 0:
+        document_first_section = True
+        if current_document_index == 0:
+            first_section = True
+
+        else:
+            first_section = False
+
+    else:
+        document_first_section = False
+        first_section = False
 
     # transform to a dict
     if parent:
@@ -69,6 +80,8 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'section-name'          : worksheet_name,
             'section-index'         : section_index,
             'nesting-level'         : nesting_level,
+            'first-section'         : first_section,
+            'document-first-section': document_first_section,
         },
         'section-prop' : {
             'label'                 : str(toc[0]),
@@ -111,6 +124,8 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
     section_meta['page-layout'] = f"{section_prop['page-spec']}-{section_meta['orientation']}-{section_prop['margin-spec']}"
 
+    different_odd_even_pages = False
+
     # the gsheet is a child gsheet, called from a parent gsheet, so header processing depends on override flags
     module = importlib.import_module('processor.table_processor')
     if parent:
@@ -149,6 +164,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             if d['header-even'] != '' and d['header-even'] is not None:
                 new_section_data = {'section-prop': {'link': d['header-even']}}
                 d['header-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
+                different_odd_even_pages = True
 
             else:
                 d['header-even'] = d['header-odd']
@@ -186,6 +202,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             if d['footer-even'] != '' and d['footer-even'] is not None:
                 new_section_data = {'section-prop': {'link': d['footer-even']}}
                 d['footer-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
+                different_odd_even_pages = True
 
             else:
                 d['footer-even'] = d['footer-odd']
@@ -224,6 +241,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
         if d['header-even'] != '' and d['header-even'] is not None:
             new_section_data = {'section-prop': {'link': d['header-even']}}
             d['header-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
+            different_odd_even_pages = True
 
         else:
             d['header-even'] = d['header-odd']
@@ -240,10 +258,13 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
         if d['footer-even'] != '' and d['footer-even'] is not None:
             new_section_data = {'section-prop': {'link': d['footer-even']}}
             d['footer-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
+            different_odd_even_pages = True
 
         else:
             d['footer-even'] = d['footer-odd']
 
+
+    section_meta['different-odd-even-pages'] = different_odd_even_pages
 
     # import and use the specific processor
     if section_prop['link'] == '' or section_prop['link'] is None:

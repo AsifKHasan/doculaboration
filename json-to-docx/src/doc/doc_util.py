@@ -48,12 +48,6 @@ def section_list_to_doc(section_list, config):
         else:
             info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
 
-
-        section_meta['first-section'] = first_section
-        if first_section:
-            first_section = False
-
-
         module = importlib.import_module("doc.doc_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
         func(section, config)
@@ -632,7 +626,7 @@ def create_index(doc, index_type):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section):
+def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
@@ -680,6 +674,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
 
 	docx_section.different_first_page_header_footer = different_firstpage
+	doc.settings.odd_and_even_pages_header_footer = different_odd_even_pages
 
 	# get the actual width
 	actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches

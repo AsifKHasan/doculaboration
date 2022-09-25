@@ -81,11 +81,13 @@ ROWSEP = (0/72)
 
 
 # Horizontal left spacing for first column in header/footer
-HEADER_FOOTER_FIRST_COL_HSPACE = -6
+# HEADER_FOOTER_FIRST_COL_HSPACE = -6
+HEADER_FOOTER_FIRST_COL_HSPACE = 0
 
 
 # Horizontal right spacing for last column in header/footer
-HEADER_FOOTER_LAST_COL_HSPACE = -6
+# HEADER_FOOTER_LAST_COL_HSPACE = -6
+HEADER_FOOTER_LAST_COL_HSPACE = 0
 
 
 # outline level to ConTeXt style name map
@@ -151,12 +153,6 @@ def section_list_to_latex(section_list, config, color_dict, document_footnotes):
             info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
         else:
             info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
-
-
-        section_meta['first-section'] = first_section
-        if first_section:
-            first_section = False
-
 
         module = importlib.import_module("latex.latex_api")
         func = getattr(module, f"process_{section_prop['content-type']}")

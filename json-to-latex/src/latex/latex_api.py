@@ -50,6 +50,7 @@ class LatexSectionBase(object):
         self.section_name = self.section_meta['section-name']
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
+        self.document_first_section = self.section_meta['document-first-section']
         self.nesting_level = self.section_meta['nesting-level']
         self.page_layout_name = self.section_meta['page-layout']
 
@@ -91,10 +92,11 @@ class LatexSectionBase(object):
         bottom_margin = self.margin_spec['bottom']
         left_margin = self.margin_spec['left']
         right_margin = self.margin_spec['right']
+        margin_par_width = 0
 
         geometry_lines.append(f"\\pagebreak")
 
-        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, {self.orientation}}}")
+        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, marginparwidth={margin_par_width}in, {self.orientation}}}")
 
         # wrap in BEGIN/end comments
         geometry_lines = wrap_with_comment(lines=geometry_lines, object_type='Geometry', indent_level=1)
@@ -1673,9 +1675,9 @@ class PageNumberValue(CellValue):
     '''
     def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         if self.page_numbering == 'short':
-            latex_code = "\\thepage"
+            latex_code = "{\\thepage}"
         else:
-            latex_code = "\\thepage\\ of \\pageref{LastPage}"
+            latex_code = "{\\thepage\\ of \\pageref{LastPage}}"
 
         return latex_code
 

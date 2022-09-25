@@ -30,7 +30,7 @@ popd
 :: latex -> pdf
 pushd .\out
 ptime lualatex %DOCUMENT%.tex --output-format=pdf
-move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
+@REM move %DOCUMENT%.pdf %DOCUMENT%.tex.pdf
 
 if errorlevel 1 (
   popd

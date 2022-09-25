@@ -50,6 +50,7 @@ class ContextSectionBase(object):
         self.section_name = self.section_meta['section-name']
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
+        self.document_first_section = self.section_meta['document-first-section']
         self.nesting_level = self.section_meta['nesting-level']
         self.page_layout_name = self.section_meta['page-layout']
 

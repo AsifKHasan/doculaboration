@@ -53,6 +53,8 @@ class DocxSectionBase(object):
         self.section_name = self.section_meta['section-name']
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
+        self.document_first_section = self.section_meta['document-first-section']
+        self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
         self.nesting_level = self.section_meta['nesting-level']
         self.page_layout_name = self.section_meta['page-layout']
 
@@ -68,17 +70,27 @@ class DocxSectionBase(object):
 
 
         # create or get the docx section
-        self.docx_section, new_section = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section)
+        self.docx_section, new_section = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages)
 
 
         # headers and footers
         if new_section:
+            # print(self.section_id)
             self.header_first = DocxPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
             self.header_odd   = DocxPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
             self.header_even  = DocxPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
             self.footer_first = DocxPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
             self.footer_odd   = DocxPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
             self.footer_even  = DocxPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+
+        else:
+            self.header_first = None
+            self.header_odd   = None
+            self.header_even  = None
+            self.footer_first = None
+            self.footer_odd   = None
+            self.footer_even  = None
+            
 
         self.section_contents = DocxContent(content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
@@ -114,20 +126,20 @@ class DocxSectionBase(object):
     def process_header_footer(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        if self.header_odd:
-            self.header_odd.content_to_doc(container=self.docx_section.header)
-
         if self.header_first:
             self.header_first.content_to_doc(container=self.docx_section.first_page_header)
+
+        if self.header_odd:
+            self.header_odd.content_to_doc(container=self.docx_section.header)
 
         if self.header_even:
             self.header_even.content_to_doc(container=self.docx_section.even_page_header)
 
-        if self.footer_odd:
-            self.footer_odd.content_to_doc(container=self.docx_section.footer)
-
         if self.footer_first:
             self.footer_first.content_to_doc(container=self.docx_section.first_page_footer)
+
+        if self.footer_odd:
+            self.footer_odd.content_to_doc(container=self.docx_section.footer)
 
         if self.footer_even:
             self.footer_even.content_to_doc(container=self.docx_section.even_page_footer)
@@ -424,6 +436,7 @@ class DocxContent(object):
 
                     if next_cell_in_row.is_empty:
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
+                        # debug(f"cell [{next_cell_in_row.cell_id}] is empty")
                         next_cell_in_row.copy_format_from(first_cell)
 
                         # mark cells for multicol only if it is multicol
@@ -617,7 +630,6 @@ class DocxTable(DocxBlock):
                         end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
                         start_table_cell.merge(end_table_cell)
 
-
             #  decorate cells
             for row_index in range(0, len(self.table_cell_matrix)):
                 row = self.table_cell_matrix[row_index];
@@ -666,7 +678,8 @@ class Cell(object):
     '''
     def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
         self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
-        self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_name = self.cell_id
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
@@ -720,7 +733,8 @@ class Cell(object):
                 self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
-            # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
+            # value can have a special case it can be an empty dictionary when the cell is an inner cell of a column merge
+            warn(f"Cell [{self.cell_id}] : NO VALUE")
             self.merge_spec.multi_col = MultiSpan.No
             self.note = CellNote()
             self.cell_value = None
@@ -762,7 +776,7 @@ class Cell(object):
 
                 where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
 
-                # do not aaply table-cell format, here, it needs to be done after the merging is done
+                # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where:
                     format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
 
