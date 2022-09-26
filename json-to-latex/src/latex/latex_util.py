@@ -67,7 +67,7 @@ TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 
 
 # gsheet halign to LaTeX paragraph halign mapping
-PARA_HALIGN = {'l': '\raggedright', 'c': '\centering', 'r': '\raggedleft', 'j': 'left'}
+PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft', 'j': 'left'}
 
 
 # seperation (in inches) between two ConTeXt table columns

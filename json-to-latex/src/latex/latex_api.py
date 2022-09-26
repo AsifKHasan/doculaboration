@@ -1846,18 +1846,42 @@ class Borders(object):
         return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
 
 
-    ''' cell border to mdframed attribute dictionary
+    ''' cell borders to mdframed attribute dictionary
     '''
     def borders_to_latex_mdframed_dict(self, color_dict):
         borders_dict = {}
-        borders_dict['linecolor'] = 'gray'
-        borders_dict['linewidth'] = '1.2pt'
-        borders_dict['topline'] = 'true'
-        borders_dict['bottomline'] = 'true'
+        borders_dict['topline'] = 'false'
+        borders_dict['bottomline'] = 'false'
         borders_dict['leftline'] = 'false'
         borders_dict['rightline'] = 'false'
 
+        # TODO, if any of the borders has values, use the value
+        if self.top:
+            border_dict = self.top.border_to_latex_mdframed_dict(color_dict=color_dict)
+            if border_dict:
+                borders_dict = {**border_dict, **borders_dict}
+                borders_dict['topline'] = 'true'
+
+        if self.bottom:
+            border_dict = self.bottom.border_to_latex_mdframed_dict(color_dict=color_dict)
+            if border_dict:
+                borders_dict = {**border_dict, **borders_dict}
+                borders_dict['bottomline'] = 'true'
+
+        if self.left:
+            border_dict = self.left.border_to_latex_mdframed_dict(color_dict=color_dict)
+            if border_dict:
+                borders_dict = {**border_dict, **borders_dict}
+                borders_dict['leftline'] = 'true'
+
+        if self.right:
+            border_dict = self.right.border_to_latex_mdframed_dict(color_dict=color_dict)
+            if border_dict:
+                borders_dict = {**border_dict, **borders_dict}
+                borders_dict['rightline'] = 'true'
+
         return borders_dict
+
 
     ''' top border
     '''
@@ -1933,6 +1957,19 @@ class Border(object):
         latex_code = f"fg={self.color.key()},wd={self.width}pt,dash={self.style}"
         
         return latex_code
+
+
+    ''' cell borders to mdframed attribute dictionary
+    '''
+    def border_to_latex_mdframed_dict(self, color_dict):
+        color_dict[self.color.key()] = self.color.value()
+        border_dict = None
+        if self.style:
+            border_dict = {}
+            border_dict['linecolor'] = self.color.key()
+            border_dict['linewidth'] = f"{self.width}pt"
+
+        return border_dict
 
 
 
