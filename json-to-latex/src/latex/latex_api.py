@@ -575,20 +575,20 @@ class LatexContent(object):
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.FirstCell
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multicol(span=MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
 
                         # mark cells for multirow only if it is multirow
@@ -596,20 +596,20 @@ class LatexContent(object):
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multirow(span=MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
@@ -847,7 +847,7 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = row.cell_contents_to_latex(block_id=self.table_id, include_formatting=False, color_dict=color_dict, document_footnotes=document_footnotes, header_footer=header_footer)
+            row_lines = row.cell_contents_to_latex(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, header_footer=header_footer)
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\\end{{{table_type}}}")
@@ -900,22 +900,26 @@ class LatexParagraph(LatexBlock):
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
-            row_text = self.data_row.get_cell(c=0).cell_content_to_latex(block_id=self.paragraph_id, include_formatting=True, color_dict=color_dict, document_footnotes=document_footnotes)
-            block_lines = block_lines + row_text
+            cell = self.data_row.get_cell(c=0)
+            paragraph_text = cell.cell_content_to_latex(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes, include_formatting=True)
+            paragraph_format = cell.cell_format_to_latex_paragraph(r=0, color_dict=color_dict)
 
-        # LaTeX footnotes
-        footnote_texts = document_footnotes[self.paragraph_id]
-        if len(footnote_texts):
-            # append footnotetexts 
-            block_lines.append('')
-            for footnote_text_dict in footnote_texts:
-                footnote_text = f"\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
-                block_lines.append(footnote_text)
+            block_lines = block_lines + paragraph_text
+            block_lines = indent_and_wrap(lines=block_lines, wrap_in='{mdframed}', param_string=paragraph_format, wrap_prefix_start='begin', wrap_prefix_stop='end', indent_level=1)
 
-            block_lines.append('')
+            # LaTeX footnotes
+            footnote_texts = document_footnotes[self.paragraph_id]
+            if len(footnote_texts):
+                # append footnotetexts 
+                block_lines.append('')
+                for footnote_text_dict in footnote_texts:
+                    footnote_text = f"\\footnotetext[{footnote_text_dict['mark']}]{{{footnote_text_dict['text']}}}"
+                    block_lines.append(footnote_text)
 
-            # \\setfnsymbol for the footnotes, this needs to go before the table
-            block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
+                block_lines.append('')
+
+                # \\setfnsymbol for the footnotes, this needs to go before the table
+                block_lines = [f"\\setfnsymbol{{{self.id}_symbols}}"] + block_lines
 
         # wrap in BEGIN/end comments
         block_lines = wrap_with_comment(lines=block_lines, object_type='LatexParagraph', object_id=self.paragraph_id, indent_level=1)
@@ -1010,7 +1014,7 @@ class Cell(object):
 
     ''' LaTeX code for cell content
     '''
-    def cell_content_to_latex(self, block_id, include_formatting, color_dict, document_footnotes, left_hspace=None, right_hspace=None):
+    def cell_content_to_latex(self, block_id, color_dict, document_footnotes, left_hspace=None, right_hspace=None, include_formatting=False):
         content_lines = []
 
         # the content is not valid for multirow LastCell and InnerCell
@@ -1035,7 +1039,7 @@ class Cell(object):
                 # cell_value is string for String/PageNumber/Image/Context type values, but list for Content
                 if self.cell_value.is_content == False:
 
-                    # paragraphs need formatting to be included, table cells do not need them
+                     # paragraphs need formatting to be included, table cells do not need them
                     if include_formatting:
                         # alignments and bgcolor
                         if self.effective_format:
@@ -1045,7 +1049,7 @@ class Cell(object):
 
                         cell_value = f"{halign}{{{cell_value}}}"
 
-
+                        
                     # the cell may have a left_hspace or right_hspace
                     if left_hspace:
                         cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
@@ -1090,9 +1094,9 @@ class Cell(object):
 
 
 
-    ''' LaTeX code for cell format
+    ''' LaTeX code for table-cell format
     '''
-    def cell_format_to_latex(self, r, color_dict):
+    def cell_format_to_latex_table_cell(self, r, color_dict):
         latex_lines = []
 
         # alignments and bgcolor
@@ -1114,6 +1118,28 @@ class Cell(object):
         return latex_lines
 
 
+    ''' LaTeX code for table-cell format
+    '''
+    def cell_format_to_latex_paragraph(self, r, color_dict):
+        cell_format_latex = None
+
+        # alignments and bgcolor
+        if self.effective_format:
+            bgcolor = self.effective_format.bgcolor
+        else:
+            bgcolor = self.default_format.bgcolor
+
+        # finally build the cell content
+        color_dict[bgcolor.key()] = bgcolor.value()
+        if not self.is_empty:
+            kwargs = self.effective_format.borders.borders_to_latex_mdframed_dict(color_dict=color_dict)
+            kwargs['backgroundcolor'] = bgcolor
+
+            cell_format_latex = latex_option(**kwargs)
+
+        return cell_format_latex
+
+
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
@@ -1124,18 +1150,6 @@ class Cell(object):
         self.merge_spec.col_span = from_cell.merge_spec.col_span
         self.merge_spec.row_span = from_cell.merge_spec.row_span
         self.cell_width = from_cell.cell_width
-
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multicol(self, span):
-        self.merge_spec.multi_col = span
-
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multirow(self, span):
-        self.merge_spec.multi_row = span
 
 
     ''' whether top border is allowed for the cell
@@ -1372,14 +1386,14 @@ class Row(object):
         for cell in self.cells:
             if cell is not None:
                 if not cell.is_empty:
-                    cell_format_lines = cell_format_lines + cell.cell_format_to_latex(r=r, color_dict=color_dict)
+                    cell_format_lines = cell_format_lines + cell.cell_format_to_latex_table_cell(r=r, color_dict=color_dict)
 
         return cell_format_lines
 
 
     ''' generates the LaTeX code
     '''
-    def cell_contents_to_latex(self, block_id, include_formatting, color_dict, document_footnotes, header_footer=None):
+    def cell_contents_to_latex(self, block_id, color_dict, document_footnotes, header_footer=None):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -1419,7 +1433,7 @@ class Row(object):
                     if c == len(self.cells) - 1:
                         right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
 
-                cell_lines = cell.cell_content_to_latex(block_id=block_id, include_formatting=include_formatting, color_dict=color_dict, document_footnotes=document_footnotes, left_hspace=left_hspace, right_hspace=right_hspace)
+                cell_lines = cell.cell_content_to_latex(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes, left_hspace=left_hspace, right_hspace=right_hspace)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -1675,9 +1689,12 @@ class PageNumberValue(CellValue):
     '''
     def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
         if self.page_numbering == 'short':
-            latex_code = "{\\thepage}"
+            latex_text = "{Page \\thepage}"
         else:
-            latex_code = "{\\thepage\\ of \\pageref{LastPage}}"
+            latex_text = "{Page \\thepage\\ of \\pageref{LastPage}}"
+
+        verbatim = True
+        latex_code = self.effective_format.text_format.text_format_to_latex(block_id=block_id, text=latex_text, color_dict=color_dict, document_footnotes=document_footnotes, footnote_list=footnote_list, verbatim=verbatim)
 
         return latex_code
 
@@ -1796,30 +1813,6 @@ class CellFormat(object):
             self.text_format = None
 
 
-    ''' override borders with the specified color
-    '''
-    def override_borders(self, color):
-        if self.borders is None:
-            self.borders = Borders(borders_dict=None)
-        else:
-            self.borders.override_top_border(border_color=color)
-            self.borders.override_bottom_border(border_color=color)
-            self.borders.override_left_border(border_color=color)
-            self.borders.override_right_border(border_color=color)
-
-
-    ''' recolor top border with the specified color
-    '''
-    def recolor_top_border(self, color):
-        self.borders.override_top_border(border_color=color, forced=True)
-
-
-    ''' recolor bottom border with the specified color
-    '''
-    def recolor_bottom_border(self, color):
-        self.borders.override_bottom_border(border_color=color, forced=True)
-
-
 
 ''' gsheet cell borders object wrapper
 '''
@@ -1853,41 +1846,18 @@ class Borders(object):
         return f"t: [{self.top}], b: [{self.bottom}], l: [{self.left}], r: [{self.right}]"
 
 
-    ''' override top border with the specified color
+    ''' cell border to mdframed attribute dictionary
     '''
-    def override_top_border(self, border_color, forced=False):
-        if border_color:
-            if self.top is None:
-                self.top = Border(border_dict=None)
-            elif forced:
-                self.top.color = border_color
+    def borders_to_latex_mdframed_dict(self, color_dict):
+        borders_dict = {}
+        borders_dict['linecolor'] = 'gray'
+        borders_dict['linewidth'] = '1.2pt'
+        borders_dict['topline'] = 'true'
+        borders_dict['bottomline'] = 'true'
+        borders_dict['leftline'] = 'false'
+        borders_dict['rightline'] = 'false'
 
-
-    ''' override bottom border with the specified color
-    '''
-    def override_bottom_border(self, border_color, forced=False):
-        if border_color:
-            if self.bottom is None:
-                self.bottom = Border(border_dict=None)
-            elif forced:
-                self.bottom.color = border_color
-
-
-    ''' override left border with the specified color
-    '''
-    def override_left_border(self, border_color):
-        if border_color:
-            if self.left is None:
-                self.left = Border(border_dict=None)
-
-
-    ''' override right border with the specified color
-    '''
-    def override_right_border(self, border_color):
-        if border_color:
-            if self.right is None:
-                self.right = Border(border_dict=None)
-
+        return borders_dict
 
     ''' top border
     '''

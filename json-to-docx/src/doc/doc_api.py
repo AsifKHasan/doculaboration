@@ -733,9 +733,9 @@ class Cell(object):
                 self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
-            # value can have a special case it can be an empty dictionary when the cell is an inner cell of a column merge
-            warn(f"Cell [{self.cell_id}] : NO VALUE")
-            self.merge_spec.multi_col = MultiSpan.No
+            # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
+            # warn(f"Cell [{self.cell_id}] : NO VALUE")
+            # self.merge_spec.multi_col = MultiSpan.No
             self.note = CellNote()
             self.cell_value = None
             self.formatted_value = None
@@ -785,9 +785,9 @@ class Cell(object):
     ''' apply formatting for table cell
     '''
     def decorate_cell(self):
-        if self.cell_value:
-            table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
-            format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
+        # if self.cell_value:
+        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+        format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
 
 

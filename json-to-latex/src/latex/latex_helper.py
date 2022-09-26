@@ -24,7 +24,7 @@ class LatexHelper(object):
     '''
     def generate_and_save(self, section_list):
         # load header and initialize document
-        with open(self._config['files']['document-header'], "r") as f:
+        with open(self._config['files']['document-header'], "r", encoding="utf-8") as f:
             self.header_lines = [line.rstrip() for line in f]
 
         self.color_dict = {}

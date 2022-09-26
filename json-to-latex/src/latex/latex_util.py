@@ -67,17 +67,17 @@ TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 
 
 # gsheet halign to LaTeX paragraph halign mapping
-PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft'}
+PARA_HALIGN = {'l': '\raggedright', 'c': '\centering', 'r': '\raggedleft', 'j': 'left'}
 
 
 # seperation (in inches) between two ConTeXt table columns
-# COLSEP = (6/72)
-COLSEP = (0/72)
+COLSEP = (6/72)
+# COLSEP = (0/72)
 
 
 # seperation (in inches) between two ConTeXt table rows
-# ROWSEP = (2/72)
-ROWSEP = (0/72)
+ROWSEP = (2/72)
+# ROWSEP = (0/72)
 
 
 # Horizontal left spacing for first column in header/footer
@@ -228,6 +228,51 @@ def wrap_with_comment(lines, object_type=None, object_id=None, comment_prefix_st
 
 
     return output_lines
+
+
+
+''' wrap (in begin/end and indent LaTeX lines
+'''
+def indent_and_wrap(lines, wrap_in, param_string=None, wrap_prefix_start='begin', wrap_prefix_stop='end', indent_level=1):
+    output_lines = []
+
+    # start wrap
+    if param_string:
+        param_string = param_string.strip('[').strip(']')
+        output_lines.append(f"\\{wrap_prefix_start}{wrap_in}[{param_string}]")
+    else:
+        output_lines.append(f"\\{wrap_prefix_start}{wrap_in}")
+
+    indent = "\t" * indent_level
+    output_lines = output_lines + list(map(lambda x: f"{indent}{x}", lines))
+
+    # stop wrap
+    output_lines.append(f"\\{wrap_prefix_stop}{wrap_in}")
+
+
+    return output_lines
+
+
+
+''' build LaTeX option string from keywords
+'''
+def latex_option(*args, **kwargs):
+    result = '['
+
+    # iterating over the args list
+    for v in args:
+        result = result + f"{v}, "
+
+    # iterating over the kwargs dictionary
+    for k,v in kwargs.items():
+        if v:
+            result = result + f"{k}={v}, "
+
+    result = result.strip().strip(',')
+    
+    result = result + ']'
+
+    return result
 
 
 
