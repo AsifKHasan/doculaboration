@@ -71,27 +71,27 @@ PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft', 'j
 
 
 # seperation (in inches) between two ConTeXt table columns
-COLSEP = (6/72)
-# COLSEP = (0/72)
+COLSEP = (6/72.27)
+# COLSEP = (0/72.27)
 
 
 # seperation (in inches) between two ConTeXt table rows
 # ROWSEP = (2/72)
-ROWSEP = (0/72)
+ROWSEP = (0/72.27)
 
-# offset in width for fitting image in a given box
+# offset in width (in inches) for fitting image in a given box
 IMAGE_WIDTH_OFFSET = 0.1
 
-# offset in height for fitting image in a given box
+# offset in height (in inches) for fitting image in a given box
 IMAGE_HEIGHT_OFFSET = 0.4
 
 
-# Horizontal left spacing for first column in header/footer
+# Horizontal left spacing (in pt) for first column in header/footer
 # HEADER_FOOTER_FIRST_COL_HSPACE = -6
 HEADER_FOOTER_FIRST_COL_HSPACE = 0
 
 
-# Horizontal right spacing for last column in header/footer
+# Horizontal right spacing (in pt) for last column in header/footer
 # HEADER_FOOTER_LAST_COL_HSPACE = -6
 HEADER_FOOTER_LAST_COL_HSPACE = 0
 

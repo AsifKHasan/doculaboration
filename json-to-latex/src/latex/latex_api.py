@@ -472,7 +472,9 @@ class LatexContent(object):
 
                     # column width needs adjustment as \tabcolsep is COLSEPin. This means each column has a COLSEP inch on left and right as space which needs to be removed from column width
                     all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list[1:])
+                    # print(self.content_width)
                     self.column_widths = [ (x.pixel_size * self.content_width / all_column_widths_in_pixel) - (COLSEP * 2) for x in self.column_metadata_list[1:] ]
+                    # print(len(self.column_widths), sum(self.column_widths))
 
                     # rowData
                     r = 2
@@ -797,11 +799,12 @@ class LatexTable(LatexBlock):
         table_stretch = f"stretch={1.0},"
         table_vspan = f"vspan=even,"
         table_hspan = f"hspan=minimal,"
+        table_measure = 'vbox,'
         table_rows = f"rows={{ht={12}pt}},"
         table_rowhead = f"rowhead={self.header_row_count},"
 
         # table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_rows]
-        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan]
+        table_spec_keys = [table_col_spec, table_rulesep, table_stretch, table_vspan, table_hspan, table_measure]
         if longtable:
             table_spec_keys.append(table_rowhead)
 
