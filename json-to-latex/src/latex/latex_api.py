@@ -196,12 +196,6 @@ class LatexSectionBase(object):
 
         content_lines = []
         # the section may have a page-break
-        # the section may have a page-break or section-break
-        if self.section_break:
-            content_lines.append('% section-break note found')
-            content_lines.append(f"\\pagebreak")
-            content_lines.append('')
-
         if self.page_break:
             content_lines.append('% page-break found')
             content_lines.append(f"\\pagebreak")
@@ -633,7 +627,7 @@ class LatexContent(object):
                     table = LatexTable(cell_matrix=self.cell_matrix, start_row=next_table_starts_in_row, end_row=(r - 1), column_widths=self.column_widths, section_index=self.section_index, section_id=self.section_id)
                     self.content_list.append(table)
 
-                block = LatexParagraph(data_row=data_row, row_number=r, section_index=self.section_index, section_id=self.section_id)
+                block = LatexParagraph(data_row=data_row, row_number=r, section_index=self.section_index, section_id=self.section_id, paragraph_width=self.content_width)
                 self.content_list.append(block)
 
                 next_table_starts_in_row = r + 1
@@ -877,7 +871,7 @@ class LatexParagraph(LatexBlock):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, data_row, row_number):
+    def __init__(self, section_index, section_id, data_row, row_number, paragraph_width):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         super().__init__(section_index, section_id)
@@ -885,6 +879,7 @@ class LatexParagraph(LatexBlock):
         self.data_row = data_row
         self.row_number = row_number
         self.paragraph_id = f"{self.section_id}__p__{self.row_number+3}"
+        self.paragraph_width = paragraph_width
 
 
     ''' generates the LaTeX code
@@ -901,11 +896,17 @@ class LatexParagraph(LatexBlock):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             cell = self.data_row.get_cell(c=0)
+            cell.cell_width = self.paragraph_width
             paragraph_text = cell.cell_content_to_latex(block_id=self.paragraph_id, color_dict=color_dict, document_footnotes=document_footnotes, include_formatting=True)
-            paragraph_format = cell.cell_format_to_latex_paragraph(r=0, color_dict=color_dict)
 
             block_lines = block_lines + paragraph_text
-            block_lines = indent_and_wrap(lines=block_lines, wrap_in='{mdframed}', param_string=paragraph_format, wrap_prefix_start='begin', wrap_prefix_stop='end', indent_level=1)
+
+            # the paragraph's formatting depends on whether the cell contains pure values or another content like table etc.
+            is_content = cell.cell_value.is_content
+            if not is_content:
+                paragraph_format = cell.cell_format_to_latex_paragraph(r=0, color_dict=color_dict, is_content=is_content)
+
+                block_lines = indent_and_wrap(lines=block_lines, wrap_in='{mdframed}', param_string=paragraph_format, wrap_prefix_start='begin', wrap_prefix_stop='end', indent_level=1)
 
             # LaTeX footnotes
             footnote_texts = document_footnotes[self.paragraph_id]
@@ -1120,7 +1121,7 @@ class Cell(object):
 
     ''' LaTeX code for table-cell format
     '''
-    def cell_format_to_latex_paragraph(self, r, color_dict):
+    def cell_format_to_latex_paragraph(self, r, color_dict, is_content):
         cell_format_latex = None
 
         # alignments and bgcolor
@@ -1134,6 +1135,20 @@ class Cell(object):
         if not self.is_empty:
             kwargs = self.effective_format.borders.borders_to_latex_mdframed_dict(color_dict=color_dict)
             kwargs['backgroundcolor'] = bgcolor
+
+            # if the paragraph contains another content like table etc., margins are to be eliminated
+            if is_content:
+                kwargs['innerleftmargin'] = '0pt'
+                kwargs['innerrightmargin'] = '0pt'
+                kwargs['innertopmargin'] =  '0pt'
+                kwargs['innerbottommargin'] = '0pt'
+
+            else:
+                kwargs['innerleftmargin'] = '5pt'
+                kwargs['innerrightmargin'] = '5pt'
+                kwargs['innertopmargin'] =  '5pt'
+                kwargs['innerbottommargin'] = '5pt'
+
 
             cell_format_latex = latex_option(**kwargs)
 

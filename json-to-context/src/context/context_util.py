@@ -118,6 +118,12 @@ COLSEP = (0/72)
 # seperation (in inches) between two ConTeXt table rows
 ROWSEP = (0/72)
 
+# offset in width for fitting image in a given box
+IMAGE_WIDTH_OFFSET = 0.1
+
+# offset in height for fitting image in a given box
+IMAGE_HEIGHT_OFFSET = 0.4
+
 
 # outline level to ConTeXt style name map
 CONTEXT_HEADING_MAP = {
@@ -171,11 +177,8 @@ LEVEL_TO_TITLE = [
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
-	WIDTH_OFFSET = 0.0
-	HEIGHT_OFFSET = 0.2
-
-	fit_within_width = fit_within_width - WIDTH_OFFSET
-	fit_within_height = fit_within_height - HEIGHT_OFFSET
+	fit_within_width = fit_within_width - IMAGE_WIDTH_OFFSET
+	fit_within_height = fit_within_height - IMAGE_HEIGHT_OFFSET
 
 	aspect_ratio = width_to_fit / height_to_fit
 
