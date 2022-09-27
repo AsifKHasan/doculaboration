@@ -30,7 +30,7 @@ class ContextFromJson(object):
 			self.load_json()
 
 			# context-helper
-			self._CONFIG['files']['output-context'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.tex"
+			self._CONFIG['files']['output-context'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.context.tex"
 			context_helper = ContextHelper(self._CONFIG)
 			context_helper.generate_and_save(self._data['sections'])
 			self.tear_down()

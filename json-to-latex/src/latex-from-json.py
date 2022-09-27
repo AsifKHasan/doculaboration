@@ -30,7 +30,7 @@ class LatexFromJson(object):
 			self.load_json()
 
 			# latex-helper
-			self._CONFIG['files']['output-latex'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.tex"
+			self._CONFIG['files']['output-latex'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.latex.tex"
 			latex_helper = LatexHelper(self._CONFIG)
 			latex_helper.generate_and_save(self._data['sections'])
 			self.tear_down()
