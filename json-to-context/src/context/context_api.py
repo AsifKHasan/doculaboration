@@ -431,8 +431,6 @@ class ContextContent(object):
         self.column_metadata_list = []
         self.merge_list = []
 
-        self.default_format = None
-
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
@@ -483,7 +481,7 @@ class ContextContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            row = Row(section_index=self.section_index, section_id=self.section_id, row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                            row = Row(section_index=self.section_index, section_id=self.section_id, row_num=r, row_data=row_data, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
                             self.cell_matrix.append(row)
                             r = r + 1
 
@@ -560,7 +558,7 @@ class ContextContent(object):
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
                         # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted")
-                        next_cell_in_row = Cell(section_index=first_cell.section_index, section_id=first_cell.section_id, row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=first_cell.nesting_level)
+                        next_cell_in_row = Cell(section_index=first_cell.section_index, section_id=first_cell.section_id, row_num=r, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=first_cell.nesting_level)
                         next_row_object.insert_cell(pos=c, cell=next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -573,20 +571,20 @@ class ContextContent(object):
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.FirstCell
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the column merge")
-                                next_cell_in_row.mark_multicol(span=MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multicol(span=MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
 
                         # mark cells for multirow only if it is multirow
@@ -594,20 +592,20 @@ class ContextContent(object):
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
                                 # debug(f"..cell [{r+1},{c+1}] is the LastCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
                                 # debug(f"..cell [{r+1},{c+1}] is an InnerCell of the row merge")
-                                next_cell_in_row.mark_multirow(span=MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multirow(span=MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
@@ -623,6 +621,10 @@ class ContextContent(object):
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
+            if len(self.cell_matrix) <= r:
+                continue
+
+
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
             if data_row.is_free_content():
@@ -1112,21 +1114,24 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
-        self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
+    def __init__(self, section_index, section_id, row_num, col_num, value, column_widths, row_height, nesting_level):
+        self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, nesting_level
         self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.cell_name = self.cell_id
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.cell_height = row_height
+
+        self.note = CellNote()
         self.merge_spec = CellMergeSpec()
+        self.effective_format = CellFormat(format_dict=None)
+        self.user_entered_format = CellFormat(format_dict=None)
 
         if self.value:
             self.note = CellNote(note_json=value.get('note'))
             self.formatted_value = self.value.get('formattedValue', '')
 
-            # self.effective_format = CellFormat(format_dict=self.value.get('effectiveFormat'), default_format=self.default_format)
             self.effective_format = CellFormat(format_dict=self.value.get('effectiveFormat'))
 
             for text_format_run in self.value.get('textFormatRuns', []):
@@ -1168,12 +1173,8 @@ class Cell(object):
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
-            self.merge_spec.multi_col = MultiSpan.No
-            self.note = CellNote()
             self.cell_value = None
             self.formatted_value = ''
-            self.effective_format = None
-            self.user_entered_format = None
             self.is_empty = True
 
 
@@ -1243,6 +1244,7 @@ class Cell(object):
                     # content_lines = content_lines + ['{a}']
 
             else:
+                # produce a blank cell
                 warn(f"NO VALUE : {self.cell_id}")
 
         return content_lines, new_page
@@ -1280,16 +1282,14 @@ class Cell(object):
         self.cell_width = from_cell.cell_width
 
 
-    ''' mark the cell multi_col
+    ''' is the cell part of a merge
     '''
-    def mark_multicol(self, span):
-        self.merge_spec.multi_col = span
+    def is_covered(self):
+        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell] or self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            return True
 
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multirow(self, span):
-        self.merge_spec.multi_row = span
+        else:
+            return False
 
 
 
@@ -1299,8 +1299,8 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
-        self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
+    def __init__(self, section_index, section_id, row_num, row_data, section_width, column_widths, row_height, nesting_level):
+        self.section_index, self.section_id, self.row_num, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, section_width, column_widths, row_height, nesting_level
         self.row_id = f"{self.row_num+1}"
         self.row_name = f"row: [{self.row_id}]"
 
@@ -1309,7 +1309,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                cell = Cell(section_index=self.section_index, section_id=self.section_id, row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
+                cell = Cell(section_index=self.section_index, section_id=self.section_id, row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
                 self.cells.append(cell)
                 c = c + 1
 
@@ -1410,14 +1410,18 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 produce_cell = False
 
+            elif cell.is_covered():
+                produce_cell = False
+
             else:
                 # cell value, it may have a new-page note
                 cell_lines, cell_new_page = cell.cell_content_to_context(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes)
                 if cell_new_page:
                     new_page = True
 
-            if produce_cell and len(cell_lines):
-                if cell.cell_value.is_content == True:
+            # if produce_cell and len(cell_lines):
+            if produce_cell:
+                if cell.cell_value and cell.cell_value.is_content == True:
                     # TODO: it is an embedded content, do not output for now
                     warn(f"{self.row_name} has embedded content at {c}")
                     cell_lines = []
@@ -1425,12 +1429,12 @@ class Row(object):
                 # wrap in b/e TR, param_string is the marge spec
                 cell_lines = indent_and_wrap(lines=cell_lines, wrap_in='TD', param_string=cell.merge_spec.to_context_option(), wrap_prefix_start='b', wrap_prefix_stop='e', indent_level=1)
 
-                # wrap in BEGIN/end comments
-                cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, begin_suffix=cell.merge_spec.to_string(), indent_level=1)
-                cell_lines = [''] + cell_lines
+            # wrap in BEGIN/end comments
+            cell_lines = wrap_with_comment(lines=cell_lines, object_type='Cell', object_id=cell.cell_id, begin_suffix=cell.merge_spec.to_string(), indent_level=1)
+            cell_lines = [''] + cell_lines
 
 
-                row_lines = row_lines + cell_lines
+            row_lines = row_lines + cell_lines
 
             c = c + 1
 
@@ -1703,7 +1707,7 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict, default_format=None):
+    def __init__(self, format_dict):
         if format_dict:
             self.bgcolor = RgbColor(rgb_dict=format_dict.get('backgroundColor'))
             self.borders = Borders(borders_dict=format_dict.get('borders'))
@@ -1711,13 +1715,6 @@ class CellFormat(object):
             self.halign = HorizontalAlignment(halign=format_dict.get('horizontalAlignment'))
             self.valign = VerticalAlignment(valign=format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(text_format_dict=format_dict.get('textFormat'))
-        elif default_format:
-            self.bgcolor = default_format.bgcolor
-            self.borders = default_format.borders
-            self.padding = default_format.padding
-            self.halign = default_format.halign
-            self.valign = default_format.valign
-            self.text_format = default_format.text_format
         else:
             self.bgcolor = None
             self.borders = None

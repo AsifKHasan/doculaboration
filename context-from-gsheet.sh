@@ -29,8 +29,7 @@ fi
 
 # context -> pdf
 pushd ./out
-time context --run ${DOCUMENT}.tex
-# mv ${DOCUMENT}.pdf ${DOCUMENT}.context.pdf
+time context --run ${DOCUMENT}.context.tex
 
 if [ ${?} -ne 0 ];  then
   popd && exit 1

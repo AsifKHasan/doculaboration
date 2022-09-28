@@ -621,6 +621,10 @@ class LatexContent(object):
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
+            if len(self.cell_matrix) <= r:
+                continue
+
+
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
             if data_row.is_free_content():
@@ -944,7 +948,8 @@ class Cell(object):
     '''
     def __init__(self, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
         self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
-        self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_name = self.cell_id
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
@@ -1266,7 +1271,8 @@ class Row(object):
     '''
     def __init__(self, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
         self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
-        self.row_name = f"row: [{self.row_num+1}]"
+        self.row_id = f"{self.row_num+1}"
+        self.row_name = f"row: [{self.row_id}]"
 
         self.cells = []
         c = 0

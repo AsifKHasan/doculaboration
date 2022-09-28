@@ -327,8 +327,6 @@ class OdtContent(object):
         self.column_metadata_list = []
         self.merge_list = []
 
-        self.default_format = None
-
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
@@ -369,7 +367,8 @@ class OdtContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            self.cell_matrix.append(Row(r, row_data, self.content_width, self.column_widths, self.row_metadata_list[r].inches, self.nesting_level))
+                            new_row = Row(row_num=r, row_data=row_data, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                            self.cell_matrix.append(new_row)
                             r = r + 1
 
             # process and split
@@ -454,36 +453,36 @@ class OdtContent(object):
                         if col_span > 1:
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.FirstCell
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multicol(MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multicol(MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
 
                         # mark cells for multirow only if it is multirow
                         if row_span > 1:
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multirow(MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multirow(MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
@@ -497,6 +496,10 @@ class OdtContent(object):
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
+            if len(self.cell_matrix) <= r:
+                continue
+
+
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
 
@@ -674,12 +677,17 @@ class Cell(object):
     '''
     def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
         self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
-        self.cell_name = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_name = self.cell_id
         self.value = value
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.cell_height = row_height
+
         self.merge_spec = CellMergeSpec()
+        self.note = CellNote()
+        self.effective_format = CellFormat(format_dict=None)
+        self.user_entered_format = CellFormat(format_dict=None)
 
         # considering merges, we have effective cell width and height
         self.effective_cell_width = self.cell_width
@@ -689,16 +697,17 @@ class Cell(object):
             self.note = CellNote(value.get('note'))
             self.formatted_value = self.value.get('formattedValue', '')
 
-            # self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
             self.effective_format = CellFormat(self.value.get('effectiveFormat'))
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
+                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
+                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
                 self.is_empty = False
             else:
+                self.user_entered_format = None
                 self.is_empty = True
 
 
@@ -725,15 +734,12 @@ class Cell(object):
                             self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
-            self.merge_spec.multi_col = MultiSpan.No
-            self.note = CellNote()
             self.cell_value = None
-            self.formatted_value = None
-            self.effective_format = None
+            self.formatted_value = ''
             self.is_empty = True
 
 
@@ -756,9 +762,10 @@ class Cell(object):
         if self.effective_format:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
         else:
+            table_cell_properties_attributes = {}
             warn(f"{self} : NO effective_format")
 
-        if not self.is_empty:
+        if not self.is_covered():
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
@@ -769,6 +776,10 @@ class Cell(object):
         else:
             # wrap this into a covered-table-cell
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
+            # if table_cell is None:
+            #     print(f"table_cell   : [{self.cell_id}] None")
+            # else:
+            #     print(f"Covered Cell : [{self.cell_id}]")
 
         return table_cell
 
@@ -795,16 +806,14 @@ class Cell(object):
         self.effective_format = from_cell.effective_format
 
 
-    ''' mark the cell multi_col
+    ''' is the cell part of a merge
     '''
-    def mark_multicol(self, span):
-        self.merge_spec.multi_col = span
+    def is_covered(self):
+        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell] or self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            return True
 
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multirow(self, span):
-        self.merge_spec.multi_row = span
+        else:
+            return False
 
 
 
@@ -816,7 +825,8 @@ class Row(object):
     '''
     def __init__(self, row_num, row_data, section_width, column_widths, row_height, nesting_level):
         self.row_num, self.section_width, self.column_widths, self.row_height, self.nesting_level = row_num, section_width, column_widths, row_height, nesting_level
-        self.row_name = f"row: [{self.row_num+1}]"
+        self.row_id = f"{self.row_num+1}"
+        self.row_name = f"row: [{self.row_id}]"
 
         self.cells = []
         c = 0
@@ -928,6 +938,9 @@ class Row(object):
                 table_cell = cell.cell_to_odt_table_cell(odt, self.table_name)
                 if table_cell:
                     table_row.addElement(table_cell)
+                
+                else:
+                    warn(f"Invalid table-cell : [{cell.cell_id}]")
 
             c = c + 1
 
@@ -947,6 +960,10 @@ class TextFormat(object):
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
                 self.font_family = text_format_dict['fontFamily']
+            
+            else:
+                self.font_family = ''
+
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
             self.is_bold = text_format_dict.get('bold')
@@ -969,7 +986,7 @@ class TextFormat(object):
         attributes = {}
 
         attributes['color'] = self.fgcolor.value()
-        if self.font_family != '':
+        if self.font_family and self.font_family != '':
             attributes['fontname'] = self.font_family
             attributes['fontnameasian'] = self.font_family
             attributes['fontnamecomplex'] = self.font_family
@@ -1248,7 +1265,7 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict, default_format=None):
+    def __init__(self, format_dict):
         if format_dict:
             self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
             self.borders = Borders(format_dict.get('borders'))
@@ -1257,14 +1274,6 @@ class CellFormat(object):
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
-        elif default_format:
-            self.bgcolor = default_format.bgcolor
-            self.borders = default_format.borders
-            self.padding = default_format.padding
-            self.halign = default_format.halign
-            self.valign = default_format.valign
-            self.text_format = default_format.text_format
-            self.wrapping = default_format.wrapping
         else:
             self.bgcolor = None
             self.borders = None

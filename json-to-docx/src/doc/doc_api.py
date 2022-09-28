@@ -313,8 +313,6 @@ class DocxContent(object):
         self.column_metadata_list = []
         self.merge_list = []
 
-        self.default_format = None
-
         # we need a list to hold the tables and block for the cells
         self.content_list = []
 
@@ -443,36 +441,36 @@ class DocxContent(object):
                         if col_span > 1:
                             if c == first_col:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multicol(MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.FirstCell
 
                             elif c == last_col-1:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multicol(MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                next_cell_in_row.mark_multicol(MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_col = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multicol(MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
 
                         # mark cells for multirow only if it is multirow
                         if row_span > 1:
                             if r == first_row:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multirow(MultiSpan.FirstCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.FirstCell
 
                             elif r == last_row-1:
                                 # the last cell of the merge to be marked as LastCell
-                                next_cell_in_row.mark_multirow(MultiSpan.LastCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.LastCell
 
                             else:
                                 # the inner cells of the merge to be marked as InnerCell
-                                next_cell_in_row.mark_multirow(MultiSpan.InnerCell)
+                                next_cell_in_row.merge_spec.multi_row = MultiSpan.InnerCell
 
                         else:
-                            next_cell_in_row.mark_multirow(MultiSpan.No)
+                            next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
@@ -488,6 +486,10 @@ class DocxContent(object):
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
+            if len(self.cell_matrix) <= r:
+                continue
+
+
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
 
@@ -684,7 +686,11 @@ class Cell(object):
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.cell_height = row_height
+
         self.merge_spec = CellMergeSpec()
+        self.note = CellNote()
+        self.effective_format = CellFormat(format_dict=None)
+        self.user_entered_format = CellFormat(format_dict=None)
 
         # considering merges, we have effective cell width and height
         self.effective_cell_width = self.cell_width
@@ -694,11 +700,10 @@ class Cell(object):
             self.note = CellNote(value.get('note'))
             self.formatted_value = self.value.get('formattedValue', '')
 
-            # self.effective_format = CellFormat(self.value.get('effectiveFormat'), self.default_format)
             self.effective_format = CellFormat(self.value.get('effectiveFormat'))
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(text_format_run, self.effective_format.text_format.source))
+                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
@@ -734,12 +739,8 @@ class Cell(object):
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
-            # warn(f"Cell [{self.cell_id}] : NO VALUE")
-            # self.merge_spec.multi_col = MultiSpan.No
-            self.note = CellNote()
             self.cell_value = None
-            self.formatted_value = None
-            self.effective_format = None
+            self.formatted_value = ''
             self.is_empty = True
 
 
@@ -795,18 +796,6 @@ class Cell(object):
     '''
     def copy_format_from(self, from_cell):
         self.effective_format = from_cell.effective_format
-
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multicol(self, span):
-        self.merge_spec.multi_col = span
-
-
-    ''' mark the cell multi_col
-    '''
-    def mark_multirow(self, span):
-        self.merge_spec.multi_row = span
 
 
 
@@ -1204,7 +1193,7 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict, default_format=None):
+    def __init__(self, format_dict):
         if format_dict:
             self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
             self.borders = Borders(format_dict.get('borders'))
@@ -1213,14 +1202,6 @@ class CellFormat(object):
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
-        elif default_format:
-            self.bgcolor = default_format.bgcolor
-            self.borders = default_format.borders
-            self.padding = default_format.padding
-            self.halign = default_format.halign
-            self.valign = default_format.valign
-            self.text_format = default_format.text_format
-            self.wrapping = default_format.wrapping
         else:
             self.bgcolor = None
             self.borders = None
