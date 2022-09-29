@@ -93,10 +93,16 @@ class LatexSectionBase(object):
         left_margin = self.margin_spec['left']
         right_margin = self.margin_spec['right']
         margin_par_width = 0
+        margin_par_sep = 0
+        head_height = self.margin_spec['header-height']
+        foot_height = self.margin_spec['footer-height']
+
+        head_sep = HEADER_DISTANCE
+        foot_skip = FOOTER_DISTANCE
 
         geometry_lines.append(f"\\pagebreak")
 
-        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, marginparwidth={margin_par_width}in, {self.orientation}}}")
+        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, marginparwidth={margin_par_width}in, marginparsep={margin_par_sep}in, headheight={head_height}in, headsep={head_sep}in, footskip={foot_skip}in, {self.orientation}}}")
 
         # wrap in BEGIN/end comments
         geometry_lines = wrap_with_comment(lines=geometry_lines, object_type='Geometry', indent_level=1)
@@ -158,14 +164,14 @@ class LatexSectionBase(object):
         if self.header_odd.has_content:
             hf_lines.append(f"\t\\fancyhead[O]{{\\{self.header_odd.page_header_footer_id}}}")
 
-        if self.header_even.has_content:
-            hf_lines.append(f"\t\\fancyhead[E]{{\\{self.header_even.page_header_footer_id}}}")
+        # if self.header_even.has_content:
+        #     hf_lines.append(f"\t\\fancyhead[E]{{\\{self.header_even.page_header_footer_id}}}")
 
         if self.footer_odd.has_content:
             hf_lines.append(f"\t\\fancyfoot[O]{{\\{self.footer_odd.page_header_footer_id}}}")
 
-        if self.footer_even.has_content:
-            hf_lines.append(f"\t\\fancyfoot[E]{{\\{self.footer_even.page_header_footer_id}}}")
+        # if self.footer_even.has_content:
+        #     hf_lines.append(f"\t\\fancyfoot[E]{{\\{self.footer_even.page_header_footer_id}}}")
 
         hf_lines.append(f"}}")
         hf_lines.append(f"\\pagestyle{{{self.page_style_name}}}")
@@ -472,9 +478,13 @@ class LatexContent(object):
 
                     # column width needs adjustment as \tabcolsep is COLSEPin. This means each column has a COLSEP inch on left and right as space which needs to be removed from column width
                     all_column_widths_in_pixel = sum(x.pixel_size for x in self.column_metadata_list[1:])
-                    # print(self.content_width)
-                    self.column_widths = [ (x.pixel_size * self.content_width / all_column_widths_in_pixel) - (COLSEP * 2) for x in self.column_metadata_list[1:] ]
-                    # print(len(self.column_widths), sum(self.column_widths))
+                    self.column_widths = []
+                    for x in self.column_metadata_list[1:]:
+                        column_width = (x.pixel_size * self.content_width / all_column_widths_in_pixel) - (COLSEP * 2)
+                        # adjust for vertical borders, we ssume max border width is LATEX_BORDER_WIDTH_FACTOR * 3
+                        column_width = column_width - (LATEX_BORDER_WIDTH_FACTOR * 3) / 72.27
+                        self.column_widths.append(column_width)
+
 
                     # rowData
                     r = 2
@@ -1961,7 +1971,7 @@ class Border(object):
 
         if border_dict:
             self.style = border_dict.get('style')
-            self.width = int(border_dict.get('width')) * 0.4
+            self.width = int(border_dict.get('width')) * LATEX_BORDER_WIDTH_FACTOR
             self.color = RgbColor(rgb_dict=border_dict.get('color'))
 
             # TODO: handle double

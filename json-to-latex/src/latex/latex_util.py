@@ -16,11 +16,15 @@ DEFAULT_FONT = 'Calibri'
 
 # font (substitute) map
 FONT_MAP = {
-    'Calibri': '',
-    'Arial': 'Arial',
-    'Consolas': 'Consolas',
-    'Cambria': 'Cambria',
-    'Bree Serif': 'FreeSerif',
+    'Calibri'               : '',
+    'Arial'                 : 'Arial',
+    'Consolas'              : 'Consolas',
+    'Cambria'               : 'Cambria',
+    'Bree Serif'            : 'FreeSerif',
+    'Bree Serif'            : 'FreeSerif',
+    'Roboto, sans-serif'    : 'Roboto',
+    'Calibri, Arial'        : 'Arial',
+    'Calibri, sans-serif'   : 'Calibri',
 }
 
 
@@ -70,14 +74,30 @@ TBLR_HALIGN = {'LEFT': 'l', 'CENTER': 'c', 'RIGHT': 'r', 'JUSTIFY': 'j'}
 PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft', 'j': 'left'}
 
 
+# distance/gap below header with the content in inches
+HEADER_DISTANCE = 0.05
+
+# distance/gap above footer with the content in inches
+FOOTER_DISTANCE = 0.05
+
+# distance/gap below footer from the bottom edge of the page
+BOTTOM_DISTANCE = 0.00
+
+# distance/gap between right margin and content 
+RIGHT_MARGIN_DISTANCE = 0.00
+
+# distance/gap between right margin and edge of page right edge 
+RIGHT_EDGE_DISTANCE = 0.00
+
+
 # seperation (in inches) between two ConTeXt table columns
 COLSEP = (6/72.27)
 # COLSEP = (0/72.27)
 
-
 # seperation (in inches) between two ConTeXt table rows
 # ROWSEP = (2/72)
 ROWSEP = (0/72.27)
+
 
 # offset in width (in inches) for fitting image in a given box
 IMAGE_WIDTH_OFFSET = 0.1
@@ -94,6 +114,10 @@ HEADER_FOOTER_FIRST_COL_HSPACE = 0
 # Horizontal right spacing (in pt) for last column in header/footer
 # HEADER_FOOTER_LAST_COL_HSPACE = -6
 HEADER_FOOTER_LAST_COL_HSPACE = 0
+
+
+# FACTOR by which to multiply gsheet border width to get a reasonable LaTeX border width (pt)
+LATEX_BORDER_WIDTH_FACTOR = 0.4
 
 
 # outline level to ConTeXt style name map
