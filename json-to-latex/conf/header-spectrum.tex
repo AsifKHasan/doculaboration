@@ -3,42 +3,53 @@
 
 % BEGIN packages
 
-  % for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
-  % subparagraph: yes
   % we use lualatex as our engine
   \RequirePackage{luatex85}
+
   % for custom titles and headings
   \usepackage{titlesec}
-  \usepackage{fontspec}
-  \usepackage{babel}
-  \DeclareFontSeriesDefault[rm]{bf}{b}
-  \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
-  \usepackage{etoolbox}
+
+  % geometry
+  % \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
+  \usepackage{geometry}
+  % \usepackage{showframe}
+  \usepackage{lscape}
+
+  % graphics
   \usepackage{graphicx}
   % png support?
   \usepackage{grffile}
+
   % custom header/footer
   \usepackage{fancyhdr}
+
+  % fonts and languages
+  \usepackage{fontspec}
+  \DeclareFontSeriesDefault[rm]{bf}{b}
+  \usepackage{babel}
+  \usepackage{bold-extra}
+  \usepackage{slantsc}
+  \usepackage{newunicodechar}
+  \tracinglostchars=2
+
+  % frames and tables
+  \usepackage{etoolbox}
+  \usepackage{tabularray}
+  \usepackage{mdframed}
+
+  % footnotes
+  \usepackage[bottomfloats,belowfloats,hang,flushmargin,symbol*]{footmisc}
+  % \usepackage[ragged,bottom,symbol*]{footmisc}
+  % \usepackage{tablefootnote}
+  % \usepackage{alphalph}
+
+  % all others
   \usepackage{colortbl}
   \usepackage{xcolor}
   \usepackage{ulem}
   \usepackage{lastpage}
-  \usepackage{bold-extra}
-  \usepackage{tabularray}
-  \usepackage{lscape}
   \usepackage{hyperref}
-  \usepackage{slantsc}
-  \usepackage{newunicodechar}
-  \usepackage{mdframed}
-  \usepackage[bottomfloats,belowfloats,hang,flushmargin,symbol*]{footmisc}
-
-  % \usepackage[ragged,bottom,symbol*]{footmisc}
-  % \usepackage{tablefootnote}
-  % \usepackage{alphalph}
-  % \usepackage{showframe}
-
   \hypersetup{colorlinks=true,linktoc=all,linkcolor=gray}
-  \tracinglostchars=2
 
 % END   packages
 

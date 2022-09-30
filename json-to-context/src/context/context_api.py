@@ -65,14 +65,14 @@ class ContextSectionBase(object):
             self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
         # headers and footers
-        self.header_first = ContextPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
-        self.header_odd   = ContextPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
-        self.header_even  = ContextPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
-        self.footer_first = ContextPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
-        self.footer_odd   = ContextPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
-        self.footer_even  = ContextPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_first = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-first'], section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_odd   = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-odd'],   section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_even  = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-even'],  section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_first = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-first'], section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_odd   = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-odd'],   section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_even  = ContextPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-even'],  section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
 
-        self.section_contents = ContextContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
+        self.section_contents = ContextContent(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
 
 
@@ -414,10 +414,10 @@ class ContextContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, section_index, section_id, nesting_level, header_footer=False):
+    def __init__(self, document_index, section_index, section_id, content_data, content_width, nesting_level, header_footer=False):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        self.content_width, self.section_index, self.section_id, self.nesting_level = content_width, section_index, section_id, nesting_level
+        self.document_index, self.section_index, self.section_id, self.content_width, self.nesting_level = document_index, section_index, section_id, content_width, nesting_level
 
         self.title = None
         self.row_count = 0
@@ -678,12 +678,12 @@ class ContextPageHeaderFooter(ContextContent):
 
     ''' constructor
     '''
-    def __init__(self, content_data, section_width, section_index, section_id, page_spec, orientation, margin_spec, nesting_level):
+    def __init__(self, document_index, section_index, section_id, content_data, section_width, page_spec, orientation, margin_spec, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level, header_footer=True)
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, content_data=content_data, content_width=section_width, nesting_level=nesting_level, header_footer=True)
         self.page_spec, self.orientation, self.margin_spec = page_spec, orientation, margin_spec
-        self.page_header_footer_id = f"{self.title}-{self.page_spec}-{self.orientation}-{self.margin_spec}"
+        self.page_header_footer_id = f"D{self.document_index}-{self.title}-{self.page_spec}-{self.orientation}-{self.margin_spec}"
 
 
     ''' generates the ConTeXt code

@@ -69,14 +69,14 @@ class LatexSectionBase(object):
         self.page_style_name = f"pagestyle{COLUMNS[self.section_index]}"
 
         # headers and footers
-        self.header_first = LatexPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-        self.header_odd   = LatexPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        self.header_even  = LatexPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = LatexPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-        self.footer_odd   = LatexPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        self.footer_even  = LatexPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, section_id=self.section_id, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.header_first = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-first'], section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_odd   = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-odd'],   section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.header_even  = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['header-even'],  section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_first = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-first'], section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_odd   = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-odd'],   section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
+        self.footer_even  = LatexPageHeaderFooter(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self._section_data['footer-even'],  section_width=self.section_width, page_spec=self.page_spec_name, orientation=self.orientation, margin_spec=self.margin_spec_name, nesting_level=self.nesting_level)
 
-        self.section_contents = LatexContent(content_data=section_data.get('contents'), content_width=self.section_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
+        self.section_contents = LatexContent(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
 
 
@@ -102,7 +102,7 @@ class LatexSectionBase(object):
 
         geometry_lines.append(f"\\pagebreak")
 
-        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, marginparwidth={margin_par_width}in, marginparsep={margin_par_sep}in, headheight={head_height}in, headsep={head_sep}in, footskip={foot_skip}in, {self.orientation}}}")
+        geometry_lines.append(f"\\newgeometry{{{paper}, top={top_margin}in, headheight={head_height}in, headsep={head_sep}in, bottom={bottom_margin}in, left={left_margin}in, right={right_margin}in, marginparwidth={margin_par_width}in, marginparsep={margin_par_sep}in, footskip={foot_skip}in, includefoot, {self.orientation}}}")
 
         # wrap in BEGIN/end comments
         geometry_lines = wrap_with_comment(lines=geometry_lines, object_type='Geometry', indent_level=1)
@@ -137,27 +137,37 @@ class LatexSectionBase(object):
 
     ''' get header/fotter contents
     '''
-    def get_header_footer(self, color_dict, document_footnotes):
+    def get_header_footer(self, color_dict, headers_footers, document_footnotes):
         hf_lines = []
 
         # get headers and footers
         if self.header_first.has_content:
-            hf_lines = hf_lines +  self.header_first.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            pass
 
         if self.header_odd.has_content:
-            hf_lines = hf_lines +  self.header_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            # if it is not in the global header/footer dict, create it
+            if self.header_odd.page_header_footer_id not in headers_footers:
+                headers_footers[self.header_odd.page_header_footer_id] = self.header_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         if self.header_even.has_content:
-            hf_lines = hf_lines +  self.header_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            # if it is not in the global header/footer dict, create it
+            if self.header_even.page_header_footer_id not in headers_footers:
+                headers_footers[self.header_even.page_header_footer_id] = self.header_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+
 
         if self.footer_first.has_content:
-            hf_lines = hf_lines +  self.footer_first.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            pass
 
         if self.footer_odd.has_content:
-            hf_lines = hf_lines +  self.footer_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            # if it is not in the global header/footer dict, create it
+            if self.footer_odd.page_header_footer_id not in headers_footers:
+                headers_footers[self.footer_odd.page_header_footer_id] = self.footer_odd.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
         if self.footer_even.has_content:
-            hf_lines = hf_lines +  self.footer_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+            # if it is not in the global header/footer dict, create it
+            if self.footer_even.page_header_footer_id not in headers_footers:
+                headers_footers[self.footer_even.page_header_footer_id] = self.footer_even.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+
 
         # now the pagestyle
         hf_lines = hf_lines + fancy_pagestyle_header(self.page_style_name)
@@ -185,7 +195,7 @@ class LatexSectionBase(object):
 
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         section_lines = []
@@ -197,7 +207,7 @@ class LatexSectionBase(object):
 
 
         # header/footer lines
-        hf_lines = self.get_header_footer(color_dict=color_dict, document_footnotes=document_footnotes)
+        hf_lines = self.get_header_footer(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
 
         content_lines = []
@@ -229,10 +239,10 @@ class LatexTableSection(LatexSectionBase):
  
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # get the contents
         section_lines = section_lines + self.section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
@@ -259,17 +269,17 @@ class LatexGsheetSection(LatexSectionBase):
 
     ''' generates the odt code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # wrap section in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='ContextSection', object_id=self.section_id, indent_level=1)
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
-            gsheet_lines = section_list_to_latex(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, document_footnotes=document_footnotes)
+            gsheet_lines = section_list_to_latex(section_list=self._section_data['contents']['sections'], config=self._config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
             
             # wrap gsheet in BEGIN/end comments
             gsheet_lines = wrap_with_comment(lines=gsheet_lines, object_type='Gsheet', object_id=self.section_name, indent_level=1)
@@ -292,10 +302,10 @@ class LatexPdfSection(LatexSectionBase):
 
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # the images go one after another
         if 'contents' in self._section_data:
@@ -338,8 +348,8 @@ class LatexToCSection(LatexSectionBase):
 
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -369,8 +379,8 @@ class LatexLoTSection(LatexSectionBase):
 
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -400,8 +410,8 @@ class LatexLoFSection(LatexSectionBase):
 
     ''' generates the LaTeX code
     '''
-    def section_to_latex(self, color_dict, document_footnotes):
-        section_lines = super().section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    def section_to_latex(self, color_dict, headers_footers, document_footnotes):
+        section_lines = super().section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
         # table-of-contents
         content_lines = []
@@ -425,10 +435,10 @@ class LatexContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, section_index, section_id, nesting_level):
+    def __init__(self, document_index, section_index, section_id, content_data, content_width, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        self.content_width, self.section_index, self.section_id, self.nesting_level = content_width, section_index, section_id, nesting_level
+        self.document_index, self.section_index, self.section_id, self.content_width, self.nesting_level = document_index, section_index, section_id, content_width, nesting_level
 
         self.title = None
         self.row_count = 0
@@ -674,19 +684,9 @@ class LatexContent(object):
         latex_lines = []
 
         # iterate through tables and blocks contents
-        last_block_is_a_paragraph = False
         for block in self.content_list:
-            # if current block is a paragraph and last block was also a paragraph, insert a newline
-            # if isinstance(block, LatexParagraph) and last_block_is_a_paragraph:
-            #     latex_lines.append(f"\\\\[{0}pt]")
-
             latex_lines = latex_lines + block.block_to_latex(longtable=True, color_dict=color_dict, document_footnotes=document_footnotes)
 
-            # keep track of the block as the previous block
-            if isinstance(block, LatexParagraph):
-                last_block_is_a_paragraph = True
-            else:
-                last_block_is_a_paragraph = False
 
         return latex_lines
 
@@ -697,15 +697,15 @@ class LatexContent(object):
 class LatexPageHeaderFooter(LatexContent):
 
     ''' constructor
-        header_footer : header/footer
-        odd_even      : first/odd/even
     '''
-    def __init__(self, content_data, section_width, section_index, section_id, header_footer, odd_even, nesting_level):
+    def __init__(self, document_index, section_index, section_id, content_data, section_width, page_spec, orientation, margin_spec, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(content_data=content_data, content_width=section_width, section_index=section_index, section_id=section_id, nesting_level=nesting_level)
-        self.header_footer, self.odd_even = header_footer, odd_even
-        self.page_header_footer_id = f"{self.header_footer}{self.odd_even}{COLUMNS[self.section_index]}"
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, content_data=content_data, content_width=section_width, nesting_level=nesting_level)
+        self.page_spec, self.orientation, self.margin_spec = page_spec, orientation, margin_spec
+        self.page_header_footer_id = latex_command_name_friendly(f"{COLUMNS[self.document_index]}{self.title}{self.page_spec}{self.orientation}{self.margin_spec}")
+
+        latex_command_name_friendly
 
 
     ''' generates the LaTeX code
@@ -719,8 +719,7 @@ class LatexPageHeaderFooter(LatexContent):
         # iterate through tables and blocks contents
         first_block = True
         for block in self.content_list:
-            block_lines = block.block_to_latex(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes, header_footer=self.header_footer)
-            # block_lines = list(map(lambda x: f"\t{x}", block_lines))
+            block_lines = block.block_to_latex(longtable=False, color_dict=color_dict, document_footnotes=document_footnotes)
             latex_lines = latex_lines + block_lines
 
             first_block = False
@@ -749,7 +748,7 @@ class LatexBlock(object):
 
     ''' generates LaTeX code
     '''
-    def block_to_latex(self, longtable, color_dict, document_footnotes, header_footer=None):
+    def block_to_latex(self, longtable, color_dict, document_footnotes):
         pass
 
 
@@ -781,7 +780,7 @@ class LatexTable(LatexBlock):
 
     ''' generates the LaTeX code
     '''
-    def block_to_latex(self, longtable, color_dict, document_footnotes, header_footer=None):
+    def block_to_latex(self, longtable, color_dict, document_footnotes):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # for storing the footnotes (if any) for this block
@@ -858,7 +857,7 @@ class LatexTable(LatexBlock):
 
         # generate cell values
         for row in self.table_cell_matrix:
-            row_lines = row.cell_contents_to_latex(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes, header_footer=header_footer)
+            row_lines = row.cell_contents_to_latex(block_id=self.table_id, color_dict=color_dict, document_footnotes=document_footnotes)
             table_lines = table_lines + row_lines
 
         table_lines.append(f"\\end{{{table_type}}}")
@@ -1033,7 +1032,7 @@ class Cell(object):
 
     ''' LaTeX code for cell content
     '''
-    def cell_content_to_latex(self, block_id, color_dict, document_footnotes, left_hspace=None, right_hspace=None, include_formatting=False):
+    def cell_content_to_latex(self, block_id, color_dict, document_footnotes, include_formatting=False):
         content_lines = []
 
         # the content is not valid for multirow LastCell and InnerCell
@@ -1069,13 +1068,6 @@ class Cell(object):
                         cell_value = f"{halign}{{{cell_value}}}"
 
                         
-                    # the cell may have a left_hspace or right_hspace
-                    if left_hspace:
-                        cell_value = f"\\hspace{{{left_hspace}pt}}{cell_value}"
-
-                    if right_hspace:
-                        cell_value = f"{cell_value}\\hspace{{{right_hspace}pt}}"
-
                     # the actual content
                     content_lines.append(cell_value)
 
@@ -1427,7 +1419,7 @@ class Row(object):
 
     ''' generates the LaTeX code
     '''
-    def cell_contents_to_latex(self, block_id, color_dict, document_footnotes, header_footer=None):
+    def cell_contents_to_latex(self, block_id, color_dict, document_footnotes):
         # debug(f"processing {self.row_name}")
 
         row_lines = []
@@ -1455,19 +1447,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}")
                 cell_lines = []
             else:
-                left_hspace = None
-                right_hspace = None
-                # if the cell is for a header/footer based on column add hspace
-                if header_footer in ['header', 'footer']:
-                    # first column has a left -ve hspace
-                    if c == 0:
-                        left_hspace = HEADER_FOOTER_FIRST_COL_HSPACE
-
-                    # first column has a left -ve hspace
-                    if c == len(self.cells) - 1:
-                        right_hspace = HEADER_FOOTER_LAST_COL_HSPACE
-
-                cell_lines = cell.cell_content_to_latex(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes, left_hspace=left_hspace, right_hspace=right_hspace)
+                cell_lines = cell.cell_content_to_latex(block_id=block_id, color_dict=color_dict, document_footnotes=document_footnotes)
 
             if c > 0:
                 all_cell_lines.append('&')
@@ -1481,8 +1461,6 @@ class Row(object):
 
         # top border
         row_lines = row_lines + top_border_lines
-        # row_lines = row_lines + left_border_lines
-        # row_lines = row_lines + right_border_lines
 
         # all cells
         row_lines = row_lines + all_cell_lines
@@ -2285,61 +2263,61 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config, color_dict, document_footnotes):
+def process_table(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexTableSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config, color_dict, document_footnotes):
+def process_gsheet(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexGsheetSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config, color_dict, document_footnotes):
+def process_toc(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexToCSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config, color_dict, document_footnotes):
+def process_lof(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexLoFSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config, color_dict, document_footnotes):
+def process_lot(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexLoTSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config, color_dict, document_footnotes):
+def process_pdf(section_data, config, color_dict, headers_footers, document_footnotes):
     latex_section = LatexPdfSection(section_data=section_data, config=config)
-    section_lines = latex_section.section_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
+    section_lines = latex_section.section_to_latex(color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines + ['']
 
 
 ''' odt processor
 '''
-def process_odt(section_data, config, color_dict, document_footnotes):
+def process_odt(section_data, config, color_dict, headers_footers, document_footnotes):
     warn(f"content type [odt] not supported")
 
     return []
@@ -2347,7 +2325,7 @@ def process_odt(section_data, config, color_dict, document_footnotes):
 
 ''' docx processor
 '''
-def process_doc(self, section_data, config, color_dict):
+def process_doc(section_data, config, color_dict, headers_footers, document_footnotes):
     warn(f"content type [docx] not supported")
 
     return []

@@ -78,7 +78,7 @@ PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft', 'j
 HEADER_DISTANCE = 0.1
 
 # distance/gap above footer with the content in inches
-FOOTER_DISTANCE = 0.1
+FOOTER_DISTANCE = 0.05
 
 # distance/gap below footer from the bottom edge of the page
 BOTTOM_DISTANCE = 0.00
@@ -172,9 +172,8 @@ COLUMNS = [
 
 ''' process a list of section_data and generate latex code
 '''
-def section_list_to_latex(section_list, config, color_dict, document_footnotes):
+def section_list_to_latex(section_list, config, color_dict, headers_footers, document_footnotes):
     section_lines = []
-    first_section = True
     for section in section_list:
         section_meta = section['section-meta']
         section_prop = section['section-prop']
@@ -186,7 +185,7 @@ def section_list_to_latex(section_list, config, color_dict, document_footnotes):
 
         module = importlib.import_module("latex.latex_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
-        section_lines = section_lines + func(section_data=section, config=config, color_dict=color_dict, document_footnotes=document_footnotes)
+        section_lines = section_lines + func(section_data=section, config=config, color_dict=color_dict, headers_footers=headers_footers, document_footnotes=document_footnotes)
 
     return section_lines
 
@@ -301,6 +300,16 @@ def latex_option(*args, **kwargs):
 
     return result
 
+
+
+''' make a text LaTeX command name friendly
+    no nothing but A-Z and a-z
+'''
+def latex_command_name_friendly(text):
+    s = re.sub(r'\W+', '', text)
+    s = re.sub(r'\d+', '', s)
+
+    return s
 
 
 ''' :param text: a plain text message

@@ -28,16 +28,44 @@ class LatexHelper(object):
             self.header_lines = [line.rstrip() for line in f]
 
         self.color_dict = {}
+        self.headers_footers = {}
         self.document_footnotes = {}
+        self.page_layouts = {}
 
         # process the section-list
-        section_lines = section_list_to_latex(section_list=section_list, config=self._config, color_dict=self.color_dict, document_footnotes=self.document_footnotes)
+        section_lines = section_list_to_latex(section_list=section_list, config=self._config, color_dict=self.color_dict, headers_footers=self.headers_footers, document_footnotes=self.document_footnotes)
 
         # wrap in BEGIN/end comments
         section_lines = wrap_with_comment(lines=section_lines, object_type='Document', indent_level=1)
 
 
-        # the line before the last line in header_lines is % COLORS, we replace it with set of definecolor's
+        # Page Layouts
+        # page_layout_lines = []
+        # for k, v in self.page_layouts.items():
+        #     page_layout_lines = page_layout_lines + list(map(lambda x: f"\t{x}", v))
+        #     page_layout_lines.append('')
+
+        # # wrap in BEGIN/end comments
+        # page_layout_lines = wrap_with_comment(lines=page_layout_lines, object_type='Page Layouts')
+
+        # page_layout_lines.append("\n")
+        # self.header_lines = self.header_lines + page_layout_lines
+
+
+        # Header/Footer
+        header_footer_lines = []
+        for k, v in self.headers_footers.items():
+            header_footer_lines = header_footer_lines + v
+            header_footer_lines.append('')
+
+        # wrap in BEGIN/end comments
+        header_footer_lines = wrap_with_comment(lines=header_footer_lines, object_type='Page Headers and Footers', indent_level=1)
+
+        header_footer_lines.append("\n")
+        self.header_lines = self.header_lines + header_footer_lines
+
+
+        # Colors
         color_lines = []
         for k,v in self.color_dict.items():
             color_lines.append(f"\definecolor{{{k}}}{{HTML}}{{{v}}}")
