@@ -75,10 +75,10 @@ PARA_HALIGN = {'l': '\\raggedright', 'c': '\\centering', 'r': '\\raggedleft', 'j
 
 
 # distance/gap below header with the content in inches
-HEADER_DISTANCE = 0.05
+HEADER_DISTANCE = 0.1
 
 # distance/gap above footer with the content in inches
-FOOTER_DISTANCE = 0.05
+FOOTER_DISTANCE = 0.1
 
 # distance/gap below footer from the bottom edge of the page
 BOTTOM_DISTANCE = 0.00
