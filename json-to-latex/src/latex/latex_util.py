@@ -17,14 +17,15 @@ DEFAULT_FONT = 'Calibri'
 # font (substitute) map
 FONT_MAP = {
     'Calibri'               : '',
+    'Calibri, Arial'        : '',
+    'Calibri, sans-serif'   : '',
+    'docs-Calibri'          : '',
     'Arial'                 : 'Arial',
     'Consolas'              : 'Consolas',
     'Cambria'               : 'Cambria',
     'Bree Serif'            : 'FreeSerif',
     'Bree Serif'            : 'FreeSerif',
     'Roboto, sans-serif'    : 'Roboto',
-    'Calibri, Arial'        : 'Arial',
-    'Calibri, sans-serif'   : 'Calibri',
 }
 
 

@@ -1,128 +1,173 @@
 \documentclass{article}
-% for using titlesec with Pandoc (as both defines paragraph in a conflicting way)
-% subparagraph: yes
-% we use lualatex as our engine
-\RequirePackage{luatex85}
-% for custom titles and headings
-\usepackage{titlesec}
-\usepackage{fontspec}
-\usepackage{babel}
-\DeclareFontSeriesDefault[rm]{bf}{b}
-\usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
-\usepackage{etoolbox}
-\usepackage{graphicx}
-% png support?
-\usepackage{grffile}
-% custom header/footer
-\usepackage{fancyhdr}
-\usepackage{colortbl}
-\usepackage{xcolor}
-\usepackage{ulem}
-\usepackage{lastpage}
-\usepackage{bold-extra}
-\usepackage{tabularray}
-\usepackage{lscape}
-\usepackage{hyperref}
-\usepackage{slantsc}
-\usepackage{newunicodechar}
-\usepackage[bottomfloats,belowfloats,hang,flushmargin,symbol*]{footmisc}
+% \documentclass[twoside]{article}
 
-% \usepackage[ragged,bottom,symbol*]{footmisc}
-% \usepackage{tablefootnote}
-% \usepackage{alphalph}
-% \usepackage{showframe}
+% BEGIN packages
 
-\hypersetup{colorlinks=true,linktoc=all,linkcolor=gray}
-\tracinglostchars=2
+  % we use lualatex as our engine
+  \RequirePackage{luatex85}
 
-\defaultfontfeatures{Scale=MatchLowercase,Ligatures=TeX,Renderer=HarfBuzz}
+  % for custom titles and headings
+  \usepackage{titlesec}
 
-\babelprovide[import,main]{english}
-\babelprovide[import,onchar=fonts ids]{bengali}
+  % geometry
+  % \usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.75in,right=0.75in]{geometry}
+  \usepackage{geometry}
+  % \usepackage{showframe}
+  \usepackage{lscape}
 
-\babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
-\babelfont[Language=Default]{sf}{Latin Modern Sans}
-\babelfont[Language=Default]{tt}{Latin Modern Mono}
+  % graphics
+  \usepackage{graphicx}
+  % png support?
+  \usepackage{grffile}
 
-\babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
-\babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
-\babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+  % custom header/footer
+  \usepackage{fancyhdr}
 
-\babeltags{english=english}
-\babeltags{bengali=bengali}
+  % fonts and languages
+  \usepackage{fontspec}
+  \DeclareFontSeriesDefault[rm]{bf}{b}
+  \usepackage{babel}
+  \usepackage{bold-extra}
+  \usepackage{slantsc}
+  \usepackage{newunicodechar}
+  \tracinglostchars=2
 
-\setmainfont{Arial}
+  % frames and tables
+  \usepackage{etoolbox}
+  \usepackage{tabularray}
+  \usepackage{mdframed}
 
-\newfontfamily{\substitutett}{Noto Serif Bengali}
-\newunicodechar{।}{\makebox[0.2em]{\substitutett।}}
+  % footnotes
+  \usepackage[bottomfloats,belowfloats,hang,flushmargin,symbol*]{footmisc}
+  % \usepackage[ragged,bottom,symbol*]{footmisc}
+  % \usepackage{tablefootnote}
+  % \usepackage{alphalph}
+
+  % all others
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{ulem}
+  \usepackage{lastpage}
+  \usepackage{hyperref}
+  \hypersetup{colorlinks=true,linktoc=all,linkcolor=gray}
+
+% END   packages
 
 
-% \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
-% \babelfont[Language=Default]{sf}{Latin Modern Sans}
-% \babelfont[Language=Default]{tt}{Latin Modern Mono}
+% BEGIN language and fonts
 
-% \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Noto Serif}
-% \babelfont[Language=Default]{sf}{Noto Sans}
-% \babelfont[Language=Default]{tt}{Noto Sans Mono}
+  \defaultfontfeatures{Scale=MatchLowercase,Ligatures=TeX,Renderer=HarfBuzz}
 
-% \babelfont[english]{sf}{FreeSerif}
+  \babelprovide[import,main]{english}
+  \babelprovide[import,onchar=fonts ids]{bengali}
 
-% \babelfont[english]{rm}{Tex Gyre Adventor}
-% \babelfont[english]{rm}{FreeSans}
-% \babelfont[english]{rm}{Open Sans Regular}
+  \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
+  \babelfont[Language=Default]{sf}{Latin Modern Sans}
+  \babelfont[Language=Default]{tt}{Latin Modern Mono}
 
-% \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
-% \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
-% \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
+  \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+  \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
+  \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
 
-% \babelfont[bengali,Language=Default]{rm}{Akaash}
-% \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
-% \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
-% \babelfont[bengali,Language=Default]{rm}{Kalpurush}
-% \babelfont[bengali,Language=Default]{rm}{Nikosh}
-% \babelfont[bengali,Language=Default]{rm}{Vrinda}
-% \babelfont[bengali,Language=Default]{rm}{AdorshoLipi}
-% \babelfont[bengali,Language=Default]{rm}{SolaimanLipi}
-% \babelfont[bengali,Language=Default]{rm}{Mukti}
+  \babeltags{english=english}
+  \babeltags{bengali=bengali}
+
+  \setmainfont{Latin Modern Roman}
+
+  \newfontfamily{\substitutett}{Noto Serif Bengali}
+  \newunicodechar{।}{\makebox[0.2em]{\substitutett।}}
 
 
-% Title Style used for Level 0 heading
-\newcommand\titlestyle[1]{\vspace{0.0cm}\begin{center}\Large\textsc{#1}\end{center}\vspace{0.0cm}}
+  % \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Latin Modern Roman}
+  % \babelfont[Language=Default]{sf}{Latin Modern Sans}
+  % \babelfont[Language=Default]{tt}{Latin Modern Mono}
 
-% Chapter Style Heading 1
-% \titleformat{\chapter}[display]{\fontsize{16pt}{16pt}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}\centering}{}{0pt}{}
-% \titleformat{\chapter}{\fontsize{16}{16}\raggedright\color[rgb]{0.7,0,0}\scshape\centering}{}{0pt}{}
-% \titlespacing{\chapter}{0pt}{0pt}{2pt}
+  % \babelfont[Ligatures=Common,Scale=1.0,Language=Default]{rm}{Noto Serif}
+  % \babelfont[Language=Default]{sf}{Noto Sans}
+  % \babelfont[Language=Default]{tt}{Noto Sans Mono}
 
-% Chapter Style Heading 1
-\titleformat*{\section}{\fontsize{16}{18}\sf\bfseries\raggedright\color[rgb]{0.0,0.7,0.0}\scshape\centering}
-\titlespacing{\section}{0pt}{0pt}{2pt}
+  % \babelfont[english]{sf}{FreeSerif}
 
-% Chapter Style Heading 2
-\titleformat*{\subsection}{\fontsize{14}{16}\sf\bfseries\raggedright\color[rgb]{0.0,0.0,0.7}\centering}
-\titlespacing{\subsection}{0pt}{2pt}{2pt}
+  % \babelfont[english]{rm}{Tex Gyre Adventor}
+  % \babelfont[english]{rm}{FreeSans}
+  % \babelfont[english]{rm}{Open Sans Regular}
 
-% Chapter Style Heading 3
-\titleformat*{\subsubsection}{\fontsize{12}{14}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
-\titlespacing{\subsubsection}{0pt}{12pt}{2pt}
+  % \babelfont[bengali,Language=Default]{rm}{Noto Serif Bengali}
+  % \babelfont[bengali,Language=Default]{sf}{Noto Sans Bengali}
+  % \babelfont[bengali,Language=Default]{tt}{Noto Sans Bengali UI}
 
-% Chapter Style Heading 4
-\titleformat*{\paragraph}{\fontsize{11}{13}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
-\titlespacing{\paragraph}{0pt}{2pt}{2pt}
+  % \babelfont[bengali,Language=Default]{rm}{Akaash}
+  % \babelfont[bengali,Language=Default]{rm}{Charukola Unicode}
+  % \babelfont[bengali,Language=Default]{rm}{Charu Chandan Unicode}
+  % \babelfont[bengali,Language=Default]{rm}{Kalpurush}
+  % \babelfont[bengali,Language=Default]{rm}{Nikosh}
+  % \babelfont[bengali,Language=Default]{rm}{Vrinda}
+  % \babelfont[bengali,Language=Default]{rm}{AdorshoLipi}
+  % \babelfont[bengali,Language=Default]{rm}{SolaimanLipi}
+  % \babelfont[bengali,Language=Default]{rm}{Mukti}
 
-% \renewcommand{\thetable}{}
-% \renewcommand{\thefigure}{}
+% END   language and fonts
 
-\makeatletter
-\def\ifGm@preamble#1{\@firstofone}
-\appto\restoregeometry{%
-  \pdfpagewidth=\paperwidth
-  \pdfpageheight=\paperheight}
-\apptocmd\newgeometry{%
-  \pdfpagewidth=\paperwidth
-  \pdfpageheight=\paperheight}{}{}
-\makeatother
 
-\pagestyle{fancy}
+% BEGIN Heading styles
 
-% define colors for tabularray
+  \setcounter{secnumdepth}{0}
+
+  % Title Style used for Level 0 heading
+  \newcommand\titlestyle[1]{\vspace{0.0cm}\begin{center}\Large\textsc{#1}\end{center}\vspace{0.0cm}}
+
+  % Chapter Style Heading 1
+  % \titleformat{\chapter}[display]{\fontsize{16pt}{16pt}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}\centering}{}{0pt}{}
+  % \titleformat{\chapter}{\fontsize{16}{16}\raggedright\color[rgb]{0.7,0,0}\scshape\centering}{}{0pt}{}
+  % \titlespacing{\chapter}{0pt}{0pt}{2pt}
+
+  % Chapter Style Heading 1
+  \titleformat*{\section}{\fontsize{16}{18}\sf\bfseries\raggedright\color[rgb]{0.0,0.7,0.0}\scshape\centering}
+  \titlespacing{\section}{0pt}{0pt}{2pt}
+
+  % Chapter Style Heading 2
+  \titleformat*{\subsection}{\fontsize{14}{16}\sf\bfseries\raggedright\color[rgb]{0.0,0.0,0.7}\centering}
+  \titlespacing{\subsection}{0pt}{2pt}{2pt}
+
+  % Chapter Style Heading 3
+  \titleformat*{\subsubsection}{\fontsize{12}{14}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
+  \titlespacing{\subsubsection}{0pt}{12pt}{2pt}
+
+  % Chapter Style Heading 4
+  \titleformat*{\paragraph}{\fontsize{11}{13}\sf\bfseries\raggedright\color[rgb]{0.7,0.0,0.0}}
+  \titlespacing{\paragraph}{0pt}{2pt}{2pt}
+
+% END   Heading styles
+
+
+% BEGIN ToC Formatting
+
+  % \renewcommand{\thetable}{}
+  % \renewcommand{\thefigure}{}
+
+% END   ToC Formatting
+
+
+% BEGIN macros and commands
+
+  \makeatletter
+  \def\ifGm@preamble#1{\@firstofone}
+  \appto\restoregeometry{%
+    \pdfpagewidth=\paperwidth
+    \pdfpageheight=\paperheight}
+  \apptocmd\newgeometry{%
+    \pdfpagewidth=\paperwidth
+    \pdfpageheight=\paperheight}{}{}
+  \makeatother
+
+  \pagestyle{fancy}
+
+  % no gap before or after paragraphs using mdframed
+  \mdfsetup{skipabove=0pt, skipbelow=0pt}
+
+  % tabularray to load varwidth package
+  \UseTblrLibrary{varwidth}
+
+% END   macros and commands
+
+

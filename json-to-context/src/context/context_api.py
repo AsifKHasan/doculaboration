@@ -1637,13 +1637,12 @@ class ImageValue(CellValue):
 
         if self.value['mode'] == 1:
             # image is to be scaled within the cell width and height
-            if image_width_in_inches > container_height:
-                adjust_ratio = (container_height / image_width_in_inches)
+            if image_width_in_inches > container_width:
+                adjust_ratio = (container_width / image_width_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
 
             if image_height_in_inches > container_height:
-                # debug(f"image : [{image_width_in_inches}in X {image_height_in_inches}in, cell-width [{container_height}in], cell-height [{container_height}in]")
                 adjust_ratio = (container_height / image_height_in_inches)
                 image_width_in_inches = image_width_in_inches * adjust_ratio
                 image_height_in_inches = image_height_in_inches * adjust_ratio
