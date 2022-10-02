@@ -1791,11 +1791,10 @@ class TextFormat(object):
                             warn(f"{font_family} is mapped to {self.font_family}")
 
                     else:
-                        # the font is not in our FONT_MAP, use it anyway and let us see
-                        self.font_family = font_family
-
-                        # self.font_family = DEFAULT_FONT
-                        # warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font")
+                        # the font is not in our FONT_MAP, use default
+                        # self.font_family = font_family
+                        self.font_family = ''
+                        warn(f"{text_format_dict['fontFamily']} is not mapped, will use default font {[DEFAULT_FONT]}")
             else:
                 self.font_family = ''
 
@@ -1844,11 +1843,9 @@ class TextFormat(object):
 
 
         # color, font, font-size
-        font_spec = ''
+        font_spec = f"\\fontSize{{{self.font_size}pt}}\\color[{self.fgcolor.key()}]"
         if self.font_family != '':
-            font_spec = f"\\globalfsize{{{self.font_size}pt}}\\switchtobodyfont[{self.font_family}]\\color[{self.fgcolor.key()}]"
-        else:
-            font_spec = f"\\globalfsize{{{self.font_size}pt}}\\color[{self.fgcolor.key()}]"
+            font_spec = f"\\fontFace{{{self.font_family}}}{font_spec}"
 
         context_code = f"{font_spec}{{{content}}}"
 

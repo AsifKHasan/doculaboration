@@ -10,7 +10,9 @@
   \mainlanguage[en]
 
   % macro for changing font size
-  \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+  % \define[1]\globalfsize{\fullrestoreglobalbodyfont\switchtobodyfont[#1]}
+  \define[1]\fontSize{\switchtobodyfont[#1]}
+  \define[1]\fontFace{\switchtobodyfont[#1]}
 
   %% double sided
   % \setuppagenumbering[alternative=doublesided]

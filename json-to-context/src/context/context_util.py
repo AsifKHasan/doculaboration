@@ -31,17 +31,16 @@ DUMMY_ROW_HEIGHT = 0.10
 
 
 # default Font
-DEFAULT_FONT = 'Calibri'
-# DEFAULT_FONT = 'LiberationSerif'
+DEFAULT_FONT = 'modern'
 
 
 # font (substitute) map
 FONT_MAP = {
     'Calibri': '',
-    'Arial': 'Arial',
-    'Consolas': 'Consolas',
-    'Cambria': 'Cambria',
-    'Bree Serif': 'FreeSerif',
+    'Arial': 'adventor',
+    'Consolas': 'modern,tt',
+    'Cambria': 'termes',
+    'Bree Serif': 'dejavu',
 }
 
 
