@@ -1,6 +1,7 @@
 % BEGIN Document
 % BEGIN Macros and configs
 
+  \usemodule{simplefonts}
   \replacemissingcharacters
   \enabletrackers[fonts.missing]
   \setupinteraction[state=start]
@@ -26,17 +27,44 @@
 
 % BEGIN Fonts and fallbacks
   \definefontfeature[default][
-    mode=node,kern=yes,
-    liga=yes,tlig=yes,
-    ccmp=yes,language=dflt,
-    protrusion=quality,
-    expansion=quality,
+    language=dflt,
+    script=bng2,
+    % script=beng,
+    % mode none ensures কি, কে is rendered properly
+    mode=node,
+    kern=yes,
+    liga=yes,
+    tlig=yes,
+    ccmp=yes,
+    cpsp=yes,
+    protrusion=
+    quality,
+    expansion=
+    quality,
     analyze=yes,
     devanagari=yes,
     keepligatures=yes,
     compat-ligatures=yes,
     char-ligatures=yes,
-    compose=yes
+    compose=yes,
+    abvm=yes,
+    blwm=yes,
+    dist=yes,
+    mark=yes,
+    abvs=yes,
+    akhn=yes,
+    blwf=yes,
+    blws=yes,
+    cjct=yes,
+    half=yes,
+    haln=yes,
+    init=yes,
+    nukt=yes,
+    pres=yes,
+    pstf=yes,
+    psts=yes,
+    rclt=yes,
+    rphf=yes,
   ]
 
   \definefallbackfamily [mainfont] [rm] [notoserifbengali]    [range=bengali]

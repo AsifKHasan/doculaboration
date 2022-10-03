@@ -18,7 +18,7 @@ popd
 
 :: context-from-json
 pushd .\json-to-context\src
-.\context-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+@REM .\context-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd

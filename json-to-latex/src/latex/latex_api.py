@@ -501,7 +501,7 @@ class LatexContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            row = Row(section_index=self.section_index, section_id=self.section_id, row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                            row = Row(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, row_num=r, row_data=row_data, default_format=self.default_format, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
                             self.cell_matrix.append(row)
                             r = r + 1
 
@@ -578,7 +578,7 @@ class LatexContent(object):
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
                         # debug(f"..cell [{r+1},{c+1}] does not exist, to be inserted") 
-                        next_cell_in_row = Cell(section_index=first_cell.section_index, section_id=first_cell.section_id, row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=first_cell.nesting_level)
+                        next_cell_in_row = Cell(document_index=first_cell.document_index, section_index=first_cell.section_index, section_id=first_cell.section_id, row_num=r, col_num=c, value=None, default_format=first_cell.default_format, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=first_cell.nesting_level)
                         next_row_object.insert_cell(pos=c, cell=next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -955,8 +955,8 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
-        self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
+    def __init__(self, document_index, section_index, section_id, row_num, col_num, value, default_format, column_widths, row_height, nesting_level):
+        self.document_index, self.section_index, self.section_id, self.row_num, self.col_num, self.column_widths, self.default_format, self.nesting_level = document_index, section_index, section_id, row_num, col_num, column_widths, default_format, nesting_level
         self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.cell_name = self.cell_id
         self.value = value
@@ -986,28 +986,28 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, content_value=self.value['contents'])
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
                     elif self.note.page_numbering:
-                        self.cell_value = PageNumberValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, page_numbering=self.note.page_numbering)
+                        self.cell_value = PageNumberValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, page_numbering=self.note.page_numbering)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = LatexValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
                         
                         else:
-                            self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                self.cell_value = StringValue(section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
 
 
@@ -1271,8 +1271,8 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
-        self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
+    def __init__(self, document_index, section_index, section_id, row_num, row_data, default_format, section_width, column_widths, row_height, nesting_level):
+        self.document_index, self.section_index, self.section_id, self.row_num, self.default_format, self.section_width, self.column_widths, self.row_height, self.nesting_level = document_index, section_index, section_id, row_num, default_format, section_width, column_widths, row_height, nesting_level
         self.row_id = f"{self.row_num+1}"
         self.row_name = f"row: [{self.row_id}]"
 
@@ -1281,7 +1281,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                cell = Cell(section_index=self.section_index, section_id=self.section_id, row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
+                cell = Cell(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, row_num=self.row_num, col_num=c, value=value, default_format=self.default_format, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level)
                 self.cells.append(cell)
                 c = c + 1
 
@@ -1567,10 +1567,11 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, nesting_level=0, outline_level=0):
+    def __init__(self, document_index, section_index, section_id, effective_format, nesting_level=0, outline_level=0):
         self.effective_format = effective_format
         self.nesting_level = nesting_level
         self.outline_level = outline_level
+        self.document_index = document_index
         self.section_index = section_index
         self.section_id = section_id
         self.is_content = False
@@ -1583,8 +1584,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1617,8 +1618,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1651,8 +1652,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1685,8 +1686,8 @@ class PageNumberValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.page_numbering = page_numbering
 
 
@@ -1718,8 +1719,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, image_value, nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1774,8 +1775,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, section_index, section_id, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, document_index, section_index, section_id, effective_format, content_value, nesting_level=0, outline_level=0):
+        super().__init__(document_index=document_index, section_index=section_index, section_id=section_id, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         self.value = content_value
         self.is_content = True
 
@@ -1790,7 +1791,7 @@ class ContentValue(CellValue):
     ''' generates the LaTeX code
     '''
     def value_to_latex(self, block_id, container_width, container_height, color_dict, document_footnotes, footnote_list):
-        section_contents = LatexContent(content_data=self.value, content_width=container_width, section_index=self.section_index, section_id=self.section_id, nesting_level=self.nesting_level)
+        section_contents = LatexContent(document_index=self.document_index, section_index=self.section_index, section_id=self.section_id, content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         return section_contents.content_to_latex(color_dict=color_dict, document_footnotes=document_footnotes)
 
 
