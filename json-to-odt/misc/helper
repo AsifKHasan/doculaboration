@@ -1,32 +1,13 @@
-{"content": "out-of-cell", "new-page": true}
-{"repeat-rows": 1}
-
-For all resume note
-------------------------------------------------------------------
-replace {"new-page": true, "keep-with-next": true}
-with {"content": "out-of-cell", "keep-with-next": true}
-", 1)
-
 cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
-set DOCUMENT="test"
-unzip -o %DOCUMENT%.odt -d abc && atom abc
-unzip -o ${DOCUMENT}.odt -d abc && atom abc
+# doer
+odt-from-gsheet.bat MRA-IMS__SRS
+./odt-from-gsheet.sh MRA-IMS__SRS
 
-odt-from-gsheet.bat ayin.kaka__writings
-./odt-from-gsheet.sh ayin.kaka__writings
+# celloscope
 
-odt-from-gsheet.bat SAU-ACAS__mou-proposal
-odt-from-gsheet.bat SAU-ACAS__services-proposal__spectrum
-odt-from-gsheet.bat SAU-ACAS__services-proposal__doer
-odt-from-gsheet.bat SAU-ACAS__services-proposal__celloscope
-
-./odt-from-gsheet.sh SAU-ACAS__services-proposal__spectrum
-./odt-from-gsheet.sh SAU-ACAS__services-proposal__doer
-./odt-from-gsheet.sh SAU-ACAS__services-proposal__celloscope
-./odt-from-gsheet.sh SAU-ACAS__mou-proposal
-
+# spectrum
 odt-from-gsheet.bat PPA-2006__2019-01
 ./odt-from-gsheet.sh PPA-2006__2019-01
 
@@ -45,4 +26,7 @@ odt-from-gsheet.bat BCC-BNDA__hardware-specifications-checklist
 odt-from-gsheet.bat UDWL-PNTP__published-rfp
 ./odt-from-gsheet.sh UDWL-PNTP__published-rfp
 
-unzip -o abc.odt -d abc && atom abc
+
+# personal
+odt-from-gsheet.bat ayin.kaka__writings
+./odt-from-gsheet.sh ayin.kaka__writings
