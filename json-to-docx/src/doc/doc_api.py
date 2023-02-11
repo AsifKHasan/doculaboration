@@ -11,7 +11,7 @@ from helper.logger import *
 #   ----------------------------------------------------------------------------------------------------------------
 #   docx (not oo section, gsheet section) objects wrappers
 #   ----------------------------------------------------------------------------------------------------------------
- 
+
 ''' Docx section base object
 '''
 class DocxSectionBase(object):
