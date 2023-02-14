@@ -42,6 +42,7 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
 
+        self.background_image = self.section_prop['background_image']
 
         self.document_index = self.section_meta['document-index']
         self.document_name = self.section_meta['document-name']
@@ -138,6 +139,10 @@ class OdtSectionBase(object):
     ''' generates the odt code
     '''
     def section_to_odt(self):
+        # TODO: background image if any
+        if self.background_image != '':
+            pass
+
         if self.master_page and self.page_layout:
             self.process_header_footer(self.master_page, self.page_layout)
 

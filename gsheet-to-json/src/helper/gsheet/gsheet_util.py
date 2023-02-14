@@ -51,7 +51,7 @@ def worksheet_exists(sheet, ws_title):
 
 
 
-def download_image(image_formula, tmp_dir, row_height):
+def download_image_from_formula(image_formula, tmp_dir, row_height):
     '''
         image_formula liiks like
         "http://documents.biasl.net/data/projects/rhd/filling-station-367x221.png", 3'\
@@ -152,7 +152,7 @@ def download_image(image_formula, tmp_dir, row_height):
 def download_file_from_web(url, tmp_dir):
     file_url = url.strip()
     file_ext = file_url[-4:]
-    if file_ext in ['.pdf', '.png', '.jpg']:
+    if not file_ext in ['.pdf', '.png', '.jpg']:
         error(f".... url {file_url} is NOT a pdf/png/jpg file")
         return None
 
@@ -238,3 +238,16 @@ def read_web_content(web_url):
     except:
         error(f".... could not read content from url: {web_url}")
         return None
+
+
+
+def download_image(url, tmp_dir):
+    data = None
+    if url.startswith('http'):
+        # the file url is a normal web url
+        data = download_file_from_web(url=url, tmp_dir=tmp_dir)
+
+    else:
+        warn(f"the url {url} is not a web url")
+
+    return data

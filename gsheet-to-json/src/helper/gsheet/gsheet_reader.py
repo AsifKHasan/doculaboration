@@ -29,7 +29,7 @@ def process_gsheet(context, gsheet, parent, current_document_index):
     ws_title = context['index-worksheet']
     ws = gsheet.worksheet('title', ws_title)
 
-    toc_list = ws.get_values(start='A3', end=f"X{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
+    toc_list = ws.get_values(start='A3', end=f"Y{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
     section_index = 0
@@ -101,9 +101,10 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'different-firstpage'   : True if toc[12] == "Yes" else False,
             'override-header'       : True if toc[19] == "Yes" else False,
             'override-footer'       : True if toc[20] == "Yes" else False,
-            'responsible'           : toc[21],
-            'reviewer'              : toc[22],
-            'status'                : toc[23],
+            'background-image'      : toc[21].strip(),
+            'responsible'           : toc[22].strip(),
+            'reviewer'              : toc[23].strip(),
+            'status'                : toc[24].strip(),
         },
         'header-odd'            : get_worksheet_link(toc[14]),
         'header-even'           : get_worksheet_link(toc[15]),
@@ -265,6 +266,14 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
 
     section_meta['different-odd-even-pages'] = different_odd_even_pages
+
+    # process 'background-image'
+    if section_prop['background-image'] != '':
+        bg_dict = download_image(url=section_prop['background-image'], tmp_dir=context['tmp-dir'])
+        if bg_dict:
+            section_prop['background-image'] = bg_dict['file-path']
+        else:
+            section_prop['background-image'] = ''
 
     # import and use the specific processor
     if section_prop['link'] == '' or section_prop['link'] is None:

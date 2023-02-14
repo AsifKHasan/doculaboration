@@ -52,7 +52,7 @@ def process(gsheet, section_data, context, current_document_index):
                         m = re.match('=IMAGE\((?P<name>.+)\)', formulaValue, re.IGNORECASE)
                         if m and m.group('name') is not None:
                             row_height = worksheet_data['data'][0]['rowMetadata'][row]['pixelSize']
-                            result = download_image(m.group('name'), context['tmp-dir'], row_height)
+                            result = download_image_from_formula(m.group('name'), context['tmp-dir'], row_height)
                             if result:
                                 worksheet_data['data'][0]['rowData'][row]['values'][val]['userEnteredValue']['image'] = result
 
