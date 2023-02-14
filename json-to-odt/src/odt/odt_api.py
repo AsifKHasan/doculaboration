@@ -42,7 +42,7 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
 
-        self.background_image = self.section_prop['background_image']
+        self.background_image = self.section_prop['background-image']
 
         self.document_index = self.section_meta['document-index']
         self.document_name = self.section_meta['document-name']
@@ -61,7 +61,7 @@ class OdtSectionBase(object):
         self.master_page_name = f"mp-{self.section_id}"
         self.page_layout_name = f"pl-{self.section_id}"
 
-        self.master_page = create_master_page(self._odt, self._config['page-specs'], self.master_page_name, self.page_layout_name, self.page_spec_name, self.margin_spec_name, self.orientation)
+        self.master_page = create_master_page(self._odt, self._config['page-specs'], self.master_page_name, self.page_layout_name, self.page_spec_name, self.margin_spec_name, self.orientation, self.background_image)
         self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
         # if it is the very first section, change the page-layout of the *Standard* master-page

@@ -56,6 +56,26 @@ def section_list_to_odt(section_list, config):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
+''' background-image style
+    <style:background-image
+        xlink:href="Pictures/10000001000007D0000007D0EF304D419C6347C7.png"
+        xlink:type="simple" xlink:actuate="onLoad" />
+'''
+def create_background_image_style(odt, picture_path):
+    background_image_style = None
+
+    # first the image to be added into the document
+    href = odt.addPicture(picture_path)
+    if href:
+        background_image_style_attributes = {'href': href}
+        background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)
+    
+    else:
+        warn(f"image {picture_path} could not be added into the document")
+
+    return background_image_style
+
+
 ''' graphic-style
     <style:style style:name="fr1" style:family="graphic" style:parent-style-name="Graphics">
       <style:graphic-properties style:wrap="none" style:vertical-pos="top" style:vertical-rel="paragraph" style:horizontal-pos="center" style:horizontal-rel="page" style:mirror="none" fo:clip="rect(0in, 0in, 0in, 0in)" draw:luminance="0%" draw:contrast="0%" draw:red="0%" draw:green="0%" draw:blue="0%" draw:gamma="100%" draw:color-inversion="false" draw:image-opacity="100%" draw:color-mode="standard" draw:wrap-influence-on-position="once-concurrent" loext:allow-overlap="true"/>
@@ -103,7 +123,7 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
         draw_frame.addElement(draw_image)
 
     else:
-        warn(f"image {picture_path} copuld not be added into the document")
+        warn(f"image {picture_path} could not be added into the document")
 
     return draw_frame
 
@@ -712,7 +732,7 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
 
 ''' create (section-specific) page-layout
 '''
-def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation):
+def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
     # create one
     page_layout = style.PageLayout(name=page_layout_name)
     odt.automaticstyles.addElement(page_layout)
@@ -729,7 +749,16 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
     marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
     # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
-    page_layout.addElement(style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation))
+    
+    page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation)
+
+    # background-image
+    if background_image_path != '':
+        background_image_style = create_background_image_style(odt, background_image_path)
+        if background_image_style:
+            page_layout_properties.addElement(background_image_style)
+
+    page_layout.addElement(page_layout_properties)
 
     return page_layout
 
@@ -738,9 +767,9 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation):
+def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
     # create one, first get/create the page-layout
-    page_layout = create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation)
+    page_layout = create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path)
     master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
     odt.masterstyles.addElement(master_page)
 
