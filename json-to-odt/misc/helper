@@ -1,6 +1,13 @@
 cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
+./odt-from-gsheet.sh doculaboration__test-gsheet
+unzip doculaboration__test-gsheet.odt -d test1
+
+pushd test1
+zip -r ../test1.odt .
+popd
+
 # doer
 odt-from-gsheet.bat MRA-IMS__SRS
 ./odt-from-gsheet.sh MRA-IMS__SRS

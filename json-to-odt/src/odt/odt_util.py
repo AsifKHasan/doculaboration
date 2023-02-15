@@ -13,6 +13,7 @@ from pathlib import Path
 from odf import style, text, draw, table
 from odf.element import Element
 from namespaces import MATHNS
+from odf.namespaces import DRAWNS
 
 from xml.dom.minidom import parseString
 from xml.dom import Node
@@ -60,6 +61,15 @@ def section_list_to_odt(section_list, config):
     <style:background-image
         xlink:href="Pictures/10000001000007D0000007D0EF304D419C6347C7.png"
         xlink:type="simple" xlink:actuate="onLoad" />
+
+    style:page-layout -> style:page-layout-properties
+        draw:fill-image-width="0cm" 
+        draw:fill-image-height="0cm" 
+        draw:fill-image-ref-point-x="0%" 
+        draw:fill-image-ref-point-y="0%"
+        draw:fill-image-ref-point="center" 
+        draw:tile-repeat-offset="0% vertical"
+
 '''
 def create_background_image_style(odt, picture_path):
     background_image_style = None
@@ -67,7 +77,8 @@ def create_background_image_style(odt, picture_path):
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
     if href:
-        background_image_style_attributes = {'href': href}
+        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center', 'repeat': 'tile', }
+        # background_image_style_attributes = {'href': href}
         background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)
     
     else:
@@ -731,6 +742,12 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
 
 
 ''' create (section-specific) page-layout
+        fillimagewidth = '0cm'
+        fillimageheight = '0cm'
+        fillimagerefpointx = '0%'
+        fillimagerefpointy = '0%'
+        fillimagerefpoint = 'center'
+        tilerepeatoffset = '0% vertical'
 '''
 def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
     # create one
@@ -750,13 +767,38 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
     # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
     
-    page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation)
-
+    page_layout_properties = None
     # background-image
     if background_image_path != '':
         background_image_style = create_background_image_style(odt, background_image_path)
         if background_image_style:
+            fillimagewidth = '100%'
+            fillimageheight = '100%'
+            fillimagerefpointx = '0%'
+            fillimagerefpointy = '0%'
+            fillimagerefpoint = 'center'
+            tilerepeatoffset = '0% vertical'
+
+            # page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, fillimagewidth=fillimagewidth, fillimageheight=fillimageheight, fillimagerefpointx=fillimagerefpointx, fillimagerefpointy=fillimagerefpointy, fillimagerefpoint=fillimagerefpoint, tilerepeatoffset=tilerepeatoffset)
+            page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, 
+                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, 
+                                    # fillimagewidth=fillimagewidth, 
+                                    # fillimageheight=fillimageheight, 
+                                    # fillimagerefpointx=fillimagerefpointx, 
+                                    # fillimagerefpointy=fillimagerefpointy, 
+                                    # fillimagerefpoint=fillimagerefpoint, 
+                                    # tilerepeatoffset=tilerepeatoffset
+                                    )
             page_layout_properties.addElement(background_image_style)
+
+            # # background_image specific page-layout-properties
+            page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
+
+            for attr_name, attr_value in page_layout_attrs.items():
+                page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
+    
+    if not page_layout_properties:
+        page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation)
 
     page_layout.addElement(page_layout_properties)
 
