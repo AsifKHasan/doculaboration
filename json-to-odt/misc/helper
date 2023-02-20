@@ -2,7 +2,7 @@ cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
 ./odt-from-gsheet.sh doculaboration__test-gsheet
-unzip doculaboration__test-gsheet.odt -d test1
+unzip doculaboration__test-gsheet.odt -d new-test
 
 pushd test1
 zip -r ../test1.odt .

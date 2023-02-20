@@ -711,6 +711,11 @@ class Cell(object):
             if 'userEnteredFormat' in self.value:
                 self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
                 self.is_empty = False
+
+                # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
+                if not 'backgroundColor' in self.value.get('userEnteredFormat'):
+                    self.effective_format.bgcolor = None
+
             else:
                 self.user_entered_format = None
                 self.is_empty = True
