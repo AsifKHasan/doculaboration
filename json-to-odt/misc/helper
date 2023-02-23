@@ -4,36 +4,29 @@ cd /home/asif/projects/asif@github/doculaboration
 ./odt-from-gsheet.sh doculaboration__test-gsheet
 unzip doculaboration__test-gsheet.odt -d new-test
 
-pushd test1
-zip -r ../test1.odt .
-popd
+pushd test1 && zip -r ../test1.odt . && popd
+pushd test1 ; zip -r ../test1.odt . ; popd
+
 
 # doer
 odt-from-gsheet.bat MRA-IMS__SRS
 ./odt-from-gsheet.sh MRA-IMS__SRS
 
+
 # celloscope
 
+
 # spectrum
+odt-from-gsheet.bat BD-Army-ROV__published-RFP
+./odt-from-gsheet.sh BD-Army-ROV__published-RFP
+
+
+# personal
 odt-from-gsheet.bat PPA-2006__2019-01
 ./odt-from-gsheet.sh PPA-2006__2019-01
 
 odt-from-gsheet.bat PPR-2008__2019-01
 ./odt-from-gsheet.sh PPR-2008__2019-01
 
-odt-from-gsheet.bat Tasnim.Kabir.Ratul__profile
-./odt-from-gsheet.sh Tasnim.Kabir.Ratul__profile
-
-odt-from-gsheet.bat BNDA__standards
-./odt-from-gsheet.sh BNDA__standards
-
-odt-from-gsheet.bat BCC-BNDA__hardware-specifications-checklist
-./odt-from-gsheet.sh BCC-BNDA__hardware-specifications-checklist
-
-odt-from-gsheet.bat UDWL-PNTP__published-rfp
-./odt-from-gsheet.sh UDWL-PNTP__published-rfp
-
-
-# personal
 odt-from-gsheet.bat ayin.kaka__writings
 ./odt-from-gsheet.sh ayin.kaka__writings
