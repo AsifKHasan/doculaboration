@@ -20,6 +20,9 @@ odt-from-gsheet.bat MRA-IMS__SRS
 odt-from-gsheet.bat BD-Army-ROV__published-RFP
 ./odt-from-gsheet.sh BD-Army-ROV__published-RFP
 
+odt-from-gsheet.bat SCOTT__development-financials
+./odt-from-gsheet.sh SCOTT__development-financials
+
 
 # personal
 odt-from-gsheet.bat PPA-2006__2019-01
