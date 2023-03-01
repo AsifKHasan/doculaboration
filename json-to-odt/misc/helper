@@ -24,6 +24,11 @@ odt-from-gsheet.bat SCOTT__development-financials
 ./odt-from-gsheet.sh SCOTT__development-financials
 
 
+# SSCL
+odt-from-gsheet.bat SSCL__product-pricing-model
+./odt-from-gsheet.sh SSCL__product-pricing-model
+
+
 # personal
 odt-from-gsheet.bat PPA-2006__2019-01
 ./odt-from-gsheet.sh PPA-2006__2019-01
