@@ -71,7 +71,7 @@ class DocxSectionBase(object):
 
 
         # create or get the docx section
-        self.docx_section, new_section = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages)
+        self.docx_section, new_section = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=self.background_image)
 
 
         # headers and footers

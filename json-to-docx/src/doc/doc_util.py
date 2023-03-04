@@ -626,7 +626,7 @@ def create_index(doc, index_type):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages):
+def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
@@ -678,6 +678,18 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# get the actual width
 	actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
+
+	# TODO: background-image
+	if background_image_path != '':
+		# get the current/last paragraph
+		p = doc.paragraphs[-1]
+
+		# add a run
+		r = p.add_run()
+
+		# image
+		# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
+		shape = r.add_picture(image_path_or_stream=background_image_path)
 
 
 	return docx_section, new_section
