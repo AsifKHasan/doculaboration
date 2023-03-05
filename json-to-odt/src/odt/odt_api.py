@@ -1631,6 +1631,7 @@ class RgbColor(object):
         return False
 
 
+
 ''' gsheet cell padding object wrapper
 '''
 class Padding(object):

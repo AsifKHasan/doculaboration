@@ -3,10 +3,10 @@ cd /home/asif/projects/asif@github/doculaboration
 
 ./odt-from-gsheet.sh doculaboration__test-gsheet
 
-unzip test.docx -d test
+unzip test-current.docx -d test-current
 unzip test-bg.docx -d test-bg
 
-pushd test && zip -r ..\test.docx . && popd
+pushd test-bg && zip -r ..\test-bg-changed.docx . && popd
 pushd test1 ; zip -r ../test-bg.odt . ; popd
 
 
@@ -14,7 +14,7 @@ pushd test1 ; zip -r ../test-bg.odt . ; popd
 odt-from-gsheet.bat MRA-IMS__SRS
 ./odt-from-gsheet.sh MRA-IMS__SRS
 
-
+ 
 # celloscope
 
 

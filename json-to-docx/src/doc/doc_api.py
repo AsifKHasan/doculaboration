@@ -712,8 +712,15 @@ class Cell(object):
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
+                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
                 self.is_empty = False
+
+                # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
+                if 'backgroundColor' in self.value.get('userEnteredFormat'):
+                    self.effective_format.bgcolor = self.user_entered_format.bgcolor
+
             else:
+                self.user_entered_format = None
                 self.is_empty = True
 
 
@@ -1199,6 +1206,15 @@ class CellFormat(object):
     ''' constructor
     '''
     def __init__(self, format_dict):
+        self.bgcolor = None
+        self.borders = None
+        self.padding = None
+        self.halign = None
+        self.valign = None
+        self.text_format = None
+        self.wrapping = None
+        self.bgcolor_style = None
+
         if format_dict:
             self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
             self.borders = Borders(format_dict.get('borders'))
@@ -1207,14 +1223,10 @@ class CellFormat(object):
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
-        else:
-            self.bgcolor = None
-            self.borders = None
-            self.padding = None
-            self.halign = None
-            self.valign = None
-            self.text_format = None
-            self.wrapping = None
+
+            bgcolor_style_dict = format_dict.get('backgroundColorStyle')
+            if bgcolor_style_dict:
+                self.bgcolor_style = RgbColor(bgcolor_style_dict.get('rgbColor'))
 
 
     ''' attributes dict for TableCellProperties
@@ -1228,11 +1240,15 @@ class CellFormat(object):
         if self.valign:
             attributes['verticalalign'] = self.valign.valign
 
-        if self.bgcolor:
-            attributes['backgroundcolor'] = self.bgcolor.value()
-
         if self.wrapping:
             attributes['wrapoption'] = self.wrapping.wrapping
+
+        if self.bgcolor:
+            if self.bgcolor_style:
+                if not self.bgcolor_style.is_white():
+                    attributes['backgroundcolor'] = self.bgcolor_style.value()
+            else:
+                attributes['backgroundcolor'] = self.bgcolor.value()
 
         more_attributes = {}
         if self.borders and self.padding:
@@ -1455,6 +1471,15 @@ class RgbColor(object):
     '''
     def value(self):
         return '#' + ''.join('{:02x}'.format(a) for a in [self.red, self.green, self.blue])
+
+
+    ''' is the color white
+    '''
+    def is_white(self):
+        if self.red == 255 and self.green == 255 and self.blue == 255:
+            return True
+        
+        return False
 
 
 
