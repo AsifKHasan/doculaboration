@@ -10,6 +10,7 @@ import random
 import string
 import importlib
 
+from pprint import pprint
 from pathlib import Path
 from copy import deepcopy
 
@@ -364,6 +365,15 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 
 
+''' remove a paragraph
+'''
+def delete_paragraph(paragraph):
+    p = paragraph._element
+    p.getparent().remove(p)
+    p._p = p._element = None
+	
+	
+
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
@@ -681,18 +691,165 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		# get the current/last paragraph
-		p = doc.paragraphs[-1]
-
-		# add a run
-		r = p.add_run()
-
-		# image
-		# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
-		shape = r.add_picture(image_path_or_stream=background_image_path)
-
+		create_page_background(doc=doc, background_image_path=background_image_path)
 
 	return docx_section, new_section
+
+
+
+''' create page background
+	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0"
+        relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
+        allowOverlap="1">
+        <wp:simplePos x="0" y="0" />
+        <wp:positionH relativeFrom="page">
+            <wp:posOffset>0</wp:posOffset>
+        </wp:positionH>
+        <wp:positionV relativeFrom="page">
+            <wp:posOffset>0</wp:posOffset>
+        </wp:positionV>
+        <wp:extent cx="7562000" cy="10689336" />
+        <wp:effectExtent l="0" t="0" r="0" b="0" />
+        <wp:wrapNone />
+        <wp:docPr id="1" name="Picture 1" />
+        <wp:cNvGraphicFramePr>
+            <a:graphicFrameLocks
+                xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+        </wp:cNvGraphicFramePr>
+        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:graphicData
+                uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic
+                    xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:nvPicPr>
+                        <pic:cNvPr id="0" name="toll-booth.jpg" />
+                        <pic:cNvPicPr />
+                    </pic:nvPicPr>
+                    <pic:blipFill>
+                        <a:blip r:embed="rId8">
+                            <a:extLst>
+                                <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+                                    <a14:useLocalDpi
+                                        xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+                                        val="0" />
+                                </a:ext>
+                            </a:extLst>
+                        </a:blip>
+                        <a:stretch>
+                            <a:fillRect />
+                        </a:stretch>
+                    </pic:blipFill>
+                    <pic:spPr>
+                        <a:xfrm>
+                            <a:off x="0" y="0" />
+                            <a:ext cx="7562000" cy="10692000" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                            <a:avLst />
+                        </a:prstGeom>
+                    </pic:spPr>
+                </pic:pic>
+            </a:graphicData>
+        </a:graphic>
+        <wp14:sizeRelH relativeFrom="margin">
+            <wp14:pctWidth>0</wp14:pctWidth>
+        </wp14:sizeRelH>
+        <wp14:sizeRelV relativeFrom="margin">
+            <wp14:pctHeight>0</wp14:pctHeight>
+        </wp14:sizeRelV>
+    </wp:anchor>
+'''
+def create_page_background(doc, background_image_path):
+	drawing_xml = '''
+	<wp:drawing>
+		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0"
+        relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
+        allowOverlap="1">
+        <wp:simplePos x="0" y="0" />
+        <wp:positionH relativeFrom="page">
+            <wp:posOffset>0</wp:posOffset>
+        </wp:positionH>
+        <wp:positionV relativeFrom="page">
+            <wp:posOffset>0</wp:posOffset>
+        </wp:positionV>
+        <wp:extent cx="7562000" cy="10689336" />
+        <wp:effectExtent l="0" t="0" r="0" b="0" />
+        <wp:wrapNone />
+        <wp:docPr id="1" name="Picture 1" />
+        <wp:cNvGraphicFramePr>
+            <a:graphicFrameLocks
+                xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+        </wp:cNvGraphicFramePr>
+        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:graphicData
+                uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic
+                    xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:nvPicPr>
+                        <pic:cNvPr id="0" name="toll-booth.jpg" />
+                        <pic:cNvPicPr />
+                    </pic:nvPicPr>
+                    <pic:blipFill>
+                        <a:blip r:embed="rId8">
+                            <a:extLst>
+                                <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+                                    <a14:useLocalDpi
+                                        xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+                                        val="0" />
+                                </a:ext>
+                            </a:extLst>
+                        </a:blip>
+                        <a:stretch>
+                            <a:fillRect />
+                        </a:stretch>
+                    </pic:blipFill>
+                    <pic:spPr>
+                        <a:xfrm>
+                            <a:off x="0" y="0" />
+                            <a:ext cx="7562000" cy="10692000" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                            <a:avLst />
+                        </a:prstGeom>
+                    </pic:spPr>
+                </pic:pic>
+            </a:graphicData>
+        </a:graphic>
+        <wp14:sizeRelH relativeFrom="margin">
+            <wp14:pctWidth>0</wp14:pctWidth>
+        </wp14:sizeRelH>
+        <wp14:sizeRelV relativeFrom="margin">
+            <wp14:pctHeight>0</wp14:pctHeight>
+        </wp14:sizeRelV>
+    </wp:anchor>
+	</wp:drawing>
+	'''
+
+	# get the current/last paragraph
+	first_para = doc.paragraphs[-1]
+	first_run = first_para.add_run()
+
+	# add a new paragraph paragraph
+	new_para = doc.add_paragraph()
+
+	# create a run
+	new_run = new_para.add_run()
+
+	# image
+	# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
+	shape = new_run.add_picture(image_path_or_stream=background_image_path)
+	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
+	
+	# remove the new-para
+	delete_paragraph(new_para)
+
+	# tweak the generated inline image
+	parser = etree.XMLParser(recover=True)
+	new_drawing_element = etree.XML(drawing_xml, parser)
+
+
+	# put the new drawing into first-run
+	first_run._r.append(new_drawing_element)
 
 
 

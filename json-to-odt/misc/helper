@@ -7,7 +7,7 @@ unzip test-current.docx -d test-current
 unzip test-bg.docx -d test-bg
 
 pushd test-bg && zip -r ..\test-bg-changed.docx . && popd
-pushd test1 ; zip -r ../test-bg.odt . ; popd
+pushd test-current ; zip -r ../test-current.docx . ; popd
 
 
 # doer
