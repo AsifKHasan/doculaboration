@@ -699,7 +699,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		create_page_background(doc=doc, background_image_path=background_image_path)
+		create_page_background(doc=doc, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches)
 
 	return docx_section, new_section
 
@@ -767,7 +767,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
         </wp14:sizeRelV>
     </wp:anchor>
 '''
-def create_page_background(doc, background_image_path):
+def create_page_background(doc, background_image_path, page_width_inches, page_height_inches):
 	drawing_xml = '''
 	<w:drawing>
 		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
@@ -778,10 +778,10 @@ def create_page_background(doc, background_image_path):
 			<wp:positionV relativeFrom="page">
 				<wp:posOffset>0</wp:posOffset>
 			</wp:positionV>
-			<wp:extent cx="7562000" cy="10689336" />
+			<wp:extent cx="{cx}" cy="{cy}" />
 			<wp:effectExtent l="0" t="0" r="0" b="0" />
 			<wp:wrapNone />
-			<wp:docPr id="1" name="Picture 1" />
+			<wp:docPr id="{doc_id}" name="{doc_name}" />
 			<wp:cNvGraphicFramePr>
 				<a:graphicFrameLocks
 					xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
@@ -792,11 +792,11 @@ def create_page_background(doc, background_image_path):
 					<pic:pic
 						xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
 						<pic:nvPicPr>
-							<pic:cNvPr id="0" name="toll-booth.jpg" />
+							<pic:cNvPr id="{image_id}" name="{image_name}" />
 							<pic:cNvPicPr />
 						</pic:nvPicPr>
 						<pic:blipFill>
-							<a:blip r:embed="rId8">
+							<a:blip r:embed="{rid}">
 							</a:blip>
 							<a:stretch>
 								<a:fillRect />
@@ -805,7 +805,7 @@ def create_page_background(doc, background_image_path):
 						<pic:spPr>
 							<a:xfrm>
 								<a:off x="0" y="0" />
-								<a:ext cx="7562000" cy="10692000" />
+								<a:ext cx="{cx}" cy="{cy}" />
 							</a:xfrm>
 							<a:prstGeom prst="rect">
 								<a:avLst />
@@ -839,13 +839,29 @@ def create_page_background(doc, background_image_path):
 	shape = new_run.add_picture(image_path_or_stream=background_image_path)
 	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
 	
-	# remove the new-para
-	delete_paragraph(new_para)
 
 	# tweak the generated inline image
 	parser = etree.XMLParser(recover=True)
-	new_drawing_element = etree.XML(drawing_xml, parser)
 
+	cx = int(EMU_PER_INCH * (page_width_inches - 0.0))
+	cy = int(EMU_PER_INCH * (page_height_inches - 0.0))
+
+	docPr = new_run._r.xpath('//wp:docPr')[0]
+	doc_id = docPr.get('id')
+	doc_name = docPr.get('name')
+	
+	cNvPr = new_run._r.xpath('//pic:cNvPr')[0]
+	image_id = cNvPr.get('id')
+	image_name = cNvPr.get('name')
+
+	blip = new_run._r.xpath('//a:blip')[0]
+	rid = blip.xpath('./@r:embed')[0]
+
+	new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
+
+
+	# remove the new-para
+	delete_paragraph(new_para)
 
 	# put the new drawing into first-run
 	first_run._r.append(new_drawing_element)
@@ -922,8 +938,7 @@ def strip_math_mode_delimeters(latex_content):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-# COLSEP = (0/72)
-# ROWSEP = (2/72)
+EMU_PER_INCH = 914500
 
 mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
 # mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
