@@ -7,14 +7,14 @@ unzip test-current.docx -d test-current
 unzip test-bg.docx -d test-bg
 
 pushd test-bg && zip -r ..\test-bg-changed.docx . && popd
-pushd test-current ; zip -r ../test-current.docx . ; popd
+pushd test-current && zip -r ..\test-current.docx . && popd
 
 
 # doer
 odt-from-gsheet.bat MRA-IMS__SRS
 ./odt-from-gsheet.sh MRA-IMS__SRS
 
- 
+
 # celloscope
 
 

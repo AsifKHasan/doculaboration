@@ -98,6 +98,7 @@ def create_table(container, num_rows, num_cols, container_width=None):
 	return tbl
 
 
+
 ''' set repeat table row on every new page
 '''
 def set_repeat_table_header(row):
@@ -107,6 +108,7 @@ def set_repeat_table_header(row):
 	tblHeader.set(qn('w:val'), "true")
 	trPr.append(tblHeader)
 	return row
+
 
 
 ''' format container (paragraph or cell)
@@ -141,6 +143,7 @@ def format_container(container, attributes, it_is_a_table_cell):
 			container.alignment = attributes['textalign']
 
 
+
 ''' set table-cell borders
 '''
 def set_cell_border(cell: table._Cell, borders):
@@ -169,6 +172,7 @@ def set_cell_border(cell: table._Cell, borders):
 			for key in ["sz", "val", "color", "space", "shadow"]:
 				if key in edge_data:
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
 
 
 ''' set paragraph borders
@@ -203,6 +207,7 @@ def set_paragraph_border(paragraph, borders):
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
+
 ''' set table-cell bgcolor
 '''
 def set_cell_bgcolor(cell: table._Cell, color):
@@ -210,11 +215,13 @@ def set_cell_bgcolor(cell: table._Cell, color):
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
 
+
 ''' set paragraph bgcolor
 '''
 def set_paragraph_bgcolor(paragraph, color):
 	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
 	paragraph._p.get_or_add_pPr().append(shading_elm_1)
+
 
 
 ''' set table-cell borders
@@ -232,6 +239,7 @@ def set_cell_padding(cell: table._Cell, padding):
             tcMar.append(node)
 
     tcPr.append(tcMar)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -370,7 +378,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 def delete_paragraph(paragraph):
     p = paragraph._element
     p.getparent().remove(p)
-    p._p = p._element = None
+    # p._p = p._element = None
 	
 	
 
@@ -761,68 +769,59 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 '''
 def create_page_background(doc, background_image_path):
 	drawing_xml = '''
-	<wp:drawing>
-		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0"
-        relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
-        allowOverlap="1">
-        <wp:simplePos x="0" y="0" />
-        <wp:positionH relativeFrom="page">
-            <wp:posOffset>0</wp:posOffset>
-        </wp:positionH>
-        <wp:positionV relativeFrom="page">
-            <wp:posOffset>0</wp:posOffset>
-        </wp:positionV>
-        <wp:extent cx="7562000" cy="10689336" />
-        <wp:effectExtent l="0" t="0" r="0" b="0" />
-        <wp:wrapNone />
-        <wp:docPr id="1" name="Picture 1" />
-        <wp:cNvGraphicFramePr>
-            <a:graphicFrameLocks
-                xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
-        </wp:cNvGraphicFramePr>
-        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-            <a:graphicData
-                uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                <pic:pic
-                    xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                    <pic:nvPicPr>
-                        <pic:cNvPr id="0" name="toll-booth.jpg" />
-                        <pic:cNvPicPr />
-                    </pic:nvPicPr>
-                    <pic:blipFill>
-                        <a:blip r:embed="rId8">
-                            <a:extLst>
-                                <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-                                    <a14:useLocalDpi
-                                        xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
-                                        val="0" />
-                                </a:ext>
-                            </a:extLst>
-                        </a:blip>
-                        <a:stretch>
-                            <a:fillRect />
-                        </a:stretch>
-                    </pic:blipFill>
-                    <pic:spPr>
-                        <a:xfrm>
-                            <a:off x="0" y="0" />
-                            <a:ext cx="7562000" cy="10692000" />
-                        </a:xfrm>
-                        <a:prstGeom prst="rect">
-                            <a:avLst />
-                        </a:prstGeom>
-                    </pic:spPr>
-                </pic:pic>
-            </a:graphicData>
-        </a:graphic>
-        <wp14:sizeRelH relativeFrom="margin">
-            <wp14:pctWidth>0</wp14:pctWidth>
-        </wp14:sizeRelH>
-        <wp14:sizeRelV relativeFrom="margin">
-            <wp14:pctHeight>0</wp14:pctHeight>
-        </wp14:sizeRelV>
-    </wp:anchor>
-	</wp:drawing>
+	<w:drawing>
+		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+			<wp:simplePos x="0" y="0" />
+			<wp:positionH relativeFrom="page">
+				<wp:posOffset>0</wp:posOffset>
+			</wp:positionH>
+			<wp:positionV relativeFrom="page">
+				<wp:posOffset>0</wp:posOffset>
+			</wp:positionV>
+			<wp:extent cx="7562000" cy="10689336" />
+			<wp:effectExtent l="0" t="0" r="0" b="0" />
+			<wp:wrapNone />
+			<wp:docPr id="1" name="Picture 1" />
+			<wp:cNvGraphicFramePr>
+				<a:graphicFrameLocks
+					xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+			</wp:cNvGraphicFramePr>
+			<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+				<a:graphicData
+					uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:pic
+						xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+						<pic:nvPicPr>
+							<pic:cNvPr id="0" name="toll-booth.jpg" />
+							<pic:cNvPicPr />
+						</pic:nvPicPr>
+						<pic:blipFill>
+							<a:blip r:embed="rId8">
+							</a:blip>
+							<a:stretch>
+								<a:fillRect />
+							</a:stretch>
+						</pic:blipFill>
+						<pic:spPr>
+							<a:xfrm>
+								<a:off x="0" y="0" />
+								<a:ext cx="7562000" cy="10692000" />
+							</a:xfrm>
+							<a:prstGeom prst="rect">
+								<a:avLst />
+							</a:prstGeom>
+						</pic:spPr>
+					</pic:pic>
+				</a:graphicData>
+			</a:graphic>
+			<wp14:sizeRelH relativeFrom="margin">
+				<wp14:pctWidth>0</wp14:pctWidth>
+			</wp14:sizeRelH>
+			<wp14:sizeRelV relativeFrom="margin">
+				<wp14:pctHeight>0</wp14:pctHeight>
+			</wp14:sizeRelV>
+    	</wp:anchor>
+	</w:drawing>
 	'''
 
 	# get the current/last paragraph
