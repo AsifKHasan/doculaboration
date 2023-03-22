@@ -16,6 +16,9 @@ odt-from-gsheet.bat MRA-IMS__SRS
 
 
 # celloscope
+odt-from-gsheet.bat RJSC-USAID-FFBT__volume-1__technical-proposal
+./odt-from-gsheet.sh RJSC-USAID-FFBT__volume-1__technical-proposal
+
 odt-from-gsheet.bat NBR-USAID-FFBT__published-rfp
 ./odt-from-gsheet.sh NBR-USAID-FFBT__published-rfp
 
