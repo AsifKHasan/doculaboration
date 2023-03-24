@@ -1,18 +1,3 @@
-latex-from-gsheet.bat PPA-2006__2019-01
-./latex-from-gsheet.sh PPA-2006__2019-01
-
-latex-from-gsheet.bat ayin.kaka__writings
-./latex-from-gsheet.sh ayin.kaka__writings
-
-
-latex-from-gsheet.bat anannita__college-physics
-./latex-from-gsheet.sh anannita__college-physics
-
-
-latex-from-gsheet.bat spectrum__résumé-index
-./latex-from-gsheet.sh spectrum__résumé-index
-
-
 TODO:
 1. Minipage to keep image caption and image together
 \begin{minipage}{\textwidth}

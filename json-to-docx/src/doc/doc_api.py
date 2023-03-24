@@ -1557,7 +1557,7 @@ class CellNote(object):
         self.page_numbering = None
         self.header_rows = 0
 
-        self.style = None
+        self.style = 'Normal'
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
@@ -1602,7 +1602,7 @@ class CellNote(object):
                 self.table_spacing = False
 
             # style
-            self.style = note_dict.get('style')
+            self.style = note_dict.get('style', 'Normal')
             if self.style is not None:
                 outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
                 if outline_level_object:
@@ -1618,6 +1618,10 @@ class CellNote(object):
                 if not isinstance(self.footnotes, dict):
                     self.footnotes = {}
                     warn(f".... found footnotes, but it is not a valid dictionary")
+
+        else:
+            # even if there is no note explicitly specified, we assume that style=Normal is specified
+            self.style = 'Normal'
 
 
 
