@@ -1,0 +1,21 @@
+cd D:\projects\asif@github\doculaboration
+cd /home/asif/projects/asif@github/doculaboration
+
+./odt-from-gsheet.sh doculaboration__test-gsheet
+
+unzip test-current.docx -d test-current
+unzip test-bg.docx -d test-bg
+
+pushd test-bg && zip -r ..\test-bg-changed.docx . && popd
+pushd test-current && zip -r ..\test-current.docx . && popd
+
+
+# personal
+odt-from-gsheet.bat PPA-2006__2019-01
+./odt-from-gsheet.sh PPA-2006__2019-01
+
+odt-from-gsheet.bat PPR-2008__2019-01
+./odt-from-gsheet.sh PPR-2008__2019-01
+
+odt-from-gsheet.bat ayin.kaka__writings
+./odt-from-gsheet.sh ayin.kaka__writings

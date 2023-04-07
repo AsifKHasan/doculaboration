@@ -1,0 +1,3 @@
+# SSCL
+odt-from-gsheet.bat SSCL__product-pricing-model
+./odt-from-gsheet.sh SSCL__product-pricing-model

@@ -1,0 +1,3 @@
+# doer
+odt-from-gsheet.bat MRA-IMS__SRS
+./odt-from-gsheet.sh MRA-IMS__SRS
