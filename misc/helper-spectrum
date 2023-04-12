@@ -1,3 +1,12 @@
 # spectrum
-odt-from-gsheet.bat UDC__Bangabandhu-Bridge-Toll__technical-proposal
-./odt-from-gsheet.sh UDC__Bangabandhu-Bridge-Toll__technical-proposal
+./odt-from-gsheet.sh NBR-USAID-FFBT-APS__volume-1__technical-proposal__spectrum
+./odt-from-gsheet.sh NBR-USAID-FFBT-ARDS__volume-1__technical-proposal__spectrum
+
+./odt-from-gsheet.sh NBR-USAID-FFBT-APS__volume-2__financial-proposal__spectrum
+./odt-from-gsheet.sh NBR-USAID-FFBT-ARDS__volume-2__financial-proposal__spectrum
+
+odt-from-gsheet.bat NBR-USAID-FFBT-APS__volume-1__technical-proposal__spectrum
+odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-1__technical-proposal__spectrum
+
+odt-from-gsheet.bat NBR-USAID-FFBT-APS__volume-2__financial-proposal__spectrum
+odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-2__financial-proposal__spectrum
