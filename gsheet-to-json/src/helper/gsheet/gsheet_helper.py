@@ -52,6 +52,7 @@ class GsheetHelper(object):
         self._context['index-worksheet'] = config['index-worksheet']
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
         self._context['gsheet-read-try-count'] = config['gsheet-read-try-count']
+        self._context['gsheet-data'] = {}
 
         self.current_document_index = -1
 
@@ -77,9 +78,9 @@ class GsheetHelper(object):
 
                 # optimization - read the full gsheet
                 info(f"reading gsheet : [{gsheet_title}]")
-                self._context['gsheet-data'] = self.get_gsheet_data(gsheet)
+                self._context['gsheet-data'][gsheet_title] = self.get_gsheet_data(gsheet)
                 info(f"read    gsheet : [{gsheet_title}]")
-                
+
                 break
 
             except:
@@ -115,4 +116,3 @@ class GsheetHelper(object):
         response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
 
         return response
-

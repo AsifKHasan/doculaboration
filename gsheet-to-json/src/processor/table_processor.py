@@ -24,10 +24,10 @@ def process(gsheet, section_data, context, current_document_index):
         return context['worksheet-cache'][gsheet.title][ws_title]
 
     info(f"processing ... {gsheet.title} : {ws_title}")
-    
+
     # get the worksheet data from the context['gsheet-data']
-    if ws_title in context['gsheet-data']:
-        worksheet_data = context['gsheet-data'][ws_title]
+    if ws_title in context['gsheet-data'][gsheet.title]:
+        worksheet_data = context['gsheet-data'][gsheet.title][ws_title]
     else:
         warn(f".. {ws_title} not found")
         return {}
