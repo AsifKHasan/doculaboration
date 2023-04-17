@@ -10,3 +10,6 @@ odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-1__technical-proposal__spectrum
 
 odt-from-gsheet.bat NBR-USAID-FFBT-APS__volume-2__financial-proposal__spectrum
 odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-2__financial-proposal__spectrum
+
+docx-from-gsheet.bat RHD-TMC__EoI
+docx-from-gsheet.bat RHD-TMC__eoi__submission
