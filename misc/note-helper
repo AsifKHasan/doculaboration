@@ -1,3 +1,8 @@
+{"repeat-rows": 1}
+{"style": "Figure", "content": "free", "keep-with-next": true}
+{"style": "Table", "content": "free", "keep-with-next": true}
+{"content": "free"}
+
 {
   "new-page": true,
   "keep-with-next": true,
@@ -6,14 +11,13 @@
   "style": "Figure",
   "style": "Table",
 
-  "content": "out-of-cell",
+  "content": "free",
   "table-spacing": "no-spacing",
   "repeat-rows": 1,
 
   "page-number": "short",
   "page-number": "long",
 }
-
 
 {
   "footnote": {
