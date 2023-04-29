@@ -4,3 +4,11 @@ docx-from-gsheet.bat RHD-TMC__EoI__e-gp-notice
 docx-from-gsheet.bat RHD-TMC__terms-of-reference__(internal)
 
 docx-from-gsheet.bat RHD-TMC__EoI__submission
+docx-from-gsheet.bat RHD-TMC__EoI__submission__appendix-A
+docx-from-gsheet.bat RHD-TMC__EoI__submission__appendix-B
+docx-from-gsheet.bat RHD-TMC__EoI__submission__appendix-C
+
+./odt-from-gsheet.sh RHD-TMC__EoI__submission
+./odt-from-gsheet.sh RHD-TMC__EoI__submission__appendix-A
+./odt-from-gsheet.sh RHD-TMC__EoI__submission__appendix-B
+./odt-from-gsheet.sh RHD-TMC__EoI__submission__appendix-C
