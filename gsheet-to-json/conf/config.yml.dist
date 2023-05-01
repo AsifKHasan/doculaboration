@@ -4,10 +4,10 @@
 index-worksheet:         "-toc"
 
 # if gsheet read times out how many seconds to wait before trying the next read
-gsheet-read-wait-seconds:   30
+gsheet-read-wait-seconds:   70
 
 # if gsheet read times out how many times the read should be tried in total
-gsheet-read-try-count:      20
+gsheet-read-try-count:      5
 
 dirs:
   # all outputs and temporary downloads go here
