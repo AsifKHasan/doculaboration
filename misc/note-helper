@@ -2,7 +2,7 @@
 {"style": "Figure", "content": "free", "keep-with-next": true}
 {"style": "Table", "content": "free", "keep-with-next": true}
 {"content": "free"}
-
+{"new-page": true}
 {
   "new-page": true,
   "keep-with-next": true,
