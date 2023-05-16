@@ -18,7 +18,7 @@ page-spec:
 
 margin-spec:
   wide:
-    left  : 0.50
+    left  : 1.00
     right : 0.50
     top   : 1.00
     bottom: 1.00
@@ -36,7 +36,7 @@ margin-spec:
       header  : 0.25
       footer  : 0.25
   narrow:
-    left  : 0.50
+    left  : 1.00
     right : 0.50
     top   : 0.25
     bottom: 0.25
