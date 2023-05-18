@@ -9,21 +9,22 @@ from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
 from helper.gsheet.gsheet_util import *
 
-def process(gsheet, section_data, context, current_document_index):
+def process(gsheet, section_data, context, current_document_index, nesting_level):
     pdf_title = section_data['section-prop']['link']
     pdf_url = section_data['section-prop']['link-target']
-    debug(f"processing file ... {pdf_title} : {pdf_url}")
 
     if pdf_url.startswith('https://drive.google.com/file/d/'):
         # the file is from gdrive
-        data = download_file_from_drive(pdf_url, context['tmp-dir'], context['drive'])
+        info(f"processing drive file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
+        data = download_file_from_drive(pdf_url, context['tmp-dir'], context['drive'], nesting_level=nesting_level+1)
 
     elif pdf_url.startswith('http'):
         # the file url is a normal web url
-        data = download_file_from_web(pdf_url, context['tmp-dir'])
+        info(f"processing web file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
+        data = download_file_from_web(pdf_url, context['tmp-dir'], nesting_level=nesting_level+1)
 
     else:
-        warn(f"the url {pdf_url} is neither a web nor a gdrive url")
+        warn(f"the url {pdf_url} is neither a web nor a gdrive url", nesting_level=nesting_level+1)
         data = None
 
     # extract pages from pdf as images
@@ -34,7 +35,7 @@ def process(gsheet, section_data, context, current_document_index):
         if file_name.endswith('pdf'):
             file_name = file_name[:-4]
 
-        dpi = 96
+        dpi = 72
         size = None
 
         # if it is a pdf
@@ -43,7 +44,7 @@ def process(gsheet, section_data, context, current_document_index):
                 images = pdf2image.convert_from_path(file_path, fmt='png', dpi=dpi, size=size, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
             except Exception as e:
                 print(e)
-                error(f".... could not convert {pdf_name} to image(s)")
+                error(f".... could not convert {file_path} to image(s)", nesting_level=nesting_level)
 
         # if it is an image
         if file_type in ['image/png', 'image/jpeg']:
@@ -56,7 +57,7 @@ def process(gsheet, section_data, context, current_document_index):
             if 'dpi' in im.info:
                 dpi_x, dpi_y = im.info['dpi']
             else:
-                dpi_x, dpi_y = 96, 96
+                dpi_x, dpi_y = 72, 72
 
             width_in_inches = width / dpi_x
             height_in_inches = height / dpi_y

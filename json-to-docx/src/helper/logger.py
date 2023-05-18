@@ -1,14 +1,16 @@
+#!/usr/bin/env python3
+
 import time
 from datetime import datetime
 from termcolor import colored
 import colorama
-
+ 
 colorama.init()
 
 log_color = {
     '[ERROR]': {'color': 'red',    'highlight': None, 'attrs': ['bold']},
-    '[ WARN]':  {'color': 'yellow', 'highlight': None, 'attrs': ['bold']},
-    '[ INFO]':  {'color': 'white',  'highlight': None, 'attrs': None},
+    '[ WARN]': {'color': 'yellow', 'highlight': None, 'attrs': ['bold']},
+    '[ INFO]': {'color': 'white',  'highlight': None, 'attrs': None},
     '[DEBUG]': {'color': 'green',  'highlight': None, 'attrs': None}
 }
 
@@ -27,6 +29,9 @@ def error(msg, console=True, nesting_level=0):
 def log(level, msg, console=True, nesting_level=0):
     now = time.time()
     nesting_leader = ".." * nesting_level
+    if nesting_leader != '':
+        nesting_leader = nesting_leader + ' '
+        
     data = {'type': level, 'time': datetime.now().isoformat(), 'msg': f"{nesting_leader}{msg}"}
 
     if console:

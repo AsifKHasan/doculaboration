@@ -4,7 +4,7 @@ from helper.logger import *
 
 from googleapiclient import errors
 
-def copy_drive_file(service, origin_file_id, copy_title):
+def copy_drive_file(service, origin_file_id, copy_title, nesting_level):
     """
     Copy an existing file.
 
@@ -20,24 +20,24 @@ def copy_drive_file(service, origin_file_id, copy_title):
     try:
         return service.files().copy(fileId=origin_file_id, body=copied_file).execute()
     except(errors.HttpError, error):
-        error(f"An error occurred: {error}")
+        error(f"An error occurred: {error}", nesting_level=nesting_level)
         return None
 
 
-def download_drive_file(param, destination, context):
+def download_drive_file(param, destination, context, nesting_level):
     f = context['drive'].CreateFile(param)
     f.GetContentFile(destination)
 
 
-def read_drive_file(drive_url, context):
+def read_drive_file(drive_url, context, nesting_level):
     url = drive_url.strip()
 
     id = url.replace('https://drive.google.com/file/d/', '')
     id = id.split('/')[0]
-    # debug(f"drive file id to be read from is {id}")
+    # debug(f"drive file id to be read from is {id}", nesting_level=nesting_level)
     f = context['drive'].CreateFile({'id': id})
     if f['mimeType'] != 'text/plain':
-        warn(f"drive url {url} mime-type is {f['mimeType']} which may not be readable as text")
+        warn(f"drive url {url} mime-type is {f['mimeType']} which may not be readable as text", nesting_level=nesting_level)
 
     text = f.GetContentString()
     return text

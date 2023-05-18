@@ -61,38 +61,39 @@ class GsheetHelper(object):
 
     ''' read the gsheet
     '''
-    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None):
+    def read_gsheet(self, gsheet_title, gsheet_url=None, parent=None, nesting_level=0):
         wait_for = self._context['gsheet-read-wait-seconds']
         try_count = self._context['gsheet-read-try-count']
         gsheet = None
         for i in range(0, try_count):
             try:
                 if gsheet_url:
-                    info(f"opening gsheet with url : {gsheet_url}")
+                    gsheet_id = gsheet_id_from_url(url=gsheet_url, nesting_level=nesting_level)
+                    debug(f"opening gsheet id = {gsheet_id}", nesting_level=nesting_level)
                     gsheet = self._context['_G'].open_by_url(gsheet_url)
-                    info(f"opened  gsheet with url : {gsheet_url}")
+                    debug(f"opened  gsheet id = {gsheet_id}", nesting_level=nesting_level)
                 else:
-                    info(f"opening gsheet : {gsheet_title}")
+                    debug(f"opening gsheet : [{gsheet_title}]", nesting_level=nesting_level)
                     gsheet = self._context['_G'].open(gsheet_title)
-                    info(f"opened  gsheet : {gsheet_title}")
+                    debug(f"opened  gsheet : [{gsheet_title}]", nesting_level=nesting_level)
 
                 # optimization - read the full gsheet
-                info(f"reading gsheet : [{gsheet_title}]")
+                debug(f"reading gsheet : [{gsheet_title}]", nesting_level=nesting_level)
                 self._context['gsheet-data'][gsheet_title] = self.get_gsheet_data(gsheet)
-                info(f"read    gsheet : [{gsheet_title}]")
+                debug(f"read    gsheet : [{gsheet_title}]", nesting_level=nesting_level)
 
                 break
 
             except:
-                warn(f"gsheet {gsheet_title} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again")
+                warn(f"gsheet {gsheet_title} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again", nesting_level=nesting_level)
                 time.sleep(float(wait_for))
 
         if gsheet is None:
-            error('gsheet read request failed, quiting')
+            error('gsheet read request failed, quiting', nesting_level=nesting_level)
             sys.exit(1)
 
         self.current_document_index = self.current_document_index + 1
-        data = process_gsheet(context=self._context, gsheet=gsheet, parent=parent, current_document_index=self.current_document_index)
+        data = process_gsheet(context=self._context, gsheet=gsheet, parent=parent, current_document_index=self.current_document_index, nesting_level=nesting_level+1)
 
         return data
 

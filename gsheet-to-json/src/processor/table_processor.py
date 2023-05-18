@@ -15,7 +15,7 @@ from helper.gsheet.gsheet_util import *
 from helper.gdrive.gdrive_util import *
 
 
-def process(gsheet, section_data, context, current_document_index):
+def process(gsheet, section_data, context, current_document_index, nesting_level):
     # print(section_data)
     ws_title = section_data['section-prop']['link']
 
@@ -23,13 +23,13 @@ def process(gsheet, section_data, context, current_document_index):
     if ws_title in context['worksheet-cache'][gsheet.title]:
         return context['worksheet-cache'][gsheet.title][ws_title]
 
-    info(f"processing ... {gsheet.title} : {ws_title}")
+    info(f"processing ... [{gsheet.title}] : [{ws_title}]", nesting_level=nesting_level)
 
     # get the worksheet data from the context['gsheet-data']
     if ws_title in context['gsheet-data'][gsheet.title]:
         worksheet_data = context['gsheet-data'][gsheet.title][ws_title]
     else:
-        warn(f".. {ws_title} not found")
+        warn(f"worksheet [{ws_title}] not found", nesting_level=nesting_level)
         return {}
 
 
@@ -52,7 +52,7 @@ def process(gsheet, section_data, context, current_document_index):
                         m = re.match('=IMAGE\((?P<name>.+)\)', formulaValue, re.IGNORECASE)
                         if m and m.group('name') is not None:
                             row_height = worksheet_data['data'][0]['rowMetadata'][row]['pixelSize']
-                            result = download_image_from_formula(m.group('name'), context['tmp-dir'], row_height)
+                            result = download_image_from_formula(m.group('name'), context['tmp-dir'], row_height, nesting_level=nesting_level+1)
                             if result:
                                 worksheet_data['data'][0]['rowData'][row]['values'][val]['userEnteredValue']['image'] = result
 
@@ -60,7 +60,7 @@ def process(gsheet, section_data, context, current_document_index):
                         m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formulaValue, re.IGNORECASE)
                         if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
                             new_section_data = {'section-prop': {'link': m.group('ws_title')}}
-                            cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index)
+                            cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level+1)
 
                         # content can be a HYPERLINK/hyperlink to another gdrive file (for now we only allow text only content, that is a text file)
                         m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formulaValue, re.IGNORECASE)
@@ -69,12 +69,12 @@ def process(gsheet, section_data, context, current_document_index):
 
                             # this may be a drive file
                             if url.startswith('https://drive.google.com/file/d/'):
-                                text = read_drive_file(url, context)
+                                text = read_drive_file(url, context, nesting_level=nesting_level+1)
                                 if text is not None: cell_data['formattedValue'] = text
 
                             # or it may be a web url
                             elif url.startswith('http'):
-                                text = read_web_content(url)
+                                text = read_web_content(url, nesting_level=nesting_level+1)
                                 if text is not None: cell_data['formattedValue'] = text
 
                 val = val + 1

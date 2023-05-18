@@ -30,7 +30,7 @@ class JsonFromGsheet(object):
 		# process gsheets one by one
 		for gsheet_title in self._CONFIG['gsheets']:
 			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
-			self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title)
+			self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title, nesting_level=0)
 			self.save_json()
 
 		self.tear_down()
