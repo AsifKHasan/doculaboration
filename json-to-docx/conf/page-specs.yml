@@ -37,13 +37,13 @@ margin-spec:
       footer  : 0.25
   narrow:
     left  : 1.00
-    right : 0.50
-    top   : 0.25
-    bottom: 0.25
+    right : 0.75
+    top   : 0.40
+    bottom: 0.40
     gutter: 0
     distance:
-      header  : 0.10
-      footer  : 0.10
+      header  : 0.20
+      footer  : 0.20
   none:
     left  : 0.00
     right : 0.00
