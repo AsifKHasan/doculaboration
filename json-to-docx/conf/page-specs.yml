@@ -33,17 +33,17 @@ margin-spec:
     bottom: 0.50
     gutter: 0
     distance:
-      header  : 0.25
-      footer  : 0.25
-  narrow:
-    left  : 1.00
-    right : 0.75
-    top   : 0.40
-    bottom: 0.40
-    gutter: 0
-    distance:
       header  : 0.20
       footer  : 0.20
+  narrow:
+    left  : 0.50
+    right : 0.50
+    top   : 0.25
+    bottom: 0.25
+    gutter: 0
+    distance:
+      header  : 0.10
+      footer  : 0.10
   none:
     left  : 0.00
     right : 0.00
@@ -53,8 +53,17 @@ margin-spec:
     distance:
       header  : 0.00
       footer  : 0.00
+  book-bind:
+    left  : 1.20
+    right : 0.75
+    top   : 0.50
+    bottom: 0.50
+    gutter: 0
+    distance:
+      header  : 0.20
+      footer  : 0.20
   spectrum-letterhead:
-    left  : 1.00
+    left  : 1.20
     right : 0.50
     top   : 1.50
     bottom: 1.50
