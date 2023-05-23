@@ -62,7 +62,7 @@ margin-spec:
     distance:
       header  : 0.20
       footer  : 0.20
-  spectrum-letterhead:
+  secl-pad:
     left  : 1.20
     right : 0.50
     top   : 1.50

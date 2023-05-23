@@ -18,8 +18,8 @@ page-spec:
 
 margin-spec:
   wide:
-    left  : 0.50
-    right : 0.50
+    left  : 1.00
+    right : 1.00
     top   : 1.00
     bottom: 1.00
     gutter: 0
@@ -40,4 +40,16 @@ margin-spec:
     right : 0.00
     top   : 0.00
     bottom: 0.00
+    gutter: 0
+  book-bind:
+    left  : 1.20
+    right : 0.75
+    top   : 0.50
+    bottom: 0.50
+    gutter: 0
+  secl-pad:
+    left  : 1.20
+    right : 0.50
+    top   : 1.50
+    bottom: 1.50
     gutter: 0
