@@ -1,3 +1,4 @@
 # doer
-odt-from-gsheet.bat MRA-IMS__SRS
-./odt-from-gsheet.sh MRA-IMS__SRS
+odt-from-gsheet.bat MRA-OMS__RFP__appendix-A-resource-pool
+
+./odt-from-gsheet.sh MRA-OMS__RFP__appendix-A-resource-pool

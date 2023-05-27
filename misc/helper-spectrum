@@ -12,5 +12,10 @@ docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B
 
-Appendix A: Résumé of Proposed TMC Team Members
-Appendix B: Project Data Sheet with Completion Certificates
+Appendix A: Résumé of Proposed RAJUK ERP Team Members
+Appendix B: Résumé of Additional Technical Resources
+Appendix C: Relevant Work Experience
+
+git add -A
+git commit -m "updated"
+git push
