@@ -2,15 +2,15 @@
 
 docx-from-gsheet.bat Bangabandhu-Bridge__RFP-2017
 
-docx-from-gsheet.bat RHD-TMC__EoI__submission
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C
 
-./odt-from-gsheet.sh RHD-TMC__EoI__submission
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B
+./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-C
 
 Appendix A: Résumé of Proposed RAJUK ERP Team Members
 Appendix B: Résumé of Additional Technical Resources
