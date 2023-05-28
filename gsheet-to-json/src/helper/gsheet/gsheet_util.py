@@ -75,9 +75,9 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
     if len(s) >= 1:
         url = s[0]
 
-        # localpath is the last term if it ends with png/jpg/gif, if not
+        # localpath is the last term if it ends with png/jpg/gif/webp, if not
         url_splitted = url.split('/')
-        if url_splitted[-1].endswith('.png') or url_splitted[-1].endswith('.jpg') or url_splitted[-1].endswith('.gif'):
+        if url_splitted[-1].endswith('.png') or url_splitted[-1].endswith('.jpg') or url_splitted[-1].endswith('.gif') or url_splitted[-1].endswith('.webp'):
             local_path = f"{tmp_dir}/{url_splitted[-1]}"
 
         # if it is owncloud, (https://storage.brilliant.com.bd/s/IPO46mdbcetahMf/download) we use the penaltimate term and append a .png
@@ -164,8 +164,8 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
 def download_file_from_web(url, tmp_dir, nesting_level=0):
     file_url = url.strip()
     file_ext = file_url[-4:]
-    if not file_ext in ['.pdf', '.png', '.jpg']:
-        error(f"url {file_url} is NOT a pdf/png/jpg file", nesting_level=nesting_level)
+    if not file_ext in ['.pdf', '.png', '.jpg', '.gif', '.webp']:
+        error(f"url {file_url} is NOT a pdf/png/jpg/gif/webp file", nesting_level=nesting_level)
         return None
 
     file_name = file_url.split('/')[-1].strip()
@@ -177,6 +177,12 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
     
     elif file_ext == '.jpg':
         file_type = 'image/jpeg'
+
+    elif file_ext == '.gif':
+        file_type = 'image/gif'
+
+    elif file_ext == '.webp':
+        file_type = 'image/webp'
 
     # download pdf in url into localpath
     try:
@@ -209,8 +215,8 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
     f = drive.CreateFile({'id': id})
     file_name = f['title']
     file_type = f['mimeType']
-    if not file_type in ['application/pdf', 'image/png', 'image/jpeg']:
-        warn(f"drive url {url} is not a pdf/png/jpg, it is [{f['mimeType']}]", nesting_level=nesting_level)
+    if not file_type in ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']:
+        warn(f"drive url {url} is not a pdf/png/jpg/gif/webp, it is [{f['mimeType']}]", nesting_level=nesting_level)
         return None
 
     if file_type == 'application/pdf' and not file_name.endswith('.pdf'):
@@ -221,6 +227,12 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
 
     if file_type == 'image/jpeg' and not file_name.endswith('.jpg'):
         file_name = file_name + '.jpg'
+
+    if file_type == 'image/gif' and not file_name.endswith('.gif'):
+        file_name = file_name + '.gif'
+
+    if file_type == 'image/webp' and not file_name.endswith('.webp'):
+        file_name = file_name + '.webp'
 
     try:
         local_path = f"{tmp_dir}/{file_name}"
