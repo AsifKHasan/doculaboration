@@ -53,3 +53,9 @@ margin-spec:
     top   : 1.50
     bottom: 1.50
     gutter: 0
+  doer-pad:
+    left  : 1.20
+    right : 0.50
+    top   : 1.50
+    bottom: 1.50
+    gutter: 0

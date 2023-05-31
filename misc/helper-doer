@@ -1,4 +1,20 @@
 # doer
-odt-from-gsheet.bat MRA-OMS__RFP__appendix-A-resource-pool
+odt-from-gsheet.bat MRA-OMS__RFP__book-1__consultants-organization-experience-5A1-5A2
+odt-from-gsheet.bat MRA-OMS__RFP__book-2__approach-methodology-work-plan-5A3-5A4-5A5-5A6-5A7-5A9
+odt-from-gsheet.bat MRA-OMS__RFP__book-3__curriculum-vitae-proposed-professional-staff-5A8
 
-./odt-from-gsheet.sh MRA-OMS__RFP__appendix-A-resource-pool
+./odt-from-gsheet.sh MRA-OMS__RFP__book-1__consultants-organization-experience-5A1-5A2
+./odt-from-gsheet.sh MRA-OMS__RFP__book-2__approach-methodology-work-plan-5A3-5A4-5A5-5A6-5A7-5A9
+./odt-from-gsheet.sh MRA-OMS__RFP__book-3__curriculum-vitae-proposed-professional-staff-5A8
+
+
+
+
+Book 1: Consultant’s Organization and Experience
+Form 5A1, 5A2
+
+Book-2: Approach Methodology and Work Plan
+Form 5A3, 5A4, 5A5, 5A6, 5A7, 5A9
+
+Book 3: Curriculum Vitae (CV) for Each Proposed Professional Staff
+Form 5A8

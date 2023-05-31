@@ -71,3 +71,12 @@ margin-spec:
     distance:
       header  : 0.00
       footer  : 0.00
+  secl-pad:
+    left  : 1.20
+    right : 0.50
+    top   : 1.50
+    bottom: 1.50
+    gutter: 0
+    distance:
+      header  : 0.00
+      footer  : 0.00
