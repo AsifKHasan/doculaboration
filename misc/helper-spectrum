@@ -3,16 +3,17 @@
 docx-from-gsheet.bat Bangabandhu-Bridge__RFP-2017
 
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A__documents
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B__pds
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C__resumes
 
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A__documents
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B__pds
+docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C__resumes
 
-Appendix A: Résumé of Proposed RAJUK ERP Team Members
+
+Appendix A: Organizational Documents
 Appendix B: Relevant Work Experience
+Appendix C: Résumé of Proposed RAJUK ERP Team Members
 
-git add -A
-git commit -m "updated"
-git push

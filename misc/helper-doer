@@ -1,20 +1,28 @@
 # doer
-odt-from-gsheet.bat MRA-OMS__RFP__book-1__consultants-organization-experience-5A1-5A2
-odt-from-gsheet.bat MRA-OMS__RFP__book-2__approach-methodology-work-plan-5A3-5A4-5A5-5A6-5A7-5A9
-odt-from-gsheet.bat MRA-OMS__RFP__book-3__curriculum-vitae-proposed-professional-staff-5A8
+odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal
+odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-A__documents
+odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-B__pds
+odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-C__resumes
 
-./odt-from-gsheet.sh MRA-OMS__RFP__book-1__consultants-organization-experience-5A1-5A2
-./odt-from-gsheet.sh MRA-OMS__RFP__book-2__approach-methodology-work-plan-5A3-5A4-5A5-5A6-5A7-5A9
-./odt-from-gsheet.sh MRA-OMS__RFP__book-3__curriculum-vitae-proposed-professional-staff-5A8
+./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal
+./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-A__documents
+./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-B__pds
+./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-C__resumes
 
 
 
 
-Book 1: Consultant’s Organization and Experience
-Form 5A1, 5A2
+Technical Proposal
+MRA-OMS__RFP__technical-proposal
 
-Book-2: Approach Methodology and Work Plan
-Form 5A3, 5A4, 5A5, 5A6, 5A7, 5A9
+Technical Proposal
+Appendix A: 
+MRA-OMS__RFP__technical-proposal__appendix-A__documents
 
-Book 3: Curriculum Vitae (CV) for Each Proposed Professional Staff
-Form 5A8
+Technical Proposal
+Appendix B: 
+MRA-OMS__RFP__technical-proposal__appendix-B__pds
+
+Technical Proposal
+Appendix C: 
+MRA-OMS__RFP__technical-proposal__appendix-C__resumes
