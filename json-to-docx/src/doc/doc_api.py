@@ -287,7 +287,13 @@ class DocxPdfSection(DocxSectionBase):
                     if not first_image:
                         paragraph_attributes['breakbefore'] = 'page'
 
+                    print('image width', image['width'])
+                    print('image height', image['height'])
+                    print('section width', self.section_width)
+                    print('section height', self.section_height)
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
+                    print('image_width_in_inches', image_width_in_inches)
+                    print('image_height_in_inches', image_height_in_inches)
                     insert_image(container=self._doc, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
                     first_image = False
 

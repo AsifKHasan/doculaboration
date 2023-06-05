@@ -117,6 +117,11 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
     section_meta = d['section-meta']
     section_prop = d['section-prop']
 
+    # the page-spec, margin-spec is overridden by parent page-spec
+    if parent:
+        section_prop['page-spec'] = parent['section-prop']['page-spec']
+        section_prop['margin-spec'] = parent['section-prop']['margin-spec']
+
     # derived keys
     if section_prop['landscape']:
         section_meta['orientation'] = 'landscape'
