@@ -902,7 +902,7 @@ def random_string(length=12):
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
 	WIDTH_OFFSET = 0.0
-	HEIGHT_OFFSET = 0.2
+	HEIGHT_OFFSET = 0.3
 
 	fit_within_width = fit_within_width - WIDTH_OFFSET
 	fit_within_height = fit_within_height - HEIGHT_OFFSET
