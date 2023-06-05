@@ -7,6 +7,11 @@ docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A__documents
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B__pds
 docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C__resumes
 
+./docx-from-gsheet.sh RAJUK-ERP__EoI__submission
+./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A__documents
+./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B__pds
+./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-C__resumes
+
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A__documents
 ./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B__pds
