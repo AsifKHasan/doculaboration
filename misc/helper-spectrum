@@ -12,13 +12,11 @@ docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C__resumes
 ./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B__pds
 ./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-C__resumes
 
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A__documents
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-B__pds
-./odt-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-C__resumes
+./odt-from-gsheet.sh RHD-ITI-AMC-2023__RFP__technical-proposal
+./odt-from-gsheet.sh RHD-ITI-AMC-2023__RFP__submission__appendix-A__pds
+./odt-from-gsheet.sh RHD-ITI-AMC-2023__RFP__submission__appendix-B__resumes
 
 
 Appendix A: Organizational Documents
-Appendix B: Relevant Work Experience
-Appendix C: Résumé of Proposed RAJUK ERP Team Members
-
+Appendix A: Consultant’s Experience
+Appendix B: Curriculum Vitae (CV) for Proposed Professional Staff
