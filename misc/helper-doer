@@ -1,8 +1,8 @@
 # doer
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-A__documents
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-B__pds
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-C__resumes
+docx-from-gsheet.bat MRA-OMS__RFP__technical-proposal
+docx-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-A__documents
+docx-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-B__pds
+docx-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-C__resumes
 
 ./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal
 ./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-A__documents
@@ -12,17 +12,22 @@ odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-C__resumes
 
 
 
-Technical Proposal
 MRA-OMS__RFP__technical-proposal
-
-Technical Proposal
-Appendix A: 
 MRA-OMS__RFP__technical-proposal__appendix-A__documents
-
-Technical Proposal
-Appendix B: 
 MRA-OMS__RFP__technical-proposal__appendix-B__pds
+MRA-OMS__RFP__technical-proposal__appendix-C__resumes
 
 Technical Proposal
-Appendix C: 
-MRA-OMS__RFP__technical-proposal__appendix-C__resumes
+(ORIGINAL/COPY-1/COPY-2)
+
+Technical Proposal
+Appendix A: Organizational Documents
+(ORIGINAL/COPY-1/COPY-2)
+
+Technical Proposal
+Appendix B: Consultant’s Experience
+(ORIGINAL/COPY-1/COPY-2)
+
+Technical Proposal
+Appendix C: Curriculum Vitae (CV) for Proposed Professional Staff
+(ORIGINAL/COPY-1/COPY-2)
