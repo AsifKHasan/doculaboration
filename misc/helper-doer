@@ -1,28 +1,2 @@
 # doer
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-A__documents
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-B__pds
-odt-from-gsheet.bat MRA-OMS__RFP__technical-proposal__appendix-C__resumes
-
-./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal
-./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-A__documents
-./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-B__pds
-./odt-from-gsheet.sh MRA-OMS__RFP__technical-proposal__appendix-C__resumes
-
-
-
-
-Technical Proposal
-MRA-OMS__RFP__technical-proposal
-
-Technical Proposal
-Appendix A: 
-MRA-OMS__RFP__technical-proposal__appendix-A__documents
-
-Technical Proposal
-Appendix B: 
-MRA-OMS__RFP__technical-proposal__appendix-B__pds
-
-Technical Proposal
-Appendix C: 
-MRA-OMS__RFP__technical-proposal__appendix-C__resumes
+./odt-from-gsheet.sh DB__guideline
