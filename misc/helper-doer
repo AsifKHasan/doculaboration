@@ -1,2 +1,14 @@
 # doer
 ./odt-from-gsheet.sh DB__guideline
+./odt-from-gsheet.sh DB__Annex-01__Letter-of-Application
+./odt-from-gsheet.sh DB__Annex-02__Feasibility-Study
+./odt-from-gsheet.sh DB__Annex-03__Business-Plan
+./odt-from-gsheet.sh DB__Annex-04__ICT-Plan
+./odt-from-gsheet.sh DB__Annex-05__Business-Resolution-Plan
+./odt-from-gsheet.sh DB__Annex-06__Sponsors-Directors-Biography
+./odt-from-gsheet.sh DB__Annex-06b__Sponsors-Directors-Promotor
+./odt-from-gsheet.sh DB__Annex-07__CEO-Principle-Officers-Biography
+./odt-from-gsheet.sh DB__Annex-08__Fit-Proper-Test-Criteria
+./odt-from-gsheet.sh DB__Annex-09__Declaration
+./odt-from-gsheet.sh DB__Annex-10__Capital-Maintenance-Agreement-CAM
+./odt-from-gsheet.sh DB__Annex-11__Sponsors-Undertaking
