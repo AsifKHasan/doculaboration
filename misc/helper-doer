@@ -1,14 +1,57 @@
 # doer
-./odt-from-gsheet.sh DB__guideline
-./odt-from-gsheet.sh DB__Annex-01__Letter-of-Application
-./odt-from-gsheet.sh DB__Annex-02__Feasibility-Study
-./odt-from-gsheet.sh DB__Annex-03__Business-Plan
-./odt-from-gsheet.sh DB__Annex-04__ICT-Plan
-./odt-from-gsheet.sh DB__Annex-05__Business-Resolution-Plan
-./odt-from-gsheet.sh DB__Annex-06__Sponsors-Directors-Biography
-./odt-from-gsheet.sh DB__Annex-06b__Sponsors-Directors-Promotor
-./odt-from-gsheet.sh DB__Annex-07__CEO-Principle-Officers-Biography
-./odt-from-gsheet.sh DB__Annex-08__Fit-Proper-Test-Criteria
-./odt-from-gsheet.sh DB__Annex-09__Declaration
-./odt-from-gsheet.sh DB__Annex-10__Capital-Maintenance-Agreement-CAM
-./odt-from-gsheet.sh DB__Annex-11__Sponsors-Undertaking
+Annex - 2
+odt-from-gsheet.bat annex-2-01-executive-summary-feasibility-study
+odt-from-gsheet.bat annex-2-02-business-landscape-assessment
+odt-from-gsheet.bat annex-2-03-target-market-analysis
+odt-from-gsheet.bat annex-2-04-value-proposition
+odt-from-gsheet.bat annex-2-05-target-products
+
+
+Annex - 3
+odt-from-gsheet.bat annex-3-01-executive-summary-of-business-plan
+odt-from-gsheet.bat annex-3-02-customer-segment-identification
+odt-from-gsheet.bat annex-3-03-proposed-financial-products-and-services
+odt-from-gsheet.bat annex-3-04-detailed-financial-projections
+odt-from-gsheet.bat annex-3-05-sensitivity-analysis
+odt-from-gsheet.bat annex-3-06-investment-or-financing-plan
+odt-from-gsheet.bat annex-3-07-business-continuity-plan
+odt-from-gsheet.bat annex-3-08-key-performance-indicators
+odt-from-gsheet.bat annex-3-09-business-risk-analysis
+odt-from-gsheet.bat annex-3-10-human-resource-plan
+odt-from-gsheet.bat annex-3-11-customers-query-management
+odt-from-gsheet.bat annex-3-12-distribution-strategy
+odt-from-gsheet.bat annex-3-13-envisaged-collaboration
+odt-from-gsheet.bat annex-3-14-consumer-protection
+odt-from-gsheet.bat annex-3-15-marketing-plan
+
+Annex - 4
+odt-from-gsheet.bat annex-4-01-executive-summary-of-ict-plan
+odt-from-gsheet.bat annex-4-02-technology-stack
+odt-from-gsheet.bat annex-4-03-applicant-strategy
+odt-from-gsheet.bat annex-4-04-planned-ict-governance
+odt-from-gsheet.bat annex-4-05-planned-ict-operational-management
+odt-from-gsheet.bat annex-4-06-system-resiliency-and-high-availability-of-services
+odt-from-gsheet.bat annex-4-07-cyber-security
+odt-from-gsheet.bat annex-4-08-use-of-AI-ML-IoT
+
+
+Annex - 5
+odt-from-gsheet.bat annex-5-01-executive-summary-of-business-resolution-plan
+odt-from-gsheet.bat annex-5-02-detailed-business-resolution-plan
+
+
+
+# doer
+odt-from-gsheet.bat DB__guideline
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-01__Letter-of-Application
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-02__Feasibility-Study
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-03__Business-Plan
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-04__ICT-Plan
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-05__Business-Resolution-Plan
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-06__Sponsors-Directors-Biography
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-06b__Sponsors-Directors-Promotor
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-07__CEO-Principle-Officers-Biography
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-08__Fit-Proper-Test-Criteria
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-09__Declaration
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-10__Capital-Maintenance-Agreement-CAM
+odt-from-gsheet.bat DOER-Digital-Bank__Annex-11__Sponsors-Undertaking

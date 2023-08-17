@@ -1,7 +1,7 @@
 # copy this file as config.yml and do not commit the copied file
 
 # the name of the worksheet that contains the index (kind of Table of Content)
-index-worksheet:         "-toc"
+index-worksheet:         "-toc-new"
 
 # if gsheet read times out how many seconds to wait before trying the next read
 gsheet-read-wait-seconds:   70
