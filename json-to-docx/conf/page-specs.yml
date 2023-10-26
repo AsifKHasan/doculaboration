@@ -80,3 +80,12 @@ margin-spec:
     distance:
       header  : 0.00
       footer  : 0.00
+  stamp:
+    left  : 1.00
+    right : 1.00
+    top   : 3.20
+    bottom: 1.00
+    gutter: 0
+    distance:
+      header  : 0.50
+      footer  : 0.50

@@ -2,10 +2,10 @@
 
 docx-from-gsheet.bat Bangabandhu-Bridge__RFP-2017
 
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-A__documents
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-B__pds
-docx-from-gsheet.bat RAJUK-ERP__EoI__submission__appendix-C__resumes
+docx-from-gsheet.bat UGC-ASPUD__RFP__submission
+docx-from-gsheet.bat UGC-ASPUD__RFP__submission__appendix-A__documents
+docx-from-gsheet.bat UGC-ASPUD__RFP__submission__appendix-B__pds
+docx-from-gsheet.bat UGC-ASPUD__RFP__submission__appendix-C__resumes
 
 ./docx-from-gsheet.sh RAJUK-ERP__EoI__submission
 ./docx-from-gsheet.sh RAJUK-ERP__EoI__submission__appendix-A__documents

@@ -59,3 +59,9 @@ margin-spec:
     top   : 1.50
     bottom: 1.50
     gutter: 0
+  stamp:
+    left  : 1.00
+    right : 1.00
+    top   : 3.20
+    bottom: 1.00
+    gutter: 0

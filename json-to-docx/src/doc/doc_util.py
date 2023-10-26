@@ -366,7 +366,9 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 		# process keep-with-previous
 		if 'keepwithprevious' in paragraph_attributes:
-			pf.keep_with_previous = True
+			# docx does not support keep_with_previous
+			# pf.keep_with_previous = True
+			pass
 
 
 	return paragraph

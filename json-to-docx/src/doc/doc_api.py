@@ -622,18 +622,18 @@ class DocxTable(DocxBlock):
         # iterate rows and cells to render the table's contents
         if tbl:
             for row_index in range(0, len(self.table_cell_matrix)):
-                row = self.table_cell_matrix[row_index];
+                row = self.table_cell_matrix[row_index]
                 table_row = tbl.rows[row_index]
                 row.row_to_doc_table_row(table=tbl, table_row=table_row)
 
             # header rows
             for r in range(0, self.header_row_count):
-                # debug('repeating row : {0}'.format(repeating_row_count))
+                # debug('repeating row : {0}'.format(self.header_row_count))
                 set_repeat_table_header(tbl.rows[r])
 
             # merge cells
             for row_index in range(0, len(self.table_cell_matrix)):
-                row = self.table_cell_matrix[row_index];
+                row = self.table_cell_matrix[row_index]
                 for col_index in range(0, len(row.cells)):
                     cell = row.cells[col_index]
                     # print(f"........ {cell}")
@@ -645,7 +645,7 @@ class DocxTable(DocxBlock):
 
             #  decorate cells
             for row_index in range(0, len(self.table_cell_matrix)):
-                row = self.table_cell_matrix[row_index];
+                row = self.table_cell_matrix[row_index]
                 for col_index in range(0, len(row.cells)):
                     cell = row.cells[col_index]
                     cell.decorate_cell()
@@ -1645,6 +1645,7 @@ class CellNote(object):
 
         if self.keep_with_next:
             attributes['keepwithnext'] = 'always'
+            
 
         if self.keep_with_previous:
             attributes['keepwithprevious'] = 'always'
