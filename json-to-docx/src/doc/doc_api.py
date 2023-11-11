@@ -492,8 +492,8 @@ class DocxContent(object):
     def split(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # we have a concept of in-cell content and out-of-cell content
-        # in-cell contents are treated as part of a table, while out-of-cell contents are treated as independent paragraphs, images etc. (blocks)
+        # we have a concept of in-cell content and out-of-cell (free) content
+        # in-cell contents are treated as part of a table, while out-of-cell (free) contents are treated as independent paragraphs, images etc. (blocks)
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
@@ -508,6 +508,7 @@ class DocxContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
+                print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = DocxTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -526,6 +527,7 @@ class DocxContent(object):
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
+                    # print(f"new table starts at row {next_table_starts_in_row}")
 
             else:
                 next_table_ends_in_row = r
@@ -608,6 +610,7 @@ class DocxTable(DocxBlock):
     def block_to_doc(self, container, container_width):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
+        print(f"DocxTable spans row {self.start_row}-{self.end_row}")
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
 

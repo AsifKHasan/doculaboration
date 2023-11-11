@@ -496,8 +496,10 @@ class OdtContent(object):
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self):
-        # we have a concept of in-cell content and out-of-cell content
-        # in-cell contents are treated as part of a table, while out-of-cell contents are treated as independent paragraphs, images etc. (blocks)
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        # we have a concept of in-cell content and out-of-cell (free) content
+        # in-cell contents are treated as part of a table, while out-of-cell (free) contents are treated as independent paragraphs, images etc. (blocks)
         next_table_starts_in_row = 0
         next_table_ends_in_row = 0
         for r in range(0, self.row_count):
@@ -512,6 +514,7 @@ class OdtContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
+                print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -530,6 +533,7 @@ class OdtContent(object):
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
+                    # print(f"new table starts at row {next_table_starts_in_row}")
 
             else:
                 next_table_ends_in_row = r
@@ -544,6 +548,8 @@ class OdtContent(object):
         container may be odt.text or a table-cell
     '''
     def content_to_odt(self, odt, container):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
         # for r in range(0, self.row_count):
         #     data_row = self.cell_matrix[r]
         #     for cell in data_row.cells:
@@ -616,6 +622,9 @@ class OdtTable(OdtBlock):
     ''' generates the odt code
     '''
     def block_to_odt(self, odt, container):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        print(f"OdtTable spans row {self.start_row}-{self.end_row}")
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
