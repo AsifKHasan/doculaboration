@@ -514,7 +514,7 @@ class OdtContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
-                print("Free Content")
+                # print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -624,7 +624,7 @@ class OdtTable(OdtBlock):
     def block_to_odt(self, odt, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        print(f"OdtTable spans row {self.start_row}-{self.end_row}")
+        # print(f"OdtTable spans row {self.start_row}-{self.end_row}")
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
