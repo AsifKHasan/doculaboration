@@ -508,7 +508,7 @@ class DocxContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
-                print("Free Content")
+                # print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = DocxTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -610,7 +610,7 @@ class DocxTable(DocxBlock):
     def block_to_doc(self, container, container_width):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        print(f"DocxTable spans row {self.start_row}-{self.end_row}")
+        # print(f"DocxTable spans row {self.start_row}-{self.end_row}")
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
 
