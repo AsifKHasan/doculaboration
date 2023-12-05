@@ -7,8 +7,8 @@ import httplib2
 
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient import discovery
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+from pydrive2.auth import GoogleAuth
+from pydrive2.drive import GoogleDrive
 
 from helper.logger import *
 from helper.gsheet.gsheet_util import *
