@@ -1008,7 +1008,7 @@ class TextFormat(object):
         if self.font_family and self.font_family != '':
             attributes['fontname'] = self.font_family
             attributes['fontnameasian'] = self.font_family
-            attributes['fontnamecomplex'] = self.font_family
+            # attributes['fontnamecomplex'] = self.font_family
 
         attributes['fontsize'] = self.font_size
         attributes['fontsizeasian'] = self.font_size

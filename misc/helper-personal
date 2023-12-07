@@ -3,11 +3,8 @@ cd /home/asif/projects/asif@github/doculaboration
 
 ./odt-from-gsheet.sh doculaboration__test-gsheet
 
-unzip test-current.docx -d test-current
-unzip test-bg.docx -d test-bg
-
-pushd test-bg && zip -r ..\test-bg-changed.docx . && popd
-pushd test-current && zip -r ..\test-current.docx . && popd
+unzip GB-AISGB__minutes__PSC-06__2023-12-05.odt -d test-current
+pushd test-current && zip -r ..\GB-AISGB__minutes__PSC-06__2023-12-05.odt . && popd
 
 
 # personal
