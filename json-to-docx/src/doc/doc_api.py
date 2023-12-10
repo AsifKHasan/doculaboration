@@ -952,7 +952,7 @@ class TextFormat(object):
             self.is_underline = text_format_dict.get('underline')
         else:
             self.fgcolor = RgbColor()
-            self.font_family = ''
+            self.font_family = None
             self.font_size = 0
             self.is_bold = False
             self.is_italic = False
@@ -966,7 +966,7 @@ class TextFormat(object):
         attributes = {}
 
         attributes['color'] = self.fgcolor
-        if self.font_family != '':
+        if self.font_family:
             attributes['fontname'] = self.font_family
 
         attributes['fontsize'] = self.font_size

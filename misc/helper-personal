@@ -6,6 +6,11 @@ cd /home/asif/projects/asif@github/doculaboration
 unzip GB-AISGB__minutes__PSC-06__2023-12-05.odt -d test-current
 pushd test-current && zip -r ..\GB-AISGB__minutes__PSC-06__2023-12-05.odt . && popd
 
+unzip template-grameenbank.docx -d test
+pushd test && zip -r ..\template-grameenbank.docx . && popd
+
+unzip GB-AISGB__minutes__PSC-06__2023-12-05.docx -d test-current
+pushd test-current && zip -r ..\GB-AISGB__minutes__PSC-06__2023-12-05.docx . && popd
 
 # personal
 odt-from-gsheet.bat PPA-2006__2019-01
