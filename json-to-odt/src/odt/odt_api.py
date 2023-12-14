@@ -1410,17 +1410,10 @@ class Borders(object):
         self.left = None
 
         if borders_dict:
-            if 'top' in borders_dict:
-                self.top = Border(borders_dict.get('top'))
-
-            if 'right' in borders_dict:
-                self.right = Border(borders_dict.get('right'))
-
-            if 'bottom' in borders_dict:
-                self.bottom = Border(borders_dict.get('bottom'))
-
-            if 'left' in borders_dict:
-                self.left = Border(borders_dict.get('left'))
+            self.top = Border(borders_dict.get('top'), None)
+            self.right = Border(borders_dict.get('right'), None)
+            self.bottom = Border(borders_dict.get('bottom'), None)
+            self.left = Border(borders_dict.get('left'), None)
 
 
     ''' string representation
@@ -1648,6 +1641,7 @@ class Padding(object):
     ''' constructor
     '''
     def __init__(self, padding_dict=None):
+        # HACK: paddings are hard-coded
         if padding_dict:
             # self.top = int(padding_dict.get('top', 0))
             # self.right = int(padding_dict.get('right', 0))
