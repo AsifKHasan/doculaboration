@@ -1,6 +1,6 @@
 # celloscope
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
-./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-3__relevant-experience
-./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-4__proposed-solution
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-3__proposed-solution
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-4__relevant-experience
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
