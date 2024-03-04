@@ -1,12 +1,6 @@
 # celloscope
-./odt-from-gsheet.sh NBR-USAID-FFBT-APS__volume-1__technical-proposal__celloscope
-./odt-from-gsheet.sh NBR-USAID-FFBT-ARDS__volume-1__technical-proposal__celloscope
-
-./odt-from-gsheet.sh NBR-USAID-FFBT-APS__volume-2__financial-proposal__celloscope
-./odt-from-gsheet.sh NBR-USAID-FFBT-ARDS__volume-2__financial-proposal__celloscope
-
-odt-from-gsheet.bat NBR-USAID-FFBT-APS__volume-1__technical-proposal__celloscope
-odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-1__technical-proposal__celloscope
-
-odt-from-gsheet.bat NBR-USAID-FFBT-APS__volume-2__financial-proposal__celloscope
-odt-from-gsheet.bat NBR-USAID-FFBT-ARDS__volume-2__financial-proposal__celloscope
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-3__relevant-experience
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-4__proposed-solution
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
