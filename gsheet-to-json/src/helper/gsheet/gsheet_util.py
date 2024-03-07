@@ -110,8 +110,9 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
 
                 debug(f"image downloaded at: [{local_path}]", nesting_level=nesting_level)
 
-        except:
+        except Exception as err:
             warn(f"could not download : [{url}]", nesting_level=nesting_level)
+            print(Exception, err)
             return None
 
     # get the image dimensions

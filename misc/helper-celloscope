@@ -1,14 +1,28 @@
 # celloscope
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-3__proposed-solution
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-4__relevant-experience
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
+docx-from-gsheet.bat BEC-AI-Chatbot__eoi-submission__JV-agreement
+
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-3__proposed-solution
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-4__relevant-experience
 ./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
-./odt-from-gsheet.sh BEC-AI-Chatbot__eoi__JV-agreement
+./odt-from-gsheet.sh BEC-AI-Chatbot__eoi-submission__JV-agreement
+
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-3__proposed-solution
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-4__relevant-experience
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
+work-with-gsheet.bat BEC-AI-Chatbot__eoi-submission__JV-agreement
 
 ./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-1__forwarding-and-agreement
 ./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-2__organizational-documents
 ./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-3__proposed-solution
 ./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-4__relevant-experience
 ./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__book-5__professional-resources
-./work-with-gsheet.sh BEC-AI-Chatbot__eoi__JV-agreement
+./work-with-gsheet.sh BEC-AI-Chatbot__eoi-submission__JV-agreement
