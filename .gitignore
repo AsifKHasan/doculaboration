@@ -133,3 +133,8 @@ out/
 config.yml
 credential.json
 *.odt#
+
+# Exceptions
+
+# Flutter main files sit in the lib folder and must be version controlled
+!ui/lib
