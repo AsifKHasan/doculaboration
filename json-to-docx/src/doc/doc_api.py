@@ -602,7 +602,12 @@ class DocxTable(DocxBlock):
         self.table_name = f"Table_{random_string()}"
 
         # header row if any
-        self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
+        first_cell = self.table_cell_matrix[0].get_cell(0)
+        if first_cell:
+            self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
+        else:
+            self.header_row_count = 0
+
 
 
     ''' generates the docx code
