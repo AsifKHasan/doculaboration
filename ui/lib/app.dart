@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       ),
       home: LandingScreen(items: [
         DrawerItem(
-          title: "Gsheet Input",
+          title: "Documents",
           widget: const GsheetNameInputPage(),
           icon: const Icon(Icons.home),
         ),
