@@ -3,9 +3,11 @@ import 'package:gap/gap.dart';
 
 class LandingScreen extends StatefulWidget {
   final List<DrawerItem> items;
+  final int initialSelectedItemIndex;
   const LandingScreen({
     super.key,
     required this.items,
+    this.initialSelectedItemIndex = 0,
   });
 
   @override
@@ -21,6 +23,7 @@ class _LandingScreenState extends State<LandingScreen> {
   void initState() {
     super.initState();
     setState(() {
+      _selectedItemIndex = widget.initialSelectedItemIndex;
       title = widget.items[_selectedItemIndex].title;
     });
   }
