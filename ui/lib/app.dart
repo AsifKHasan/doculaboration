@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         initialSelectedItemIndex: 0,
         items: [
           DrawerItem(
-            title: "Documents",
+            title: "Home",
             widget: const GsheetNameInputPage(),
             icon: const Icon(Icons.home),
           ),
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
             icon: const Icon(Icons.library_books),
           ),
           DrawerItem(
-            title: "Api Doc",
+            title: "API Documents",
             widget: const ApiDocWidget(
               url: kBaseUrl,
             ),
