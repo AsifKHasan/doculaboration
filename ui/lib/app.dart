@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ui/core/api_module.dart';
+import 'package:ui/core/dependency.dart';
 import 'package:ui/feature/api_doc/api_doc_widget.dart';
 import 'package:ui/feature/faq/domain/presentation/faq_widget.dart';
 import 'package:ui/feature/gseet_input/presentation/gsheet_input_widget.dart';
@@ -49,8 +50,11 @@ class MyApp extends StatelessWidget {
           ),
           DrawerItem(
             title: "API Documents",
-            widget: const ApiDocWidget(
-              url: kBaseUrl,
+            widget: ApiDocWidget(
+              url: "${getIt.get(
+                instanceName: kBaseUrl,
+                type: String,
+              )}/docs",
             ),
             icon: const Icon(Icons.api),
           ),
