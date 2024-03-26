@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+// ignore: depend_on_referenced_packages
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 class ApiDocWidget extends StatelessWidget {
   final String url;
@@ -11,14 +12,15 @@ class ApiDocWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WebviewScaffold(
-      url: url, // Specify the URL you want to load
-      withZoom: true, // Enable zooming
-      withLocalStorage: true, // Enable local storage
-      hidden: true, // Hide the webview initially until it's fully loaded
-      initialChild: const Center(
-        child: CircularProgressIndicator(), // Show a loading indicator
-      ),
-    );
+    final PlatformWebViewController controller = PlatformWebViewController(
+      const PlatformWebViewControllerCreationParams(),
+    )..loadRequest(
+        LoadRequestParams(
+          uri: Uri.parse(url),
+        ),
+      );
+    return PlatformWebViewWidget(
+      PlatformWebViewWidgetCreationParams(controller: controller),
+    ).build(context);
   }
 }
