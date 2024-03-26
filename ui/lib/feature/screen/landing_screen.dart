@@ -71,7 +71,8 @@ class _LandingScreenState extends State<LandingScreen> {
             ),
             const Gap(16),
             Flexible(
-              child: Container(),
+              // TODO: use it later for Jobs and Job Log section
+              child: Container(width: 200),
             ),
           ],
         ),
