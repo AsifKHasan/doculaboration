@@ -1,18 +1,13 @@
 # api
-
 This is the api service for Doculaboration.
 
 ## Environment Setup
+- See the [Setup project credential and config](../README.md)
+- Make sure `libreoffice` is installed with `python` and `uno` dependencies
 
-1. Setup venv
-```bash
-python3.8 -m venv venv
-source venv/bin/activate
-pip install -U pip
-pip install -r requirements.txt
-```
 ## Run the application
-
 ```bash
-uvicorn api.main:app --reload # development server
+# in the project root
+uvicorn api.main:app --reload --port 8200 # development server
+# you will find swagger service running on http://localhost:8200/docs
 ```

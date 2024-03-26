@@ -49,5 +49,5 @@ app.*.map.json
 *.mock.dart
 *.config.dart
 
-# Deployment environments
-lib/gen/assets.gen.dart
+# Environment
+assets/dotenv
