@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ui/core/api_module.dart';
+import 'package:ui/feature/api_doc/api_doc_widget.dart';
 import 'package:ui/feature/faq/domain/presentation/faq_widget.dart';
 import 'package:ui/feature/gseet_input/presentation/gsheet_input_widget.dart';
 import 'package:ui/feature/gsheet_template_gallery/gallery_widget.dart';
@@ -44,7 +46,14 @@ class MyApp extends StatelessWidget {
               ],
             ),
             icon: const Icon(Icons.library_books),
-          )
+          ),
+          DrawerItem(
+            title: "Api Doc",
+            widget: const ApiDocWidget(
+              url: kBaseUrl,
+            ),
+            icon: const Icon(Icons.api),
+          ),
         ],
       ),
     );
