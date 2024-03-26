@@ -14,20 +14,28 @@ from odf import style, text, draw, table
 from odf.element import Element
 from namespaces import MATHNS
 from odf.namespaces import DRAWNS
-
+import os
 from xml.dom.minidom import parseString
 from xml.dom import Node
- 
 import latex2mathml.converter
-
 from helper.logger import *
 
+host = "localhost"
+port = 8100
 
-if platform.system() == 'Windows':
+# FIXME: put the correct executable for all the platforms
+host_system = platform.system()
+cwd = os.getcwd()
+if host_system == 'Windows':
     LIBREOFFICE_EXECUTABLE = 'C:/Program Files/LibreOffice/program/soffice.exe'
+    LIBREOFFICE_PYTHON_EXECUTABLE = "C:\Program Files\LibreOffice\program\python.exe"
+elif host_system == "Darwin":
+    LIBREOFFICE_EXECUTABLE = 'soffice'
+    LIBREOFFICE_PYTHON_EXECUTABLE = "/Applications/LibreOffice.app/Contents/Resources/python"
 else:
     LIBREOFFICE_EXECUTABLE = 'soffice'
-
+    # LIBREOFFICE_PYTHON_EXECUTABLE = "/usr/lib/libreoffice/program/python"
+    LIBREOFFICE_PYTHON_EXECUTABLE = "/usr/bin/python3"
 
 ''' process a list of section_data and generate odt code
 '''
@@ -562,19 +570,19 @@ def mathml_odf_(parent):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
 
-''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
+''' update indexes through a macro 
+    libreoffice headless service must be running on port 8100 
 '''
 def update_indexes(odt, odt_path):
     document_url = Path(odt_path).as_uri()
 
-    macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    macro = os.path.join(cwd, "odt", "macros", "open_document.py")
+    command_line = f'"{LIBREOFFICE_PYTHON_EXECUTABLE}" {macro} --doc_url {document_url} --host {host} --port {port}'
     subprocess.call(command_line, shell=True)
 
-    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    macro = os.path.join(cwd, "odt", "macros", "force_update.py")
+    command_line = f'"{LIBREOFFICE_PYTHON_EXECUTABLE}" {macro} --doc_url {document_url} --host {host} --port {port}'
     subprocess.call(command_line, shell=True)
-
 
 
 ''' given an odt file generates pdf in the given directory
