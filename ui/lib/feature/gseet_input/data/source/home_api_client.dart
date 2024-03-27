@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../../../core/api_module.dart';
+import '../../../../core/api_module.dart';
+
 part 'home_api_client.g.dart';
 
 @RestApi()
@@ -15,6 +16,10 @@ abstract class HomeApiClient {
   }) = _HomeApiClient;
 
   @DioResponseType(ResponseType.bytes)
-  @GET("/pdfs/{gsheetName}")
-  Future<List<int>> downloadGsheetPDF(@Path() String gsheetName);
+  @GET("/{extension}/{gsheetName}/download")
+  Future<List<int>> downloadFile(
+    @Path() String gsheetName,
+    @Path() String extension, {
+    @ReceiveProgress() ProgressCallback? onProgress,
+  });
 }
