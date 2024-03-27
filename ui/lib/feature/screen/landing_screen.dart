@@ -44,30 +44,39 @@ class _LandingScreenState extends State<LandingScreen> {
 
   Widget _largeView() {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      ),
       body: SafeArea(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              width: 200,
-              child: LeftSectionWidget(
-                items: widget.items,
-                onItemSelected: (index) {
-                  setState(() {
-                    _selectedItemIndex = index;
-                    title = widget.items[index].title;
-                  });
-                },
-                selectedIndex: _selectedItemIndex,
-                defaultColor: backgroundColor,
-                selectedColor: primaryColor,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: 200,
+                child: LeftSectionWidget(
+                  items: widget.items,
+                  onItemSelected: (index) {
+                    setState(() {
+                      _selectedItemIndex = index;
+                      title = widget.items[index].title;
+                    });
+                  },
+                  selectedIndex: _selectedItemIndex,
+                  defaultColor: backgroundColor,
+                  selectedColor: primaryColor,
+                ),
               ),
             ),
             const Gap(16),
-            SizedBox(
-              width: 800,
-              child: widget.items[_selectedItemIndex].widget,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: 800,
+                child: widget.items[_selectedItemIndex].widget,
+              ),
             ),
             const Gap(16),
             Flexible(
