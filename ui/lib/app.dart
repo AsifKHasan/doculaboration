@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
             icon: const Icon(Icons.question_mark),
           ),
           DrawerItem(
-            title: "Template Gallery",
+            title: "Templates",
             widget: GalleryWidget(
               items: [
                 GalleryItem(
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
             icon: const Icon(Icons.library_books),
           ),
           DrawerItem(
-            title: "API Documents",
+            title: "API Document",
             widget: ApiDocWidget(
               url: "${getIt.get(
                 instanceName: kBaseUrl,
