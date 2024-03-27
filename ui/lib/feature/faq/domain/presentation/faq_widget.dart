@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:ui/feature/screen/landing_screen.dart';
 
 import '../../../../gen/assets.gen.dart';
+import '../../../shared/presentation/widget/elevated_card_widget.dart';
 
 class FAQWidget extends StatefulWidget {
   const FAQWidget({super.key});

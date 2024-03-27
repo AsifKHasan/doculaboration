@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ui/feature/screen/landing_screen.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+
+import '../shared/presentation/widget/elevated_card_widget.dart';
 
 class GalleryWidget extends StatelessWidget {
   final List<GalleryItem> items;
@@ -19,7 +20,7 @@ class GalleryWidget extends StatelessWidget {
       children: items
           .map(
             (e) => InkWell(
-              hoverColor: Theme.of(context).backgroundColor,
+              hoverColor: Theme.of(context).colorScheme.background,
               child: ElevatedCardWidget(
                 child: Center(child: Text(e.title)),
               ),

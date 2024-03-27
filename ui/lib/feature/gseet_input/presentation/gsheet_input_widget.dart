@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:ui/core/dependency.dart';
-
-//Local imports
-import 'package:ui/utility/save_file_mobile.dart'
-    if (dart.library.html) 'package:ui/utility/save_file_web.dart';
-
-import '../../screen/landing_screen.dart';
-import '../data/home_api_client.dart';
+import 'package:ui/feature/gseet_input/presentation/download_option_selector_widget.dart';
+import 'package:ui/feature/gseet_input/util/file_extension.dart';
+import 'package:ui/feature/shared/presentation/widget/elevated_card_widget.dart';
 
 class GsheetNameInputPage extends StatefulWidget {
+  final Function(String, List<FileExtension>) onSubmitGsheetName;
   const GsheetNameInputPage({
     super.key,
+    required this.onSubmitGsheetName,
   });
 
   @override
@@ -24,7 +21,12 @@ class _GsheetNameInputPageState extends State<GsheetNameInputPage> {
   final _gsheetNameController = TextEditingController();
   bool _shouldEnableButton = false;
 
-  bool _isLoading = false;
+  final downloadOptions = [
+    FileExtension.json,
+    FileExtension.odt,
+    FileExtension.pdf,
+  ];
+  List<int> _userSelection = <int>[];
 
   @override
   void dispose() {
@@ -33,8 +35,20 @@ class _GsheetNameInputPageState extends State<GsheetNameInputPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    /// default selection
+    _userSelection = [
+      downloadOptions.indexWhere(
+        (element) => element == FileExtension.pdf,
+      )
+    ];
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final themeColor = Theme.of(context).colorScheme.primary;
     return ElevatedCardWidget(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -49,7 +63,6 @@ class _GsheetNameInputPageState extends State<GsheetNameInputPage> {
               controller: _gsheetNameController,
               decoration: const InputDecoration(labelText: "Gsheet Name"),
               onChanged: (value) {
-                _isLoading = false;
                 if (value.trim().isEmpty) {
                   _shouldEnableButton = false;
                 } else {
@@ -70,15 +83,34 @@ class _GsheetNameInputPageState extends State<GsheetNameInputPage> {
               },
             ),
             const Gap(20),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: !_shouldEnableButton
-                        ? null
-                        : () => _downloadAndOpenPDF(
-                            _gsheetNameController.text.trim()),
-                    child: const Text("Download PDF"),
-                  )
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    width: 300,
+                    child: DownloadOptionSelectorWidget(
+                      downloadOptions: downloadOptions,
+                      onChangedSelection: (intList) {
+                        setState(() {
+                          _userSelection = intList;
+                        });
+                      },
+                      initialSelection: _userSelection,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: !_shouldEnableButton
+                      ? null
+                      : () => _downloadAndOpenPDF(
+                          _gsheetNameController.text.trim()),
+                  child: const Text("Add To Queue"),
+                )
+              ],
+            )
           ],
         ),
       ),
@@ -86,33 +118,9 @@ class _GsheetNameInputPageState extends State<GsheetNameInputPage> {
   }
 
   void _downloadAndOpenPDF(String gsheetName) async {
-    _isLoading = true;
-    setState(() {});
-    final homeClient = getIt<HomeApiClient>();
-    try {
-      final response = await homeClient.downloadGsheetPDF(
-        _gsheetNameController.text.trim(),
-      );
-      await saveAndLaunchFile(
-        response,
-        "${_gsheetNameController.text}.pdf",
-      );
-    } catch (error, stackTrace) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            children: [
-              const Text("Error"),
-              Text(error.toString()),
-              const Text("StackTrace"),
-              Text(stackTrace.toString()),
-            ],
-          ),
-        ),
-      );
-    }
-    _isLoading = false;
-    setState(() {});
+    widget.onSubmitGsheetName(
+      gsheetName,
+      _userSelection.map((e) => downloadOptions[e]).toList(),
+    );
   }
 }
