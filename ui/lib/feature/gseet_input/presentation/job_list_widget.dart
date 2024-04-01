@@ -27,11 +27,6 @@ class JobListWidget extends StatelessWidget {
           onTap: () {
             onTap.call(index);
           },
-          onHover: (value) {
-            if (value) {
-              onTap.call(index);
-            }
-          },
         );
       },
       separatorBuilder: (context, index) {
