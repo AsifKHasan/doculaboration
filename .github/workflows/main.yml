@@ -1,0 +1,26 @@
+name: deploy
+on:
+  push:
+
+jobs:
+  add-contributors:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        echo "${{ vars.API_PORT }}" 
+        echo "${{ secrets.CREDENTIAL }}" >> gsheet-to-json/conf/credential.json
+        ls gsheet-to-json/conf
+    - run: |
+        rm ".env"
+        echo "$(cat << EOF
+        api_port=${{ vars.API_PORT }}
+        ui_port=${{ vars.UI_PORT }}
+        api_base_url=${{ vars.API_BASE_URL }}
+        EOF
+        )" >> ".env"
+        cat ".env"
+    - run: |
+       docker compose build --no-cache
+       docker compose up -d
