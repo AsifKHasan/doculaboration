@@ -40,7 +40,12 @@ ENV api_port=${api_port}
 ENV WORKDIR=/doculaboration
 WORKDIR ${WORKDIR}
 COPY . .
+# setup config.yml file
 RUN mv $WORKDIR/gsheet-to-json/conf/config.yml.dist $WORKDIR/gsheet-to-json/conf/config.yml
+RUN mv $WORKDIR/json-to-context/conf/config.yml.dist $WORKDIR/json-to-context/conf/config.yml
+RUN mv $WORKDIR/json-to-docx/conf/config.yml.dist $WORKDIR/json-to-docx/conf/config.yml
+RUN mv $WORKDIR/json-to-latex/conf/config.yml.dist $WORKDIR/json-to-latex/conf/config.yml
+RUN mv $WORKDIR/json-to-odt/conf/config.yml.dist $WORKDIR/json-to-odt/conf/config.yml
 
 # Give executable permission for .sh files
 RUN chmod +x **/*.sh

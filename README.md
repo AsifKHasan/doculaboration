@@ -11,7 +11,10 @@ cp </path/to/credential.json> <path/to/doculaboration>/ghseet-to-json/conf/
 
 # rename the gsheet-to-json/conf/config.yml.dist to gsheet-to-json/conf/config.yml
 mv gsheet-to-json/conf/config.yml.dist gsheet-to-json/conf/config.yml
-
+mv json-to-context/conf/config.yml.dist json-to-context/conf/config.yml
+mv json-to-docx/conf/config.yml.dist json-to-docx/conf/config.yml
+mv json-to-latex/conf/config.yml.dist json-to-latex/conf/config.yml
+mv json-to-odt/conf/config.yml.dist json-to-odt/conf/config.yml
 ```
 
 ## Run the application with a single command
