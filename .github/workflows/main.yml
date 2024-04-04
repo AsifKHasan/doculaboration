@@ -6,6 +6,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     environment: prod
+    if: github.ref_name == github.event.repository.default_branch
     steps:
     - uses: actions/checkout@v2
     - name: Setup project credential and config
