@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ui/feature/gseet_input/presentation/job_widget.dart';
+import 'package:ui/feature/gseet_input/presentation/job_list_widget.dart';
 
 import '../../shared/presentation/widget/elevated_card_widget.dart';
 import '../data/model/job_state_model.dart';
@@ -26,7 +26,7 @@ class JobQueueItemWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
-              width: 300,
+              width: 250,
               child: Text(
                 name,
               ),
@@ -34,7 +34,7 @@ class JobQueueItemWidget extends StatelessWidget {
             Expanded(
               child: Container(
                 alignment: Alignment.centerRight,
-                height: 30,
+                height: 80,
                 child: JobListWidget(
                   jobList: jobList,
                   onTap: onTap,
