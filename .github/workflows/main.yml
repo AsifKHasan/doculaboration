@@ -27,7 +27,6 @@ jobs:
     - name: Build and deploy the containers
       run: |
         # stop, delete containers, delete volumes
-        docker compose down -v
         # build without cache
         docker compose build --no-cache
         docker compose up -d

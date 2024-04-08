@@ -48,6 +48,3 @@ app.*.map.json
 *.g.dart
 *.mock.dart
 *.config.dart
-
-# Environment
-assets/dotenv
