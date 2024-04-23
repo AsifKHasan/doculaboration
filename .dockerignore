@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -128,12 +129,13 @@ dmypy.json
 .pyre/
 
 # specific to the project
-out/
-config.yml
-credential.json
-*.odt#
+# out/
+# config.yml
+# credential.json
+# *.odt#
 
-# Exceptions
-
-# Flutter main files sit in the lib folder and must be version controlled
-!ui/lib
+ui
+.git
+.github
+venv
+libre-office

@@ -7,10 +7,6 @@ DOCUMENT=$1
 # set echo off
 PYTHON=python3
 
-# run the libre office headless server
-soffice --headless --invisible --accept="socket,host=localhost,port=8100;urp;" &
-sleep 2
-
 # json-from-gsheet
 pushd ./gsheet-to-json/src
 ${PYTHON} json-from-gsheet.py --config "../conf/config.yml" --gsheet ${DOCUMENT}

@@ -1,0 +1,34 @@
+name: deploy
+on:
+  push:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: prod
+    if: github.ref_name == github.event.repository.default_branch
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup project credential and config
+      run: |
+        echo "${{ vars.API_PORT }}"
+        echo "${{ secrets.CREDENTIAL }}" | base64 -d >> gsheet-to-json/conf/credential.json
+        ls gsheet-to-json/conf
+    - name: Setup docker environment
+      run: |
+        rm ".env"
+        echo "$(cat << EOF
+        api_port=${{ vars.API_PORT }}
+        ui_port=${{ vars.UI_PORT }}
+        api_base_url=${{ vars.API_BASE_URL }}
+        EOF
+        )" >> ".env"
+        cat ".env"
+    - name: Build and deploy the containers
+      run: |
+        # stop, delete containers, delete volumes
+        # build without cache
+        docker compose build --no-cache
+        docker compose up -d
+        #delete dangling images
+        docker image prune -f

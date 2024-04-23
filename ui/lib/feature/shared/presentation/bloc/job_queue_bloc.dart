@@ -74,30 +74,30 @@ class JobQueueBloc extends Cubit<JobQueueState> {
     ]);
     jobQueue.add(jobQueueItem);
     queueItemIndexMap.putIfAbsent(name, () => jobQueue.length - 1);
-    emit(JobQueueState.update(jobQueueItemList: List.from(jobQueue)));
 
     /// Send the original user input to the server
+    jobQueueItem.jobList.first.start();
+    emit(JobQueueState.update(jobQueueItemList: List.from(jobQueue)));
     sse(
       "$baseUrl/process/$jobName",
-      onEvent: (event) => _onSseEvent(jobQueueItem.jobList.first, event),
+      onEvent: (event) => _onSseEvent(
+        jobQueueItem.jobList.first as ProcessJobModel,
+        event,
+      ),
       onDone: () {
         final jobList = jobQueueItem.jobList;
         final processJob = jobList[0];
         if (processJob.jobStateStage == JobStateStage.error) return;
-        switch (processJob) {
-          case ProcessJobModel():
-            processJob.jobStateStage = JobStateStage.success;
-            emit(
-              JobQueueState.update(
-                jobQueueItemList: List.from(jobQueue),
-              ),
-            );
-          case DownloadJobModel():
-            return;
-        }
+        processJob.jobStateStage = JobStateStage.success;
+        emit(
+          JobQueueState.update(
+            jobQueueItemList: List.from(jobQueue),
+          ),
+        );
         for (int index = 0; index < jobList.length; index++) {
           final jobModel = jobList[index];
           if (jobModel is DownloadJobModel) {
+            jobModel.start();
             homeApiClient
                 .downloadFile(
                   jobName,
@@ -116,35 +116,28 @@ class JobQueueBloc extends Cubit<JobQueueState> {
           }
         }
       },
-      onError: (e) => _onSseError(jobQueueItem.jobList.first, e),
+      onError: (e) => _onSseError(
+        jobQueueItem.jobList.first as ProcessJobModel,
+        e,
+      ),
     );
   }
 
-  void _onSseError(JobModel jobModel, e) {
+  void _onSseError(ProcessJobModel jobModel, e) {
     final processJob = jobModel;
-    switch (processJob) {
-      case ProcessJobModel():
-        processJob.jobStateStage = JobStateStage.error;
-        processJob.log = "${processJob.log}\n${e.toString()}";
-        emit(
-          JobQueueState.update(
-            jobQueueItemList: List.from(jobQueue),
-          ),
-        );
-        return;
-      case DownloadJobModel():
-        return;
-    }
+    processJob.jobStateStage = JobStateStage.error;
+    processJob.log = "${processJob.log}\n${e.toString()}";
+    emit(
+      JobQueueState.update(
+        jobQueueItemList: List.from(jobQueue),
+      ),
+    );
   }
 
-  void _onSseEvent(JobModel jobModel, String? event) {
+  void _onSseEvent(ProcessJobModel jobModel, String? event) {
     final processJob = jobModel;
-    switch (processJob) {
-      case ProcessJobModel():
-        processJob.jobStateStage = JobStateStage.started;
-        processJob.log = event.toString();
-      default:
-    }
+    processJob.jobStateStage = JobStateStage.started;
+    processJob.log = event.toString();
     emit(
       JobQueueState.update(
         jobQueueItemList: List.from(jobQueue),
@@ -155,7 +148,7 @@ class JobQueueBloc extends Cubit<JobQueueState> {
   void _onDownloadProgress(JobModel jobModel, (int, int) progressPair) {
     final prevJobModel = jobModel;
     prevJobModel.log =
-        "Download percentage: ${progressPair.$1 * 100 / progressPair.$2}";
+        "Download percentage: ${progressPair.$1 * 100 ~/ progressPair.$2}";
     prevJobModel.jobStateStage = JobStateStage.started;
     emit(
       JobQueueState.update(

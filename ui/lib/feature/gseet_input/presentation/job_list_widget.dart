@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:ui/feature/gseet_input/data/model/job_state_model.dart';
 import 'package:ui/feature/gseet_input/presentation/job_state_widget.dart';
@@ -14,29 +16,41 @@ class JobListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return ListView.builder(
       shrinkWrap: true,
       scrollDirection: Axis.horizontal,
       itemBuilder: (context, index) {
         final job = jobList[index];
-        return InkWell(
-          child: JobStateWidget(
-            stateName: job.name,
-            jobStateStage: job.jobStateStage,
+        return Center(
+          child: InkWell(
+            child: StatefulBuilder(builder: (
+              context,
+              setState,
+            ) {
+              String elapsedTime = job.getElapsedTime();
+              if (job.jobStateStage == JobStateStage.started) {
+                Timer.periodic(const Duration(seconds: 1), (timer) {
+                  setState(() {
+                    elapsedTime = job.getElapsedTime();
+                  });
+                });
+              }
+              return JobStateWidget(
+                stateName: switch (job) {
+                  ProcessJobModel() => job.name,
+                  DownloadJobModel() =>
+                    "${job.name} ${job.downloadFileExtension.name}",
+                },
+                jobStateStage: job.jobStateStage,
+                isFirst: index == 0,
+                isLast: index == jobList.length - 1,
+                elapsedTime: elapsedTime,
+              );
+            }),
+            onTap: () {
+              onTap.call(index);
+            },
           ),
-          onTap: () {
-            onTap.call(index);
-          },
-        );
-      },
-      separatorBuilder: (context, index) {
-        final job = jobList[index];
-        return Container(
-          color: job.jobStateStage == JobStateStage.success
-              ? Colors.green
-              : Colors.grey,
-          height: 2,
-          width: 20,
         );
       },
       itemCount: jobList.length,

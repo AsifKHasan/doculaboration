@@ -1,7 +1,6 @@
-from http.client import HTTPException
 import asyncio
 import os
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,10 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
+    "*"
 ]
 
 app.add_middleware(
@@ -26,7 +22,7 @@ app.add_middleware(
 
 # Function to execute subprocess and stream output
 async def execute_subprocess(gsheet_name: str):
-    command = f"./odt-from-gsheet.sh {gsheet_name}"
+    command = f"./api/odt-from-gsheet.sh {gsheet_name}"
     process = await asyncio.create_subprocess_shell(
         command,
         stdout=asyncio.subprocess.PIPE,

@@ -1,17 +1,19 @@
 # ui
-
-This is the ui application for Doculaboration.
+This is the frontend application for Doculaboration.
 
 ## Environment Setup
-
-1. Install fvm
-2. Generate files
+Prerequisites:
+- See the [Setup project credential and config](../README.md)
+- Install and setup flutter [https://docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install)
+- Make sure [`api service is running on port 8200`](../api/README.md)
 ```bash
-fvm flutter pub get
-fvm flutter pub run build_runner build -d
+cd ui
+flutter pub get
+flutter pub run build_runner build -d
 ```
-## Run the application
 
+## Run the application
 ```bash
-fvm flutter run -d chrome --web-port=8080 # backend application is configured to allow requests from only 8080 port
+cd ui
+flutter run -d chrome --web-port=8300 --dart-define="api_base_url=http://localhost:8200"
 ```

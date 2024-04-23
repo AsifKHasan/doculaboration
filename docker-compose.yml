@@ -1,0 +1,22 @@
+services:
+  
+  api:
+    build:
+      context: .
+      args:
+        api_port: ${api_port}
+    ports:
+      - "${api_port}:8200"
+    restart: unless-stopped
+    entrypoint: /doculaboration/entrypoint.sh
+
+  ui:
+    build:
+      context: ./ui
+      args:
+        api_base_url: ${api_base_url}
+        flutter_version: 3.19.3
+    ports:
+      # served by nginx; nginx runs on port 80 inside the docker container
+      - "${ui_port}:80"
+    restart: unless-stopped
