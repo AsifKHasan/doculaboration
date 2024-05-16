@@ -3,16 +3,15 @@ FROM python:3.8 AS builder
 
 # Stage 1: Install necessary system dependencies
 RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    libpq-dev \
-    vim
+  apt-get install -y \
+  build-essential \
+  libpq-dev
 
 # Stage 1: Install Python dependencies
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+  pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Create final image
 FROM ubuntu:latest
@@ -24,17 +23,14 @@ ENV DEBIAN_FRONTEND noninteractive
 # Stage 2: Copy binaries
 COPY --from=builder /usr/local/ /usr/local/
 COPY --from=builder /usr/bin/python3 /usr/bin/python3
-COPY --from=builder /usr/bin/vim /usr/bin/vim
 
 # Stage 1: Install necessary system dependencies
 RUN apt-get update && \
-    apt-get install -y \
-    libreoffice \
-    libreoffice-script-provider-python \
-    python3-uno
-
-ARG api_port
-ENV api_port=${api_port}
+  apt-get install -y \
+  libreoffice \
+  libreoffice-script-provider-python \
+  python3-uno \
+  poppler-utils
 
 # Stage 2: Set working directory and copy application code
 ENV WORKDIR=/doculaboration
