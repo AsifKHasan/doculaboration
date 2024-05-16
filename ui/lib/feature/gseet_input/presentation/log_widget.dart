@@ -26,8 +26,10 @@ class LogWidget extends StatelessWidget {
         alignment: Alignment.topLeft,
         child: Column(
           children: [
-            Text(
-              log,
+            SelectionArea(
+              child: Text(
+                log,
+              ),
             ),
             !started
                 ? const SizedBox.shrink()
