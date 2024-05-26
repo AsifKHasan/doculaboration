@@ -24,14 +24,3 @@ ${CMD} BEC-AI-Chatbot__rfp-technical-response__book-5-of-7__professional-staff
 ${CMD} BEC-AI-Chatbot__rfp-technical-response__book-6-of-7__technical-solution
 ${CMD} BEC-AI-Chatbot__rfp-technical-response__book-7-of-7__compliance-matrix
 ${CMD} BEC-AI-Chatbot__rfp-financial-response__book-1-of-1__financial-proposal
-
-
-CMD="./work-with-gsheet.sh"
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-1-of-7__proposal-submission
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-2-of-7__organization-experience
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-3-of-7__methodology-workplan
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-4-of-7__work-staff-schedule
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-5-of-7__professional-staff
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-6-of-7__technical-solution
-${CMD} BEC-AI-Chatbot__rfp-technical-response__book-7-of-7__compliance-matrix
-${CMD} BEC-AI-Chatbot__rfp-financial-response__book-1-of-1__financial-proposal
