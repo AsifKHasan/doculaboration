@@ -73,18 +73,32 @@ class GsheetHelper(object):
                     gsheet = self._context['_G'].open_by_url(gsheet_url)
                     debug(f"opened  gsheet id = {gsheet_id}", nesting_level=nesting_level)
                 else:
+                    query = f"name = '{gsheet_title}'"
+                    
                     debug(f"opening gsheet : [{gsheet_title}]", nesting_level=nesting_level)
-                    gsheet = self._context['_G'].open(gsheet_title)
-                    debug(f"opened  gsheet : [{gsheet_title}]", nesting_level=nesting_level)
+                    # gsheet = self._context['_G'].open(gsheet_title)
+                    gsheets = self._context['_G'].open_all(query=query)
+                    if len(gsheets) > 1:
+                        error(f"[{len(gsheets)}] gsheets found with the name [{gsheet_title}] .. quiting", nesting_level=nesting_level)
+                        for gsheet in gsheets:
+                            error(f"[{gsheet.id}]")
+
+                        sys.exit(1)
+                    else:
+                        gsheet = gsheets[0]
+
+                    gsheet_id = gsheet.id
+                    debug(f"opened  gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
 
                 # optimization - read the full gsheet
-                debug(f"reading gsheet : [{gsheet_title}]", nesting_level=nesting_level)
+                debug(f"reading gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
                 self._context['gsheet-data'][gsheet_title] = self.get_gsheet_data(gsheet)
-                debug(f"read    gsheet : [{gsheet_title}]", nesting_level=nesting_level)
+                debug(f"read    gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
 
                 break
 
-            except:
+            except Exception as err:
+                print(err)
                 warn(f"gsheet {gsheet_title} read request (attempt {i}) failed, waiting for {wait_for} seconds before trying again", nesting_level=nesting_level)
                 time.sleep(float(wait_for))
 
