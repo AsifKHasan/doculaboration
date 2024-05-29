@@ -12,6 +12,19 @@ from PIL import Image
 from helper.logger import *
 
 
+''' get data from the gsheet
+'''
+def get_gsheet_data(google_service, gsheet, ranges=[], include_grid_data=True):
+    # The spreadsheet to request.
+    spreadsheet_id = gsheet.id
+
+    request = google_service.spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=ranges, includeGridData=include_grid_data)
+    response = request.execute()
+
+    return response
+
+
+
 '''
     https://docs.google.com/spreadsheets/d/187T6rDV_I6ZwH1OlFYNdWN2OK05Z7ZxOQgqG0BhRbrE/edit?usp=drivesdk
 '''

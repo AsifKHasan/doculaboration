@@ -92,7 +92,12 @@ class GsheetHelper(object):
 
                 # optimization - read the full gsheet
                 debug(f"reading gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
-                self._context['gsheet-data'][gsheet_title] = self.get_gsheet_data(gsheet)
+
+                response = get_gsheet_data(google_service=self._context['service'], gsheet=gsheet)
+                # make a dictionary key'ed by worksheet_name
+                response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
+                self._context['gsheet-data'][gsheet_title] = response
+
                 debug(f"read    gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
 
                 break
@@ -111,23 +116,3 @@ class GsheetHelper(object):
 
         return data
 
-
-    ''' get data from the gsheet
-    '''
-    def get_gsheet_data(self, gsheet):
-        # The spreadsheet to request.
-        spreadsheet_id = gsheet.id
-
-        # The ranges to retrieve from the spreadsheet
-        ranges = []
-
-        # This parameter is ignored if a field mask was set in the request
-        include_grid_data = True
-
-        request = self._context['service'].spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=ranges, includeGridData=include_grid_data)
-        response = request.execute()
-
-        # make a dictionary key'ed by worksheet_name
-        response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
-
-        return response
