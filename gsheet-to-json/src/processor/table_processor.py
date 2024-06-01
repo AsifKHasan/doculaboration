@@ -100,7 +100,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         return
 
     # or this can be another range formula which is actually another formula. In this case effectiveValue will be empty
-    if cell_data['effectiveValue'] == {}:
+    if 'effectiveValue' in cell_data and cell_data['effectiveValue'] == {}:
         # warn(f"formula [{formula_value}] does not have any corresponsing effectiveValue", nesting_level=nesting_level)
 
         # check if this is a range formula with the pattern ='worksheet-name'!a1_range
