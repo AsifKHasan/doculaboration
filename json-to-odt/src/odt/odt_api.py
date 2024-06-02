@@ -371,11 +371,6 @@ class OdtContent(object):
 
             # process and split
             self.process()
-
-            for row in self.cell_matrix:
-                print(str(row))
-                pass
-
             self.split()
 
         else:
@@ -444,7 +439,7 @@ class OdtContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        next_cell_in_row = Cell(row_num=r, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
+                        next_cell_in_row = Cell(row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -505,14 +500,12 @@ class OdtContent(object):
             data_row = self.cell_matrix[r]
 
             # do extra processing on rows
-            data_row.preprocess_row()
+            # data_row.preprocess_row()
 
             if data_row.is_free_content():
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
-                    print(str(table))
-                    print()
                     self.content_list.append(table)
 
                 block = OdtParagraph(data_row, r)
@@ -525,8 +518,6 @@ class OdtContent(object):
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
-                    print(str(table))
-                    print()
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
@@ -537,14 +528,8 @@ class OdtContent(object):
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
             table = OdtTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
-            print(str(table))
-            print()
             self.content_list.append(table)
 
-        for block in self.content_list:
-            # print(str(block))
-            # print()
-            pass
 
     ''' generates the odt code
         container may be odt.text or a table-cell
@@ -883,7 +868,6 @@ class Row(object):
                         non_empty_cell_found = True
                         break
                 else:
-                    # print(f"EMPTY {cell}")
                     pass
 
                 if non_empty_cell_found == False:
@@ -1591,7 +1575,7 @@ class Merge(object):
     ''' string representation
     '''
     def __repr__(self):
-        return f"{COLUMNS[self.start_col]}{self.start_row+1}:{COLUMNS[self.end_col-1]}{self.end_row}"
+        return f"{COLUMNS[self.start_col+1]}{self.start_row+3}:{COLUMNS[self.end_col]}{self.end_row+2}"
 
 
 ''' gsheet color object wrapper
