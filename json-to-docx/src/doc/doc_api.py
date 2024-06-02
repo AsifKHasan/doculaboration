@@ -4,7 +4,7 @@ import json
 import importlib
 import inspect
 from pprint import pprint
- 
+
 from doc.doc_util import *
 from helper.logger import *
 
@@ -76,7 +76,6 @@ class DocxSectionBase(object):
 
         # headers and footers
         if new_section:
-            # print(self.section_id)
             self.header_first = DocxPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
             self.header_odd   = DocxPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
             self.header_even  = DocxPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
@@ -162,7 +161,6 @@ class DocxSectionBase(object):
             paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level)
 
 
-
 ''' Docx table section object
 '''
 class DocxTableSection(DocxSectionBase):
@@ -182,7 +180,6 @@ class DocxTableSection(DocxSectionBase):
 
         super().section_to_doc()
         self.section_contents.content_to_doc(container=self._doc)
-
 
 
 ''' Docx gsheet section object
@@ -206,7 +203,6 @@ class DocxGsheetSection(DocxSectionBase):
             section_list_to_doc(self._section_data['contents']['sections'], self._config)
 
 
-
 ''' Docx ToC section object
 '''
 class DocxToCSection(DocxSectionBase):
@@ -222,7 +218,6 @@ class DocxToCSection(DocxSectionBase):
     def section_to_doc(self):
         super().section_to_doc()
         create_index(self._doc, index_type='toc')
-
 
 
 ''' Docx LoT section object
@@ -242,7 +237,6 @@ class DocxLoTSection(DocxSectionBase):
         create_index(self._doc, index_type='lot')
 
 
-
 ''' Docx LoF section object
 '''
 class DocxLoFSection(DocxSectionBase):
@@ -258,7 +252,6 @@ class DocxLoFSection(DocxSectionBase):
     def section_to_doc(self):
         super().section_to_doc()
         create_index(self._doc, index_type='lof')
-
 
 
 ''' Docx Pdf section object
@@ -287,16 +280,9 @@ class DocxPdfSection(DocxSectionBase):
                     if not first_image:
                         paragraph_attributes['breakbefore'] = 'page'
 
-                    # print('image width', image['width'])
-                    # print('image height', image['height'])
-                    # print('section width', self.section_width)
-                    # print('section height', self.section_height)
                     image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    # print('image_width_in_inches', image_width_in_inches)
-                    # print('image_height_in_inches', image_height_in_inches)
                     insert_image(container=self._doc, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
                     first_image = False
-
 
 
 ''' Docx section content base object
@@ -364,16 +350,28 @@ class DocxContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            self.cell_matrix.append(Row(r, row_data, self.content_width, self.column_widths, self.row_metadata_list[r].inches, self.nesting_level))
+                            new_row = Row(
+                                r,
+                                row_data,
+                                self.content_width,
+                                self.column_widths,
+                                self.row_metadata_list[r].inches,
+                                self.nesting_level,
+                            )
+                            self.cell_matrix.append(new_row)
                             r = r + 1
 
             # process and split
             self.process()
+
+            for row in self.cell_matrix:
+                print(str(row))
+                pass
+
             self.split()
 
         else:
             self.has_content = False
-
 
     ''' processes the cells to
         1. identify missing cells/contents for merged cells
@@ -384,7 +382,6 @@ class DocxContent(object):
 
         # first we identify the missing cells or blank cells for merged spans
         for merge in self.merge_list:
-            # print(f"merge range : {merge}")
             first_row = merge.start_row
             first_col = merge.start_col
             last_row = merge.end_row
@@ -465,7 +462,6 @@ class DocxContent(object):
                         else:
                             next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
-
                         # mark cells for multirow only if it is multirow
                         if row_span > 1:
                             if r == first_row:
@@ -486,7 +482,6 @@ class DocxContent(object):
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
 
-
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self):
@@ -500,7 +495,6 @@ class DocxContent(object):
             if len(self.cell_matrix) <= r:
                 continue
 
-
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
 
@@ -508,10 +502,11 @@ class DocxContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
-                # print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = DocxTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    print(str(table))
+                    print()
                     self.content_list.append(table)
 
                 block = DocxParagraph(data_row, r)
@@ -524,10 +519,11 @@ class DocxContent(object):
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = DocxTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    print(str(table))
+                    print()
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
-                    # print(f"new table starts at row {next_table_starts_in_row}")
 
             else:
                 next_table_ends_in_row = r
@@ -535,8 +531,14 @@ class DocxContent(object):
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
             table = DocxTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
+            print(str(table))
+            print()
             self.content_list.append(table)
 
+        for block in self.content_list:
+            # print(str(block))
+            # print()
+            pass
 
     ''' generates the docx code
         container may be doc, header/footer or a Cell
@@ -544,17 +546,9 @@ class DocxContent(object):
     def content_to_doc(self, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # for r in range(0, self.row_count):
-        #     data_row = self.cell_matrix[r]
-        #     for cell in data_row.cells:
-        #         # print(cell)
-        #         pass
-
-
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_doc(container=container, container_width=self.content_width)
-
 
 
 ''' Docx Page Header Footer object
@@ -574,7 +568,6 @@ class DocxPageHeaderFooter(DocxContent):
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
 
-
 ''' Docx Block object wrapper base class (plain docx, table, header etc.)
 '''
 class DocxBlock(object):
@@ -584,7 +577,6 @@ class DocxBlock(object):
     def __init__(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         pass
-
 
 
 ''' Docx Table object wrapper
@@ -599,6 +591,7 @@ class DocxTable(DocxBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
+        self.col_count = len(column_widths)
         self.table_name = f"Table_{random_string()}"
 
         # header row if any
@@ -608,14 +601,21 @@ class DocxTable(DocxBlock):
         else:
             self.header_row_count = 0
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        lines = []
+        lines.append(f"[{self.col_count}x{self.row_count}] table")
+        for row in self.table_cell_matrix:
+            lines.append(str(row))
 
+        return '\n'.join(lines)
 
     ''' generates the docx code
     '''
     def block_to_doc(self, container, container_width):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # print(f"DocxTable spans row {self.start_row}-{self.end_row}")
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
 
@@ -644,7 +644,6 @@ class DocxTable(DocxBlock):
                 row = self.table_cell_matrix[row_index]
                 for col_index in range(0, len(row.cells)):
                     cell = row.cells[col_index]
-                    # print(f"........ {cell}")
                     if cell.merge_spec.multi_row == MultiSpan.FirstCell or cell.merge_spec.multi_col == MultiSpan.FirstCell:
                         # this is the first cell of a merge, we need to get the last cell
                         start_table_cell = tbl.cell(row_index, col_index)
@@ -659,7 +658,6 @@ class DocxTable(DocxBlock):
                     cell.decorate_cell()
 
 
-
 ''' Docx Block object wrapper
 '''
 class DocxParagraph(DocxBlock):
@@ -671,6 +669,11 @@ class DocxParagraph(DocxBlock):
 
         self.data_row = data_row
         self.row_number = row_number
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        return f"__para__"
 
     ''' generates the docx code
     '''
@@ -684,7 +687,6 @@ class DocxParagraph(DocxBlock):
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
 
             cell_to_produce.cell_to_doc(container=container)
-
 
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -756,7 +758,7 @@ class Cell(object):
                     else:
                         if self.note.script and self.note.script == 'latex':
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
-                        
+
                         else:
                             self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
@@ -770,13 +772,13 @@ class Cell(object):
             self.is_empty = True
 
 
+
     ''' string representation
     '''
     def __repr__(self):
-        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
-
 
     ''' docx code for cell content
     '''
@@ -785,8 +787,6 @@ class Cell(object):
         table_cell.width = Inches(self.cell_width)
         if self.effective_format:
             self.cell_to_doc(container=table_cell)
-
-
 
     ''' docx code for cell content
     '''
@@ -807,8 +807,6 @@ class Cell(object):
                 if not is_table_cell(container) and where:
                     format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
 
-
-
     ''' apply formatting for table cell
     '''
     def decorate_cell(self):
@@ -816,13 +814,10 @@ class Cell(object):
         table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
         format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
-
-
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
         self.effective_format = from_cell.effective_format
-
 
 
 ''' gsheet Row object wrapper
@@ -844,6 +839,17 @@ class Row(object):
                 c = c + 1
 
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        lines = []
+        lines.append(f".. row [{self.row_name}]")
+        for cell in self.cells:
+            lines.append(str(cell))
+
+        return '\n'.join(lines)
+    
+
     ''' preprocess row
         does something automatically even if this is not in the gsheet
         1. make single cell row with style defined out-of-cell and keep-with-next
@@ -859,6 +865,9 @@ class Row(object):
                     if cell.is_empty == False:
                         non_empty_cell_found = True
                         break
+                    else:
+                        # print(f"EMPTY {cell}")
+                        pass
 
                 if non_empty_cell_found == False:
                     first_cell.note.free_content = True
@@ -870,7 +879,6 @@ class Row(object):
     def is_empty(self):
         return (len(self.cells) == 0)
 
-
     ''' gets a specific cell by ordinal
     '''
     def get_cell(self, c):
@@ -878,7 +886,6 @@ class Row(object):
             return self.cells[c]
         else:
             return None
-
 
     ''' inserts a specific cell at a specific ordinal
     '''
@@ -895,7 +902,6 @@ class Row(object):
         else:
             self.cells.append(cell)
 
-
     ''' it is true when the first cell has a free_content true value
         the first cell may be free_content when
         1. it contains a note {'content': 'out-of-cell'}
@@ -911,7 +917,6 @@ class Row(object):
         else:
             return False
 
-
     ''' it is true only when the first cell has a repeat-rows note with value > 0
     '''
     def is_table_start(self):
@@ -924,7 +929,6 @@ class Row(object):
         else:
             return False
 
-
     ''' generates the docx code
     '''
     def row_to_doc_table_row(self, table, table_row):
@@ -934,7 +938,6 @@ class Row(object):
         for cell_index in range(0, len(self.cells)):
             cell = self.cells[cell_index]
             cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
-
 
 
 ''' gsheet text format object wrapper
@@ -994,7 +997,6 @@ class TextFormat(object):
         return attributes
 
 
-
 ''' gsheet cell value object wrapper
 '''
 class CellValue(object):
@@ -1005,7 +1007,6 @@ class CellValue(object):
         self.effective_format = effective_format
         self.nesting_level = nesting_level
         self.outline_level = outline_level
-
 
 
 ''' string type CellValue
@@ -1037,7 +1038,6 @@ class StringValue(CellValue):
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list)
         return paragraph
-
 
 
 ''' LaTex type CellValue
@@ -1073,7 +1073,6 @@ class LatexValue(CellValue):
         return paragraph
 
 
-
 ''' text-run type CellValue
 '''
 class TextRunValue(CellValue):
@@ -1107,7 +1106,6 @@ class TextRunValue(CellValue):
         return paragraph
 
 
-
 ''' page-number type CellValue
 '''
 class PageNumberValue(CellValue):
@@ -1131,7 +1129,6 @@ class PageNumberValue(CellValue):
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
         paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
-
 
 
 ''' image type CellValue
@@ -1185,7 +1182,6 @@ class ImageValue(CellValue):
         return where
 
 
-
 ''' content type CellValue
 '''
 class ContentValue(CellValue):
@@ -1210,7 +1206,6 @@ class ContentValue(CellValue):
         self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
         return None
-
 
 
 ''' gsheet cell format object wrapper
@@ -1269,7 +1264,6 @@ class CellFormat(object):
             more_attributes = {**self.borders.table_cell_attributes(cell_merge_spec), **self.padding.table_cell_attributes()}
 
         return {**attributes, **more_attributes}
-
 
 
 ''' gsheet cell borders object wrapper
@@ -1337,7 +1331,6 @@ class Borders(object):
         return {'borders': attributes}
 
 
-
 ''' gsheet cell border object wrapper
 '''
 class Border(object):
@@ -1373,7 +1366,6 @@ class Border(object):
     	return {"sz": self.width * 2, "val": self.style, "color": self.color.value(), "space": "0"}
 
 
-
 ''' Cell Merge spec wrapper
 '''
 class CellMergeSpec(object):
@@ -1405,7 +1397,6 @@ class CellMergeSpec(object):
         return attributes
 
 
-
 ''' gsheet rowMetadata object wrapper
 '''
 class RowMetadata(object):
@@ -1417,7 +1408,6 @@ class RowMetadata(object):
         self.inches = row_height_in_inches(self.pixel_size)
 
 
-
 ''' gsheet columnMetadata object wrapper
 '''
 class ColumnMetadata(object):
@@ -1426,7 +1416,6 @@ class ColumnMetadata(object):
     '''
     def __init__(self, column_metadata_dict):
         self.pixel_size = int(column_metadata_dict['pixelSize'])
-
 
 
 ''' gsheet merge object wrapper
@@ -1449,7 +1438,6 @@ class Merge(object):
     '''
     def __repr__(self):
         return f"{COLUMNS[self.start_col]}{self.start_row+1}:{COLUMNS[self.end_col-1]}{self.end_row}"
-
 
 
 ''' gsheet color object wrapper
@@ -1496,7 +1484,6 @@ class RgbColor(object):
         return False
 
 
-
 ''' gsheet cell padding object wrapper
 '''
 class Padding(object):
@@ -1533,7 +1520,6 @@ class Padding(object):
         return {'padding': attributes}
 
 
-
 ''' gsheet text format run object wrapper
 '''
 class TextFormatRun(object):
@@ -1555,7 +1541,6 @@ class TextFormatRun(object):
     '''
     def text_attributes(self, text):
         return {'text': text[self.start_index:], 'text-attributes': self.format.text_attributes()}
-
 
 
 ''' gsheet cell notes object wrapper
@@ -1661,7 +1646,6 @@ class CellNote(object):
         return attributes
 
 
-
 ''' gsheet vertical alignment object wrapper
 '''
 class VerticalAlignment(object):
@@ -1673,7 +1657,6 @@ class VerticalAlignment(object):
             self.valign = TEXT_VALIGN_MAP.get(valign)
         else:
             self.valign = TEXT_VALIGN_MAP.get('TOP')
-
 
 
 ''' gsheet horizontal alignment object wrapper
@@ -1689,7 +1672,6 @@ class HorizontalAlignment(object):
             self.halign = TEXT_HALIGN_MAP.get('LEFT')
 
 
-
 ''' gsheet wrapping object wrapper
 '''
 class Wrapping(object):
@@ -1703,7 +1685,6 @@ class Wrapping(object):
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
 
 
-
 ''' Helper for cell span specification
 '''
 class MultiSpan(object):
@@ -1711,7 +1692,6 @@ class MultiSpan(object):
     FirstCell = 'FirstCell'
     InnerCell = 'InnerCell'
     LastCell = 'LastCell'
-
 
 
 #   ----------------------------------------------------------------------------------------------------------------

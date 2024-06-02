@@ -4,7 +4,7 @@ import json
 import importlib
 import inspect
 from pprint import pprint
- 
+
 from odt.odt_util import *
 from helper.logger import *
 
@@ -170,7 +170,6 @@ class OdtSectionBase(object):
         self._odt.text.addElement(paragraph)
 
 
-
 ''' Odt table section object
 '''
 class OdtTableSection(OdtSectionBase):
@@ -186,7 +185,6 @@ class OdtTableSection(OdtSectionBase):
     def section_to_odt(self):
         super().section_to_odt()
         self.section_contents.content_to_odt(odt=self._odt, container=self._odt.text)
-
 
 
 ''' Odt gsheet section object
@@ -210,7 +208,6 @@ class OdtGsheetSection(OdtSectionBase):
             section_list_to_odt(self._section_data['contents']['sections'], self._config)
 
 
-
 ''' Odt ToC section object
 '''
 class OdtToCSection(OdtSectionBase):
@@ -228,7 +225,6 @@ class OdtToCSection(OdtSectionBase):
         toc = create_toc()
         if toc:
             self._odt.text.addElement(toc)
-
 
 
 ''' Odt LoT section object
@@ -250,7 +246,6 @@ class OdtLoTSection(OdtSectionBase):
             self._odt.text.addElement(toc)
 
 
-
 ''' Odt LoF section object
 '''
 class OdtLoFSection(OdtSectionBase):
@@ -268,7 +263,6 @@ class OdtLoFSection(OdtSectionBase):
         toc = create_lof()
         if toc:
             self._odt.text.addElement(toc)
-
 
 
 ''' Odt Pdf section object
@@ -306,7 +300,6 @@ class OdtPdfSection(OdtSectionBase):
 
                     self._odt.text.addElement(paragraph)
                     first_image = False
-
 
 
 ''' Odt section content base object
@@ -378,11 +371,15 @@ class OdtContent(object):
 
             # process and split
             self.process()
+
+            for row in self.cell_matrix:
+                print(str(row))
+                pass
+
             self.split()
 
         else:
             self.has_content = False
-
 
     ''' processes the cells to
         1. identify missing cells/contents for merged cells
@@ -471,7 +468,6 @@ class OdtContent(object):
                         else:
                             next_cell_in_row.merge_spec.multi_col = MultiSpan.No
 
-
                         # mark cells for multirow only if it is multirow
                         if row_span > 1:
                             if r == first_row:
@@ -492,7 +488,6 @@ class OdtContent(object):
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
 
-
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self):
@@ -506,7 +501,6 @@ class OdtContent(object):
             if len(self.cell_matrix) <= r:
                 continue
 
-
             # the first cell of the row tells us whether it is in-cell or out-of-cell
             data_row = self.cell_matrix[r]
 
@@ -514,10 +508,11 @@ class OdtContent(object):
             data_row.preprocess_row()
 
             if data_row.is_free_content():
-                # print("Free Content")
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    print(str(table))
+                    print()
                     self.content_list.append(table)
 
                 block = OdtParagraph(data_row, r)
@@ -530,10 +525,11 @@ class OdtContent(object):
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
+                    print(str(table))
+                    print()
                     self.content_list.append(table)
 
                     next_table_starts_in_row = r
-                    # print(f"new table starts at row {next_table_starts_in_row}")
 
             else:
                 next_table_ends_in_row = r
@@ -541,8 +537,14 @@ class OdtContent(object):
         # there may be a pending/running table
         if next_table_ends_in_row >= next_table_starts_in_row:
             table = OdtTable(self.cell_matrix, next_table_starts_in_row, next_table_ends_in_row, self.column_widths)
+            print(str(table))
+            print()
             self.content_list.append(table)
 
+        for block in self.content_list:
+            # print(str(block))
+            # print()
+            pass
 
     ''' generates the odt code
         container may be odt.text or a table-cell
@@ -550,17 +552,9 @@ class OdtContent(object):
     def content_to_odt(self, odt, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # for r in range(0, self.row_count):
-        #     data_row = self.cell_matrix[r]
-        #     for cell in data_row.cells:
-        #         # print(cell)
-        #         pass
-
-
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_odt(odt=odt, container=container)
-
 
 
 ''' Odt Page Header Footer object
@@ -591,7 +585,6 @@ class OdtPageHeaderFooter(OdtContent):
                 block.block_to_odt(odt=odt, container=header_footer_style)
 
 
-
 ''' Odt Block object wrapper base class (plain odt, table, header etc.)
 '''
 class OdtBlock(object):
@@ -600,7 +593,6 @@ class OdtBlock(object):
     '''
     def __init__(self):
         pass
-
 
 
 ''' Odt Table object wrapper
@@ -613,6 +605,7 @@ class OdtTable(OdtBlock):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
+        self.col_count = len(column_widths)
         self.table_name = f"Table_{random_string()}"
 
         # header row if any
@@ -622,14 +615,21 @@ class OdtTable(OdtBlock):
         else:
             self.header_row_count = 0
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        lines = []
+        lines.append(f"[{self.col_count}x{self.row_count}] table")
+        for row in self.table_cell_matrix:
+            lines.append(str(row))
 
+        return '\n'.join(lines)
 
     ''' generates the odt code
     '''
     def block_to_odt(self, odt, container):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # print(f"OdtTable spans row {self.start_row}-{self.end_row}")
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
         table_properties_attributes = {'width': f"{sum(self.column_widths)}in"}
@@ -654,12 +654,13 @@ class OdtTable(OdtBlock):
         table.addElement(table_header_rows)
 
         # iterate rows and cells to render the table's contents
+        num_cols = len(self.column_widths)
+        num_rows = len(self.table_cell_matrix)
         for row in self.table_cell_matrix[self.header_row_count:]:
             table_row = row.row_to_odt_table_row(odt, self.table_name)
             table.addElement(table_row)
 
         container.addElement(table)
-
 
 
 ''' Odt Block object wrapper
@@ -672,8 +673,13 @@ class OdtParagraph(OdtBlock):
         self.data_row = data_row
         self.row_number = row_number
 
-    ''' generates the odt code
+    ''' string representation
     '''
+    def __repr__(self):
+        return f"__para__"
+
+    """ generates the odt code
+    """
     def block_to_odt(self, odt, container):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
@@ -734,7 +740,6 @@ class Cell(object):
                 self.user_entered_format = None
                 self.is_empty = True
 
-
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
                 self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
@@ -753,7 +758,7 @@ class Cell(object):
                     else:
                         if self.note.script and self.note.script == 'latex':
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
-                        
+
                         else:
                             self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
@@ -770,10 +775,9 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value}]"
-        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
-
 
     ''' odt code for cell content
     '''
@@ -800,13 +804,8 @@ class Cell(object):
         else:
             # wrap this into a covered-table-cell
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
-            # if table_cell is None:
-            #     print(f"table_cell   : [{self.cell_id}] None")
-            # else:
-            #     print(f"Covered Cell : [{self.cell_id}]")
 
         return table_cell
-
 
     ''' odt code for cell content
     '''
@@ -822,13 +821,10 @@ class Cell(object):
             if self.cell_value:
                 self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
 
-
-
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
         self.effective_format = from_cell.effective_format
-
 
     ''' is the cell part of a merge
     '''
@@ -838,7 +834,6 @@ class Cell(object):
 
         else:
             return False
-
 
 
 ''' gsheet Row object wrapper
@@ -861,6 +856,17 @@ class Row(object):
                 c = c + 1
 
 
+    ''' string representation
+    '''
+    def __repr__(self):
+        lines = []
+        lines.append(f".. row [{self.row_name}]")
+        for cell in self.cells:
+            lines.append(str(cell))
+
+        return '\n'.join(lines)
+    
+
     ''' preprocess row
         does something automatically even if this is not in the gsheet
         1. make single cell row with style defined out-of-cell and keep-with-next
@@ -876,6 +882,9 @@ class Row(object):
                     if cell.is_empty == False:
                         non_empty_cell_found = True
                         break
+                else:
+                    # print(f"EMPTY {cell}")
+                    pass
 
                 if non_empty_cell_found == False:
                     first_cell.note.free_content = True
@@ -971,7 +980,6 @@ class Row(object):
         return table_row
 
 
-
 ''' gsheet text format object wrapper
 '''
 class TextFormat(object):
@@ -1041,7 +1049,6 @@ class TextFormat(object):
         return attributes
 
 
-
 ''' gsheet cell value object wrapper
 '''
 class CellValue(object):
@@ -1052,7 +1059,6 @@ class CellValue(object):
         self.effective_format = effective_format
         self.nesting_level = nesting_level
         self.outline_level = outline_level
-
 
 
 ''' string type CellValue
@@ -1092,7 +1098,6 @@ class StringValue(CellValue):
         container.addElement(paragraph)
 
 
-
 ''' LaTex type CellValue
 '''
 class LatexValue(CellValue):
@@ -1126,7 +1131,6 @@ class LatexValue(CellValue):
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_mathml(odt, style_name, latex_content=self.value)
         container.addElement(paragraph)
-
 
 
 ''' text-run type CellValue
@@ -1167,7 +1171,6 @@ class TextRunValue(CellValue):
         container.addElement(paragraph)
 
 
-
 ''' page-number type CellValue
 '''
 class PageNumberValue(CellValue):
@@ -1195,7 +1198,6 @@ class PageNumberValue(CellValue):
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_page_number(style_name=style_name, page_numbering=self.page_numbering)
         container.addElement(paragraph)
-
 
 
 ''' image type CellValue
@@ -1256,7 +1258,6 @@ class ImageValue(CellValue):
         container.addElement(paragraph)
 
 
-
 ''' content type CellValue
 '''
 class ContentValue(CellValue):
@@ -1280,7 +1281,6 @@ class ContentValue(CellValue):
     def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
         self.contents = OdtContent(self.value, container_width, self.nesting_level)
         self.contents.content_to_odt(odt=odt, container=container)
-
 
 
 ''' gsheet cell format object wrapper
@@ -1401,7 +1401,6 @@ class CellFormat(object):
         return f"{IMAGE_POSITION[self.valign.valign]} {IMAGE_POSITION[self.halign.halign]}"
 
 
-
 ''' gsheet cell borders object wrapper
 '''
 class Borders(object):
@@ -1490,7 +1489,6 @@ class Borders(object):
         return attributes
 
 
-
 ''' gsheet cell border object wrapper
 '''
 class Border(object):
@@ -1520,7 +1518,6 @@ class Border(object):
     '''
     def value(self):
         return f"{self.width}pt {self.style} {self.color.value()}"
-
 
 
 ''' Cell Merge spec wrapper
@@ -1554,7 +1551,6 @@ class CellMergeSpec(object):
         return attributes
 
 
-
 ''' gsheet rowMetadata object wrapper
 '''
 class RowMetadata(object):
@@ -1566,7 +1562,6 @@ class RowMetadata(object):
         self.inches = row_height_in_inches(self.pixel_size)
 
 
-
 ''' gsheet columnMetadata object wrapper
 '''
 class ColumnMetadata(object):
@@ -1575,7 +1570,6 @@ class ColumnMetadata(object):
     '''
     def __init__(self, column_metadata_dict):
         self.pixel_size = int(column_metadata_dict['pixelSize'])
-
 
 
 ''' gsheet merge object wrapper
@@ -1598,7 +1592,6 @@ class Merge(object):
     '''
     def __repr__(self):
         return f"{COLUMNS[self.start_col]}{self.start_row+1}:{COLUMNS[self.end_col-1]}{self.end_row}"
-
 
 
 ''' gsheet color object wrapper
@@ -1645,7 +1638,6 @@ class RgbColor(object):
         return False
 
 
-
 ''' gsheet cell padding object wrapper
 '''
 class Padding(object):
@@ -1683,7 +1675,6 @@ class Padding(object):
         return attributes
 
 
-
 ''' gsheet text format run object wrapper
 '''
 class TextFormatRun(object):
@@ -1705,7 +1696,6 @@ class TextFormatRun(object):
     '''
     def text_attributes(self, text):
         return {'text': text[self.start_index:], 'text-attributes': self.format.text_attributes()}
-
 
 
 ''' gsheet cell notes object wrapper
@@ -1812,7 +1802,6 @@ class CellNote(object):
         return attributes
 
 
-
 ''' gsheet vertical alignment object wrapper
 '''
 class VerticalAlignment(object):
@@ -1824,7 +1813,6 @@ class VerticalAlignment(object):
             self.valign = TEXT_VALIGN_MAP.get(valign, 'top')
         else:
             self.valign = TEXT_VALIGN_MAP.get('TOP')
-
 
 
 ''' gsheet horizontal alignment object wrapper
@@ -1840,7 +1828,6 @@ class HorizontalAlignment(object):
             self.halign = TEXT_HALIGN_MAP.get('LEFT')
 
 
-
 ''' gsheet wrapping object wrapper
 '''
 class Wrapping(object):
@@ -1854,7 +1841,6 @@ class Wrapping(object):
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
 
 
-
 ''' Helper for cell span specification
 '''
 class MultiSpan(object):
@@ -1862,7 +1848,6 @@ class MultiSpan(object):
     FirstCell = 'FirstCell'
     InnerCell = 'InnerCell'
     LastCell = 'LastCell'
-
 
 
 #   ----------------------------------------------------------------------------------------------------------------

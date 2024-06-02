@@ -32,7 +32,6 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
         warn(f"worksheet [{ws_title}] not found", nesting_level=nesting_level)
         return {}
 
-
     # if any of the cells have userEnteredValue of IMAGE or HYPERLINK or Range Formula, process it
     row = 2
     # start at row 3
@@ -51,6 +50,11 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                         tmp_dir = context['tmp-dir']
 
                         process_formula(formula_value=formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+
+                    else:
+                        # TODO: 
+                        if 'formattedValue' not in cell_data:
+                            worksheet_data['data'][0]['rowData'][row]['values'][val]['formattedValue'] = 'xyz'
 
                 val = val + 1
 
