@@ -73,7 +73,7 @@ class GsheetHelper(object):
                     gsheet = self._context['_G'].open_by_url(gsheet_url)
                     debug(f"opened  gsheet id = {gsheet_id}", nesting_level=nesting_level)
                 else:
-                    query = f"name = '{gsheet_title}'"
+                    query = f'name = "{gsheet_title}"'
                     
                     debug(f"opening gsheet : [{gsheet_title}]", nesting_level=nesting_level)
                     # gsheet = self._context['_G'].open(gsheet_title)
