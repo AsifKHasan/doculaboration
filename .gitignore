@@ -132,6 +132,7 @@ dmypy.json
 out/
 config.yml
 credential.json
+conf/*.json
 *.odt#
 
 # Exceptions
