@@ -26,6 +26,7 @@ dependencies:
   url_launcher: ^6.2.5
   webview_flutter_web: ^0.2.2+4
   equatable: ^2.0.5
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
