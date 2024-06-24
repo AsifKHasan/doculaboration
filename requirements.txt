@@ -17,6 +17,7 @@ pdf2image
 pillow
 latex2mathml
 setuptools
+ndg-httpsclient
 
 # json-to-odt
 odfpy
