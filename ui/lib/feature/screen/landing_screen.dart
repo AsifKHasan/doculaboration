@@ -38,7 +38,7 @@ class _LandingScreenState extends State<LandingScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     setState(() {
-      backgroundColor = Theme.of(context).colorScheme.background;
+      backgroundColor = Theme.of(context).colorScheme.surface;
       primaryColor = Theme.of(context).colorScheme.primary;
     });
   }

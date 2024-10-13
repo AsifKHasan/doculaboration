@@ -25,10 +25,6 @@ class JobQueueState with _$JobQueueState {
   const factory JobQueueState.update({
     required List<JobQueueItem> jobQueueItemList,
   }) = _update;
-
-  @override
-  bool operator ==(Object other) =>
-      other is JobQueueState && identical(other, this);
 }
 
 @Injectable()

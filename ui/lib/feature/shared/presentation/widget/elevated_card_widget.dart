@@ -9,7 +9,7 @@ class ElevatedCardWidget extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = Theme.of(context).colorScheme.background;
+    final backgroundColor = Theme.of(context).colorScheme.surface;
     final primaryColor = Theme.of(context).colorScheme.primary;
     return Container(
       decoration: BoxDecoration(

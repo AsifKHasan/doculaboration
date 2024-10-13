@@ -1,5 +1,4 @@
 services:
-  
   api:
     build:
       context: .
@@ -15,7 +14,7 @@ services:
       context: ./ui
       args:
         api_base_url: ${api_base_url}
-        flutter_version: 3.19.3
+        flutter_version: 3.24.3
     ports:
       # served by nginx; nginx runs on port 80 inside the docker container
       - "${ui_port}:80"

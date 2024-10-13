@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:ui/feature/gseet_input/data/model/job_state_model.dart';
 
 class JobQueueItem extends Equatable {
-  String name;
-  List<JobModel> jobList;
-  JobQueueItem({
+  final String name;
+  final List<JobModel> jobList;
+  const JobQueueItem({
     required this.name,
     this.jobList = const [],
   });

@@ -20,7 +20,7 @@ class GalleryWidget extends StatelessWidget {
       children: items
           .map(
             (e) => InkWell(
-              hoverColor: Theme.of(context).colorScheme.background,
+              hoverColor: Theme.of(context).colorScheme.surface,
               child: ElevatedCardWidget(
                 child: Center(child: Text(e.title)),
               ),
