@@ -27,9 +27,6 @@ class HomeWidget extends StatelessWidget {
         Expanded(
           child: BlocBuilder<JobQueueBloc, JobQueueState>(
             bloc: jobListBloc,
-            buildWhen: (prev, cur) {
-              return prev != cur;
-            },
             builder: (context, state) {
               return state.when(
                 initial: () => const SizedBox.shrink(),
