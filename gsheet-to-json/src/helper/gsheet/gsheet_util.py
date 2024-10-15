@@ -38,7 +38,7 @@ def gsheet_id_from_url(url, nesting_level):
 def get_gsheet_link(value, nesting_level=0):
     link_name, link_target = value, None
 
-    m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', value, re.IGNORECASE)
+    m = re.match(r'=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', value, re.IGNORECASE)
     if m and m.group('link_url') is not None and m.group('link_title') is not None:
         # debug(f".. found a link to [{url}] at [{m.group('link_url')}]", nesting_level=nesting_level)
         link_name, link_target = m.group('link_title'), m.group('link_url')
@@ -55,7 +55,7 @@ def get_worksheet_link(value, nesting_level=0):
     link_name = value
 
     # content can be a HYPERLINK/hyperlink to another worksheet
-    m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', value, re.IGNORECASE)
+    m = re.match(r'=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', value, re.IGNORECASE)
     if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
         # debug(m.group('ws_gid'), m.group('ws_title'), nesting_level=nesting_level)
         link_name = m.group('ws_title')

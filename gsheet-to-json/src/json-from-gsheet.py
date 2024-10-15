@@ -41,6 +41,9 @@ class JsonFromGsheet(object):
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
 
+		if 'autocrop-pdf-pages' not in self._CONFIG:
+			self._CONFIG['autocrop-pdf-pages'] = True
+
 		# if gsheet name was provided as parameter, override the configuration
 		if self._gsheet:
 			self._CONFIG['gsheets'] = [self._gsheet]

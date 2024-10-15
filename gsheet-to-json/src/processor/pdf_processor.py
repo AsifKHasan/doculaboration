@@ -3,7 +3,7 @@
 '''
 import pdf2image
 import pdf2image.exceptions
-from PIL import Image
+from PIL import Image, ImageChops
 
 from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
@@ -42,17 +42,30 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
         if file_type == 'application/pdf':
             try:
                 images = pdf2image.convert_from_path(file_path, fmt='png', dpi=dpi, size=size, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
+                # mark images for autocropping
+                images = [{'path': im_path, 'autocrop': context['autocrop-pdf-pages']} for im_path in images]
+
             except Exception as e:
                 print(e)
                 error(f".... could not convert {file_path} to image(s)", nesting_level=nesting_level)
 
         # if it is an image
         if file_type in ['image/png', 'image/jpeg']:
-            images = [file_path]
+            images = [{'path': file_path, 'autocrop': False}]
 
         data['images'] = []
         for image in images:
-            im = Image.open(image)
+            im = Image.open(image['path'])
+            if image['autocrop']:
+                cropped_im = autocrop_image(im)
+                if cropped_im:
+                    im = cropped_im
+                    im.save(image['path'])
+                    debug(f".... CROPPED image {image['path']}", nesting_level=nesting_level)
+
+                else:
+                    debug(f".... image {image['path']} not cropped", nesting_level=nesting_level)
+
             width, height = im.size
             if 'dpi' in im.info:
                 dpi_x, dpi_y = im.info['dpi']
@@ -62,6 +75,19 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
             width_in_inches = width / dpi_x
             height_in_inches = height / dpi_y
 
-            data['images'].append({'path': image, 'width': width_in_inches, 'height': height_in_inches})
+            data['images'].append({'path': image['path'], 'width': width_in_inches, 'height': height_in_inches})
 
     return data
+
+''' crop the image automatically 
+'''
+def autocrop_image(im):
+    bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
+    diff = ImageChops.difference(im, bg)
+    diff = ImageChops.add(diff, diff, 2.0, -100)
+    # Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates. If the image is completely empty, this method returns None.
+    bbox = diff.getbbox()
+    if bbox:
+        return im.crop(bbox)
+
+    return None

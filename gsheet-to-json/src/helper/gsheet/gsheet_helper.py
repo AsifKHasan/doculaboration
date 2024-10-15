@@ -52,6 +52,7 @@ class GsheetHelper(object):
         self._context['index-worksheet'] = config['index-worksheet']
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
         self._context['gsheet-read-try-count'] = config['gsheet-read-try-count']
+        self._context['autocrop-pdf-pages'] = config['autocrop-pdf-pages']
         self._context['gsheet-data'] = {}
 
         self.current_document_index = -1
