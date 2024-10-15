@@ -69,7 +69,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
 '''
 def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, worksheet_data, gsheet, section_data, context, current_document_index, nesting_level):
     # content can be an IMAGE/image with an image formula like "=image(....)"
-    m = re.match('=IMAGE\((?P<name>.+)\)', formula_value, re.IGNORECASE)
+    m = re.match(r'=IMAGE\((?P<name>.+)\)', formula_value, re.IGNORECASE)
     if m and m.group('name') is not None:
         result = download_image_from_formula(m.group('name'), tmp_dir, row_height, nesting_level=nesting_level+1)
         if result:
@@ -79,7 +79,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         return
 
     # content can be a HYPERLINK/hyperlink to another worksheet
-    m = re.match('=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formula_value, re.IGNORECASE)
+    m = re.match(r'=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formula_value, re.IGNORECASE)
     if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
         new_section_data = {'section-prop': {'link': m.group('ws_title')}}
         cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level+1)
@@ -87,7 +87,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         return
 
     # content can be a HYPERLINK/hyperlink to another gdrive file (for now we only allow text only content, that is a text file)
-    m = re.match('=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formula_value, re.IGNORECASE)
+    m = re.match(r'=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formula_value, re.IGNORECASE)
     if m and m.group('link_url') is not None and m.group('link_title') is not None:
         url = m.group('link_url')
 
@@ -108,7 +108,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         # warn(f"formula [{formula_value}] does not have any corresponsing effectiveValue", nesting_level=nesting_level)
 
         # check if this is a range formula with the pattern ='worksheet-name'!a1_range
-        m = re.match("='(?P<ws_name>.+)'!(?P<range>.+)", formula_value, re.IGNORECASE)
+        m = re.match(r"='(?P<ws_name>.+)'!(?P<range>.+)", formula_value, re.IGNORECASE)
         if m and m.group('ws_name') is not None and m.group('range') is not None:
             ws_name = m.group('ws_name')
             range = m.group('range')
