@@ -1,6 +1,6 @@
 ## Prerequisites
 
-1. Share the gsheet with [spectrum-895@spectrum-221613.iam.gserviceaccount.com](mailto:spectrum-895@spectrum-221613.iam.gserviceaccount.com)
+1. Share the gsheet with [celloscope-2024@celloscope-160107.iam.gserviceaccount.com](mailto:celloscope-2024@celloscope-160107.iam.gserviceaccount.com)
 
 
 ## How do I add images to the gsheet?
