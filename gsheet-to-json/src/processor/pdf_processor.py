@@ -57,7 +57,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
         for image in images:
             im = Image.open(image['path'])
             if image['autocrop']:
-                cropped_im = autocrop_image(im)
+                cropped_im = autocrop_image(im, nesting_level=nesting_level+1)
                 if cropped_im:
                     im = cropped_im
                     im.save(image['path'])
@@ -79,15 +79,24 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
 
     return data
 
+
 ''' crop the image automatically 
 '''
-def autocrop_image(im):
+def autocrop_image(im, nesting_level):
+    min_width_height = 2
+    debug(f"original image size {im.size}", nesting_level=nesting_level)
     bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
     diff = ImageChops.difference(im, bg)
     diff = ImageChops.add(diff, diff, 2.0, -100)
     # Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates. If the image is completely empty, this method returns None.
     bbox = diff.getbbox()
     if bbox:
-        return im.crop(bbox)
+        new_im = im.crop(bbox)
+        debug(f"cropped  image size {new_im.size}", nesting_level=nesting_level)
+        if new_im.size[0] < min_width_height or new_im.size[1] < min_width_height:
+            warn(f"cropped image width/height is less than {(min_width_height)}, will use the original image", nesting_level=nesting_level)
+            return None
+        else:
+            return new_im
 
     return None
