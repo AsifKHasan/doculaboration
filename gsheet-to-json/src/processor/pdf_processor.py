@@ -4,6 +4,7 @@
 import pdf2image
 import pdf2image.exceptions
 from PIL import Image, ImageChops
+from pathlib import Path
 
 from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
@@ -61,10 +62,10 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 if cropped_im:
                     im = cropped_im
                     im.save(image['path'])
-                    debug(f".... CROPPED image {image['path']}", nesting_level=nesting_level)
+                    debug(f".... CROPPED image {Path(image['path']).name}", nesting_level=nesting_level)
 
                 else:
-                    warn(f".... image {image['path']} not cropped", nesting_level=nesting_level)
+                    warn(f".... image {Path(image['path']).name} not cropped", nesting_level=nesting_level)
 
             width, height = im.size
             if 'dpi' in im.info:
