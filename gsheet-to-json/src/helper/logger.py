@@ -4,15 +4,19 @@ import time
 from datetime import datetime
 from termcolor import colored
 import colorama
- 
+
 colorama.init()
 
 log_color = {
-    '[ERROR]': {'color': 'red',    'highlight': None, 'attrs': ['bold']},
-    '[ WARN]': {'color': 'yellow', 'highlight': None, 'attrs': ['bold']},
-    '[ INFO]': {'color': 'white',  'highlight': None, 'attrs': None},
-    '[DEBUG]': {'color': 'green',  'highlight': None, 'attrs': None}
+    '[ERROR]': {'color': 'red',         'highlight': None, 'attrs': ['bold']},
+    '[ WARN]': {'color': 'yellow',      'highlight': None, 'attrs': ['bold']},
+    '[ INFO]': {'color': 'white',       'highlight': None, 'attrs': None},
+    '[DEBUG]': {'color': 'green',       'highlight': None, 'attrs': None},
+    '[TRACE]': {'color': 'light_grey',  'highlight': None, 'attrs': ['dark']}
 }
+
+def trace(msg, console=True, nesting_level=0):
+    log('[TRACE]', msg, console, nesting_level)
 
 def debug(msg, console=True, nesting_level=0):
     log('[DEBUG]', msg, console, nesting_level)
@@ -31,7 +35,7 @@ def log(level, msg, console=True, nesting_level=0):
     nesting_leader = ".." * nesting_level
     if nesting_leader != '':
         nesting_leader = nesting_leader + ' '
-        
+
     data = {'type': level, 'time': datetime.now().isoformat(), 'msg': f"{nesting_leader}{msg}"}
 
     if console:

@@ -1,12 +1,15 @@
 # copy this file as config.yml and do not commit the copied file
 
+# log level (0-TRACE, 1-DEBUG, 2-INFO, 3-WARN, 4-ERROR) below which logs will not be printed
+log-level:                  1
+
 dirs:
   # all outputs and temporary downloads go here
-  output-dir:            "../../out"
+  output-dir:               "../../out"
 
 files:
   # the custom (latex) header for pandoc
-  document-header:           "./header-spectrum.tex"
+  document-header:          "./header-spectrum.tex"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one pdf

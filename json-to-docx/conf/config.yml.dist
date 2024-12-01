@@ -1,14 +1,17 @@
 # copy this file as config.yml and do not commit the copied file
 
+# log level (0-TRACE, 1-DEBUG, 2-INFO, 3-WARN, 4-ERROR) below which logs will not be printed
+log-level:                  1
+
 dirs:
   # some stock files (images) that we do not want to download from outside
-  data-dir:              "../data"
+  data-dir:                 "../data"
   # all outputs and temporary downloads go here
-  output-dir:            "../../out"
+  output-dir:               "../../out"
 
 files:
   # the docx template based on which the output docx is generated (should definitely be blank with some styles customized as preferred)
-  docx-template:         "./template-spectrum.docx"
+  docx-template:            "./template-spectrum.docx"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one docx
@@ -16,4 +19,4 @@ jsons:
 
 docx-related:
   # whether the pdf will be generated from the output docx after generation (requires MS Office installed)
-  generate-pdf:         true
+  generate-pdf:             true
