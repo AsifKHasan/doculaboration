@@ -12,6 +12,7 @@ from pathlib import Path
 from latex.latex_helper import LatexHelper
 from latex.latex_util import *
 from helper.logger import *
+from helper import logger
 
 
 class LatexFromJson(object):
@@ -40,6 +41,8 @@ class LatexFromJson(object):
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
 
+		logger.LOG_LEVEL = self._CONFIG['log-level']
+
 		# page specs
 		page_spec_file = config_dir / 'page-specs.yml'
 		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
@@ -66,7 +69,7 @@ class LatexFromJson(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
+		info(f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments

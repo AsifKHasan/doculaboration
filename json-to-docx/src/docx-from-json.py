@@ -12,6 +12,7 @@ from pathlib import Path
 from doc.doc_helper import DocHelper
 from doc.doc_util import *
 from helper.logger import *
+from helper import logger
 
 
 class DocFromJson(object):
@@ -36,11 +37,11 @@ class DocFromJson(object):
 			doc_helper.generate_and_save(self._data['sections'])
 
 			if self._CONFIG['docx-related']['generate-pdf']:
-				debug(msg=f"generating pdf ..")
+				info(msg=f"generating pdf ..")
 				pdf_start_time = int(round(time.time() * 1000))
 				generate_pdf(self._CONFIG['files']['output-docx'], self._CONFIG['dirs']['output-dir'])
 				self.end_time = int(round(time.time() * 1000))
-				debug(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
+				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
 
 			self.tear_down()
 
@@ -49,6 +50,8 @@ class DocFromJson(object):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		logger.LOG_LEVEL = self._CONFIG['log-level']
 
 		# page specs
 		page_spec_file = config_dir / 'page-specs.yml'
@@ -78,7 +81,7 @@ class DocFromJson(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
+		info(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 
 if __name__ == '__main__':

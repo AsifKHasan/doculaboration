@@ -12,6 +12,7 @@ from pathlib import Path
 from odt.odt_helper import OdtHelper
 from odt.odt_util import *
 from helper.logger import *
+from helper import logger
 
 class OdtFromJson(object):
 
@@ -34,11 +35,11 @@ class OdtFromJson(object):
 			odt_helper.generate_and_save(self._data['sections'])
 
 			if self._CONFIG['odt-related']['generate-pdf']:
-				debug(msg=f"generating pdf ..")
+				info(msg=f"generating pdf ..")
 				pdf_start_time = int(round(time.time() * 1000))
 				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'])
 				self.end_time = int(round(time.time() * 1000))
-				debug(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
+				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
 
 			self.tear_down()
 
@@ -46,6 +47,8 @@ class OdtFromJson(object):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		logger.LOG_LEVEL = self._CONFIG['log-level']
 
 		# page specs
 		page_spec_file = config_dir / 'page-specs.yml'

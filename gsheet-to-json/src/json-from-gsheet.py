@@ -12,6 +12,7 @@ import pprint
 from pathlib import Path
 
 from helper.logger import *
+from helper import logger
 from helper.gsheet.gsheet_helper import GsheetHelper
 
 
@@ -41,6 +42,8 @@ class JsonFromGsheet(object):
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
 
+		logger.LOG_LEVEL = self._CONFIG['log-level']
+
 		if 'autocrop-pdf-pages' not in self._CONFIG:
 			self._CONFIG['autocrop-pdf-pages'] = True
 
@@ -66,8 +69,8 @@ class JsonFromGsheet(object):
 
 	def tear_down(self):
 		self.end_time = int(round(time.time() * 1000))
-		debug(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
-		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
+		info(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
+		info(f"script took {(self.end_time - self.start_time)/1000} seconds")
 		# input("Press Enter to continue...")
 
 

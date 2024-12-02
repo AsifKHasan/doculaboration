@@ -34,7 +34,7 @@ class GsheetHelper(object):
         # as we go further we put everything inside a single dict _context
         self._context = {}
 
-        info(f"authorizing with Google")
+        debug(f"authorizing with Google")
 
         _G = pygsheets.authorize(service_account_file=config['files']['google-cred'])
         self._context['_G'] = _G
@@ -57,7 +57,7 @@ class GsheetHelper(object):
 
         self.current_document_index = -1
 
-        info(f"authorized  with Google")
+        debug(f"authorized  with Google")
 
 
     ''' read the gsheet

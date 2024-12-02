@@ -5,30 +5,38 @@ from datetime import datetime
 from termcolor import colored
 import colorama
 
+# log level (0-TRACE, 1-DEBUG, 2-INFO, 3-WARN, 4-ERROR) below which logs will not be printed
+LOG_LEVEL = None
+
 colorama.init()
 
 log_color = {
     '[ERROR]': {'color': 'red',         'highlight': None, 'attrs': ['bold']},
     '[ WARN]': {'color': 'yellow',      'highlight': None, 'attrs': ['bold']},
     '[ INFO]': {'color': 'white',       'highlight': None, 'attrs': None},
-    '[DEBUG]': {'color': 'green',       'highlight': None, 'attrs': None},
+    '[DEBUG]': {'color': 'green',       'highlight': None, 'attrs': ['dark']},
     '[TRACE]': {'color': 'light_grey',  'highlight': None, 'attrs': ['dark']}
 }
 
 def trace(msg, console=True, nesting_level=0):
-    log('[TRACE]', msg, console, nesting_level)
+    if LOG_LEVEL < 1:
+        log('[TRACE]', msg, console, nesting_level)
 
 def debug(msg, console=True, nesting_level=0):
-    log('[DEBUG]', msg, console, nesting_level)
+    if LOG_LEVEL < 2:
+        log('[DEBUG]', msg, console, nesting_level)
 
 def info(msg, console=True, nesting_level=0):
-    log('[ INFO]', msg, console, nesting_level)
+    if LOG_LEVEL < 3:
+        log('[ INFO]', msg, console, nesting_level)
 
 def warn(msg, console=True, nesting_level=0):
-    log('[ WARN]', msg, console, nesting_level)
+    if LOG_LEVEL < 4:
+        log('[ WARN]', msg, console, nesting_level)
 
 def error(msg, console=True, nesting_level=0):
-    log('[ERROR]', msg, console, nesting_level)
+    if LOG_LEVEL >= 4:
+        log('[ERROR]', msg, console, nesting_level)
 
 def log(level, msg, console=True, nesting_level=0):
     now = time.time()

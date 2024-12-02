@@ -112,7 +112,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         if m and m.group('ws_name') is not None and m.group('range') is not None:
             ws_name = m.group('ws_name')
             range = m.group('range')
-            debug(f"formula [{formula_value}] is a link to range [{ws_name}]![{range}]", nesting_level=nesting_level)
+            trace(f"formula [{formula_value}] is a link to range [{ws_name}]![{range}]", nesting_level=nesting_level)
             response = get_gsheet_data(google_service=context['service'], gsheet=gsheet, ranges=[f"'{ws_name}'!{range}"])
             range_formula_value = response['sheets'][0]['data'][0]['rowData'][0]['values'][0]['userEnteredValue']['formulaValue']
             # print(range_formula_value)

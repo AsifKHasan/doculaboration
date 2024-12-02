@@ -40,7 +40,7 @@ def get_gsheet_link(value, nesting_level=0):
 
     m = re.match(r'=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', value, re.IGNORECASE)
     if m and m.group('link_url') is not None and m.group('link_title') is not None:
-        # debug(f".. found a link to [{url}] at [{m.group('link_url')}]", nesting_level=nesting_level)
+        # trace(f".. found a link to [{url}] at [{m.group('link_url')}]", nesting_level=nesting_level)
         link_name, link_target = m.group('link_title'), m.group('link_url')
 
     else:
@@ -57,7 +57,7 @@ def get_worksheet_link(value, nesting_level=0):
     # content can be a HYPERLINK/hyperlink to another worksheet
     m = re.match(r'=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', value, re.IGNORECASE)
     if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
-        # debug(m.group('ws_gid'), m.group('ws_title'), nesting_level=nesting_level)
+        # trace(m.group('ws_gid'), m.group('ws_title'), nesting_level=nesting_level)
         link_name = m.group('ws_title')
 
     return link_name
@@ -157,17 +157,17 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
     if mode == 1:
         height = row_height
         width = int(height * aspect_ratio)
-        # info(f"adjusting image {local_path} at {width}x{height}-{im_dpi} based on row height {row_height}", nesting_level=nesting_level)
+        # trace(f"adjusting image {local_path} at {width}x{height}-{im_dpi} based on row height {row_height}", nesting_level=nesting_level)
         return {'url': url, 'path': str(local_path), 'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link is without height, width - use actual image size
     if mode == 3:
-        # info(f"keeping image {local_path} at {im_width}x{im_height}-{im_dpi} as-is", nesting_level=nesting_level)
+        # trace(f"keeping image {local_path} at {im_width}x{im_height}-{im_dpi} as-is", nesting_level=nesting_level)
         return {'url': url, 'path': str(local_path), 'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
 
     # image link specifies height and width, use those
     if mode == 4 and len(s) == 4:
-        # info(f"image {local_path} at {im_width}x{im_height}-{im_dpi} size specified", nesting_level=nesting_level)
+        # trace(f"image {local_path} at {im_width}x{im_height}-{im_dpi} size specified", nesting_level=nesting_level)
         return {'url': url, 'path': str(local_path), 'height': int(s[2]), 'width': int(s[3]), 'dpi': im_dpi, 'size': im.size, 'mode': mode}
     else:
         warn(f"image link does not specify height and width: [{image_formula}]", nesting_level=nesting_level)

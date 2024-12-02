@@ -12,6 +12,7 @@ from pathlib import Path
 from context.context_helper import ContextHelper
 from context.context_util import *
 from helper.logger import *
+from helper import logger
 
 
 class ContextFromJson(object):
@@ -39,6 +40,8 @@ class ContextFromJson(object):
 		# configuration
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
+
+		logger.LOG_LEVEL = self._CONFIG['log-level']
 
 		# page specs
 		page_spec_file = config_dir / 'page-specs.yml'
