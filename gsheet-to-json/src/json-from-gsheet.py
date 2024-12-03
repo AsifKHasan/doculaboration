@@ -18,60 +18,56 @@ from helper.gsheet.gsheet_helper import GsheetHelper
 
 class JsonFromGsheet(object):
 
-	def __init__(self, config_path, gsheet=None):
-		self.start_time = int(round(time.time() * 1000))
-		self._config_path = Path(config_path).resolve()
-		self._data = {}
-		self._gsheet = gsheet
+    def __init__(self, config_path, gsheet=None):
+        self.start_time = int(round(time.time() * 1000))
+        self._config_path = Path(config_path).resolve()
+        self._data = {}
+        self._gsheet = gsheet
 
+    def run(self):
+        self.set_up()
 
-	def run(self):
-		self.set_up()
+        # process gsheets one by one
+        for gsheet_title in self._CONFIG['gsheets']:
+            self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
+            self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title, nesting_level=0)
+            self.save_json()
 
-		# process gsheets one by one
-		for gsheet_title in self._CONFIG['gsheets']:
-			self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
-			self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title, nesting_level=0)
-			self.save_json()
+        self.tear_down()
 
-		self.tear_down()
+    def set_up(self):
+        # configuration
+        self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+        config_dir = self._config_path.parent
 
+        logger.LOG_LEVEL = self._CONFIG.get("log-level", 0)
 
-	def set_up(self):
-		# configuration
-		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-		config_dir = self._config_path.parent
+        if 'autocrop-pdf-pages' not in self._CONFIG:
+            self._CONFIG['autocrop-pdf-pages'] = True
 
-		logger.LOG_LEVEL = self._CONFIG['log-level']
+        # if gsheet name was provided as parameter, override the configuration
+        if self._gsheet:
+            self._CONFIG["gsheets"] = [self._gsheet]
 
-		if 'autocrop-pdf-pages' not in self._CONFIG:
-			self._CONFIG['autocrop-pdf-pages'] = True
+        self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
+        self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
+        self._CONFIG['dirs']['temp-dir'].mkdir(parents=True, exist_ok=True)
 
-		# if gsheet name was provided as parameter, override the configuration
-		if self._gsheet:
-			self._CONFIG['gsheets'] = [self._gsheet]
+        self._CONFIG['files']['google-cred'] = config_dir / self._CONFIG['files']['google-cred']
 
-		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
-		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
-		self._CONFIG['dirs']['temp-dir'].mkdir(parents=True, exist_ok=True)
+        # gsheet-helper
+        self._gsheethelper = GsheetHelper()
+        self._gsheethelper.init(self._CONFIG)
 
-		self._CONFIG['files']['google-cred'] = config_dir / self._CONFIG['files']['google-cred']
+    def save_json(self):
+        with open(self._CONFIG['files']['output-json'], "w") as f:
+            f.write(json.dumps(self._data, sort_keys=False, indent=4))
 
-		# gsheet-helper
-		self._gsheethelper = GsheetHelper()
-		self._gsheethelper.init(self._CONFIG)
-
-
-	def save_json(self):
-		with open(self._CONFIG['files']['output-json'], "w") as f:
-			f.write(json.dumps(self._data, sort_keys=False, indent=4))
-
-
-	def tear_down(self):
-		self.end_time = int(round(time.time() * 1000))
-		info(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
-		info(f"script took {(self.end_time - self.start_time)/1000} seconds")
-		# input("Press Enter to continue...")
+    def tear_down(self):
+        self.end_time = int(round(time.time() * 1000))
+        info(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
+        info(f"script took {(self.end_time - self.start_time)/1000} seconds")
+        # input("Press Enter to continue...")
 
 
 if __name__ == '__main__':

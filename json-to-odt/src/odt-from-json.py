@@ -48,7 +48,7 @@ class OdtFromJson(object):
 		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 		config_dir = self._config_path.parent
 
-		logger.LOG_LEVEL = self._CONFIG['log-level']
+		logger.LOG_LEVEL = self._CONFIG.get('log-level', 0)
 
 		# page specs
 		page_spec_file = config_dir / 'page-specs.yml'

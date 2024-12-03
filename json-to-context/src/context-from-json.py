@@ -17,59 +17,59 @@ from helper import logger
 
 class ContextFromJson(object):
 
-	def __init__(self, config_path, json=None):
-		self.start_time = int(round(time.time() * 1000))
-		self._config_path = Path(config_path).resolve()
-		self._data = {}
-		self._json = json
+    def __init__(self, config_path, json=None):
+        self.start_time = int(round(time.time() * 1000))
+        self._config_path = Path(config_path).resolve()
+        self._data = {}
+        self._json = json
 
-	def run(self):
-		self.set_up()
-		# process jsons one by one
-		for json in self._CONFIG['jsons']:
-			self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
-			self.load_json()
+    def run(self):
+        self.set_up()
+        # process jsons one by one
+        for json in self._CONFIG['jsons']:
+            self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
+            self.load_json()
 
-			# context-helper
-			self._CONFIG['files']['output-context'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.context.tex"
-			context_helper = ContextHelper(self._CONFIG)
-			context_helper.generate_and_save(self._data['sections'])
-			self.tear_down()
+            # context-helper
+            self._CONFIG['files']['output-context'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.context.tex"
+            context_helper = ContextHelper(self._CONFIG)
+            context_helper.generate_and_save(self._data['sections'])
+            self.tear_down()
 
-	def set_up(self):
-		# configuration
-		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-		config_dir = self._config_path.parent
+    def set_up(self):
+        # configuration
+        self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+        config_dir = self._config_path.parent
 
-		logger.LOG_LEVEL = self._CONFIG['log-level']
+        logger.LOG_LEVEL = self._CONFIG.get("log-level", 0)
 
-		# page specs
-		page_spec_file = config_dir / 'page-specs.yml'
-		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+        # page specs
+        page_spec_file = config_dir / 'page-specs.yml'
+        self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
-		# if json name was provided as parameter, override the configuration
-		if self._json:
-			self._CONFIG['jsons'] = [self._json]
+        # if json name was provided as parameter, override the configuration
+        if self._json:
+            self._CONFIG['jsons'] = [self._json]
 
-		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
-		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
-		if not Path.exists(self._CONFIG['dirs']['temp-dir']):
-			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
+        self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
+        self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
+        if not Path.exists(self._CONFIG['dirs']['temp-dir']):
+            Path.mkdir(self._CONFIG['dirs']['temp-dir'])
 
-		self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
+        self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
 
-		self._CONFIG['files']['document-header'] = config_dir / self._CONFIG['files']['document-header']
+        self._CONFIG['files']['document-header'] = config_dir / self._CONFIG['files']['document-header']
 
-		if not 'files' in self._CONFIG:
-			self._CONFIG['files'] = {}
+        if not 'files' in self._CONFIG:
+            self._CONFIG['files'] = {}
 
-	def load_json(self):
-		with open(self._CONFIG['files']['input-json'], "r") as f:
-			self._data = json.load(f)
+    def load_json(self):
+        with open(self._CONFIG['files']['input-json'], "r") as f:
+            self._data = json.load(f)
 
-	def tear_down(self):
-		self.end_time = int(round(time.time() * 1000))
-		debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
+    def tear_down(self):
+        self.end_time = int(round(time.time() * 1000))
+        debug(f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments
