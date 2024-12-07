@@ -188,7 +188,7 @@ class OdtTableSection(OdtSectionBase):
 
 
 ''' Odt gsheet section object
-''' 
+'''
 class OdtGsheetSection(OdtSectionBase):
 
     ''' constructor
@@ -745,10 +745,10 @@ class Cell(object):
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -804,7 +804,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
+                self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
 
     ''' Copy format from the cell passed
     '''
@@ -850,7 +850,7 @@ class Row(object):
             lines.append(str(cell))
 
         return '\n'.join(lines)
-    
+
 
     ''' preprocess row
         does something automatically even if this is not in the gsheet
@@ -955,7 +955,7 @@ class Row(object):
                 table_cell = cell.cell_to_odt_table_cell(odt, self.table_name)
                 if table_cell:
                     table_row.addElement(table_cell)
-                
+
                 else:
                     warn(f"Invalid table-cell : [{cell.cell_id}]")
 
@@ -976,7 +976,7 @@ class TextFormat(object):
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
                 self.font_family = text_format_dict['fontFamily']
-            
+
             else:
                 self.font_family = ''
 
@@ -1051,7 +1051,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark=None, keep_line_breaks=False):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1062,6 +1062,7 @@ class StringValue(CellValue):
                 self.value = ''
 
         self.keep_line_breaks = keep_line_breaks
+        self.bookmark = bookmark
 
 
     ''' string representation
@@ -1073,12 +1074,12 @@ class StringValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         if container is None:
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, keep_line_breaks=self.keep_line_breaks)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
 
@@ -1108,7 +1109,7 @@ class LatexValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         if container is None:
             container = odt.text
 
@@ -1139,7 +1140,7 @@ class TextRunValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         if container is None:
             container = odt.text
 
@@ -1151,7 +1152,7 @@ class TextRunValue(CellValue):
             processed_idx = text_format_run.start_index
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list, keep_line_breaks=self.keep_line_breaks)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
 
@@ -1175,7 +1176,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         if container is None:
             container = odt.text
 
@@ -1204,7 +1205,7 @@ class ImageValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         if container is None:
             container = odt.text
 
@@ -1262,7 +1263,7 @@ class ContentValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         self.contents = OdtContent(self.value, container_width, self.nesting_level)
         self.contents.content_to_odt(odt=odt, container=container)
 
@@ -1618,7 +1619,7 @@ class RgbColor(object):
     def is_white(self):
         if self.red == 255 and self.green == 255 and self.blue == 255:
             return True
-        
+
         return False
 
 
@@ -1706,6 +1707,7 @@ class CellNote(object):
 
         self.outline_level = 0
         self.footnotes = {}
+        self.bookmark = None
 
         if note_json:
             try:
@@ -1721,6 +1723,7 @@ class CellNote(object):
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
+            self.bookmark = note_dict.get('bookmark', None)
 
             # content
             content = note_dict.get('content')
@@ -1759,6 +1762,10 @@ class CellNote(object):
                 if not isinstance(self.footnotes, dict):
                     self.footnotes = {}
                     warn(f".... found footnotes, but it is not a valid dictionary")
+
+            # bookmark
+            if self.bookmark:
+                trace(f"bookmark [{self.bookmark}] found")
 
 
     ''' style attributes dict to create Style

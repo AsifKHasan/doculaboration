@@ -17,7 +17,7 @@ from odf.namespaces import DRAWNS
 
 from xml.dom.minidom import parseString
 from xml.dom import Node
- 
+
 import latex2mathml.converter
 
 from helper.logger import *
@@ -63,11 +63,11 @@ def section_list_to_odt(section_list, config):
         xlink:type="simple" xlink:actuate="onLoad" />
 
     style:page-layout -> style:page-layout-properties
-        draw:fill-image-width="0cm" 
-        draw:fill-image-height="0cm" 
-        draw:fill-image-ref-point-x="0%" 
+        draw:fill-image-width="0cm"
+        draw:fill-image-height="0cm"
+        draw:fill-image-ref-point-x="0%"
         draw:fill-image-ref-point-y="0%"
-        draw:fill-image-ref-point="center" 
+        draw:fill-image-ref-point="center"
         draw:tile-repeat-offset="0% vertical"
 
 '''
@@ -80,7 +80,7 @@ def create_background_image_style(odt, picture_path):
         background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center', 'repeat': 'tile', }
         # background_image_style_attributes = {'href': href}
         background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)
-    
+
     else:
         warn(f"image {picture_path} could not be added into the document")
 
@@ -314,7 +314,7 @@ def create_page_number(style_name, page_numbering='long'):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, keep_line_breaks=False):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -327,15 +327,15 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
+            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
             paragraph.addElement(fragment)
 
     # P or H
     elif text_content is not None:
         if outline_level == 0:
-            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
+            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
         else:
-            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, keep_line_breaks=keep_line_breaks)
+            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -347,13 +347,13 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, keep_line_breaks=False):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False):
     paragraph = None
 
     # process FN{...} first, we get a list of block dicts
     inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
 
-    # process LATEX{...} for each text item
+    # process LATEX$...$ for each text item
     new_inline_blocks = []
     for inline_block in inline_blocks:
         # process only 'text'
@@ -362,6 +362,20 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
         else:
             new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
+
+    # process PAGE{..} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block['text'])
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
 
 
     # create the P or H or span
@@ -374,9 +388,13 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     elif text_type == 'span':
         paragraph = text.Span(stylename=style_name)
 
+    # bookmark
+    if bookmark:
+        paragraph.addElement(text.Bookmark(name=bookmark))
+
 
     # now fill the paragraph with texts and footnotes
-    for inline_block in new_inline_blocks:
+    for inline_block in inline_blocks:
         if 'text' in inline_block:
             if keep_line_breaks:
                 splits = inline_block['text'].split('\n')
@@ -402,9 +420,13 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             if latex_df:
                 paragraph.addElement(latex_df)
 
+        elif 'page' in inline_block:
+            bookmark_ref = inline_block['page'].strip()
+            if bookmark_ref != '':
+                paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
+
 
     return paragraph
-
 
 
 ''' process footnotes inside text
@@ -439,7 +461,6 @@ def process_footnotes(text_content, footnote_list):
     return texts_and_footnotes
 
 
-
 ''' process latex blocks inside text
 '''
 def process_latex_blocks(text_content):
@@ -471,6 +492,37 @@ def process_latex_blocks(text_content):
 
     return texts_and_latex
 
+
+''' process bookmark page ref inside text
+'''
+def process_bookmark_page_blocks(text_content):
+    # find out if there is any match with PAGE{...} inside the text_content
+    texts_and_bookmarks = []
+
+    pattern = r'PAGE{[^}]+}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        bookmark_content = match.group()[5:-1]
+
+        # we have found a bookmark block, we add the preceding text and the bookmark block into the list
+        bookmark_start_index, bookmark_end_index = match.span()[0], match.span()[1]
+        if bookmark_start_index >= current_index:
+            # there are preceding text before the bookmark
+            text = text_content[current_index:bookmark_start_index]
+
+            texts_and_bookmarks.append({'text': text})
+
+            texts_and_bookmarks.append({'page': bookmark_content})
+
+            current_index = bookmark_end_index
+
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_bookmarks.append({'text': text})
+
+    return texts_and_bookmarks
 
 
 ''' create a footnote
@@ -554,7 +606,7 @@ def mathml_odf_(parent):
             elem.addText(text, check_grammar=False)
         else:
             elem.addElement(mathml_odf_(child), check_grammar=False)
-    
+
     return elem
 
 
@@ -766,7 +818,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
     marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
     # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
-    
+
     page_layout_properties = None
     # background-image
     if background_image_path != '':
@@ -780,13 +832,13 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
             tilerepeatoffset = '0% vertical'
 
             # page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, fillimagewidth=fillimagewidth, fillimageheight=fillimageheight, fillimagerefpointx=fillimagerefpointx, fillimagerefpointy=fillimagerefpointy, fillimagerefpoint=fillimagerefpoint, tilerepeatoffset=tilerepeatoffset)
-            page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, 
-                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, 
-                                    # fillimagewidth=fillimagewidth, 
-                                    # fillimageheight=fillimageheight, 
-                                    # fillimagerefpointx=fillimagerefpointx, 
-                                    # fillimagerefpointy=fillimagerefpointy, 
-                                    # fillimagerefpoint=fillimagerefpoint, 
+            page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight,
+                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation,
+                                    # fillimagewidth=fillimagewidth,
+                                    # fillimageheight=fillimageheight,
+                                    # fillimagerefpointx=fillimagerefpointx,
+                                    # fillimagerefpointy=fillimagerefpointy,
+                                    # fillimagerefpoint=fillimagerefpoint,
                                     # tilerepeatoffset=tilerepeatoffset
                                     )
             page_layout_properties.addElement(background_image_style)
@@ -796,7 +848,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 
             for attr_name, attr_value in page_layout_attrs.items():
                 page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
-    
+
     if not page_layout_properties:
         page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation)
 
@@ -926,7 +978,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 def strip_math_mode_delimeters(latex_content):
     # strip SPACES
     stripped = latex_content.strip()
-    
+
     # strip $
     stripped = stripped.strip('$')
 
