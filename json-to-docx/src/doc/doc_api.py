@@ -90,7 +90,7 @@ class DocxSectionBase(object):
             self.footer_first = None
             self.footer_odd   = None
             self.footer_even  = None
-            
+
 
         self.section_contents = DocxContent(content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
@@ -293,7 +293,6 @@ class DocxContent(object):
     '''
     def __init__(self, content_data, content_width, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-
         self.content_data = content_data
         self.content_width = content_width
         self.nesting_level = nesting_level
@@ -351,12 +350,12 @@ class DocxContent(object):
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
                             new_row = Row(
-                                r,
-                                row_data,
-                                self.content_width,
-                                self.column_widths,
-                                self.row_metadata_list[r].inches,
-                                self.nesting_level,
+                                row_num=r,
+                                row_data=row_data,
+                                section_width=self.content_width,
+                                column_widths=self.column_widths,
+                                row_height=self.row_metadata_list[r].inches,
+                                nesting_level=self.nesting_level,
                             )
                             self.cell_matrix.append(new_row)
                             r = r + 1
@@ -548,7 +547,7 @@ class DocxPageHeaderFooter(DocxContent):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         self.nesting_level = nesting_level
-        super().__init__(content_data, section_width, nesting_level=nesting_level)
+        super().__init__(content_data=content_data, content_width=section_width, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
@@ -786,7 +785,7 @@ class Cell(object):
                 text_attributes = self.effective_format.text_format.text_attributes()
                 footnote_list = self.note.footnotes
 
-                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list)
+                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
 
                 # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where:
@@ -833,7 +832,7 @@ class Row(object):
             lines.append(str(cell))
 
         return '\n'.join(lines)
-    
+
 
     ''' preprocess row
         does something automatically even if this is not in the gsheet
@@ -1019,8 +1018,8 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
-        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list)
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark)
         return paragraph
 
 
@@ -1050,10 +1049,10 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
         paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
         create_latex(container=paragraph, latex_content=self.value)
-        
+
         return paragraph
 
 
@@ -1078,7 +1077,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1086,7 +1085,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(container=container, run_list=run_value_list, footnote_list=footnote_list)
+        paragraph = create_paragraph(container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark)
         return paragraph
 
 
@@ -1110,7 +1109,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
         paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
 
@@ -1135,7 +1134,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1186,7 +1185,7 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
         self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
         return None
@@ -1464,7 +1463,7 @@ class RgbColor(object):
     def is_white(self):
         if self.red == 255 and self.green == 255 and self.blue == 255:
             return True
-        
+
         return False
 
 
@@ -1548,6 +1547,7 @@ class CellNote(object):
 
         self.script = None
         self.footnotes = {}
+        self.bookmark = None
 
         self.outline_level = 0
 
@@ -1563,6 +1563,7 @@ class CellNote(object):
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.footnotes = note_dict.get('footnote')
+            self.bookmark = note_dict.get('bookmark', None)
 
             # content
             content = note_dict.get('content')
@@ -1602,6 +1603,10 @@ class CellNote(object):
                     self.footnotes = {}
                     warn(f".... found footnotes, but it is not a valid dictionary")
 
+            # bookmark
+            if self.bookmark:
+                trace(f"bookmark [{self.bookmark}] found")
+
         else:
             # even if there is no note explicitly specified, we assume that style=Normal is specified
             self.style = 'Normal'
@@ -1622,7 +1627,7 @@ class CellNote(object):
 
         if self.keep_with_next:
             attributes['keepwithnext'] = 'always'
-            
+
 
         if self.keep_with_previous:
             attributes['keepwithprevious'] = 'always'

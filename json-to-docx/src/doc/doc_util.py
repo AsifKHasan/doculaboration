@@ -23,10 +23,11 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
- 
+
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
+from docx.enum.dml import MSO_THEME_COLOR_INDEX
 
 import latex2mathml.converter
 
@@ -39,19 +40,19 @@ from helper.logger import *
 ''' process a list of section_data and generate docx code
 '''
 def section_list_to_doc(section_list, config):
-    first_section = True
-    for section in section_list:
-        section_meta = section['section-meta']
-        section_prop = section['section-prop']
+	first_section = True
+	for section in section_list:
+		section_meta = section['section-meta']
+		section_prop = section['section-prop']
 
-        if section_prop['label'] != '':
-            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
-        else:
-            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+		if section_prop['label'] != '':
+			info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+		else:
+			info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
 
-        module = importlib.import_module("doc.doc_api")
-        func = getattr(module, f"process_{section_prop['content-type']}")
-        func(section, config)
+		module = importlib.import_module("doc.doc_api")
+		func = getattr(module, f"process_{section_prop['content-type']}")
+		func(section, config)
 
 
 
@@ -227,25 +228,25 @@ def set_paragraph_bgcolor(paragraph, color):
 ''' set table-cell borders
 '''
 def set_cell_padding(cell: table._Cell, padding):
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    tcMar = OxmlElement('w:tcMar')
+	tc = cell._tc
+	tcPr = tc.get_or_add_tcPr()
+	tcMar = OxmlElement('w:tcMar')
 
-    for m in ["top", "start", "bottom", "end", ]:
-        if m in padding:
-            node = OxmlElement("w:{}".format(m))
-            node.set(qn('w:w'), str(padding.get(m)))
-            node.set(qn('w:type'), 'dxa')
-            tcMar.append(node)
+	for m in ["top", "start", "bottom", "end", ]:
+		if m in padding:
+			node = OxmlElement("w:{}".format(m))
+			node.set(qn('w:w'), str(padding.get(m)))
+			node.set(qn('w:type'), 'dxa')
+			tcMar.append(node)
 
-    tcPr.append(tcMar)
+	tcPr.append(tcMar)
 
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
-''' page number with/without page count 
+''' page number with/without page count
 '''
 def create_page_number(container, text_attributes=None, page_numbering='long', separator=' of '):
 	paragraph = create_paragraph(container=container)
@@ -318,7 +319,7 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark=None):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -345,6 +346,11 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 	elif text_content is not None:
 		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
+
+
+	# bookmark
+	if bookmark:
+		add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
 
 
 	# apply the style if any
@@ -378,16 +384,16 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 ''' remove a paragraph
 '''
 def delete_paragraph(paragraph):
-    p = paragraph._element
-    p.getparent().remove(p)
-    # p._p = p._element = None
-	
-	
+	p = paragraph._element
+	p.getparent().remove(p)
+	# p._p = p._element = None
+
+
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
-    # process FN{...} first, we get a list of block dicts
+	# process FN{...} first, we get a list of block dicts
 	inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
 
 	# process LATEX{...} for each text item
@@ -400,9 +406,22 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
 		else:
 			new_inline_blocks.append(inline_block)
 
+	inline_blocks = new_inline_blocks
+
+	# process PAGE{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if 'text' in inline_block:
+			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block['text'])
+
+		else:
+			new_inline_blocks.append(inline_block)
+
+	inline_blocks = new_inline_blocks
 
 	# we are ready to prepare the content
-	for inline_block in new_inline_blocks:
+	for inline_block in inline_blocks:
 		if 'text' in inline_block:
 			run = paragraph.add_run(inline_block['text'])
 			set_text_style(run=run, text_attributes=text_attributes)
@@ -415,71 +434,108 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
 			create_latex(container=run, latex_content=inline_block['latex'])
 			set_text_style(run=run, text_attributes=text_attributes)
 
+		elif 'page' in inline_block:
+			add_link(paragraph=paragraph, link_to=inline_block['page'].strip(), text=inline_block['page'].strip(), tool_tip=None)
+			set_text_style(run=run, text_attributes=text_attributes)
+
 
 
 ''' process footnotes inside text
 '''
 def process_footnotes(text_content, footnote_list):
-    # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
-    texts_and_footnotes = []
+	# if text contains footnotes we make a list containing texts->footnote->text->footnote ......
+	texts_and_footnotes = []
 
-    # find out if there is any match with FN#key inside the text_content
-    pattern = r'FN{[^}]+}'
-    current_index = 0
-    for match in re.finditer(pattern, text_content):
-      footnote_key = match.group()[3:-1]
-      if footnote_key in footnote_list:
-        # debug(f".... footnote {footnote_key} found at {match.span()} with description")
-        # we have found a footnote, we add the preceding text and the footnote spec into the list
-        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
-        if footnote_start_index >= current_index:
-          # there are preceding text before the footnote
-          texts_and_footnotes.append({'text': text_content[current_index:footnote_start_index]})
-          texts_and_footnotes.append({'fn': (footnote_key, footnote_list[footnote_key])})
-          current_index = footnote_end_index
-      else:
-        warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
-        # this is not a footnote, ignore it
-        footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
-        # current_index = footnote_end_index + 1
+	# find out if there is any match with FN#key inside the text_content
+	pattern = r'FN{[^}]+}'
+	current_index = 0
+	for match in re.finditer(pattern, text_content):
+		footnote_key = match.group()[3:-1]
+		if footnote_key in footnote_list:
+			# debug(f".... footnote {footnote_key} found at {match.span()} with description")
+			# we have found a footnote, we add the preceding text and the footnote spec into the list
+			footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+			if footnote_start_index >= current_index:
+				# there are preceding text before the footnote
+				texts_and_footnotes.append({'text': text_content[current_index:footnote_start_index]})
+				texts_and_footnotes.append({'fn': (footnote_key, footnote_list[footnote_key])})
+				current_index = footnote_end_index
+		else:
+			warn(f".... footnote {footnote_key} found at {match.span()}, but no details found")
+			# this is not a footnote, ignore it
+			footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
+			# current_index = footnote_end_index + 1
 
-    # there may be trailing text
-    texts_and_footnotes.append({'text': text_content[current_index:]})
+	# there may be trailing text
+	texts_and_footnotes.append({'text': text_content[current_index:]})
 
-    return texts_and_footnotes
+	return texts_and_footnotes
 
 
 
 ''' process latex blocks inside text
 '''
 def process_latex_blocks(text_content):
-    # find out if there is any match with LATEX$...$ inside the text_content
-    texts_and_latex = []
+	# find out if there is any match with LATEX$...$ inside the text_content
+	texts_and_latex = []
 
-    pattern = r'LATEX\$[^$]+\$'
-    current_index = 0
-    for match in re.finditer(pattern, text_content):
-        latex_content = match.group()[6:-1]
+	pattern = r'LATEX\$[^$]+\$'
+	current_index = 0
+	for match in re.finditer(pattern, text_content):
+		latex_content = match.group()[6:-1]
 
-        # we have found a latex block, we add the preceding text and the latex block into the list
-        latex_start_index, latex_end_index = match.span()[0], match.span()[1]
-        if latex_start_index >= current_index:
-            # there are preceding text before the latex
-            text = text_content[current_index:latex_start_index]
+		# we have found a latex block, we add the preceding text and the latex block into the list
+		latex_start_index, latex_end_index = match.span()[0], match.span()[1]
+		if latex_start_index >= current_index:
+			# there are preceding text before the latex
+			text = text_content[current_index:latex_start_index]
 
-            texts_and_latex.append({'text': text})
+			texts_and_latex.append({'text': text})
 
-            texts_and_latex.append({'latex': latex_content})
+			texts_and_latex.append({'latex': latex_content})
 
-            current_index = latex_end_index
+			current_index = latex_end_index
 
 
-    # there may be trailing text
-    text = text_content[current_index:]
+	# there may be trailing text
+	text = text_content[current_index:]
 
-    texts_and_latex.append({'text': text})
+	texts_and_latex.append({'text': text})
 
-    return texts_and_latex
+	return texts_and_latex
+
+
+
+''' process bookmark page ref inside text
+'''
+def process_bookmark_page_blocks(text_content):
+	# find out if there is any match with PAGE{...} inside the text_content
+	texts_and_bookmarks = []
+
+	pattern = r'PAGE{[^}]+}'
+	current_index = 0
+	for match in re.finditer(pattern, text_content):
+		bookmark_content = match.group()[5:-1]
+
+		# we have found a PAGE block, we add the preceding text and the PAGE block into the list
+		bookmark_start_index, bookmark_end_index = match.span()[0], match.span()[1]
+		if bookmark_start_index >= current_index:
+			# there are preceding text before the PAGE
+			text = text_content[current_index:bookmark_start_index]
+
+			texts_and_bookmarks.append({'text': text})
+
+			texts_and_bookmarks.append({'page': bookmark_content})
+
+			current_index = bookmark_end_index
+
+
+	# there may be trailing text
+	text = text_content[current_index:]
+
+	texts_and_bookmarks.append({'text': text})
+
+	return texts_and_bookmarks
 
 
 
@@ -537,6 +593,50 @@ def set_text_style(run, text_attributes):
 		fgcolor = text_attributes.get('color')
 		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
 
+
+''' create a bookmark
+'''
+def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
+	run = paragraph.add_run()
+	tag = run._r
+	start = OxmlElement('w:bookmarkStart')
+	start.set(qn('w:id'), '0')
+	start.set(qn('w:name'), bookmark_name)
+	tag.append(start)
+
+	text = OxmlElement('w:r')
+	text.text = bookmark_text
+	tag.append(text)
+
+	end = OxmlElement('w:bookmarkEnd')
+	end.set(qn('w:id'), '0')
+	end.set(qn('w:name'), bookmark_name)
+	tag.append(end)
+
+
+''' add link for bookmarks
+'''
+def add_link(paragraph, link_to, text, tool_tip=None):
+	# create hyperlink node
+	hyperlink = OxmlElement('w:hyperlink')
+
+	# set attribute for link to bookmark
+	hyperlink.set(qn('w:anchor'), link_to,)
+
+	if tool_tip is not None:
+		# set attribute for link to bookmark
+		hyperlink.set(qn('w:tooltip'), tool_tip,)
+
+	new_run = OxmlElement('w:r')
+	rPr = OxmlElement('w:rPr')
+	new_run.append(rPr)
+	new_run.text = text
+	hyperlink.append(new_run)
+	r = paragraph.add_run()
+	r._r.append(hyperlink)
+	r.font.name = "Calibri"
+	r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
+	r.font.underline = True
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -709,65 +809,65 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 ''' create page background
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0"
-        relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
-        allowOverlap="1">
-        <wp:simplePos x="0" y="0" />
-        <wp:positionH relativeFrom="page">
-            <wp:posOffset>0</wp:posOffset>
-        </wp:positionH>
-        <wp:positionV relativeFrom="page">
-            <wp:posOffset>0</wp:posOffset>
-        </wp:positionV>
-        <wp:extent cx="7562000" cy="10689336" />
-        <wp:effectExtent l="0" t="0" r="0" b="0" />
-        <wp:wrapNone />
-        <wp:docPr id="1" name="Picture 1" />
-        <wp:cNvGraphicFramePr>
-            <a:graphicFrameLocks
-                xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
-        </wp:cNvGraphicFramePr>
-        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-            <a:graphicData
-                uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                <pic:pic
-                    xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                    <pic:nvPicPr>
-                        <pic:cNvPr id="0" name="toll-booth.jpg" />
-                        <pic:cNvPicPr />
-                    </pic:nvPicPr>
-                    <pic:blipFill>
-                        <a:blip r:embed="rId8">
-                            <a:extLst>
-                                <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-                                    <a14:useLocalDpi
-                                        xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
-                                        val="0" />
-                                </a:ext>
-                            </a:extLst>
-                        </a:blip>
-                        <a:stretch>
-                            <a:fillRect />
-                        </a:stretch>
-                    </pic:blipFill>
-                    <pic:spPr>
-                        <a:xfrm>
-                            <a:off x="0" y="0" />
-                            <a:ext cx="7562000" cy="10692000" />
-                        </a:xfrm>
-                        <a:prstGeom prst="rect">
-                            <a:avLst />
-                        </a:prstGeom>
-                    </pic:spPr>
-                </pic:pic>
-            </a:graphicData>
-        </a:graphic>
-        <wp14:sizeRelH relativeFrom="margin">
-            <wp14:pctWidth>0</wp14:pctWidth>
-        </wp14:sizeRelH>
-        <wp14:sizeRelV relativeFrom="margin">
-            <wp14:pctHeight>0</wp14:pctHeight>
-        </wp14:sizeRelV>
-    </wp:anchor>
+		relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
+		allowOverlap="1">
+		<wp:simplePos x="0" y="0" />
+		<wp:positionH relativeFrom="page">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionH>
+		<wp:positionV relativeFrom="page">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionV>
+		<wp:extent cx="7562000" cy="10689336" />
+		<wp:effectExtent l="0" t="0" r="0" b="0" />
+		<wp:wrapNone />
+		<wp:docPr id="1" name="Picture 1" />
+		<wp:cNvGraphicFramePr>
+			<a:graphicFrameLocks
+				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+		</wp:cNvGraphicFramePr>
+		<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+			<a:graphicData
+				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+				<pic:pic
+					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:nvPicPr>
+						<pic:cNvPr id="0" name="toll-booth.jpg" />
+						<pic:cNvPicPr />
+					</pic:nvPicPr>
+					<pic:blipFill>
+						<a:blip r:embed="rId8">
+							<a:extLst>
+								<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+									<a14:useLocalDpi
+										xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+										val="0" />
+								</a:ext>
+							</a:extLst>
+						</a:blip>
+						<a:stretch>
+							<a:fillRect />
+						</a:stretch>
+					</pic:blipFill>
+					<pic:spPr>
+						<a:xfrm>
+							<a:off x="0" y="0" />
+							<a:ext cx="7562000" cy="10692000" />
+						</a:xfrm>
+						<a:prstGeom prst="rect">
+							<a:avLst />
+						</a:prstGeom>
+					</pic:spPr>
+				</pic:pic>
+			</a:graphicData>
+		</a:graphic>
+		<wp14:sizeRelH relativeFrom="margin">
+			<wp14:pctWidth>0</wp14:pctWidth>
+		</wp14:sizeRelH>
+		<wp14:sizeRelV relativeFrom="margin">
+			<wp14:pctHeight>0</wp14:pctHeight>
+		</wp14:sizeRelV>
+	</wp:anchor>
 '''
 def create_page_background(doc, background_image_path, page_width_inches, page_height_inches):
 	drawing_xml = '''
@@ -822,7 +922,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 			<wp14:sizeRelV relativeFrom="margin">
 				<wp14:pctHeight>0</wp14:pctHeight>
 			</wp14:sizeRelV>
-    	</wp:anchor>
+		</wp:anchor>
 	</w:drawing>
 	'''
 
@@ -840,7 +940,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 	# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 	shape = new_run.add_picture(image_path_or_stream=background_image_path)
 	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
-	
+
 
 	# tweak the generated inline image
 	parser = etree.XMLParser(recover=True)
@@ -851,7 +951,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 	docPr = new_run._r.xpath('//wp:docPr')[0]
 	doc_id = docPr.get('id')
 	doc_name = docPr.get('name')
-	
+
 	cNvPr = new_run._r.xpath('//pic:cNvPr')[0]
 	image_id = cNvPr.get('id')
 	image_name = cNvPr.get('name')
@@ -925,15 +1025,15 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 '''
 '''
 def strip_math_mode_delimeters(latex_content):
-    # strip SPACES
-    stripped = latex_content.strip()
-    
-    # strip $
-    stripped = stripped.strip('$')
+	# strip SPACES
+	stripped = latex_content.strip()
 
-    # TODO: strip \( and \)
+	# strip $
+	stripped = stripped.strip('$')
 
-    return stripped
+	# TODO: strip \( and \)
+
+	return stripped
 
 
 
@@ -947,31 +1047,31 @@ mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
 
 
 HEADING_TO_LEVEL = {
-    'Heading 1': {'outline-level': 1},
-    'Heading 2': {'outline-level': 2},
-    'Heading 3': {'outline-level': 3},
-    'Heading 4': {'outline-level': 4},
-    'Heading 5': {'outline-level': 5},
-    'Heading 6': {'outline-level': 6},
-    'Heading 7': {'outline-level': 7},
-    'Heading 8': {'outline-level': 8},
-    'Heading 9': {'outline-level': 9},
-    'Heading 10': {'outline-level': 10},
+	'Heading 1': {'outline-level': 1},
+	'Heading 2': {'outline-level': 2},
+	'Heading 3': {'outline-level': 3},
+	'Heading 4': {'outline-level': 4},
+	'Heading 5': {'outline-level': 5},
+	'Heading 6': {'outline-level': 6},
+	'Heading 7': {'outline-level': 7},
+	'Heading 8': {'outline-level': 8},
+	'Heading 9': {'outline-level': 9},
+	'Heading 10': {'outline-level': 10},
 }
 
 
 LEVEL_TO_HEADING = [
-    'Title',
-    'Heading 1',
-    'Heading 2',
-    'Heading 3',
-    'Heading 4',
-    'Heading 5',
-    'Heading 6',
-    'Heading 7',
-    'Heading 8',
-    'Heading 9',
-    'Heading 10',
+	'Title',
+	'Heading 1',
+	'Heading 2',
+	'Heading 3',
+	'Heading 4',
+	'Heading 5',
+	'Heading 6',
+	'Heading 7',
+	'Heading 8',
+	'Heading 9',
+	'Heading 10',
 ]
 
 TEXT_VALIGN_MAP = {
