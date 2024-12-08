@@ -35,7 +35,7 @@ def warn(msg, console=True, nesting_level=0):
         log('[ WARN]', msg, console, nesting_level)
 
 def error(msg, console=True, nesting_level=0):
-    if LOG_LEVEL >= 4:
+    if LOG_LEVEL < 5:
         log('[ERROR]', msg, console, nesting_level)
 
 def log(level, msg, console=True, nesting_level=0):

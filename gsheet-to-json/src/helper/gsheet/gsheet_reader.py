@@ -6,13 +6,47 @@ from collections import defaultdict
 import re
 import importlib
 
-# import pandas as pd
 import pygsheets
+import pprint
 
 import urllib.request
 
 from helper.logger import *
 from helper.gsheet.gsheet_util import *
+
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+
+TOC_COLUMNS = {
+  "section" : {"availability": "must"},
+  "heading" : {"availability": "must"},
+  "process" : {"availability": "must"},
+  "level" : {"availability": "must"},
+  "content-type" : {"availability": "must"},
+  "link" : {"availability": "must"},
+  "break" : {"availability": "must"},
+  "landscape" : {"availability": "must"},
+  "page-spec" : {"availability": "must"},
+  "margin-spec" : {"availability": "must"},
+  "hide-pageno" : {"availability": "preferred"},
+  "hide-heading" : {"availability": "preferred"},
+  "different-firstpage" : {"availability": "preferred"},
+  "header-first" : {"availability": "preferred"},
+  "header-odd" : {"availability": "preferred"},
+  "header-even" : {"availability": "preferred"},
+  "footer-first" : {"availability": "preferred"},
+  "footer-odd" : {"availability": "preferred"},
+  "footer-even" : {"availability": "preferred"},
+  "override-header" : {"availability": "preferred"},
+  "override-footer" : {"availability": "preferred"},
+  "background-image" : {"availability": "preferred"},
+  "responsible" : {"availability": "preferred"},
+  "reviewer" : {"availability": "preferred"},
+  "status" : {"availability": "preferred"},
+  "comment" : {"availability": "preferred"},
+}
 
 
 def process_gsheet(context, gsheet, parent, current_document_index, nesting_level):
@@ -29,7 +63,53 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     ws_title = context['index-worksheet']
     ws = gsheet.worksheet('title', ws_title)
 
-    toc_list = ws.get_values(start='A3', end=f"Y{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
+    # we expect toc data to start from row 2
+    last_column = COLUMNS[ws.cols-1]
+    toc_list = ws.get_values(start='A2', end=f"{last_column}{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
+
+    # the first item is the heading for all columns which says what data is in which column
+    header_list = toc_list[0]
+    header_column_index = 0
+    for header in header_list:
+        # see if it is a header we know of
+        toc_column = TOC_COLUMNS.get(header, None)
+        if toc_column:
+            trace(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]", nesting_level=nesting_level)
+            TOC_COLUMNS[header]['column'] = header_column_index
+
+        else:
+            trace(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]. This column is not necessary for processing, will be ignored", nesting_level=nesting_level)
+
+        header_column_index = header_column_index + 1
+
+    # check if we have any must column missing
+    failed = False
+    for toc_column_key, toc_column_value in TOC_COLUMNS.items():
+        if 'column' in toc_column_value:
+            trace(f"header [{toc_column_key:<20}], which is [{toc_column_value['availability']}] found in column [{COLUMNS[toc_column_value['column']]:>2}]", nesting_level=nesting_level)
+
+        else:
+            if toc_column_value['availability'] == 'must':
+                error(f"header [{toc_column_key:<20}], which is must, not found in any column. Exiting ...")
+                failed = True
+
+            elif toc_column_value['availability'] == 'preferred':
+                warn(f"header [{toc_column_key:<20}], which is preferred, not found in any column. Consider adding the column", nesting_level=nesting_level)
+        
+    if failed:
+        exit(-1)
+
+
+
+
+
+
+
+
+
+
+
+    exit(0)
     toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
 
     section_index = 0

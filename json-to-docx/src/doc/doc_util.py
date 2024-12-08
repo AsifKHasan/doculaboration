@@ -55,7 +55,6 @@ def section_list_to_doc(section_list, config):
 		func(section, config)
 
 
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
@@ -71,7 +70,6 @@ def insert_image(container, picture_path, width, height):
 		run = paragraph.add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return paragraph
-
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -99,7 +97,6 @@ def create_table(container, num_rows, num_cols, container_width=None):
 	return tbl
 
 
-
 ''' set repeat table row on every new page
 '''
 def set_repeat_table_header(row):
@@ -109,7 +106,6 @@ def set_repeat_table_header(row):
 	tblHeader.set(qn('w:val'), "true")
 	trPr.append(tblHeader)
 	return row
-
 
 
 ''' format container (paragraph or cell)
@@ -144,7 +140,6 @@ def format_container(container, attributes, it_is_a_table_cell):
 			container.alignment = attributes['textalign']
 
 
-
 ''' set table-cell borders
 '''
 def set_cell_border(cell: table._Cell, borders):
@@ -173,7 +168,6 @@ def set_cell_border(cell: table._Cell, borders):
 			for key in ["sz", "val", "color", "space", "shadow"]:
 				if key in edge_data:
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
-
 
 
 ''' set paragraph borders
@@ -208,7 +202,6 @@ def set_paragraph_border(paragraph, borders):
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
-
 ''' set table-cell bgcolor
 '''
 def set_cell_bgcolor(cell: table._Cell, color):
@@ -216,13 +209,11 @@ def set_cell_bgcolor(cell: table._Cell, color):
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
 
-
 ''' set paragraph bgcolor
 '''
 def set_paragraph_bgcolor(paragraph, color):
 	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
 	paragraph._p.get_or_add_pPr().append(shading_elm_1)
-
 
 
 ''' set table-cell borders
@@ -240,7 +231,6 @@ def set_cell_padding(cell: table._Cell, padding):
 			tcMar.append(node)
 
 	tcPr.append(tcMar)
-
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -311,10 +301,9 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 		r_element.append(fldCharSeparate2)
 		r_element.append(fldCharEnd2)
 
-	p_element = paragraph._p
+	# p_element = paragraph._p
 
 	return paragraph
-
 
 
 ''' write a paragraph in a given style
@@ -380,7 +369,6 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	return paragraph
 
 
-
 ''' remove a paragraph
 '''
 def delete_paragraph(paragraph):
@@ -389,55 +377,60 @@ def delete_paragraph(paragraph):
 	# p._p = p._element = None
 
 
-
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
-	# process FN{...} first, we get a list of block dicts
-	inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
+    # process FN{...} first, we get a list of block dicts
+    inline_blocks = process_footnotes(
+        text_content=text_content, footnote_list=footnote_list
+    )
 
-	# process LATEX{...} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if 'text' in inline_block:
-			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block['text'])
+    # process LATEX{...} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if "text" in inline_block:
+            new_inline_blocks = new_inline_blocks + process_latex_blocks(
+                inline_block["text"]
+            )
 
-		else:
-			new_inline_blocks.append(inline_block)
+        else:
+            new_inline_blocks.append(inline_block)
 
-	inline_blocks = new_inline_blocks
+    inline_blocks = new_inline_blocks
 
-	# process PAGE{..} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if 'text' in inline_block:
-			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block['text'])
+    # process PAGE{..} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if "text" in inline_block:
+            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(
+                inline_block["text"]
+            )
 
-		else:
-			new_inline_blocks.append(inline_block)
+        else:
+            new_inline_blocks.append(inline_block)
 
-	inline_blocks = new_inline_blocks
+    inline_blocks = new_inline_blocks
 
-	# we are ready to prepare the content
-	for inline_block in inline_blocks:
-		if 'text' in inline_block:
-			run = paragraph.add_run(inline_block['text'])
-			set_text_style(run=run, text_attributes=text_attributes)
+    # we are ready to prepare the content
+    for inline_block in inline_blocks:
+        if "text" in inline_block:
+            run = paragraph.add_run(inline_block["text"])
+            set_text_style(run=run, text_attributes=text_attributes)
 
-		elif 'fn' in inline_block:
-			create_footnote(paragraph=paragraph, footnote_tuple=inline_block['fn'])
+        elif "fn" in inline_block:
+            create_footnote(paragraph=paragraph, footnote_tuple=inline_block["fn"])
 
-		elif 'latex' in inline_block:
-			run = paragraph.add_run()
-			create_latex(container=run, latex_content=inline_block['latex'])
-			set_text_style(run=run, text_attributes=text_attributes)
+        elif "latex" in inline_block:
+            run = paragraph.add_run()
+            create_latex(container=run, latex_content=inline_block["latex"])
+            set_text_style(run=run, text_attributes=text_attributes)
 
-		elif 'page' in inline_block:
-			add_link(paragraph=paragraph, link_to=inline_block['page'].strip(), text=inline_block['page'].strip(), tool_tip=None)
-			set_text_style(run=run, text_attributes=text_attributes)
-
+        elif "page" in inline_block:
+            # add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
+            run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["page"].strip())
+            set_text_style(run=run, text_attributes=text_attributes)
 
 
 ''' process footnotes inside text
@@ -472,7 +465,6 @@ def process_footnotes(text_content, footnote_list):
 	return texts_and_footnotes
 
 
-
 ''' process latex blocks inside text
 '''
 def process_latex_blocks(text_content):
@@ -503,7 +495,6 @@ def process_latex_blocks(text_content):
 	texts_and_latex.append({'text': text})
 
 	return texts_and_latex
-
 
 
 ''' process bookmark page ref inside text
@@ -538,12 +529,10 @@ def process_bookmark_page_blocks(text_content):
 	return texts_and_bookmarks
 
 
-
 ''' create a footnote
 '''
 def create_footnote(paragraph, footnote_tuple):
 	paragraph.add_footnote(footnote_tuple[1])
-
 
 
 ''' add a latex/mathml run into a paragraph
@@ -560,7 +549,6 @@ def create_latex(container, latex_content):
 		new_dom = transform(tree)
 
 		container._element.append(new_dom.getroot())
-
 
 
 ''' tex/character style for text run
@@ -597,21 +585,48 @@ def set_text_style(run, text_attributes):
 ''' create a bookmark
 '''
 def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
-	run = paragraph.add_run()
-	tag = run._r
-	start = OxmlElement('w:bookmarkStart')
-	start.set(qn('w:id'), '0')
-	start.set(qn('w:name'), bookmark_name)
-	tag.append(start)
+    run = paragraph.add_run()
+    tag = run._r
+    start = OxmlElement('w:bookmarkStart')
+    start.set(qn('w:id'), '0')
+    start.set(qn('w:name'), bookmark_name)
+    tag.append(start)
 
-	text = OxmlElement('w:r')
-	text.text = bookmark_text
-	tag.append(text)
+    text = OxmlElement('w:r')
+    text.text = bookmark_text
+    tag.append(text)
 
-	end = OxmlElement('w:bookmarkEnd')
-	end.set(qn('w:id'), '0')
-	end.set(qn('w:name'), bookmark_name)
-	tag.append(end)
+    end = OxmlElement('w:bookmarkEnd')
+    end.set(qn('w:id'), '0')
+    end.set(qn('w:name'), bookmark_name)
+    tag.append(end)
+
+
+''' add a PAGE refernce 
+'''
+def add_page_reference(paragraph, bookmark_name):
+    run = paragraph.add_run()
+
+	# create a new element and set attributes
+    fldCharBegin = OxmlElement('w:fldChar')
+    fldCharBegin.set(qn('w:fldCharType'), 'begin')
+
+    # actual PAGE reference
+    instrText = OxmlElement("w:instrText")
+    instrText.set(qn("xml:space"), "preserve")
+    instrText.text = f"PAGEREF {bookmark_name} \\h"
+
+    fldCharEnd = OxmlElement('w:fldChar')
+    fldCharEnd.set(qn('w:fldCharType'), 'end')
+
+    r_element = run._r
+    r_element.append(fldCharBegin)
+    r_element.append(instrText)
+    r_element.append(fldCharEnd)
+
+    # p_element = paragraph._p
+
+    return run
 
 
 ''' add link for bookmarks
@@ -660,7 +675,6 @@ def update_indexes(docx_path):
 		word.Quit()
 
 
-
 ''' set docx updateFields property true
 '''
 def set_updatefields_true(docx_path):
@@ -672,7 +686,6 @@ def set_updatefields_true(docx_path):
 	)
 	element_updatefields.set(f"{namespace}val", "true")
 	doc.save(docx_path)
-
 
 
 ''' given an docx file generates pdf in the given directory
@@ -700,7 +713,6 @@ def generate_pdf(infile, outdir):
 
 	finally:
 		word.Quit()
-
 
 
 ''' create table-of-contents
@@ -737,8 +749,7 @@ def create_index(doc, index_type):
 	r_element.append(instrText)
 	r_element.append(fldChar2)
 	r_element.append(fldChar4)
-	p_element = paragraph._p
-
+	# p_element = paragraph._p
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -804,7 +815,6 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 		create_page_background(doc=doc, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches)
 
 	return docx_section, new_section
-
 
 
 ''' create page background
@@ -969,7 +979,6 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 	first_run._r.append(new_drawing_element)
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
@@ -983,7 +992,6 @@ def is_table_cell(container):
 		return False
 
 
-
 ''' given pixel size, calculate the row height in inches
 	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
@@ -991,13 +999,11 @@ def row_height_in_inches(pixel_size):
 	return float((pixel_size) / 96)
 
 
-
 ''' get a random string
 '''
 def random_string(length=12):
 	letters = string.ascii_uppercase
 	return ''.join(random.choice(letters) for i in range(length))
-
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
@@ -1021,7 +1027,6 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 	return width_to_fit, height_to_fit
 
 
-
 '''
 '''
 def strip_math_mode_delimeters(latex_content):
@@ -1034,7 +1039,6 @@ def strip_math_mode_delimeters(latex_content):
 	# TODO: strip \( and \)
 
 	return stripped
-
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
