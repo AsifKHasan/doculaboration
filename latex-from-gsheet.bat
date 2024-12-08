@@ -18,7 +18,7 @@ popd
 
 :: latex-from-json
 pushd .\json-to-latex\src
-@REM python latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+python latex-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd

@@ -48,6 +48,32 @@ TOC_COLUMNS = {
   "comment" : {"availability": "preferred"},
 }
 
+section_column = None
+heading_column = None
+process_column = None
+level_column = None
+content_type_column = None
+link_column = None
+break_column = None
+landscape_column = None
+page_spec_column = None
+margin_spec_column = None
+hide_pageno_column = None
+hide_heading_column = None
+different_firstpage_column = None
+header_first_column = None
+header_odd_column = None
+header_even_column = None
+footer_first_column = None
+footer_odd_column = None
+footer_even_column = None
+override_header_column = None
+override_footer_column = None
+background_image_column = None
+responsible_column = None
+reviewer_column = None
+status_column = None
+comment_column = None
 
 def process_gsheet(context, gsheet, parent, current_document_index, nesting_level):
     data = {'sections': []}
@@ -99,18 +125,40 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
+    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, landscape_column, page_spec_column, margin_spec_column
+    global hide_pageno_column, hide_heading_column, different_firstpage_column, override_header_column, override_footer_column, background_image_column
+    global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
+    global responsible_column, reviewer_column,status_column, comment_column
 
+    section_column = TOC_COLUMNS['section']['column'] if 'section' in TOC_COLUMNS and 'column' in TOC_COLUMNS['section'] else None
+    heading_column = TOC_COLUMNS['heading']['column'] if 'heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['heading'] else None
+    process_column = TOC_COLUMNS['process']['column'] if 'process' in TOC_COLUMNS and 'column' in TOC_COLUMNS['process'] else None
+    level_column = TOC_COLUMNS['level']['column'] if 'level' in TOC_COLUMNS and 'column' in TOC_COLUMNS['level'] else None
+    content_type_column = TOC_COLUMNS['content-type']['column'] if 'content-type' in TOC_COLUMNS and 'column' in TOC_COLUMNS['content-type'] else None
+    link_column = TOC_COLUMNS['link']['column'] if 'link' in TOC_COLUMNS and 'column' in TOC_COLUMNS['link'] else None
+    break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
+    landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
+    page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
+    margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
+    hide_pageno_column = TOC_COLUMNS['hide-pageno']['column'] if 'hide-pageno' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-pageno'] else None
+    hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
+    different_firstpage_column = TOC_COLUMNS['different-firstpage']['column'] if 'different-firstpage' in TOC_COLUMNS and 'column' in TOC_COLUMNS['different-firstpage'] else None
+    header_first_column = TOC_COLUMNS['header-first']['column'] if 'header-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-first'] else None
+    header_odd_column = TOC_COLUMNS['header-odd']['column'] if 'header-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-odd'] else None
+    header_even_column = TOC_COLUMNS['header-even']['column'] if 'header-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-even'] else None
+    footer_first_column = TOC_COLUMNS['footer-first']['column'] if 'footer-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-first'] else None
+    footer_odd_column = TOC_COLUMNS['footer-odd']['column'] if 'footer-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-odd'] else None
+    footer_even_column = TOC_COLUMNS['footer-even']['column'] if 'footer-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-even'] else None
+    override_header_column = TOC_COLUMNS['override-header']['column'] if 'override-header' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-header'] else None
+    override_footer_column = TOC_COLUMNS['override-footer']['column'] if 'override-footer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-footer'] else None
+    background_image_column = TOC_COLUMNS['background-image']['column'] if 'background-image' in TOC_COLUMNS and 'column' in TOC_COLUMNS['background-image'] else None
+    responsible_column = TOC_COLUMNS['responsible']['column'] if 'responsible' in TOC_COLUMNS and 'column' in TOC_COLUMNS['responsible'] else None
+    reviewer_column = TOC_COLUMNS['reviewer']['column'] if 'reviewer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['reviewer'] else None
+    status_column = TOC_COLUMNS['status']['column'] if 'status' in TOC_COLUMNS and 'column' in TOC_COLUMNS['status'] else None
+    comment_column = TOC_COLUMNS['comment']['column'] if 'comment' in TOC_COLUMNS and 'column' in TOC_COLUMNS['comment'] else None
 
-
-
-
-
-
-
-
-
-    exit(0)
-    toc_list = [toc for toc in toc_list if toc[2] == 'Yes' and toc[3] in [0, 1, 2, 3, 4, 5, 6]]
+    toc_list = [toc for toc in toc_list[1:] if toc[process_column] == 'Yes' and toc[level_column] in [0, 1, 2, 3, 4, 5, 6]]
+    # pprint.pprint(toc_list)
 
     section_index = 0
     for toc in toc_list:
@@ -122,18 +170,19 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
 
 def process_section(context, gsheet, toc, current_document_index, section_index, parent, nesting_level):
     # TODO: some columns may have formula, parse those
-    # link column (F, toc[5] may be a formula), parse it
-    if toc[4] in ['gsheet', 'pdf']:
-        link_name, link_target = get_gsheet_link(toc[5], nesting_level=nesting_level)
+    # link column (F, toc[link_column] may be a formula), parse it
+    # print(section_column, toc)
+    if toc[content_type_column] in ['gsheet', 'pdf']:
+        link_name, link_target = get_gsheet_link(toc[link_column], nesting_level=nesting_level)
         worksheet_name = link_name
 
-    elif toc[4] == 'table':
-        link_name, link_target = get_worksheet_link(toc[5], nesting_level=nesting_level), None
+    elif toc[content_type_column] == 'table':
+        link_name, link_target = get_worksheet_link(toc[link_column], nesting_level=nesting_level), None
         worksheet_name = link_name
 
     else:
-        link_name, link_target = toc[5], None
-        worksheet_name = toc[4]
+        link_name, link_target = toc[link_column], None
+        worksheet_name = toc[content_type_column]
 
     if section_index == 0:
         document_first_section = True
@@ -164,34 +213,35 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'document-first-section': document_first_section,
         },
         'section-prop' : {
-            'label'                 : str(toc[0]),
-            'heading'               : toc[1],
-            'process'               : toc[2],
-            'level'                 : int(toc[3]),
-            'content-type'          : toc[4],
+            'label'                 : str(toc[section_column]),
+            'heading'               : toc[heading_column],
+            'process'               : toc[process_column],
+            'level'                 : int(toc[level_column]),
+            'content-type'          : toc[content_type_column],
             'link'                  : link_name,
             'link-target'           : link_target,
-            'page-break'            : True if toc[6] == "page" else False,
-            'section-break'         : True if toc[6] == "section" else False,
-            'landscape'             : True if toc[7] == "Yes" else False,
-            'page-spec'             : toc[8],
-            'margin-spec'           : toc[9],
-            'hide-pageno'           : True if toc[10] == "Yes" else False,
-            'hide-heading'          : True if toc[11] == "Yes" else False,
-            'different-firstpage'   : True if toc[12] == "Yes" else False,
-            'override-header'       : True if toc[19] == "Yes" else False,
-            'override-footer'       : True if toc[20] == "Yes" else False,
-            'background-image'      : toc[21].strip(),
-            'responsible'           : toc[22].strip(),
-            'reviewer'              : toc[23].strip(),
-            'status'                : toc[24].strip(),
+            'page-break'            : True if toc[break_column] == "page" else False,
+            'section-break'         : True if toc[break_column] == "section" else False,
+            'landscape'             : True if toc[landscape_column] == "Yes" else False,
+            'page-spec'             : toc[page_spec_column],
+            'margin-spec'           : toc[margin_spec_column],
+            
+            'hide-pageno'           : True if hide_pageno_column is not None and toc[hide_pageno_column] == "Yes" else False,
+            'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
+            'different-firstpage'   : True if different_firstpage_column is not None and toc[different_firstpage_column] == "Yes" else False,
+            'override-header'       : True if override_header_column is not None and toc[override_header_column] == "Yes" else False,
+            'override-footer'       : True if override_footer_column is not None and toc[override_footer_column] == "Yes" else False,
+            'background-image'      : toc[background_image_column].strip() if background_image_column is not None else '',
+            'responsible'           : toc[responsible_column].strip() if responsible_column is not None else '',
+            'reviewer'              : toc[reviewer_column].strip() if reviewer_column is not None else '',
+            'status'                : toc[status_column].strip() if status_column is not None else '',
         },
-        'header-odd'            : get_worksheet_link(toc[14]),
-        'header-even'           : get_worksheet_link(toc[15]),
-        'footer-odd'            : get_worksheet_link(toc[17]),
-        'footer-even'           : get_worksheet_link(toc[18]),
-        'header-first'          : get_worksheet_link(toc[13]),
-        'footer-first'          : get_worksheet_link(toc[16]),
+        'header-odd'            : get_worksheet_link(toc[header_odd_column]) if header_odd_column is not None else '',
+        'header-even'           : get_worksheet_link(toc[header_even_column]) if header_even_column is not None else '',
+        'footer-odd'            : get_worksheet_link(toc[footer_odd_column]) if footer_odd_column is not None else '',
+        'footer-even'           : get_worksheet_link(toc[footer_even_column]) if footer_even_column is not None else '',
+        'header-first'          : get_worksheet_link(toc[header_first_column]) if header_first_column is not None else '',
+        'footer-first'          : get_worksheet_link(toc[footer_first_column]) if footer_first_column is not None else '',
         }
 
     section_meta = d['section-meta']

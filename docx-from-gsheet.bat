@@ -18,7 +18,7 @@ popd
 
 :: docx-from-json
 pushd .\json-to-docx\src
-@REM python docx-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
+python docx-from-json.py --config "../conf/config.yml" --json "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
