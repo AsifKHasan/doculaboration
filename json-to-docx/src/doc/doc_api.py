@@ -781,7 +781,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+                table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec, self.note.angle)
                 paragraph_attributes = self.note.paragraph_attributes()
                 text_attributes = self.effective_format.text_format.text_attributes()
                 footnote_list = self.note.footnotes
@@ -796,7 +796,7 @@ class Cell(object):
     '''
     def decorate_cell(self):
         # if self.cell_value:
-        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec, self.note.angle)
         format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
     ''' Copy format from the cell passed
@@ -1206,6 +1206,7 @@ class CellFormat(object):
         self.valign = None
         self.text_format = None
         self.wrapping = None
+        self.text_rotation = None
         self.bgcolor_style = None
 
         if format_dict:
@@ -1216,6 +1217,7 @@ class CellFormat(object):
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
+            self.text_rotation = TextRotation(format_dict.get('textRotation'))
 
             bgcolor_style_dict = format_dict.get('backgroundColorStyle')
             if bgcolor_style_dict:
@@ -1224,7 +1226,7 @@ class CellFormat(object):
 
     ''' attributes dict for TableCellProperties
     '''
-    def table_cell_attributes(self, cell_merge_spec):
+    def table_cell_attributes(self, cell_merge_spec, angle=0):
         attributes = {}
 
         if self.halign:
@@ -1235,6 +1237,15 @@ class CellFormat(object):
 
         if self.wrapping:
             attributes['wrapoption'] = self.wrapping.wrapping
+
+        if self.text_rotation and self.text_rotation.angle is not None:
+            attributes['angle'] = self.text_rotation.angle
+            
+        if angle == 90:
+            attributes['angle'] = 'btLr'
+        elif angle == -90:
+            attributes['angle'] = 'tbRl'
+            
 
         if self.bgcolor:
             if self.bgcolor_style:
@@ -1549,6 +1560,8 @@ class CellNote(object):
         self.script = None
         self.footnotes = {}
         self.bookmark = None
+        
+        self.angle = None
 
         self.outline_level = 0
 
@@ -1565,6 +1578,7 @@ class CellNote(object):
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.footnotes = note_dict.get('footnote')
             self.bookmark = note_dict.get('bookmark', None)
+            self.angle = int(note_dict.get('angle', 0))
 
             # content
             content = note_dict.get('content')
@@ -1673,6 +1687,23 @@ class Wrapping(object):
             self.wrapping = WRAP_STRATEGY_MAP.get(wrap, 'WRAP')
         else:
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
+
+
+''' gsheet textRotation object wrapper
+'''
+class TextRotation(object):
+
+    ''' constructor
+    '''
+    def __init__(self, text_rotation=None):
+        self.angle = None
+        
+        if text_rotation:
+            if 'vertical' in text_rotation and text_rotation['vertical'] == False:
+                self.angle = 'btLr'
+                
+            if 'angle' in text_rotation:
+                self.angle = 'tbRl'
 
 
 ''' Helper for cell span specification

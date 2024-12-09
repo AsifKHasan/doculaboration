@@ -139,6 +139,10 @@ def format_container(container, attributes, it_is_a_table_cell):
 		if 'textalign' in attributes:
 			container.paragraphs[0].alignment = attributes['textalign']
 
+		# text rotation, only for table._cell
+		if 'angle' in attributes:
+			rotate_text(cell=container, direction=attributes['angle'])
+
 	else:
 		if 'borders' in attributes:
 			set_paragraph_border(container, borders=attributes['borders'])
@@ -372,7 +376,6 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 			# docx does not support keep_with_previous
 			# pf.keep_with_previous = True
 			pass
-
 
 	return paragraph
 
