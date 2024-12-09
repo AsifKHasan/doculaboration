@@ -60,13 +60,23 @@ def section_list_to_doc(section_list, config):
 
 ''' insert image into a container
 '''
-def insert_image(container, picture_path, width, height):
+def insert_image(container, picture_path, width, height, bookmark=None):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
+
+		# bookmark
+		if bookmark and bookmark != '':
+			add_bookmark(paragraph=container.paragraphs[0], bookmark_name=bookmark, bookmark_text='')
+
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return container
 	else:
 		paragraph = container.add_paragraph()
+
+		# bookmark
+		if bookmark and bookmark != '':
+			add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
+
 		run = paragraph.add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return paragraph
@@ -301,8 +311,6 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 		r_element.append(fldCharSeparate2)
 		r_element.append(fldCharEnd2)
 
-	# p_element = paragraph._p
-
 	return paragraph
 
 
@@ -338,7 +346,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 
 	# bookmark
-	if bookmark:
+	if bookmark and bookmark != '':
 		add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
 
 
@@ -749,7 +757,6 @@ def create_index(doc, index_type):
 	r_element.append(instrText)
 	r_element.append(fldChar2)
 	r_element.append(fldChar4)
-	# p_element = paragraph._p
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

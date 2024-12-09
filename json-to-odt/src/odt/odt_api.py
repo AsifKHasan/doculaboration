@@ -43,6 +43,7 @@ class OdtSectionBase(object):
         self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
 
         self.background_image = self.section_prop['background-image']
+        self.bookmark = self.section_prop['bookmark']
 
         self.document_index = self.section_meta['document-index']
         self.document_name = self.section_meta['document-name']
@@ -166,7 +167,7 @@ class OdtSectionBase(object):
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level)
+        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark) 
         self._odt.text.addElement(paragraph)
 
 
@@ -295,7 +296,7 @@ class OdtPdfSection(OdtSectionBase):
                     draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
 
                     style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                    paragraph = create_paragraph(self._odt, style_name)
+                    paragraph = create_paragraph(self._odt, style_name, bookmark=self.bookmark)
                     paragraph.addElement(draw_frame)
 
                     self._odt.text.addElement(paragraph)
@@ -1114,7 +1115,7 @@ class LatexValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_mathml(odt, style_name, latex_content=self.value)
+        paragraph = create_mathml(odt, style_name, latex_content=self.value, bookmark=bookmark)
         container.addElement(paragraph)
 
 
@@ -1238,7 +1239,7 @@ class ImageValue(CellValue):
         draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name)
+        paragraph = create_paragraph(odt, style_name, bookmark=self.bookmark)
         paragraph.addElement(draw_frame)
         container.addElement(paragraph)
 

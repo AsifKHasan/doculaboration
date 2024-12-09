@@ -46,6 +46,7 @@ class DocxSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
 
+        self.bookmark = self.section_prop['bookmark']
         self.background_image = self.section_prop['background-image']
 
         self.document_index = self.section_meta['document-index']
@@ -158,7 +159,7 @@ class DocxSectionBase(object):
 
         heading_text, outline_level, style_name = self.get_heading()
         if heading_text:
-            paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level)
+            paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
 
 
 ''' Docx table section object
@@ -1050,7 +1051,7 @@ class LatexValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
-        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level)
+        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, bookmark=bookmark)
         create_latex(container=paragraph, latex_content=self.value)
 
         return paragraph
@@ -1161,7 +1162,7 @@ class ImageValue(CellValue):
         text_attributes['fontsize'] = 2
         picture_path = self.value['path']
 
-        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches)
+        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches, bookmark=bookmark)
         return where
 
 

@@ -389,7 +389,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
         paragraph = text.Span(stylename=style_name)
 
     # bookmark
-    if bookmark:
+    if bookmark and bookmark != '':
         paragraph.addElement(text.Bookmark(name=bookmark))
 
 

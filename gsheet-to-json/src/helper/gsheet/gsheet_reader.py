@@ -30,6 +30,7 @@ TOC_COLUMNS = {
   "landscape" : {"availability": "must"},
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
+  "bookmark" : {"availability": "preferred"},
   "hide-pageno" : {"availability": "preferred"},
   "hide-heading" : {"availability": "preferred"},
   "different-firstpage" : {"availability": "preferred"},
@@ -58,6 +59,7 @@ break_column = None
 landscape_column = None
 page_spec_column = None
 margin_spec_column = None
+bookmark_column = None
 hide_pageno_column = None
 hide_heading_column = None
 different_firstpage_column = None
@@ -121,12 +123,12 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
 
             elif toc_column_value['availability'] == 'preferred':
                 warn(f"header [{toc_column_key:<20}], which is preferred, not found in any column. Consider adding the column", nesting_level=nesting_level)
-        
+
     if failed:
         exit(-1)
 
     global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, landscape_column, page_spec_column, margin_spec_column
-    global hide_pageno_column, hide_heading_column, different_firstpage_column, override_header_column, override_footer_column, background_image_column
+    global bookmark_column, hide_pageno_column, hide_heading_column, different_firstpage_column, override_header_column, override_footer_column, background_image_column
     global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
     global responsible_column, reviewer_column,status_column, comment_column
 
@@ -140,6 +142,7 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
     page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
     margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
+    bookmark_column = TOC_COLUMNS['bookmark']['column'] if 'bookmark' in TOC_COLUMNS and 'column' in TOC_COLUMNS['bookmark'] else None
     hide_pageno_column = TOC_COLUMNS['hide-pageno']['column'] if 'hide-pageno' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-pageno'] else None
     hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
     different_firstpage_column = TOC_COLUMNS['different-firstpage']['column'] if 'different-firstpage' in TOC_COLUMNS and 'column' in TOC_COLUMNS['different-firstpage'] else None
@@ -225,7 +228,8 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'landscape'             : True if toc[landscape_column] == "Yes" else False,
             'page-spec'             : toc[page_spec_column],
             'margin-spec'           : toc[margin_spec_column],
-            
+
+			'bookmark'           	: toc[bookmark_column].strip() if bookmark_column is not None else '',
             'hide-pageno'           : True if hide_pageno_column is not None and toc[hide_pageno_column] == "Yes" else False,
             'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
             'different-firstpage'   : True if different_firstpage_column is not None and toc[different_firstpage_column] == "Yes" else False,
@@ -330,7 +334,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             if d['footer-odd'] != '' and d['footer-odd'] is not None:
                 new_section_data = {'section-prop': {'link': d['footer-odd']}}
                 d['footer-odd'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-            
+
             else:
                 d['footer-odd'] = None
 
