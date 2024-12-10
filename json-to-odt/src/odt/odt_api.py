@@ -797,7 +797,7 @@ class Cell(object):
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell, self.merge_spec)}
-        text_attributes = self.effective_format.text_attributes()
+        text_attributes = self.effective_format.text_attributes(self.note.angle)
         style_attributes = self.note.style_attributes()
         footnote_list = self.note.footnotes
 
@@ -1115,7 +1115,7 @@ class LatexValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_mathml(odt, style_name, latex_content=self.value, bookmark=bookmark)
+        paragraph = create_mathml(odt, style_name, latex_content=self.value)
         container.addElement(paragraph)
 
 
@@ -1131,13 +1131,11 @@ class TextRunValue(CellValue):
         self.formatted_value = formatted_value
         self.keep_line_breaks = keep_line_breaks
 
-
     ''' string representation
     '''
     def __repr__(self):
         s = f"text-run : [{self.formatted_value}]"
         return s
-
 
     ''' generates the odt code
     '''
@@ -1152,7 +1150,12 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
+        style_name = create_paragraph_style(
+            odt,
+            style_attributes=style_attributes,
+            paragraph_attributes=paragraph_attributes,
+            text_attributes=text_attributes,
+        )
         paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
@@ -1239,7 +1242,7 @@ class ImageValue(CellValue):
         draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, bookmark=self.bookmark)
+        paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
         paragraph.addElement(draw_frame)
         container.addElement(paragraph)
 
@@ -1283,6 +1286,7 @@ class CellFormat(object):
         self.valign = None
         self.text_format = None
         self.wrapping = None
+        self.text_rotation = None
         self.bgcolor_style = None
 
         if format_dict:
@@ -1293,20 +1297,26 @@ class CellFormat(object):
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
             self.text_format = TextFormat(format_dict.get('textFormat'))
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
+            self.text_rotation = TextRotation(format_dict.get("textRotation"))
 
             bgcolor_style_dict = format_dict.get('backgroundColorStyle')
             if bgcolor_style_dict:
                 self.bgcolor_style = RgbColor(bgcolor_style_dict.get('rgbColor'))
 
-
     ''' attributes dict for Cell Text
     '''
-    def text_attributes(self):
+    def text_attributes(self, angle=0):
         attributes = {}
         if self.text_format:
             attributes = self.text_format.text_attributes()
-        return attributes
 
+        if self.text_rotation.angle != 0:
+            attributes["textrotationangle"] = self.text_rotation.angle
+
+        if angle != 0:
+            attributes['textrotationangle'] = angle
+
+        return attributes
 
     ''' attributes dict for TableCellProperties
     '''
@@ -1335,7 +1345,6 @@ class CellFormat(object):
             padding_attributes = self.padding.table_cell_attributes()
 
         return {**attributes, **borders_attributes, **padding_attributes}
-
 
     ''' attributes dict for ParagraphProperties
     '''
@@ -1378,8 +1387,6 @@ class CellFormat(object):
                 padding_attributes = self.padding.table_cell_attributes()
 
         return {**attributes, **borders_attributes, **padding_attributes}
-
-
 
     ''' image position as required by BackgroundImage
     '''
@@ -1710,6 +1717,8 @@ class CellNote(object):
         self.footnotes = {}
         self.bookmark = None
 
+        self.angle = 0
+
         if note_json:
             try:
                 note_dict = json.loads(note_json)
@@ -1725,6 +1734,7 @@ class CellNote(object):
             self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
             self.bookmark = note_dict.get('bookmark', None)
+            self.angle = int(note_dict.get("angle", 0))
 
             # content
             content = note_dict.get('content')
@@ -1768,7 +1778,6 @@ class CellNote(object):
             if self.bookmark:
                 trace(f"bookmark [{self.bookmark}] found")
 
-
     ''' style attributes dict to create Style
     '''
     def style_attributes(self):
@@ -1778,7 +1787,6 @@ class CellNote(object):
             attributes['parentstylename'] = self.style
 
         return attributes
-
 
     ''' paragraph attrubutes dict to craete ParagraphProperties
     '''
@@ -1831,6 +1839,23 @@ class Wrapping(object):
             self.wrapping = WRAP_STRATEGY_MAP.get(wrap, 'WRAP')
         else:
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
+
+
+''' gsheet textRotation object wrapper
+'''
+class TextRotation(object):
+
+    ''' constructor
+    '''
+    def __init__(self, text_rotation=None):
+        self.angle = None
+
+        if text_rotation:
+            if 'vertical' in text_rotation and text_rotation['vertical'] == False:
+                self.angle = 90
+
+            if 'angle' in text_rotation:
+                self.angle = text_rotation["angle"]
 
 
 ''' Helper for cell span specification

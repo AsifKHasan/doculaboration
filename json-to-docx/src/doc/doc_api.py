@@ -1243,7 +1243,7 @@ class CellFormat(object):
             
         if angle == 90:
             attributes['angle'] = 'btLr'
-        elif angle == -90:
+        elif angle == 270:
             attributes['angle'] = 'tbRl'
             
 
@@ -1260,7 +1260,7 @@ class CellFormat(object):
 
         return {**attributes, **more_attributes}
 
-
+1
 ''' gsheet cell borders object wrapper
 '''
 class Borders(object):

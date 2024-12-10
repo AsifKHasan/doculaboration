@@ -53,7 +53,6 @@ def section_list_to_odt(section_list, config):
         func(section, config)
 
 
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
@@ -107,7 +106,6 @@ def create_graphic_style(odt, valign, halign):
     return style_name
 
 
-
 ''' frame and image
     <draw:frame draw:style-name="fr1" draw:name="Image1" text:anchor-type="paragraph" svg:width="1.5in" svg:height="1.9in" draw:z-index="0">
       <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
@@ -139,7 +137,6 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
     return draw_frame
 
 
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # table, table-row, table-column, table-cell
 
@@ -161,12 +158,10 @@ def create_table(odt, table_name, table_style_attributes, table_properties_attri
     return tbl
 
 
-
 ''' create table-header-rows
 '''
 def create_table_header_rows():
     return table.TableHeaderRows()
-
 
 
 ''' create TableColumn
@@ -187,7 +182,6 @@ def create_table_column(odt, table_column_name, table_column_style_attributes, t
     return table_column
 
 
-
 ''' create TableRow
 '''
 def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
@@ -205,7 +199,6 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
     table_row = table.TableRow(attributes=table_row_properties)
 
     return table_row
-
 
 
 ''' create TableCell
@@ -231,7 +224,6 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     return table_cell
 
 
-
 ''' create CoveredTableCell
 '''
 def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes):
@@ -248,7 +240,6 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
 
     return table_cell
-
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -284,7 +275,6 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     return paragraph_style.getAttribute('name')
 
 
-
 ''' page number
     <text:p text:style-name="MP1">Page <text:page-number text:select-page="current">1</text:page-number>
         <text:s/>of <text:page-count>1</text:page-count>
@@ -309,7 +299,6 @@ def create_page_number(style_name, page_numbering='long'):
         paragraph.addElement(page_count)
 
     return paragraph
-
 
 
 ''' write a paragraph in a given style
@@ -342,7 +331,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 
     return paragraph
-
 
 
 ''' create a P or H or span
@@ -540,7 +528,6 @@ def create_footnote(footnote_tuple):
     return note
 
 
-
 ''' create latex object
 '''
 def create_latex(latex_content):
@@ -560,7 +547,6 @@ def create_latex(latex_content):
         return None
 
 
-
 ''' write a mathml draw-frame
 '''
 def create_mathml(odt, style_name, latex_content):
@@ -578,7 +564,6 @@ def create_mathml(odt, style_name, latex_content):
     return paragraph
 
 
-
 ''' odf.math.Math element
 '''
 def mathml_odf(mathml_content):
@@ -589,7 +574,6 @@ def mathml_odf(mathml_content):
     odf_math = mathml_odf_(math_)
 
     return odf_math
-
 
 
 ''' odf.math.Math element generator
@@ -610,7 +594,6 @@ def mathml_odf_(parent):
     return elem
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
 
@@ -628,7 +611,6 @@ def update_indexes(odt, odt_path):
     subprocess.call(command_line, shell=True)
 
 
-
 ''' given an odt file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
@@ -639,7 +621,6 @@ def generate_pdf(infile, outdir):
     file_to_rename = infile.replace(r'.odt', r'.pdf')
     rename_to = infile + '.pdf'
     Path(file_to_rename).replace(rename_to)
-
 
 
 ''' create table-of-contents
@@ -683,7 +664,6 @@ def create_toc():
     return toc
 
 
-
 ''' create illustration-index
 '''
 def create_lof():
@@ -717,7 +697,6 @@ def create_lof():
     toc.addElement(toc_source)
 
     return toc
-
 
 
 ''' create Table-index
@@ -755,7 +734,6 @@ def create_lot():
     return toc
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # master-page and page-layout
 
@@ -770,7 +748,6 @@ def get_master_page(odt, master_page_name):
     return None
 
 
-
 ''' get page-layout by name
 '''
 def get_page_layout(odt, page_layout_name):
@@ -782,7 +759,6 @@ def get_page_layout(odt, page_layout_name):
     return None
 
 
-
 ''' update page-layout of Standard master-page with the given page-layout
 '''
 def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
@@ -790,7 +766,6 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
 
     if master_page is not None:
         master_page.attributes[(master_page.qname[0], 'page-layout-name')] = new_page_layout_name
-
 
 
 ''' create (section-specific) page-layout
@@ -857,7 +832,6 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     return page_layout
 
 
-
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
@@ -868,7 +842,6 @@ def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_
     odt.masterstyles.addElement(master_page)
 
     return master_page
-
 
 
 ''' create header/footer
@@ -917,7 +890,6 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
     return header_footer_style
 
 
-
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
@@ -934,7 +906,6 @@ def process_line_breaks(text, keep_line_breaks):
         return text.replace('\n', ' ')
 
 
-
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
@@ -942,13 +913,11 @@ def row_height_in_inches(pixel_size):
     return float((pixel_size) / 96)
 
 
-
 ''' get a random string
 '''
 def random_string(length=12):
     letters = string.ascii_uppercase
     return ''.join(random.choice(letters) for i in range(length))
-
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
@@ -972,7 +941,6 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
     return width_to_fit, height_to_fit
 
 
-
 ''' strip LaTeX math mode delimeter ($)
 '''
 def strip_math_mode_delimeters(latex_content):
@@ -985,8 +953,6 @@ def strip_math_mode_delimeters(latex_content):
     # TODO: strip \( and \)
 
     return stripped
-
-
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
