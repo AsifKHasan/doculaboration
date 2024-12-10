@@ -1310,7 +1310,7 @@ class CellFormat(object):
         if self.text_format:
             attributes = self.text_format.text_attributes()
 
-        if self.text_rotation.angle and self.text_rotation.angle != 0:
+        if self.text_rotation and self.text_rotation.angle != 0:
             attributes["textrotationangle"] = self.text_rotation.angle
 
         if angle != 0:
