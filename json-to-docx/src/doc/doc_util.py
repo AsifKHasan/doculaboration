@@ -438,9 +438,19 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
             create_latex(container=run, latex_content=inline_block["latex"])
             set_text_style(run=run, text_attributes=text_attributes)
 
-        elif "page" in inline_block:
+        elif "page-num" in inline_block:
+            run = add_page_reference(paragraph=paragraph, bookmark_name='')
+            set_text_style(run=run, text_attributes=text_attributes)
+
+        elif "page-count" in inline_block:
+            run = add_page_reference(
+                paragraph=paragraph, bookmark_name='*'
+            )
+            set_text_style(run=run, text_attributes=text_attributes)
+
+        elif "bookmark-page" in inline_block:
             # add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
-            run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["page"].strip())
+            run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip())
             set_text_style(run=run, text_attributes=text_attributes)
 
 
@@ -514,10 +524,10 @@ def process_bookmark_page_blocks(text_content):
 	# find out if there is any match with PAGE{...} inside the text_content
 	texts_and_bookmarks = []
 
-	pattern = r'PAGE{[^}]+}'
+	pattern = r'PAGE{[^}]*}'
 	current_index = 0
 	for match in re.finditer(pattern, text_content):
-		bookmark_content = match.group()[5:-1]
+		bookmark_content = match.group()[5:-1].strip()
 
 		# we have found a PAGE block, we add the preceding text and the PAGE block into the list
 		bookmark_start_index, bookmark_end_index = match.span()[0], match.span()[1]
@@ -527,7 +537,15 @@ def process_bookmark_page_blocks(text_content):
 
 			texts_and_bookmarks.append({'text': text})
 
-			texts_and_bookmarks.append({'page': bookmark_content})
+            # PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
+			if bookmark_content == '':
+				texts_and_bookmarks.append({"page-num": None})
+
+			elif bookmark_content == '*':
+				texts_and_bookmarks.append({'page-count': None})
+
+			else:
+				texts_and_bookmarks.append({'bookmark-page': bookmark_content})
 
 			current_index = bookmark_end_index
 
@@ -625,7 +643,15 @@ def add_page_reference(paragraph, bookmark_name):
     # actual PAGE reference
     instrText = OxmlElement("w:instrText")
     instrText.set(qn("xml:space"), "preserve")
-    instrText.text = f"PAGEREF {bookmark_name} \\h"
+
+    if bookmark_name == '':
+        instrText.text = 'PAGE \* MERGEFORMAT'
+
+    elif bookmark_name == '*':
+        instrText.text = 'NUMPAGES \* MERGEFORMAT'
+
+    else:
+        instrText.text = f"PAGEREF {bookmark_name} \\h"
 
     fldCharEnd = OxmlElement('w:fldChar')
     fldCharEnd.set(qn('w:fldCharType'), 'end')

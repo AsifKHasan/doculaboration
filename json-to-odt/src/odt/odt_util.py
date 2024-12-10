@@ -365,7 +365,6 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
     inline_blocks = new_inline_blocks
 
-
     # create the P or H or span
     if text_type == 'P':
         paragraph = text.P(stylename=style_name)
@@ -379,7 +378,6 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     # bookmark
     if bookmark and bookmark != '':
         paragraph.addElement(text.Bookmark(name=bookmark))
-
 
     # now fill the paragraph with texts and footnotes
     for inline_block in inline_blocks:
@@ -398,7 +396,6 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             else:
                 paragraph.addText(text=inline_block['text'])
 
-
         elif 'fn' in inline_block:
             footnote_object = create_footnote(inline_block['fn'])
             paragraph.addElement(footnote_object)
@@ -408,11 +405,18 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             if latex_df:
                 paragraph.addElement(latex_df)
 
-        elif 'page' in inline_block:
-            bookmark_ref = inline_block['page'].strip()
+        elif 'page-num' in inline_block:
+            page_num = text.PageNumber(selectpage='current')
+            paragraph.addElement(page_num)
+
+        elif 'page-count' in inline_block:
+            page_count = text.PageCount()
+            paragraph.addElement(page_count)
+
+        elif 'bookmark-page' in inline_block:
+            bookmark_ref = inline_block['bookmark-page'].strip()
             if bookmark_ref != '':
                 paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
-
 
     return paragraph
 
@@ -487,10 +491,10 @@ def process_bookmark_page_blocks(text_content):
     # find out if there is any match with PAGE{...} inside the text_content
     texts_and_bookmarks = []
 
-    pattern = r'PAGE{[^}]+}'
+    pattern = r'PAGE{[^}]*}'
     current_index = 0
     for match in re.finditer(pattern, text_content):
-        bookmark_content = match.group()[5:-1]
+        bookmark_content = match.group()[5:-1].strip()
 
         # we have found a bookmark block, we add the preceding text and the bookmark block into the list
         bookmark_start_index, bookmark_end_index = match.span()[0], match.span()[1]
@@ -500,10 +504,17 @@ def process_bookmark_page_blocks(text_content):
 
             texts_and_bookmarks.append({'text': text})
 
-            texts_and_bookmarks.append({'page': bookmark_content})
+            # PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
+            if bookmark_content == '':
+                texts_and_bookmarks.append({"page-num": None})
+
+            elif bookmark_content == '*':
+                texts_and_bookmarks.append({'page-count': None})
+
+            else:
+                texts_and_bookmarks.append({'bookmark-page': bookmark_content})
 
             current_index = bookmark_end_index
-
 
     # there may be trailing text
     text = text_content[current_index:]
