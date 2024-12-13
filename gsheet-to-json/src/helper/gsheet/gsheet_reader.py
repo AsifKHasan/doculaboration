@@ -88,12 +88,40 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if gsheet.title not in context['worksheet-cache']:
         context['worksheet-cache'][gsheet.title] = {}
 
-    ws_title = context['index-worksheet']
-    ws = gsheet.worksheet('title', ws_title)
+
+    # locate the index worksheet, it is a list, we take the first available from the list
+    # TODO: for now it can also be a single worksheet for backword compatibility
+    index_ws = None
+    if isinstance(context['index-worksheet'], list):
+        for ws_title in context['index-worksheet']:
+            try:
+                index_ws = gsheet.worksheet('title', ws_title)
+                
+                if index_ws:
+                    break
+
+            except Exception as e:
+                warn(f"index worksheet [{ws_title}] not found", nesting_level=nesting_level)
+                pass
+
+        if index_ws is None:
+            error(f"index worksheet not found from the list [{context['index-worksheet']}]")
+            return
+
+    else:
+        ws_title = context['index-worksheet']
+        try:
+            index_ws = gsheet.worksheet('title', ws_title)
+        except Exception as e:
+            error(f"index worksheet [{ws_title}] not found")
+            return
+
+    if index_ws:
+        debug(f"index worksheet [{ws_title}] found", nesting_level=nesting_level)
 
     # we expect toc data to start from row 2
-    last_column = COLUMNS[ws.cols-1]
-    toc_list = ws.get_values(start='A2', end=f"{last_column}{ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
+    last_column = COLUMNS[index_ws.cols-1]
+    toc_list = index_ws.get_values(start='A2', end=f"{last_column}{index_ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
 
     # the first item is the heading for all columns which says what data is in which column
     header_list = toc_list[0]
