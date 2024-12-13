@@ -14,7 +14,7 @@ log_color = {
     '[ERROR]': {'color': 'red',         'highlight': None, 'attrs': ['bold']},
     '[ WARN]': {'color': 'yellow',      'highlight': None, 'attrs': ['bold']},
     '[ INFO]': {'color': 'white',       'highlight': None, 'attrs': None},
-    '[DEBUG]': {'color': 'green',       'highlight': None, 'attrs': ['dark']},
+    '[DEBUG]': {'color': 'green',       'highlight': None, 'attrs': None},
     '[TRACE]': {'color': 'light_grey',  'highlight': None, 'attrs': ['dark']}
 }
 

@@ -11,7 +11,7 @@ dirs:
 
 files:
   # the docx template based on which the output docx is generated (should definitely be blank with some styles customized as preferred)
-  docx-template:            "./template-spectrum.docx"
+  docx-template:            "./template-classic.docx"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one docx

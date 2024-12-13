@@ -1,7 +1,7 @@
-# celloscope
 git add -A & git commit -m "updated" & git push
 git add -A ; git commit -m "updated" ; git push
 
+# celloscope
 
 set CMD="odt-from-gsheet.bat"
 set CMD="docx-from-gsheet.bat"

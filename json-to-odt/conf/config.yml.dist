@@ -11,7 +11,7 @@ dirs:
 
 files:
   # the odt template based on which the output odt is generated (should definitely be blank with some styles customized as preferred)
-  odt-template:             "./template-spectrum.odt"
+  odt-template:             "./template-classic.odt"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one odt

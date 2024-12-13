@@ -3,8 +3,9 @@
 # log level (0-TRACE, 1-DEBUG, 2-INFO, 3-WARN, 4-ERROR) below which logs will not be printed
 log-level:                  1
 
-# the name of the worksheet that contains the index (kind of Table of Content)
-index-worksheet:            "-toc-new"
+# the list of names of worksheets that contains the index (kind of Table of Content). The first workshet existing is used
+index-worksheet:            
+  - '-toc'
 
 # if gsheet read times out how many seconds to wait before trying the next read
 gsheet-read-wait-seconds:   70
