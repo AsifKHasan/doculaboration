@@ -1114,11 +1114,13 @@ LEVEL_TO_HEADING = [
 	'Heading 10',
 ]
 
+
 TEXT_VALIGN_MAP = {
 	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
 	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
 	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
 }
+
 
 TEXT_HALIGN_MAP = {
 	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
@@ -1127,11 +1129,14 @@ TEXT_HALIGN_MAP = {
 	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
 }
 
+
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
+
 
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
 
 GSHEET_OXML_BORDER_MAPPING = {
 	'DOTTED': 'dotted',

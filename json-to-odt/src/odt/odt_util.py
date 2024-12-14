@@ -866,7 +866,6 @@ def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_
 def create_header_footer(master_page, page_layout, header_footer, odd_even):
     header_footer_style = None
     if header_footer == 'header':
-        height = f"{HEADER_HEIGHT}in"
         if odd_even == 'odd':
             header_footer_style = style.Header()
         if odd_even == 'even':
@@ -876,7 +875,6 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
             pass
 
     elif header_footer == 'footer':
-        height = f"{FOOTER_HEIGHT}in"
         if odd_even == 'odd':
             header_footer_style = style.Footer()
         if odd_even == 'even':
@@ -887,7 +885,6 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 
     if header_footer_style:
         # TODO: the height should come from actual header content height
-        # header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False, 'height': height}
         header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
         header_style = style.HeaderStyle()
         header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
@@ -973,16 +970,10 @@ def strip_math_mode_delimeters(latex_content):
 COLSEP = (0/72)
 
 # seperation (in inches) between two ODT table rows
-# ROWSEP = (2/72)
+ROWSEP = (0/72)
 
 # FACTOR by which to divide gsheet border width to get a reasonable ODT border width
 ODT_BORDER_WIDTH_FACTOR = 4
-
-# ODT page header height
-HEADER_HEIGHT = 1.8
-
-# ODT page footer height
-FOOTER_HEIGHT = 0.3
 
 # gsheet border style to ODT border style map
 GSHEET_ODT_BORDER_MAPPING = {
