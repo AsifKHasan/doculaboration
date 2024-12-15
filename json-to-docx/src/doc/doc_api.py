@@ -1670,10 +1670,11 @@ class HorizontalAlignment(object):
     ''' constructor
     '''
     def __init__(self, halign=None):
+        # TODO: it is overriding text style
         if halign:
             self.halign = TEXT_HALIGN_MAP.get(halign)
         else:
-            self.halign = TEXT_HALIGN_MAP.get('LEFT')
+            self.halign = TEXT_HALIGN_MAP.get('JUSTIFY')
 
 
 ''' gsheet wrapping object wrapper
