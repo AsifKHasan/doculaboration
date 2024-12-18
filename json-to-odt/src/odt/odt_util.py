@@ -145,10 +145,12 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
 def create_table(odt, table_name, table_style_attributes, table_properties_attributes):
     if 'family' not in table_style_attributes:
         table_style_attributes['family'] = 'table'
+        
+    # table_style['border-model'] = 'collapsing'
 
     # create the style
     table_style = style.Style(attributes=table_style_attributes)
-    table_style.addElement(style.TableProperties(attributes=table_properties_attributes))
+    table_style.addElement(style.TableProperties(attributes=table_properties_attributes, bordermodel='collapsing'))
     odt.automaticstyles.addElement(table_style)
 
     # create the table
