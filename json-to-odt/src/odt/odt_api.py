@@ -798,6 +798,7 @@ class Cell(object):
     def cell_to_odt(self, odt, container, is_table_cell=False):
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign)}
         text_attributes = self.effective_format.text_attributes(self.note.angle)
+            
         style_attributes = self.note.style_attributes()
         footnote_list = self.note.footnotes
 
@@ -978,8 +979,8 @@ class TextFormat(object):
             if 'fontFamily' in text_format_dict:
                 self.font_family = text_format_dict['fontFamily']
 
-            else:
-                self.font_family = ''
+            # else:
+            #     self.font_family = ''
 
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
@@ -989,7 +990,7 @@ class TextFormat(object):
             self.is_underline = text_format_dict.get('underline')
         else:
             self.fgcolor = RgbColor()
-            self.font_family = ''
+            self.font_family = None
             self.font_size = 0
             self.is_bold = False
             self.is_italic = False
@@ -1003,9 +1004,10 @@ class TextFormat(object):
         attributes = {}
 
         attributes['color'] = self.fgcolor.value()
-        if self.font_family and self.font_family != '':
+        if self.font_family:
             attributes['fontname'] = self.font_family
             attributes['fontnameasian'] = self.font_family
+            # print(self.font_family)
             # attributes['fontnamecomplex'] = self.font_family
 
         attributes['fontsize'] = self.font_size
@@ -1693,7 +1695,9 @@ class TextFormatRun(object):
     ''' generates the odt code
     '''
     def text_attributes(self, text):
-        return {'text': text[self.start_index:], 'text-attributes': self.format.text_attributes()}
+        text_attributes = self.format.text_attributes()
+
+        return {'text': text[self.start_index:], 'text-attributes': text_attributes}
 
 
 ''' gsheet cell notes object wrapper

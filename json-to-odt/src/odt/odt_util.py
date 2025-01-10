@@ -264,17 +264,19 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
         style_attributes['parentstylename'] = 'Text_20_body'
 
     # create the style
-    paragraph_style = style.Style(attributes=style_attributes)
+    paragraph_style = style.Style(name=style_attributes['name'], attributes=style_attributes)
 
     if paragraph_attributes is not None:
         paragraph_style.addElement(style.ParagraphProperties(attributes=paragraph_attributes))
 
     if text_attributes is not None:
         paragraph_style.addElement(style.TextProperties(attributes=text_attributes))
+        # print(paragraph_style.getAttribute('name'), text_attributes['fontname'])
 
     odt.automaticstyles.addElement(paragraph_style)
 
-    return paragraph_style.getAttribute('name')
+    # return paragraph_style.getAttribute('name')
+    return style_attributes['name']
 
 
 ''' page number
@@ -319,6 +321,7 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
             fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
+            # print(fragment.getAttribute('stylename'), run['text-attributes']['fontname'])
             paragraph.addElement(fragment)
 
     # P or H
@@ -333,6 +336,28 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 
     return paragraph
+
+
+''' add text span, s, c to a paragraph
+'''
+def add_text_to_paragraph(paragraph, text_string):
+    matches = []
+    matches = matches + [(match.start(), match.end(), 'space') for match in re.finditer(r'^ {1,}', text_string)]
+    matches = matches + [(match.start(), match.end(), 'space') for match in re.finditer(r' {2,}', text_string)]
+    matches = matches + [(match.start(), match.end(), 'space') for match in re.finditer(r' {1,}$', text_string)]
+
+    non_matches = []
+    non_matches = non_matches + [(match.start(), match.end(), 'text') for match in re.finditer(r'[^ ]+(?: [^ ]+)*', text_string)]
+    all = matches + non_matches
+    all.sort()
+    
+    for start, end, what in all:
+        if what == 'space':
+            paragraph.addElement(text.S(c=end-start))
+            
+        elif what == 'text':
+            paragraph.addText(text=text_string[start:end])
+
 
 
 ''' create a P or H or span
@@ -387,16 +412,16 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             if keep_line_breaks:
                 splits = inline_block['text'].split('\n')
                 if len(splits) == 1:
-                    paragraph.addText(text=inline_block['text'])
+                    add_text_to_paragraph(paragraph=paragraph, text_string=inline_block['text'])
 
                 else:
-                    paragraph.addText(text=splits[0])
+                    add_text_to_paragraph(paragraph=paragraph, text_string=splits[0])
                     for part in splits[1:]:
                         paragraph.addElement(text.LineBreak())
-                        paragraph.addText(text=part)
+                        add_text_to_paragraph(paragraph=paragraph, text_string=part)
 
             else:
-                paragraph.addText(text=inline_block['text'])
+                add_text_to_paragraph(paragraph=paragraph, text_string=inline_block['text'])
 
         elif 'fn' in inline_block:
             footnote_object = create_footnote(inline_block['fn'])
