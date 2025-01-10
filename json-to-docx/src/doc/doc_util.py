@@ -320,7 +320,7 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark=None):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark=None, directives=True):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer

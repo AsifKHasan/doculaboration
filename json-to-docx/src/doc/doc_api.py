@@ -781,7 +781,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec, self.note.angle)
+                table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
                 paragraph_attributes = self.note.paragraph_attributes()
                 text_attributes = self.effective_format.text_format.text_attributes()
                 footnote_list = self.note.footnotes
@@ -796,7 +796,7 @@ class Cell(object):
     '''
     def decorate_cell(self):
         # if self.cell_value:
-        table_cell_attributes = self.effective_format.table_cell_attributes(self.merge_spec, self.note.angle)
+        table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
         format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
     ''' Copy format from the cell passed
@@ -999,7 +999,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, directives=True):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1008,6 +1008,8 @@ class StringValue(CellValue):
                 self.value = string_value['stringValue']
             else:
                 self.value = ''
+
+        self.directives = directives
 
 
     ''' string representation
@@ -1020,7 +1022,7 @@ class StringValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
-        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark)
+        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
         return paragraph
 
 
@@ -1226,11 +1228,14 @@ class CellFormat(object):
 
     ''' attributes dict for TableCellProperties
     '''
-    def table_cell_attributes(self, cell_merge_spec, angle=0):
+    def table_cell_attributes(self, cell_merge_spec, force_halign, angle=0):
         attributes = {}
 
-        if self.halign:
+        if force_halign:
             attributes['textalign'] = self.halign.halign
+        else:
+            if self.halign:
+                attributes['textalign'] = self.halign.halign
 
         if self.valign:
             attributes['verticalalign'] = self.valign.valign
@@ -1260,7 +1265,7 @@ class CellFormat(object):
 
         return {**attributes, **more_attributes}
 
-1
+
 ''' gsheet cell borders object wrapper
 '''
 class Borders(object):
@@ -1552,10 +1557,12 @@ class CellNote(object):
         self.header_rows = 0
 
         self.style = 'Normal'
+        self.force_halign = False
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
         self.keep_line_breaks = False
+        self.directives = True
 
         self.script = None
         self.footnotes = {}
@@ -1573,9 +1580,11 @@ class CellNote(object):
 
             self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
+            self.force_halign = note_dict.get('force-halign', None)
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
+            self.directives = note_dict.get('directives') is not None
             self.footnotes = note_dict.get('footnote')
             self.bookmark = note_dict.get('bookmark', None)
             self.angle = int(note_dict.get('angle', 0))
@@ -1671,10 +1680,10 @@ class HorizontalAlignment(object):
     '''
     def __init__(self, halign=None):
         # TODO: it is overriding text style
-        if halign is None or halign in ['LEFT', 'JUSTIFY']:
-            self.halign = TEXT_HALIGN_MAP.get('JUSTIFY')
-        elif halign in ['CENTER', 'RIGHT']:
+        if halign is None or halign in ['LEFT', 'JUSTIFY', 'CENTER', 'RIGHT']:
             self.halign = TEXT_HALIGN_MAP.get(halign)
+        else:
+            self.halign = TEXT_HALIGN_MAP.get('LEFT')
 
 
 ''' gsheet wrapping object wrapper

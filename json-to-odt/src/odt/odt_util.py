@@ -305,7 +305,7 @@ def create_page_number(style_name, page_numbering='long'):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False, directives=True):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -429,7 +429,7 @@ def process_footnotes(text_content, footnote_list):
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
 
-    # find out if there is any match with FN#key inside the text_content
+    # find out if there is any match with FN{key} inside the text_content
     pattern = r'FN{[^}]+}'
     current_index = 0
     for match in re.finditer(pattern, text_content):

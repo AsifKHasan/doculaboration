@@ -796,7 +796,7 @@ class Cell(object):
     ''' odt code for cell content
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
-        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell, self.merge_spec)}
+        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign)}
         text_attributes = self.effective_format.text_attributes(self.note.angle)
         style_attributes = self.note.style_attributes()
         footnote_list = self.note.footnotes
@@ -1052,7 +1052,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark=None, keep_line_breaks=False):
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark=None, keep_line_breaks=False, directives=True):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1064,6 +1064,7 @@ class StringValue(CellValue):
 
         self.keep_line_breaks = keep_line_breaks
         self.bookmark = bookmark
+        self.directives = directives
 
 
     ''' string representation
@@ -1080,7 +1081,7 @@ class StringValue(CellValue):
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives)
         container.addElement(paragraph)
 
 
@@ -1348,12 +1349,16 @@ class CellFormat(object):
 
     ''' attributes dict for ParagraphProperties
     '''
-    def paragraph_attributes(self, is_table_cell, cell_merge_spec):
+    def paragraph_attributes(self, is_table_cell, cell_merge_spec, force_halign):
         # if the is left aligned, we do not set attribute to let the parent style determine what the alignment should be
-        if self.halign is None or self.halign.halign in ['left']:
-            attributes = {}
-        else:
+        if force_halign:
             attributes = {'textalign': self.halign.halign}
+
+        else:
+            if self.halign is None or self.halign.halign in ['left']:
+                attributes = {}
+            else:
+                attributes = {'textalign': self.halign.halign}
 
         if self.bgcolor:
             if self.bgcolor_style:
@@ -1706,10 +1711,12 @@ class CellNote(object):
         self.header_rows = 0
 
         self.style = None
+        self.force_halign = False
         self.new_page = False
         self.keep_with_next = False
         self.keep_with_previous = False
         self.keep_line_breaks = False
+        self.directives = True
 
         self.script = None
 
@@ -1728,9 +1735,11 @@ class CellNote(object):
 
             self.header_rows = int(note_dict.get('repeat-rows', 0))
             self.new_page = note_dict.get('new-page') is not None
+            self.force_halign = note_dict.get('force-halign', None)
             self.keep_with_next = note_dict.get('keep-with-next') is not None
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
+            self.directives = note_dict.get('directives') is not None
             self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
             self.bookmark = note_dict.get('bookmark', None)
