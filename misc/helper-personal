@@ -4,16 +4,13 @@ git add -A ; git commit -m "updated" ; git push
 cd D:\projects\asif@github\doculaboration
 cd /home/asif/projects/asif@github/doculaboration
 
-./odt-from-gsheet.sh doculaboration__test-gsheet
+set ODT=doculaboration__examples
+unzip %ODT%.odt -d test-odt
+pushd test-odt && zip -r ..\%ODT%.odt . && popd
 
-unzip LGED-EARN-MIS-2024__published-ToR__internal-review.odt.odt -d test-current
-pushd test-current && zip -r ..\GB-AISGB__minutes__PSC-06__2023-12-05.odt . && popd
+unzip XYZ.docx -d test-docx
+pushd test-docx && zip -r ..\XYZ.docx . && popd
 
-unzip template-grameenbank.docx -d test
-pushd test && zip -r ..\template-grameenbank.docx . && popd
-
-unzip GB-AISGB__minutes__PSC-06__2023-12-05.docx -d test-current
-pushd test-current && zip -r ..\GB-AISGB__minutes__PSC-06__2023-12-05.docx . && popd
 
 # personal
 odt-from-gsheet.bat PPA-2006__2019-01

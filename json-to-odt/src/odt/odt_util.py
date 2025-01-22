@@ -316,7 +316,11 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
     # text-runs
     if run_list is not None:
-        paragraph = text.P(stylename=style)
+        if outline_level == 0:
+            paragraph = text.P(stylename=style)
+        else:
+            paragraph = text.H(stylename=style, outlinelevel=outline_level)
+
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
@@ -932,9 +936,9 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 '''
 def process_line_breaks(text, keep_line_breaks):
     if keep_line_breaks:
-        print(text)
+        # print(text)
         new_text = text.replace('\n', '<text:line-break/>')
-        print(new_text)
+        # print(new_text)
         return new_text
 
     else:
@@ -1027,16 +1031,16 @@ HEADING_TO_LEVEL = {
 # outline level to ODT style name map
 LEVEL_TO_HEADING = [
     'Title',
-    'Heading 1',
-    'Heading 2',
-    'Heading 3',
-    'Heading 4',
-    'Heading 5',
-    'Heading 6',
-    'Heading 7',
-    'Heading 8',
-    'Heading 9',
-    'Heading 10',
+    'Heading_20_1',
+    'Heading_20_2',
+    'Heading_20_3',
+    'Heading_20_4',
+    'Heading_20_5',
+    'Heading_20_6',
+    'Heading_20_7',
+    'Heading_20_8',
+    'Heading_20_9',
+    'Heading_20_10',
 ]
 
 
