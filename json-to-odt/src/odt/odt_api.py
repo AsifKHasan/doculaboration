@@ -736,7 +736,7 @@ class Cell(object):
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, keep_line_breaks=self.note.keep_line_breaks)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
                     elif self.note.page_numbering:
                         self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
@@ -1159,7 +1159,7 @@ class TextRunValue(CellValue):
             paragraph_attributes=paragraph_attributes,
             text_attributes=text_attributes,
         )
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
 
 
