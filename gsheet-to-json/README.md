@@ -9,7 +9,7 @@ copy ```conf/config.yml.dist``` as ```conf/config.yml``` and do not commit the c
 ## software and tools required
 
 You will need Poppler
-- for Windows - https://blog.alivate.com.au/poppler-windows/
+- for Windows - ~https://blog.alivate.com.au/poppler-windows/~. https://github.com/oschwartz10612/poppler-windows/releases/tag/v24.08.0-0
 - for Linux - https://poppler.freedesktop.org/
 
 ## Linux usage:
