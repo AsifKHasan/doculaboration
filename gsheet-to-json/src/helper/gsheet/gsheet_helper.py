@@ -85,8 +85,13 @@ class GsheetHelper(object):
                             error(f"[{gsheet.id}]")
 
                         sys.exit(1)
-                    else:
+
+                    elif len(gsheets) == 1:
                         gsheet = gsheets[0]
+                        
+                    else:
+                        error(f"no gsheet found with the name [{gsheet_title}] .. quiting", nesting_level=nesting_level)
+                        sys.exit(1)
 
                     gsheet_id = gsheet.id
                     debug(f"opened  gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
