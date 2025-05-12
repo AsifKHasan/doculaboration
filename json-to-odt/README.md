@@ -113,6 +113,15 @@ some useful links for json-to-odt
 * https://github.com/eea/odfpy/tree/master/examples
 * https://glot.io/snippets/f0nuzv7b8k
 
+
+## Linux note:
+You may get a warning like this
+> Warning: failed to launch javaldx - java may not function correctly
+
+To resolve this run
+
+```sudo apt-get install libreoffice-java-common default-jre```
+
 ## Linux usage:
 you can run the bash script *odt-from-gsheet.sh* in the root folder. It takes only one parameter - the name of the gsheet
 
