@@ -73,6 +73,44 @@ def worksheet_exists(sheet, ws_title, nesting_level=0):
         return False
 
 
+def image_params_from_image(local_path, row_height, mode, formula, formula_parts, nesting_level=0):
+    try:
+        im = Image.open(local_path)
+        im_width, im_height = im.size
+        if 'dpi' in im.info:
+            # dpi values are of type IFDRational which is not JSON serializable, cast them to float
+            im_dpi_x, im_dpi_y = im.info['dpi']
+            im_dpi_x = float(im_dpi_x)
+            im_dpi_y = float(im_dpi_y)
+            im_dpi = (im_dpi_x, im_dpi_y)
+        else:
+            im_dpi = (96, 96)
+
+        aspect_ratio = (im_width / im_height)
+    except:
+        warn(f"could not get dimesnion for image: [{local_path}]", nesting_level=nesting_level)
+        return None
+
+    # image link is based on row height
+    if mode == 1:
+        height = row_height
+        width = int(height * aspect_ratio)
+        # trace(f"adjusting image {local_path} at {width}x{height}-{im_dpi} based on row height {row_height}", nesting_level=nesting_level)
+        return {'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size}
+
+    # image link is without height, width - use actual image size
+    if mode == 3:
+        # trace(f"keeping image {local_path} at {im_width}x{im_height}-{im_dpi} as-is", nesting_level=nesting_level)
+        return {'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size}
+
+    # image link specifies height and width, use those
+    if mode == 4 and len(formula_parts) == 4:
+        # trace(f"image {local_path} at {im_width}x{im_height}-{im_dpi} size specified", nesting_level=nesting_level)
+        return {'height': int(formula_parts[2]), 'width': int(formula_parts[3]), 'dpi': im_dpi, 'size': im.size}
+    else:
+        warn(f"image link does not specify height and width: [{formula}]", nesting_level=nesting_level)
+        return None
+
 
 def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_level=0):
     '''
@@ -128,24 +166,6 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
             print(Exception, err)
             return None
 
-    # get the image dimensions
-    try:
-        im = Image.open(local_path)
-        im_width, im_height = im.size
-        if 'dpi' in im.info:
-            # dpi values are of type IFDRational which is not JSON serializable, cast them to float
-            im_dpi_x, im_dpi_y = im.info['dpi']
-            im_dpi_x = float(im_dpi_x)
-            im_dpi_y = float(im_dpi_y)
-            im_dpi = (im_dpi_x, im_dpi_y)
-        else:
-            im_dpi = (96, 96)
-
-        aspect_ratio = (im_width / im_height)
-    except:
-        warn(f"could not get dimesnion for image: [{local_path}]", nesting_level=nesting_level)
-        return None
-
     # the second item is mode - can be 1, 3 or 4
     if len(s) >= 2:
         mode = int(s[1])
@@ -153,26 +173,12 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
         warn(f"image link mode not found in formula: [{image_formula}]", nesting_level=nesting_level)
         return None
 
-    # image link is based on row height
-    if mode == 1:
-        height = row_height
-        width = int(height * aspect_ratio)
-        # trace(f"adjusting image {local_path} at {width}x{height}-{im_dpi} based on row height {row_height}", nesting_level=nesting_level)
-        return {'url': url, 'path': str(local_path), 'height': height, 'width': width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
-
-    # image link is without height, width - use actual image size
-    if mode == 3:
-        # trace(f"keeping image {local_path} at {im_width}x{im_height}-{im_dpi} as-is", nesting_level=nesting_level)
-        return {'url': url, 'path': str(local_path), 'height': im_height, 'width': im_width, 'dpi': im_dpi, 'size': im.size, 'mode': mode}
-
-    # image link specifies height and width, use those
-    if mode == 4 and len(s) == 4:
-        # trace(f"image {local_path} at {im_width}x{im_height}-{im_dpi} size specified", nesting_level=nesting_level)
-        return {'url': url, 'path': str(local_path), 'height': int(s[2]), 'width': int(s[3]), 'dpi': im_dpi, 'size': im.size, 'mode': mode}
+    # get the image dimensions
+    image_params = image_params_from_image(local_path=local_path, row_height=row_height, mode=mode, formula=image_formula, formula_parts=s, nesting_level=nesting_level+1)
+    if image_params:
+        return {**{'url': url, 'path': str(local_path), 'mode': mode}, **image_params}
     else:
-        warn(f"image link does not specify height and width: [{image_formula}]", nesting_level=nesting_level)
         return None
-
 
 
 def download_file_from_web(url, tmp_dir, nesting_level=0):
@@ -223,8 +229,24 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
 def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
     file_url = url.strip()
 
-    id = file_url.replace('https://drive.google.com/file/d/', '')
+    # drive file id may have many forms like
+    # "https://drive.google.com/open?id=1rVmH-dHciYgPwJC0EFpHIXaZ_H1j5LDu"
+    # "https://drive.google.com/file/d/10bjxB_yjXgtaGZWJLVCQ28a7G_PPBLk-"
+    id = file_url.replace('https://drive.google.com/', '')
+    # print(id)
+
+    # see if it has something like 'id=' in it, then it will start after the pattern
+    id = re.sub(r".*\?id=", "", id)
+    # print(id)
+
+    # see if it has something like '/d/' in it, then it will start after the pattern
+    id = re.sub(r".*/d/", "", id)
+    # print(id)
+
+    # then it will be till end or till before the first '/'
     id = id.split('/')[0]
+    # print(id)
+
     debug(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
     f = drive.CreateFile({'id': id})
     file_name = f['title']
@@ -244,6 +266,9 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
 
     if file_type == 'image/gif' and not file_name.endswith('.gif'):
         file_name = file_name + '.gif'
+
+    if file_type == 'image/webp' and not file_name.endswith('.webp'):
+        file_name = file_name + '.webp'
 
     if file_type == 'image/webp' and not file_name.endswith('.webp'):
         file_name = file_name + '.webp'

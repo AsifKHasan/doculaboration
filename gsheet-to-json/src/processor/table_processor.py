@@ -86,15 +86,26 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
 
         return
 
-    # content can be a HYPERLINK/hyperlink to another gdrive file (for now we only allow text only content, that is a text file)
+    # content can be a HYPERLINK/hyperlink to another gdrive file (for now we allow pdf and images, but not any kind of text)
     m = re.match(r'=HYPERLINK\("(?P<link_url>.+)",\s*"(?P<link_title>.+)"\)', formula_value, re.IGNORECASE)
     if m and m.group('link_url') is not None and m.group('link_title') is not None:
         url = m.group('link_url')
+        title = m.group('link_title')
 
         # this may be a drive file
-        if url.startswith('https://drive.google.com/file/d/'):
-            text = read_drive_file(url, context, nesting_level=nesting_level+1)
-            if text is not None: cell_data['formattedValue'] = text
+        if url.startswith('https://drive.google.com/'):
+            info(f"processing drive file ... [{title}] : [{url}]", nesting_level=nesting_level)
+            data = download_file_from_drive(url, context['tmp-dir'], context['drive'], nesting_level=nesting_level+1)
+            # if it is an image
+            if data['file-type'].startswith('image/'):
+                # TODO: we are hardcoding shape, dpi and other parameters for images
+                image_params = image_params_from_image(local_path=data['file-path'], row_height=row_height, mode=1, formula=formula_value, formula_parts=[], nesting_level=nesting_level+1)
+                if image_params:
+                    result =  {**{'url': url, 'path': data['file-path'], 'mode': 1}, **image_params}
+                    worksheet_data['data'][0]['rowData'][row]['values'][val]['userEnteredValue']['image'] = result
+                    cell_data['image'] = result
+
+
 
         # or it may be a web url
         elif url.startswith('http'):
