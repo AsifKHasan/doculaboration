@@ -60,12 +60,12 @@ def section_list_to_doc(section_list, config):
 
 ''' insert image into a container
 '''
-def insert_image(container, picture_path, width, height, bookmark=None):
+def insert_image(container, picture_path, width, height, bookmark={}):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 
-		# bookmark
-		if bookmark and bookmark != '':
+		# bookmark TODO
+		if bookmark:
 			add_bookmark(paragraph=container.paragraphs[0], bookmark_name=bookmark, bookmark_text='')
 
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
@@ -73,8 +73,8 @@ def insert_image(container, picture_path, width, height, bookmark=None):
 	else:
 		paragraph = container.add_paragraph()
 
-		# bookmark
-		if bookmark and bookmark != '':
+		# bookmark TODO
+		if bookmark:
 			add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
 
 		run = paragraph.add_run()
@@ -320,7 +320,7 @@ def create_page_number(container, text_attributes=None, page_numbering='long', s
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark=None, directives=True):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -349,8 +349,8 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
 
 
-	# bookmark
-	if bookmark and bookmark != '':
+	# bookmark TODO
+	if bookmark:
 		add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
 
 
@@ -415,9 +415,7 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
     for inline_block in inline_blocks:
         # process only 'text'
         if "text" in inline_block:
-            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(
-                inline_block["text"]
-            )
+            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"])
 
         else:
             new_inline_blocks.append(inline_block)

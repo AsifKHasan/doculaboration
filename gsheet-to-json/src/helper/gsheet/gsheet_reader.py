@@ -257,7 +257,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'page-spec'             : toc[page_spec_column],
             'margin-spec'           : toc[margin_spec_column],
 
-			'bookmark'           	: toc[bookmark_column].strip() if bookmark_column is not None else '',
+			'bookmark'           	: {toc[bookmark_column].strip(): f"{str(toc[section_column])} {toc[heading_column]}".strip()} if bookmark_column is not None else None,
             'hide-pageno'           : True if hide_pageno_column is not None and toc[hide_pageno_column] == "Yes" else False,
             'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
             'different-firstpage'   : True if different_firstpage_column is not None and toc[different_firstpage_column] == "Yes" else False,

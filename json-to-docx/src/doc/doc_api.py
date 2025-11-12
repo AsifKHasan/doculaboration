@@ -1021,7 +1021,7 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
         return paragraph
 
@@ -1052,7 +1052,7 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, bookmark=bookmark)
         create_latex(container=paragraph, latex_content=self.value)
 
@@ -1080,7 +1080,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1112,7 +1112,7 @@ class PageNumberValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
 
@@ -1137,7 +1137,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1188,7 +1188,7 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark=None):
+    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
         return None
@@ -1566,7 +1566,7 @@ class CellNote(object):
 
         self.script = None
         self.footnotes = {}
-        self.bookmark = None
+        self.bookmark = {}
         
         self.angle = None
 
@@ -1586,7 +1586,7 @@ class CellNote(object):
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.directives = note_dict.get('directives') is not None
             self.footnotes = note_dict.get('footnote')
-            self.bookmark = note_dict.get('bookmark', None)
+            self.bookmark = note_dict.get('bookmark')
             self.angle = int(note_dict.get('angle', 0))
 
             # content
@@ -1629,7 +1629,9 @@ class CellNote(object):
 
             # bookmark
             if self.bookmark:
-                trace(f"bookmark [{self.bookmark}] found")
+                if not isinstance(self.bookmark, dict):
+                    self.bookmark = {}
+                    warn(f".... found bookmark, but it is not a valid dictionary")
 
         else:
             # even if there is no note explicitly specified, we assume that style=Normal is specified

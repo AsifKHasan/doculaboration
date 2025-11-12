@@ -307,7 +307,7 @@ def create_page_number(style_name, page_numbering='long'):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False, directives=True):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, directives=True):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -366,7 +366,7 @@ def add_text_to_paragraph(paragraph, text_string):
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark=None, keep_line_breaks=False):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False):
     paragraph = None
 
     # process FN{...} first, we get a list of block dicts
@@ -406,8 +406,8 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     elif text_type == 'span':
         paragraph = text.Span(stylename=style_name)
 
-    # bookmark
-    if bookmark and bookmark != '':
+    # bookmark TODO
+    if bookmark:
         paragraph.addElement(text.Bookmark(name=bookmark))
 
     # now fill the paragraph with texts and footnotes

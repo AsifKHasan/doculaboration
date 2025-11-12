@@ -1054,7 +1054,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark=None, keep_line_breaks=False, directives=True):
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True):
         super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1726,7 +1726,7 @@ class CellNote(object):
 
         self.outline_level = 0
         self.footnotes = {}
-        self.bookmark = None
+        self.bookmark = {}
 
         self.angle = 0
 
@@ -1746,7 +1746,7 @@ class CellNote(object):
             self.directives = note_dict.get('directives') is not None
             self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
-            self.bookmark = note_dict.get('bookmark', None)
+            self.bookmark = note_dict.get('bookmark')
             self.angle = int(note_dict.get("angle", 0))
 
             # content
@@ -1789,7 +1789,10 @@ class CellNote(object):
 
             # bookmark
             if self.bookmark:
-                trace(f"bookmark [{self.bookmark}] found")
+                if not isinstance(self.bookmark, dict):
+                    self.bookmark = {}
+                    warn(f".... found bookmark, but it is not a valid dictionary")
+
 
     ''' style attributes dict to create Style
     '''
