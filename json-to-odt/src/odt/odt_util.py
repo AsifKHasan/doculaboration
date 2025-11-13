@@ -137,6 +137,30 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
     return draw_frame
 
 
+''' create a text_a
+'''
+def create_text_a(anchor, target):
+    
+    # if the anchor is not an url, it is a bookmark
+    if not target.startswith('http'):
+        target_text = f"#{target.strip()}"
+        if anchor:
+            anchor_text = anchor
+        else:
+            # TODO: it should actually be the text associated with the target bookmark
+            anchor_text = target_text
+    else:
+        target_text = target.strip()
+        if anchor:
+            anchor_text = anchor
+        else:
+            anchor_text = target_text
+
+    link = text.A(text=anchor_text, type="simple", href=target_text)
+
+    return link
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # table, table-row, table-column, table-cell
 
@@ -337,7 +361,6 @@ def add_text_to_paragraph(paragraph, text_string):
             paragraph.addText(text=text_string[start:end])
 
 
-
 ''' create a P or H or span
 '''
 def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False):
@@ -438,9 +461,11 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
                 paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
 
         elif 'link' in inline_block:
-            # TODO
             target, anchor = inline_block['link'][0], inline_block['link'][1]
-            print(f"link found with target {target} and anchor {anchor}")
+            # print(f"link found with target {target} and anchor {anchor}")
+            # target is an xlink
+            text_a = create_text_a(anchor=anchor, target=target)
+            paragraph.addElement(text_a)
 
     return paragraph
 
@@ -558,6 +583,7 @@ def process_links(text_content):
     pattern = r'LINK({[^}]*}){1,2}'
     current_index = 0
     for match in re.finditer(pattern, text_content):
+        # print(text_content)
         # print(match.group())
 
         link_content_pattern = r'([^{}]+)'
@@ -566,7 +592,8 @@ def process_links(text_content):
         for content_match in re.finditer(link_content_pattern, match.group()):
             if i == 1:
                 target = content_match.group()
-            elif i == 2:
+            
+            if i == 2:
                 anchor = content_match.group()
 
             i = i + 1

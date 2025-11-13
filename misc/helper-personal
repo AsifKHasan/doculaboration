@@ -2,9 +2,9 @@ git add -A ; git commit -m "updated" ; git push
 
 cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 
-ODT=doculaboration__examples
+ODT=abcd
 unzip ${ODT}.odt -d test-odt
-pushd test-odt ; zip -r ..\${ODT}.odt . ; popd
+pushd test-odt ; zip -r ../${ODT}.odt . ; popd
 
 unzip XYZ.docx -d test-docx
 pushd test-docx && zip -r ..\XYZ.docx . && popd

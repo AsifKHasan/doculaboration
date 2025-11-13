@@ -27,7 +27,10 @@ from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
+from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
+
+from docx.opc.constants import RELATIONSHIP_TYPE
 
 import latex2mathml.converter
 
@@ -64,18 +67,20 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 
-		# bookmark TODO
+		# bookmark
 		if bookmark:
-			add_bookmark(paragraph=container.paragraphs[0], bookmark_name=bookmark, bookmark_text='')
+			for k, v in bookmark.items():
+				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
 
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return container
 	else:
 		paragraph = container.add_paragraph()
 
-		# bookmark TODO
+		# bookmark
 		if bookmark:
-			add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
+			for k, v in bookmark.items():
+				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
 		run = paragraph.add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
@@ -250,6 +255,116 @@ def set_cell_padding(cell: table._Cell, padding):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
+''' This is needed if we are using the builtin style
+'''
+def get_or_create_hyperlink_style(d):
+    """If this document had no hyperlinks so far, the builtin
+       Hyperlink style will likely be missing and we need to add it.
+       There's no predefined value, different Word versions
+       define it differently.
+       This version is how Word 2019 defines it in the
+       default theme, excluding a theme reference.
+    """
+    if "Hyperlink" not in d.styles:
+        if "Default Character Font" not in d.styles:
+            ds = d.styles.add_style("Default Character Font", WD_STYLE_TYPE.CHARACTER, True)
+            ds.element.set(qn('w:default'), "1")
+            ds.priority = 1
+            ds.hidden = True
+            ds.unhide_when_used = True
+            del ds
+        hs = d.styles.add_style("Hyperlink", WD_STYLE_TYPE.CHARACTER, True)
+        hs.base_style = d.styles["Default Character Font"]
+        hs.unhide_when_used = True
+        hs.font.color.rgb = RGBColor(0x05, 0x63, 0xC1)
+        hs.font.underline = True
+        del hs
+
+    return "Hyperlink"
+
+
+''' add the hyperlink to a run
+'''
+def add_hyperlink(paragraph, text, url):
+    # This gets access to the document.xml.rels file and gets a new relation id value
+    part = paragraph.part
+    r_id = part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+
+    # Create the w:hyperlink tag and add needed values
+    hyperlink = OxmlElement('w:hyperlink')
+    hyperlink.set(qn('r:id'), r_id, )
+
+    # Create a new run object (a wrapper over a 'w:r' element)
+    new_run = paragraph.add_run(OxmlElement('w:r'))
+    new_run.text = text
+
+    # Set the run's style to the builtin hyperlink style, defining it if necessary
+    new_run.style = get_or_create_hyperlink_style(part.document)
+    # Alternatively, set the run's formatting explicitly
+    # new_run.font.color.rgb = docx.shared.RGBColor(0, 0, 255)
+    # new_run.font.underline = True
+
+    # Join all the xml elements together
+    hyperlink.append(new_run._element)
+    paragraph._p.append(hyperlink)
+
+    return hyperlink
+
+
+''' create a hyperlink
+'''
+def create_hyperlink(attach_to, anchor, target):
+	# if the anchor is not an url, it is a bookmark
+	if not target.startswith('http'):
+		target_text = target.strip()
+		if anchor:
+			anchor_text = anchor
+		else:
+			# TODO: it should actually be the text associated with the target bookmark
+			anchor_text = target_text
+	else:
+		target_text = target.strip()
+		if anchor:
+			anchor_text = anchor
+		else:
+			anchor_text = target_text
+
+	if not target.startswith('http'):
+		# create hyperlink node
+		hyperlink = OxmlElement('w:hyperlink')
+
+		# set attribute for link to bookmark
+		hyperlink.set(qn('w:anchor'), target_text,)
+		hyperlink.set(qn('w:tooltip'), target_text,)
+
+		new_run = OxmlElement('w:r')
+
+		# change the font color, and add underline
+		rPr = OxmlElement('w:rPr')
+		c = OxmlElement('w:color')
+		c.set(qn('w:val'), '2A6099')
+		rPr.append(c)
+		u = OxmlElement('w:u')
+		u.set(qn('w:val'), 'single')
+		rPr.append(u)
+
+		rPr = OxmlElement('w:rPr')
+		new_run.append(rPr)
+		new_run.text = anchor_text
+		new_run.italic = True
+		hyperlink.append(new_run)
+		attach_to._p.append(hyperlink)
+
+		# r = attach_to.add_run()
+		# r._r.append(hyperlink)
+		# r.font.name = "Calibri"
+		# r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
+		# r.font.underline = True
+
+	else:
+		add_hyperlink(paragraph=attach_to, text=anchor_text, url=target_text)
+
+
 ''' write a paragraph in a given style
 '''
 def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True):
@@ -271,7 +386,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 		paragraph = container.add_paragraph()
 
 
-	# TODO: process inline blocks like footnotes, latex inside the content
+	# process inline blocks like footnotes, latex inside the content
 	if run_list is not None:
 		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
@@ -284,6 +399,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	# bookmark
 	if bookmark:
 		for k, v in bookmark.items():
+			debug(f"creating bookmark {k} : {v}")
 			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
 
@@ -334,9 +450,7 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
     for inline_block in inline_blocks:
         # process only 'text'
         if "text" in inline_block:
-            new_inline_blocks = new_inline_blocks + process_latex_blocks(
-                inline_block["text"]
-            )
+            new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"])
 
         else:
             new_inline_blocks.append(inline_block)
@@ -386,9 +500,7 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
             set_text_style(run=run, text_attributes=text_attributes)
 
         elif "page-count" in inline_block:
-            run = add_page_reference(
-                paragraph=paragraph, bookmark_name='*'
-            )
+            run = add_page_reference(paragraph=paragraph, bookmark_name='*')
             set_text_style(run=run, text_attributes=text_attributes)
 
         elif "bookmark-page" in inline_block:
@@ -397,9 +509,9 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
             set_text_style(run=run, text_attributes=text_attributes)
 
         elif 'link' in inline_block:
-            # TODO
             target, anchor = inline_block['link'][0], inline_block['link'][1]
-            print(f"link found with target {target} and anchor {anchor}")
+            # print(f"link found with target {target} and anchor {anchor}")
+            create_hyperlink(attach_to=paragraph, anchor=anchor, target=target)
 
 
 ''' process footnotes inside text
@@ -607,21 +719,27 @@ def set_text_style(run, text_attributes):
 ''' create a bookmark
 '''
 def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
-    run = paragraph.add_run()
-    tag = run._r
-    start = OxmlElement('w:bookmarkStart')
-    start.set(qn('w:id'), '0')
-    start.set(qn('w:name'), bookmark_name)
-    tag.append(start)
+	# debug(f"creating bookmark {bookmark_name} : {bookmark_text}")
+	start = OxmlElement('w:bookmarkStart')
+	start.set(qn('w:id'), '0')
+	start.set(qn('w:name'), bookmark_name)
 
-    text = OxmlElement('w:r')
-    text.text = bookmark_text
-    tag.append(text)
+	# text = OxmlElement('w:r')
+	# text.text = bookmark_text
 
-    end = OxmlElement('w:bookmarkEnd')
-    end.set(qn('w:id'), '0')
-    end.set(qn('w:name'), bookmark_name)
-    tag.append(end)
+	end = OxmlElement('w:bookmarkEnd')
+	end.set(qn('w:id'), '0')
+	end.set(qn('w:name'), bookmark_name)
+
+	paragraph._p.insert(0, start)
+	# paragraph._p.append(text)
+	paragraph._p.append(end)
+
+	# run = paragraph.add_run()
+	# tag = run._r
+	# tag.append(start)
+	# tag.append(text)
+	# tag.append(end)
 
 
 ''' add a PAGE refernce 
@@ -638,10 +756,10 @@ def add_page_reference(paragraph, bookmark_name):
     instrText.set(qn("xml:space"), "preserve")
 
     if bookmark_name == '':
-        instrText.text = 'PAGE \* MERGEFORMAT'
+        instrText.text = 'PAGE \\* MERGEFORMAT'
 
     elif bookmark_name == '*':
-        instrText.text = 'NUMPAGES \* MERGEFORMAT'
+        instrText.text = 'NUMPAGES \\* MERGEFORMAT'
 
     else:
         instrText.text = f"PAGEREF {bookmark_name} \\h"
@@ -1142,6 +1260,8 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
+''' rotate text
+'''
 def rotate_text(cell: table._Cell, direction: str):
 	# direction: tbRl -- top to bottom, btLr -- bottom to top
 	assert direction in ("tbRl", "btLr")
@@ -1152,6 +1272,8 @@ def rotate_text(cell: table._Cell, direction: str):
 	tcPr.append(textDirection)
 
 
+''' copy cell border from one cell to another
+'''
 def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
 	from_tc = from_cell._tc
 	from_tcPr = from_tc.get_or_add_tcPr()
@@ -1167,6 +1289,8 @@ def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
 			to_tc.get_or_add_tcPr().append(to_tcBorders)
 
 
+''' merge another docx into this document
+'''
 def merge_document(placeholder, docx_path):
 	# the document is in the same folder as the template, get the path
 	# docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
@@ -1180,6 +1304,8 @@ def merge_document(placeholder, docx_path):
 		index = index + 1
 
 
+''' polish a table
+'''
 def polish_table(table):
 	for r in table.rows:
 		# no preferred width for the last column
