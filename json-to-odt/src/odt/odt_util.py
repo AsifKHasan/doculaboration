@@ -145,7 +145,7 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
 def create_table(odt, table_name, table_style_attributes, table_properties_attributes):
     if 'family' not in table_style_attributes:
         table_style_attributes['family'] = 'table'
-        
+
     # table_style['border-model'] = 'collapsing'
 
     # create the style
@@ -279,32 +279,6 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
     return style_attributes['name']
 
 
-''' page number
-    <text:p text:style-name="MP1">Page <text:page-number text:select-page="current">1</text:page-number>
-        <text:s/>of <text:page-count>1</text:page-count>
-    </text:p>
-'''
-def create_page_number(style_name, page_numbering='long'):
-    paragraph = text.P(stylename=style_name)
-    page_num = text.PageNumber(selectpage='current')
-
-    if page_numbering == 'short':
-        paragraph.addText("Page ")
-        paragraph.addElement(page_num)
-
-    else:
-        s = text.S()
-        page_count = text.PageCount()
-
-        paragraph.addText("Page ")
-        paragraph.addElement(page_num)
-        paragraph.addElement(s)
-        paragraph.addText("of ")
-        paragraph.addElement(page_count)
-
-    return paragraph
-
-
 ''' write a paragraph in a given style
 '''
 def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, directives=True):
@@ -354,11 +328,11 @@ def add_text_to_paragraph(paragraph, text_string):
     non_matches = non_matches + [(match.start(), match.end(), 'text') for match in re.finditer(r'[^ ]+(?: [^ ]+)*', text_string)]
     all = matches + non_matches
     all.sort()
-    
+
     for start, end, what in all:
         if what == 'space':
             paragraph.addElement(text.S(c=end-start))
-            
+
         elif what == 'text':
             paragraph.addText(text=text_string[start:end])
 
@@ -396,6 +370,18 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
     inline_blocks = new_inline_blocks
 
+    # process LINK{..} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            new_inline_blocks = new_inline_blocks + process_links(inline_block['text'])
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
+
     # create the P or H or span
     if text_type == 'P':
         paragraph = text.P(stylename=style_name)
@@ -406,9 +392,11 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     elif text_type == 'span':
         paragraph = text.Span(stylename=style_name)
 
-    # bookmark TODO
+    # bookmark
     if bookmark:
-        paragraph.addElement(text.Bookmark(name=bookmark))
+        for k, v in bookmark.items():
+            # in odt bookmarks only has name, no text
+            paragraph.addElement(text.Bookmark(name=k))
 
     # now fill the paragraph with texts and footnotes
     for inline_block in inline_blocks:
@@ -448,6 +436,11 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             bookmark_ref = inline_block['bookmark-page'].strip()
             if bookmark_ref != '':
                 paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
+
+        elif 'link' in inline_block:
+            # TODO
+            target, anchor = inline_block['link'][0], inline_block['link'][1]
+            print(f"link found with target {target} and anchor {anchor}")
 
     return paragraph
 
@@ -553,6 +546,51 @@ def process_bookmark_page_blocks(text_content):
     texts_and_bookmarks.append({'text': text})
 
     return texts_and_bookmarks
+
+
+''' process external url or bookmark links
+'''
+def process_links(text_content):
+    # find out if there is any match with LINK{...}{} inside the text_content
+    links = []
+
+    # LINK patterns are like LINK{target}{text} or LINK{target}
+    pattern = r'LINK({[^}]*}){1,2}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        # print(match.group())
+
+        link_content_pattern = r'([^{}]+)'
+        i = 0
+        target, anchor = None, None
+        for content_match in re.finditer(link_content_pattern, match.group()):
+            if i == 1:
+                target = content_match.group()
+            elif i == 2:
+                anchor = content_match.group()
+
+            i = i + 1
+
+        # we have found a LINK block, we add the preceding text and the LINK block into the list
+        link_start_index, link_end_index = match.span()[0], match.span()[1]
+        if link_start_index >= current_index:
+            # there are preceding text before the link
+            text = text_content[current_index:link_start_index]
+            links.append({'text': text})
+
+            # LINK patterns are like LINK{target}{text} or LINK{target}
+            if target:
+                links.append({"link": [target, anchor]})
+                # print(f"link found with target {target} and anchor {anchor}")
+
+            current_index = link_end_index
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    links.append({'text': text})
+
+    return links
 
 
 ''' create a footnote

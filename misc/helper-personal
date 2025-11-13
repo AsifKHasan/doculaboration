@@ -1,12 +1,10 @@
-git add -A & git commit -m "updated" & git push
 git add -A ; git commit -m "updated" ; git push
 
-cd D:\projects\asif@github\doculaboration
-cd /home/asif/projects/asif@github/doculaboration
+cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 
-set ODT=doculaboration__examples
-unzip %ODT%.odt -d test-odt
-pushd test-odt && zip -r ..\%ODT%.odt . && popd
+ODT=doculaboration__examples
+unzip ${ODT}.odt -d test-odt
+pushd test-odt ; zip -r ..\${ODT}.odt . ; popd
 
 unzip XYZ.docx -d test-docx
 pushd test-docx && zip -r ..\XYZ.docx . && popd

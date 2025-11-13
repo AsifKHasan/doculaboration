@@ -250,74 +250,6 @@ def set_cell_padding(cell: table._Cell, padding):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
-''' page number with/without page count
-'''
-def create_page_number(container, text_attributes=None, page_numbering='long', separator=' of '):
-	paragraph = create_paragraph(container=container)
-	run = paragraph.add_run()
-	set_text_style(run, text_attributes)
-
-	# page
-	fldPage = OxmlElement('w:t')
-	fldPage.set(qn('xml:space'), 'preserve')
-	fldPage.text = 'Page '
-
-	fldCharSeparate0 = OxmlElement('w:fldChar')
-	fldCharSeparate0.set(qn('w:fldCharType'), 'separate')
-
-	# create a new element and set attributes
-	fldCharBegin1 = OxmlElement('w:fldChar')
-	fldCharBegin1.set(qn('w:fldCharType'), 'begin')
-
-	# actual page number
-	instrText1 = OxmlElement('w:instrText')
-	instrText1.set(qn('xml:space'), 'preserve')
-	instrText1.text = 'PAGE \* MERGEFORMAT'
-
-	fldCharSeparate1 = OxmlElement('w:fldChar')
-	fldCharSeparate1.set(qn('w:fldCharType'), 'separate')
-
-	fldCharEnd1 = OxmlElement('w:fldChar')
-	fldCharEnd1.set(qn('w:fldCharType'), 'end')
-
-	r_element = run._r
-	r_element.append(fldPage)
-	r_element.append(fldCharSeparate0)
-	r_element.append(fldCharBegin1)
-	r_element.append(instrText1)
-	r_element.append(fldCharSeparate1)
-	r_element.append(fldCharEnd1)
-
-	if page_numbering == 'long':
-		# number of pages
-		fldCharOf = OxmlElement('w:t')
-		fldCharOf.set(qn('xml:space'), 'preserve')
-		fldCharOf.text = separator
-
-		# create a new element and set attributes
-		fldCharBegin2 = OxmlElement('w:fldChar')
-		fldCharBegin2.set(qn('w:fldCharType'), 'begin')
-
-		# numpages
-		instrText2 = OxmlElement('w:instrText')
-		instrText2.set(qn('xml:space'), 'preserve')
-		instrText2.text = 'NUMPAGES \* MERGEFORMAT'
-
-		fldCharSeparate2 = OxmlElement('w:fldChar')
-		fldCharSeparate2.set(qn('w:fldCharType'), 'separate')
-
-		fldCharEnd2 = OxmlElement('w:fldChar')
-		fldCharEnd2.set(qn('w:fldCharType'), 'end')
-
-		r_element.append(fldCharOf)
-		r_element.append(fldCharBegin2)
-		r_element.append(instrText2)
-		r_element.append(fldCharSeparate2)
-		r_element.append(fldCharEnd2)
-
-	return paragraph
-
-
 ''' write a paragraph in a given style
 '''
 def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True):
@@ -349,9 +281,10 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
 
 
-	# bookmark TODO
+	# bookmark
 	if bookmark:
-		add_bookmark(paragraph=paragraph, bookmark_name=bookmark, bookmark_text='')
+		for k, v in bookmark.items():
+			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
 
 	# apply the style if any
@@ -422,6 +355,18 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
 
     inline_blocks = new_inline_blocks
 
+    # process LINK{..} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if "text" in inline_block:
+            new_inline_blocks = new_inline_blocks + process_links(inline_block["text"])
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
+
     # we are ready to prepare the content
     for inline_block in inline_blocks:
         if "text" in inline_block:
@@ -450,6 +395,11 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
             # add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
             run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip())
             set_text_style(run=run, text_attributes=text_attributes)
+
+        elif 'link' in inline_block:
+            # TODO
+            target, anchor = inline_block['link'][0], inline_block['link'][1]
+            print(f"link found with target {target} and anchor {anchor}")
 
 
 ''' process footnotes inside text
@@ -554,6 +504,51 @@ def process_bookmark_page_blocks(text_content):
 	texts_and_bookmarks.append({'text': text})
 
 	return texts_and_bookmarks
+
+
+''' process external url or bookmark links
+'''
+def process_links(text_content):
+    # find out if there is any match with LINK{...}{} inside the text_content
+    links = []
+
+    # LINK patterns are like LINK{target}{text} or LINK{target}
+    pattern = r'LINK({[^}]*}){1,2}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        # print(match.group())
+
+        link_content_pattern = r'([^{}]+)'
+        i = 0
+        target, anchor = None, None
+        for content_match in re.finditer(link_content_pattern, match.group()):
+            if i == 1:
+                target = content_match.group()
+            elif i == 2:
+                anchor = content_match.group()
+
+            i = i + 1
+
+        # we have found a LINK block, we add the preceding text and the LINK block into the list
+        link_start_index, link_end_index = match.span()[0], match.span()[1]
+        if link_start_index >= current_index:
+            # there are preceding text before the link
+            text = text_content[current_index:link_start_index]
+            links.append({'text': text})
+
+            # LINK patterns are like LINK{target}{text} or LINK{target}
+            if target:
+                links.append({"link": [target, anchor]})
+                # print(f"link found with target {target} and anchor {anchor}")
+
+            current_index = link_end_index
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    links.append({'text': text})
+
+    return links
 
 
 ''' create a footnote

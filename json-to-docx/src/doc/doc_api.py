@@ -737,9 +737,6 @@ class Cell(object):
                     if len(self.text_format_runs):
                         self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
 
-                    elif self.note.page_numbering:
-                        self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
-
                     else:
                         if self.note.script and self.note.script == 'latex':
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
@@ -1089,31 +1086,6 @@ class TextRunValue(CellValue):
             processed_idx = text_format_run.start_index
 
         paragraph = create_paragraph(container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark)
-        return paragraph
-
-
-''' page-number type CellValue
-'''
-class PageNumberValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.page_numbering = page_numbering
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"page-number"
-        return s
-
-
-    ''' generates the docx code
-    '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        paragraph = create_page_number(container=container, text_attributes=text_attributes, page_numbering=self.page_numbering)
         return paragraph
 
 
@@ -1553,7 +1525,6 @@ class CellNote(object):
         self.nesting_level = nesting_level
         self.free_content = False
         self.table_spacing = True
-        self.page_numbering = None
         self.header_rows = 0
 
         self.style = 'Normal'
@@ -1599,11 +1570,6 @@ class CellNote(object):
             if script is not None and script in ['latex']:
                 self.script = script
 
-            # page-number
-            page_numbering = note_dict.get('page-number')
-            if page_numbering is not None and page_numbering in ['long', 'short']:
-                self.page_numbering = page_numbering
-
             # table-spacing
             spacing = note_dict.get('table-spacing')
             if spacing is not None and spacing == 'no-spacing':
@@ -1625,13 +1591,13 @@ class CellNote(object):
             if self.footnotes:
                 if not isinstance(self.footnotes, dict):
                     self.footnotes = {}
-                    warn(f".... found footnotes, but it is not a valid dictionary")
+                    warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
             # bookmark
             if self.bookmark:
                 if not isinstance(self.bookmark, dict):
                     self.bookmark = {}
-                    warn(f".... found bookmark, but it is not a valid dictionary")
+                    warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
         else:
             # even if there is no note explicitly specified, we assume that style=Normal is specified

@@ -167,7 +167,7 @@ class OdtSectionBase(object):
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark) 
+        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
         self._odt.text.addElement(paragraph)
 
 
@@ -738,9 +738,6 @@ class Cell(object):
                     if len(self.text_format_runs):
                         self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
-                    elif self.note.page_numbering:
-                        self.cell_value = PageNumberValue(effective_format=self.effective_format, page_numbering=self.note.page_numbering)
-
                     else:
                         if self.note.script and self.note.script == 'latex':
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
@@ -798,7 +795,7 @@ class Cell(object):
     def cell_to_odt(self, odt, container, is_table_cell=False):
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign)}
         text_attributes = self.effective_format.text_attributes(self.note.angle)
-            
+
         style_attributes = self.note.style_attributes()
         footnote_list = self.note.footnotes
 
@@ -1160,35 +1157,6 @@ class TextRunValue(CellValue):
             text_attributes=text_attributes,
         )
         paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
-        container.addElement(paragraph)
-
-
-''' page-number type CellValue
-'''
-class PageNumberValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, page_numbering='long', nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.page_numbering = page_numbering
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"page-number"
-        return s
-
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        if container is None:
-            container = odt.text
-
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_page_number(style_name=style_name, page_numbering=self.page_numbering)
         container.addElement(paragraph)
 
 
@@ -1711,7 +1679,6 @@ class CellNote(object):
         self.nesting_level = nesting_level
         self.free_content = False
         self.table_spacing = True
-        self.page_numbering = None
         self.header_rows = 0
 
         self.style = None
@@ -1744,7 +1711,6 @@ class CellNote(object):
             self.keep_with_previous = note_dict.get('keep-with-previous') is not None
             self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
             self.directives = note_dict.get('directives') is not None
-            self.page_number = note_dict.get('page-number') is not None
             self.footnotes = note_dict.get('footnote')
             self.bookmark = note_dict.get('bookmark')
             self.angle = int(note_dict.get("angle", 0))
@@ -1753,11 +1719,6 @@ class CellNote(object):
             content = note_dict.get('content')
             if content is not None and content in ['free', 'out-of-cell']:
                 self.free_content = True
-
-            # page-number
-            page_numbering = note_dict.get('page-number')
-            if page_numbering is not None and page_numbering in ['long', 'short']:
-                self.page_numbering = page_numbering
 
             # script
             script = note_dict.get('script')
@@ -1785,13 +1746,13 @@ class CellNote(object):
             if self.footnotes:
                 if not isinstance(self.footnotes, dict):
                     self.footnotes = {}
-                    warn(f".... found footnotes, but it is not a valid dictionary")
+                    warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
             # bookmark
             if self.bookmark:
                 if not isinstance(self.bookmark, dict):
                     self.bookmark = {}
-                    warn(f".... found bookmark, but it is not a valid dictionary")
+                    warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
 
     ''' style attributes dict to create Style
