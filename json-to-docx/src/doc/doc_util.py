@@ -337,8 +337,6 @@ def create_hyperlink(attach_to, anchor, target):
 		hyperlink.set(qn('w:anchor'), target_text,)
 		hyperlink.set(qn('w:tooltip'), target_text,)
 
-		new_run = OxmlElement('w:r')
-
 		# change the font color, and add underline
 		rPr = OxmlElement('w:rPr')
 		c = OxmlElement('w:color')
@@ -348,14 +346,13 @@ def create_hyperlink(attach_to, anchor, target):
 		u.set(qn('w:val'), 'single')
 		rPr.append(u)
 
-		rPr = OxmlElement('w:rPr')
+		new_run = OxmlElement('w:r')
 		new_run.append(rPr)
 		new_run.text = anchor_text
-		new_run.italic = True
 		hyperlink.append(new_run)
 		attach_to._p.append(hyperlink)
 
-		# r = attach_to.add_run()
+		# r = attach_to.add_run(anchor_text)
 		# r._r.append(hyperlink)
 		# r.font.name = "Calibri"
 		# r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
@@ -399,7 +396,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	# bookmark
 	if bookmark:
 		for k, v in bookmark.items():
-			debug(f"creating bookmark {k} : {v}")
+			# debug(f"creating bookmark {k} : {v}")
 			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
 
