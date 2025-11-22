@@ -19,22 +19,3 @@ odt-from-gsheet.bat PPR-2008__2019-01
 
 odt-from-gsheet.bat ayin.kaka__writings
 ./odt-from-gsheet.sh ayin.kaka__writings
-
-
-
-
-=image("https://spectrum-bd.biz/data/personal/asif.hasan/SITA-guideline/SITA__guideline__sectoral-exchange-hub", 1)
-
-SITA__guideline__collection-of-transactional-metadata-at-primary-sources.png
-SITA__guideline__data-service-architecture-ACC.png
-SITA__guideline__digital-public-infrastructure-detailed-service-layer.png
-SITA__guideline__digital-public-infrastructure-high-level-architecture.png
-SITA__guideline__ecosystem-with-BBS.png
-SITA__guideline__local-erp-integration-NBR.png
-SITA__guideline__national-interoperable-connectivity-architecture.png
-SITA__guideline__NDGIA-components.png
-SITA__guideline__sectoral-exchange-hub.png
-SITA__guideline__SITA-architectural-design-constitutional-statutory-bodies.png
-SITA__guideline__SITA-architectural-design-ministry-of-finance.png
-SITA__guideline__SITA-architectural-design-ministry-of-planning.png
-SITA__guideline__SITA-architectural-design-supporting-ministries.png
