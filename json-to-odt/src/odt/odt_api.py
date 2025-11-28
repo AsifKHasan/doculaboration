@@ -65,7 +65,7 @@ class OdtSectionBase(object):
         self.master_page = create_master_page(self._odt, self._config['page-specs'], self.master_page_name, self.page_layout_name, self.page_spec_name, self.margin_spec_name, self.orientation, self.background_image)
         self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
-        # if it is the very first section, change the page-layout of the *Standard* master-page
+        # TODO: if it is the very first section, change the page-layout of the *Standard* master-page
         if self.first_section and self.document_index == 0:
             self.master_page_name = 'Standard'
             update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=self.page_layout_name)
