@@ -862,17 +862,8 @@ def get_page_layout(odt, page_layout_name):
         if page_layout.getAttribute('name') == page_layout_name:
             return page_layout
 
-    warn(f"page-layout {page_layout_name} NOT found")
+    # warn(f"page-layout {page_layout_name} NOT found")
     return None
-
-
-''' update page-layout of Standard master-page with the given page-layout
-'''
-def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
-    master_page = get_master_page(odt, master_page_name)
-
-    if master_page is not None:
-        master_page.attributes[(master_page.qname[0], 'page-layout-name')] = new_page_layout_name
 
 
 ''' create (section-specific) page-layout
@@ -884,9 +875,11 @@ def update_master_page_page_layout(odt, master_page_name, new_page_layout_name):
         tilerepeatoffset = '0% vertical'
 '''
 def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
-    # create one
-    page_layout = style.PageLayout(name=page_layout_name)
-    odt.automaticstyles.addElement(page_layout)
+    # get one, if not found create one
+    page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name)
+    if page_layout is None:
+        page_layout = style.PageLayout(name=page_layout_name)
+        odt.automaticstyles.addElement(page_layout)
 
     if orientation == 'portrait':
         pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
@@ -942,11 +935,17 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
-    # create one, first get/create the page-layout
-    page_layout = create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path)
-    master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
-    odt.masterstyles.addElement(master_page)
+def create_master_page(odt, first_section, document_index, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
+    # TODO: create one, first get/create the page-layout. If first section, update page-layout for *Standarad* master-page
+    if first_section and document_index == 0:
+        master_page = get_master_page(odt=odt, master_page_name='Standard')
+        existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
+        page_layout = create_page_layout(odt=odt, odt_specs=odt_specs, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
+        # existing_page_layout = get_page_layout(odt=odt, page_layout_name=existing_page_layout_name)
+    else:
+        page_layout = create_page_layout(odt=odt, odt_specs=odt_specs, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
+        master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
+        odt.masterstyles.addElement(master_page)
 
     return master_page
 

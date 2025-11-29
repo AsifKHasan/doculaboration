@@ -62,13 +62,13 @@ class OdtSectionBase(object):
         self.master_page_name = f"mp-{self.section_id}"
         self.page_layout_name = f"pl-{self.section_id}"
 
-        self.master_page = create_master_page(self._odt, self._config['page-specs'], self.master_page_name, self.page_layout_name, self.page_spec_name, self.margin_spec_name, self.orientation, self.background_image)
+        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, odt_specs=self._config['page-specs'], master_page_name=self.master_page_name, page_layout_name=self.page_layout_name, page_spec=self.page_spec_name, margin_spec=self.margin_spec_name, orientation=self.orientation, background_image_path=self.background_image)
+        self.master_page_name = self.master_page.getAttribute('name')
+
+        self.page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
         self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
-        # TODO: if it is the very first section, change the page-layout of the *Standard* master-page
-        if self.first_section and self.document_index == 0:
-            self.master_page_name = 'Standard'
-            update_master_page_page_layout(self._odt, master_page_name='Standard', new_page_layout_name=self.page_layout_name)
+        # print(f"master-page: [{self.master_page_name}], page-layout: [{self.page_layout_name}]")
 
         if self.landscape:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
