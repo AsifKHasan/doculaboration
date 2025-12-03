@@ -1026,6 +1026,8 @@ def random_string(length=12):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+    print(f"trying to fit [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
+
     WIDTH_OFFSET = 0.0
     HEIGHT_OFFSET = 0.2
 
@@ -1041,6 +1043,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
             height_to_fit = fit_within_height
             width_to_fit = height_to_fit * aspect_ratio
 
+    print(f"fitted        [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
     return width_to_fit, height_to_fit
 
 
