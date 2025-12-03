@@ -9,14 +9,3 @@ pushd test-odt ; zip -r ../${ODT}.odt . ; popd
 
 unzip XYZ.docx -d test-docx
 pushd test-docx && zip -r ..\XYZ.docx . && popd
-
-
-# personal
-odt-from-gsheet.bat PPA-2006__2019-01
-./odt-from-gsheet.sh PPA-2006__2019-01
-
-odt-from-gsheet.bat PPR-2008__2019-01
-./odt-from-gsheet.sh PPR-2008__2019-01
-
-odt-from-gsheet.bat ayin.kaka__writings
-./odt-from-gsheet.sh ayin.kaka__writings

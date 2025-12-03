@@ -126,7 +126,8 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
         frame_style_name = create_graphic_style(odt, valign, halign)
 
         # finally we need the Draw:Frame object
-        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'paragraph', 'width': f"{width}in", 'height': f"{height}in"}
+        # TODO: anchortype for pdf images to be sorted out
+        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'page', 'width': f"{width}in", 'height': f"{height}in"}
         draw_frame = draw.Frame(attributes=frame_attributes)
 
         draw_frame.addElement(draw_image)
@@ -295,11 +296,9 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
     if text_attributes is not None:
         paragraph_style.addElement(style.TextProperties(attributes=text_attributes))
-        # print(paragraph_style.getAttribute('name'), text_attributes['fontname'])
 
     odt.automaticstyles.addElement(paragraph_style)
 
-    # return paragraph_style.getAttribute('name')
     return style_attributes['name']
 
 
@@ -323,7 +322,6 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
             fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
-            # print(fragment.getAttribute('stylename'), run['text-attributes']['fontname'])
             paragraph.addElement(fragment)
 
     # P or H
@@ -462,7 +460,6 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
         elif 'link' in inline_block:
             target, anchor = inline_block['link'][0], inline_block['link'][1]
-            # print(f"link found with target {target} and anchor {anchor}")
             # target is an xlink
             text_a = create_text_a(anchor=anchor, target=target)
             paragraph.addElement(text_a)
@@ -583,9 +580,6 @@ def process_links(text_content):
     pattern = r'LINK({[^}]*}){1,2}'
     current_index = 0
     for match in re.finditer(pattern, text_content):
-        # print(text_content)
-        # print(match.group())
-
         link_content_pattern = r'([^{}]+)'
         i = 0
         target, anchor = None, None
@@ -608,7 +602,6 @@ def process_links(text_content):
             # LINK patterns are like LINK{target}{text} or LINK{target}
             if target:
                 links.append({"link": [target, anchor]})
-                # print(f"link found with target {target} and anchor {anchor}")
 
             current_index = link_end_index
 
@@ -1000,9 +993,7 @@ def create_header_footer(master_page, page_layout, header_footer, odd_even):
 '''
 def process_line_breaks(text, keep_line_breaks):
     if keep_line_breaks:
-        # print(text)
         new_text = text.replace('\n', '<text:line-break/>')
-        # print(new_text)
         return new_text
 
     else:
@@ -1026,8 +1017,6 @@ def random_string(length=12):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
-    print(f"trying to fit [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
-
     WIDTH_OFFSET = 0.0
     HEIGHT_OFFSET = 0.2
 
@@ -1043,7 +1032,6 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
             height_to_fit = fit_within_height
             width_to_fit = height_to_fit * aspect_ratio
 
-    print(f"fitted        [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
     return width_to_fit, height_to_fit
 
 

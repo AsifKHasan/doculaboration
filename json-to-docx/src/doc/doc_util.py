@@ -507,7 +507,6 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
 
         elif 'link' in inline_block:
             target, anchor = inline_block['link'][0], inline_block['link'][1]
-            # print(f"link found with target {target} and anchor {anchor}")
             create_hyperlink(attach_to=paragraph, anchor=anchor, target=target)
 
 
@@ -625,8 +624,6 @@ def process_links(text_content):
     pattern = r'LINK({[^}]*}){1,2}'
     current_index = 0
     for match in re.finditer(pattern, text_content):
-        # print(match.group())
-
         link_content_pattern = r'([^{}]+)'
         i = 0
         target, anchor = None, None
@@ -648,7 +645,6 @@ def process_links(text_content):
             # LINK patterns are like LINK{target}{text} or LINK{target}
             if target:
                 links.append({"link": [target, anchor]})
-                # print(f"link found with target {target} and anchor {anchor}")
 
             current_index = link_end_index
 
@@ -1153,8 +1149,6 @@ def random_string(length=12):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
-	print(f"trying to fit [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
-
 	WIDTH_OFFSET = 0.0
 	HEIGHT_OFFSET = 0.3
 
@@ -1169,8 +1163,6 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 		if height_to_fit > fit_within_height:
 			height_to_fit = fit_within_height
 			width_to_fit = height_to_fit * aspect_ratio
-
-	print(f"fitted        [{width_to_fit}in x {height_to_fit}in] image inside [{fit_within_width}in x {fit_within_height}in] box")
 
 	return width_to_fit, height_to_fit
 

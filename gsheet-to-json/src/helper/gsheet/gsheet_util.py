@@ -73,6 +73,7 @@ def worksheet_exists(sheet, ws_title, nesting_level=0):
         return False
 
 
+
 def image_params_from_image(local_path, row_height, mode, formula, formula_parts, nesting_level=0):
     try:
         im = Image.open(local_path)
@@ -110,6 +111,7 @@ def image_params_from_image(local_path, row_height, mode, formula, formula_parts
     else:
         warn(f"image link does not specify height and width: [{formula}]", nesting_level=nesting_level)
         return None
+
 
 
 def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_level=0):
@@ -179,6 +181,7 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
         return {**{'url': url, 'path': str(local_path), 'mode': mode}, **image_params}
     else:
         return None
+
 
 
 def download_file_from_web(url, tmp_dir, nesting_level=0):
@@ -270,9 +273,6 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
     if file_type == 'image/webp' and not file_name.endswith('.webp'):
         file_name = file_name + '.webp'
 
-    if file_type == 'image/webp' and not file_name.endswith('.webp'):
-        file_name = file_name + '.webp'
-
     try:
         local_path = f"{tmp_dir}/{file_name}"
         local_path = Path(local_path).resolve()
@@ -306,13 +306,17 @@ def read_web_content(web_url, nesting_level=0):
 
 
 
-def download_image(url, tmp_dir, nesting_level=0):
+def download_image(url, tmp_dir, drive=None, nesting_level=0):
     data = None
-    if url.startswith('http'):
+    if url.startswith('https://drive.google.com/'):
+        data = download_file_from_drive(url=url, tmp_dir=tmp_dir, drive=drive)
+
+    elif url.startswith('http'):
         # the file url is a normal web url
         data = download_file_from_web(url=url, tmp_dir=tmp_dir)
 
+
     else:
-        warn(f"the url [{url}] is not a web url", nesting_level=nesting_level)
+        warn(f"the url [{url}] is not a drive or web url", nesting_level=nesting_level)
 
     return data
