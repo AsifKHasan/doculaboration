@@ -288,7 +288,7 @@ class OdtPdfSection(OdtSectionBase):
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 first_image = True
                 for image in self._section_data['contents']['images']:
-                    paragraph_attributes = {}
+                    paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
                     if not first_image:
                         paragraph_attributes['breakbefore'] = 'page'
 

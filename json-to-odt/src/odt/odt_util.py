@@ -127,7 +127,7 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
 
         # finally we need the Draw:Frame object
         # TODO: anchortype for pdf images to be sorted out
-        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'page', 'width': f"{width}in", 'height': f"{height}in"}
+        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'frame', 'width': f"{width}in", 'height': f"{height}in"}
         draw_frame = draw.Frame(attributes=frame_attributes)
 
         draw_frame.addElement(draw_image)
