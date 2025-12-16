@@ -2,7 +2,7 @@ git add -A ; git commit -m "updated" ; git push
 
 cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 
-ODT=SITA__guidelines
+ODT=test
 unzip ${ODT}.odt -d test-odt
 
 pushd test-odt ; zip -r ../${ODT}.odt . ; popd

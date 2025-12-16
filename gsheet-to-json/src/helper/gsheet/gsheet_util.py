@@ -309,11 +309,11 @@ def read_web_content(web_url, nesting_level=0):
 def download_image(url, tmp_dir, drive=None, nesting_level=0):
     data = None
     if url.startswith('https://drive.google.com/'):
-        data = download_file_from_drive(url=url, tmp_dir=tmp_dir, drive=drive)
+        data = download_file_from_drive(url=url, tmp_dir=tmp_dir, drive=drive, nesting_level=nesting_level)
 
     elif url.startswith('http'):
         # the file url is a normal web url
-        data = download_file_from_web(url=url, tmp_dir=tmp_dir)
+        data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
 
 
     else:

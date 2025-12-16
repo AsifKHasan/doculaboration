@@ -696,7 +696,8 @@ class Cell(object):
         self.cell_height = row_height
 
         self.merge_spec = CellMergeSpec()
-        self.note = CellNote()
+        self.note = None
+        self.background = None
         self.effective_format = CellFormat(format_dict=None)
         self.user_entered_format = CellFormat(format_dict=None)
 
@@ -704,8 +705,15 @@ class Cell(object):
         self.effective_cell_width = self.cell_width
         self.effective_cell_height = self.cell_height
 
+
         if self.value:
-            self.note = CellNote(value.get('note'))
+            bg_dict = self.value.get('background', {})
+            if bg_dict:
+                self.background = CellBackground(bg_dict)
+
+            note_dict = self.value.get('notes', {})
+            self.note = CellNote(note_dict=note_dict)
+
             self.formatted_value = self.value.get('formattedValue', '')
 
             self.effective_format = CellFormat(self.value.get('effectiveFormat'))
@@ -779,7 +787,12 @@ class Cell(object):
         if not self.is_covered():
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes)
+
+            background_image_style = None
+            if self.background:
+                background_image_style = create_background_image_style(odt=odt, picture_path=self.background.file_path)
+
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style)
 
             if table_cell:
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
@@ -1675,84 +1688,62 @@ class CellNote(object):
 
     ''' constructor
     '''
-    def __init__(self, note_json=None, nesting_level=0):
+    def __init__(self, note_dict={}, nesting_level=0):
         self.nesting_level = nesting_level
-        self.free_content = False
-        self.table_spacing = True
-        self.header_rows = 0
-
-        self.style = None
-        self.force_halign = False
-        self.new_page = False
-        self.keep_with_next = False
-        self.keep_with_previous = False
-        self.keep_line_breaks = False
-        self.directives = True
-
-        self.script = None
 
         self.outline_level = 0
-        self.footnotes = {}
-        self.bookmark = {}
+        self.free_content = False
+        self.content = note_dict.get('content', None)
+        self.style = note_dict.get('style', None)
+        self.header_rows = int(note_dict.get('repeat-rows', 0))
+        self.new_page = note_dict.get('new-page', False)
+        self.force_halign = note_dict.get('force-halign', False)
+        self.keep_with_next = note_dict.get('keep-with-next', False)
+        self.keep_with_previous = note_dict.get('keep-with-previous', False)
+        self.keep_line_breaks = note_dict.get('keep-line-breaks', False)
+        self.directives = note_dict.get('directives', True)
+        self.angle = int(note_dict.get("angle", 0))
 
-        self.angle = 0
+        self.footnotes = note_dict.get('footnote', {})
+        self.bookmark = note_dict.get('bookmark', {})
 
-        if note_json:
-            try:
-                note_dict = json.loads(note_json)
-            except json.JSONDecodeError as e:
-                warn(e)
-                note_dict = {}
+        self.table_spacing = note_dict.get('table-spacing', True)
+        self.script = note_dict.get('script')
 
-            self.header_rows = int(note_dict.get('repeat-rows', 0))
-            self.new_page = note_dict.get('new-page') is not None
-            self.force_halign = note_dict.get('force-halign', None)
-            self.keep_with_next = note_dict.get('keep-with-next') is not None
-            self.keep_with_previous = note_dict.get('keep-with-previous') is not None
-            self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
-            self.directives = note_dict.get('directives') is not None
-            self.footnotes = note_dict.get('footnote')
-            self.bookmark = note_dict.get('bookmark')
-            self.angle = int(note_dict.get("angle", 0))
+        # content
+        if self.content is not None and self.content in ['free', 'out-of-cell']:
+            self.free_content = True
 
-            # content
-            content = note_dict.get('content')
-            if content is not None and content in ['free', 'out-of-cell']:
-                self.free_content = True
+        # script
+        if self.script is not None and self.script not in ['latex']:
+            self.script = None
 
-            # script
-            script = note_dict.get('script')
-            if script is not None and script in ['latex']:
-                self.script = script
+        # table-spacing
+        if self.table_spacing is not None and self.table_spacing == 'no-spacing':
+            self.table_spacing = False
 
-            # table-spacing
-            spacing = note_dict.get('table-spacing')
-            if spacing is not None and spacing == 'no-spacing':
-                self.table_spacing = False
+        # style
+        if self.style is not None:
+            outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+            if outline_level_object:
+                self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+                self.style = LEVEL_TO_HEADING[self.outline_level]
 
-            # style
-            self.style = note_dict.get('style')
-            if self.style is not None:
-                outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
-                if outline_level_object:
-                    self.outline_level = outline_level_object['outline-level'] + self.nesting_level
-                    self.style = LEVEL_TO_HEADING[self.outline_level]
+            # if style is any Title/Heading or Table or Figure, apply keep-with-next
+            if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+                self.keep_with_next = True
 
-                # if style is any Title/Heading or Table or Figure, apply keep-with-next
-                if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
-                    self.keep_with_next = True
+        # footnotes
+        if self.footnotes:
+            if not isinstance(self.footnotes, dict):
+                self.footnotes = {}
+                warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
-            # footnotes
-            if self.footnotes:
-                if not isinstance(self.footnotes, dict):
-                    self.footnotes = {}
-                    warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
-
-            # bookmark
-            if self.bookmark:
-                if not isinstance(self.bookmark, dict):
-                    self.bookmark = {}
-                    warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
+        # bookmark
+        if self.bookmark:
+            if not isinstance(self.bookmark, dict):
+                self.bookmark = {}
+                warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
 
     ''' style attributes dict to create Style
@@ -1777,6 +1768,50 @@ class CellNote(object):
             attributes['keepwithnext'] = 'always'
 
         return attributes
+
+
+    ''' style attributes dict to create Style
+    '''
+    def style_attributes(self):
+        attributes = {}
+
+        if self.style is not None:
+            attributes['parentstylename'] = self.style
+
+        return attributes
+
+    ''' paragraph attrubutes dict to craete ParagraphProperties
+    '''
+    def paragraph_attributes(self):
+        attributes = {}
+
+        if self.new_page:
+            attributes['breakbefore'] = 'page'
+
+        if self.keep_with_next:
+            attributes['keepwithnext'] = 'always'
+
+        return attributes
+
+
+''' gsheet cell background wrapper
+    NOTE: for now only image background is supported
+'''
+class CellBackground(object):
+
+    ''' constructor
+    '''
+    def __init__(self, bg_dict={}):
+        self.bg_dict = bg_dict
+
+        self.file_path = bg_dict['file-path']
+
+    
+    ''' attributes dict for TableCellProperties
+    '''
+    def table_cell_properties_attributes(self):
+        attributes = {}
+
 
 
 ''' gsheet vertical alignment object wrapper

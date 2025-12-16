@@ -6,6 +6,7 @@ from collections import defaultdict
 import sys
 import re
 import time
+import json
 import pygsheets
 
 import urllib.request
@@ -43,6 +44,13 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 if 'userEnteredValue' in cell_data:
                     user_entered_value = cell_data['userEnteredValue']
 
+                    # process note
+                    if 'note' in cell_data:
+                        note_json = cell_data['note']
+                        tmp_dir = context['tmp-dir']
+
+                        process_note(note_json=note_json, cell_data=cell_data, row=row, val=val, tmp_dir=tmp_dir, context=context, nesting_level=nesting_level)
+
                     # process where cell contains formulas - image, link to another worksheet, link to another document in gdrive or url
                     if 'formulaValue' in user_entered_value:
                         formula_value = user_entered_value['formulaValue']
@@ -63,6 +71,33 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
     context['worksheet-cache'][gsheet.title][ws_title] = worksheet_data
 
     return worksheet_data
+
+
+''' parse formula
+'''
+def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level=0):
+    try:
+        note_dict = json.loads(note_json)
+
+    except json.JSONDecodeError as e:
+        warn(e)
+        note_dict = {}
+        return
+
+    # include notes into the cell_data for document processing later
+    cell_data['notes'] = note_dict
+
+    # check for *background* note and process
+    if 'background' in note_dict:
+        # NOTE: for now supports image url only
+        if 'url' in note_dict['background']:
+            url = note_dict['background'].get('url')
+            
+            # download image
+            debug(f"downloading bg image {url}", nesting_level=nesting_level)
+            bg_image_dict = download_image(url=url, tmp_dir=tmp_dir, drive=context['drive'], nesting_level=nesting_level+1)
+            cell_data['background'] = bg_image_dict
+            debug(f"downloaded  bg image {url}", nesting_level=nesting_level)
 
 
 ''' parse formula

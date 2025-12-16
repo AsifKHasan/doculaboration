@@ -694,7 +694,7 @@ class Cell(object):
         self.cell_height = row_height
 
         self.merge_spec = CellMergeSpec()
-        self.note = CellNote()
+        self.note = None
         self.effective_format = CellFormat(format_dict=None)
         self.user_entered_format = CellFormat(format_dict=None)
 
@@ -703,7 +703,9 @@ class Cell(object):
         self.effective_cell_height = self.cell_height
 
         if self.value:
-            self.note = CellNote(value.get('note'))
+            note_dict = self.value.get('notes', {})
+            self.note = CellNote(note_dict=note_dict)
+
             self.formatted_value = self.value.get('formattedValue', '')
 
             self.effective_format = CellFormat(self.value.get('effectiveFormat'))
@@ -1521,88 +1523,62 @@ class CellNote(object):
 
     ''' constructor
     '''
-    def __init__(self, note_json=None, nesting_level=0):
+    def __init__(self, note_dict=None, nesting_level=0):
         self.nesting_level = nesting_level
-        self.free_content = False
-        self.table_spacing = True
-        self.header_rows = 0
-
-        self.style = 'Normal'
-        self.force_halign = False
-        self.new_page = False
-        self.keep_with_next = False
-        self.keep_with_previous = False
-        self.keep_line_breaks = False
-        self.directives = True
-
-        self.script = None
-        self.footnotes = {}
-        self.bookmark = {}
-        
-        self.angle = None
 
         self.outline_level = 0
+        self.free_content = False
+        self.content = note_dict.get('content', None)
+        self.style = note_dict.get('style', 'Normal')
+        self.header_rows = int(note_dict.get('repeat-rows', 0))
+        self.new_page = note_dict.get('new-page', False)
+        self.force_halign = note_dict.get('force-halign', False)
+        self.keep_with_next = note_dict.get('keep-with-next', False)
+        self.keep_with_previous = note_dict.get('keep-with-previous', False)
+        self.keep_line_breaks = note_dict.get('keep-line-breaks', False)
+        self.directives = note_dict.get('directives', True)
+        self.angle = int(note_dict.get("angle", 0))
 
-        if note_json:
-            try:
-                note_dict = json.loads(note_json)
-            except json.JSONDecodeError:
-                note_dict = {}
+        self.footnotes = note_dict.get('footnote', {})
+        self.bookmark = note_dict.get('bookmark', {})
 
-            self.header_rows = int(note_dict.get('repeat-rows', 0))
-            self.new_page = note_dict.get('new-page') is not None
-            self.force_halign = note_dict.get('force-halign', None)
-            self.keep_with_next = note_dict.get('keep-with-next') is not None
-            self.keep_with_previous = note_dict.get('keep-with-previous') is not None
-            self.keep_line_breaks = note_dict.get('keep-line-breaks') is not None
-            self.directives = note_dict.get('directives') is not None
-            self.footnotes = note_dict.get('footnote')
-            self.bookmark = note_dict.get('bookmark')
-            self.angle = int(note_dict.get('angle', 0))
+        self.table_spacing = note_dict.get('table-spacing', True)
+        self.script = note_dict.get('script')
 
-            # content
-            content = note_dict.get('content')
-            if content is not None and content in ['free', 'out-of-cell']:
-                self.free_content = True
+        # content
+        if self.content is not None and self.content in ['free', 'out-of-cell']:
+            self.free_content = True
 
-            # script
-            script = note_dict.get('script')
-            if script is not None and script in ['latex']:
-                self.script = script
+        # script
+        if self.script is not None and self.script not in ['latex']:
+            self.script = None
 
-            # table-spacing
-            spacing = note_dict.get('table-spacing')
-            if spacing is not None and spacing == 'no-spacing':
-                self.table_spacing = False
+        # table-spacing
+        if self.table_spacing is not None and self.table_spacing == 'no-spacing':
+            self.table_spacing = False
 
-            # style
-            self.style = note_dict.get('style', 'Normal')
-            if self.style is not None:
-                outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
-                if outline_level_object:
-                    self.outline_level = outline_level_object['outline-level'] + self.nesting_level
-                    self.style = LEVEL_TO_HEADING[self.outline_level]
+        # style
+        if self.style is not None:
+            outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+            if outline_level_object:
+                self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+                self.style = LEVEL_TO_HEADING[self.outline_level]
 
-                # if style is any Title/Heading or Table or Figure, apply keep-with-next
-                if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
-                    self.keep_with_next = True
+            # if style is any Title/Heading or Table or Figure, apply keep-with-next
+            if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+                self.keep_with_next = True
 
-            # footnotes
-            if self.footnotes:
-                if not isinstance(self.footnotes, dict):
-                    self.footnotes = {}
-                    warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
+        # footnotes
+        if self.footnotes:
+            if not isinstance(self.footnotes, dict):
+                self.footnotes = {}
+                warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
-            # bookmark
-            if self.bookmark:
-                if not isinstance(self.bookmark, dict):
-                    self.bookmark = {}
-                    warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
-
-        else:
-            # even if there is no note explicitly specified, we assume that style=Normal is specified
-            self.style = 'Normal'
-
+        # bookmark
+        if self.bookmark:
+            if not isinstance(self.bookmark, dict):
+                self.bookmark = {}
+                warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
 
     ''' paragraph attributes dict
