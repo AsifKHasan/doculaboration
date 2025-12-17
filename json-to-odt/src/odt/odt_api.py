@@ -1803,7 +1803,6 @@ class CellBackground(object):
     '''
     def __init__(self, bg_dict={}):
         self.bg_dict = bg_dict
-
         self.file_path = bg_dict['file-path']
 
     
@@ -1812,6 +1811,7 @@ class CellBackground(object):
     def table_cell_properties_attributes(self):
         attributes = {}
 
+        return attributes
 
 
 ''' gsheet vertical alignment object wrapper

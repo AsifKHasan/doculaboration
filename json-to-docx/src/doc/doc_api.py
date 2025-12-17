@@ -1603,6 +1603,26 @@ class CellNote(object):
         return attributes
 
 
+''' gsheet cell background wrapper
+    NOTE: for now only image background is supported
+'''
+class CellBackground(object):
+
+    ''' constructor
+    '''
+    def __init__(self, bg_dict={}):
+        self.bg_dict = bg_dict
+        self.file_path = bg_dict['file-path']
+
+    
+    ''' attributes dict for TableCellProperties
+    '''
+    def table_cell_properties_attributes(self):
+        attributes = {}
+
+        return attributes
+
+
 ''' gsheet vertical alignment object wrapper
 '''
 class VerticalAlignment(object):
