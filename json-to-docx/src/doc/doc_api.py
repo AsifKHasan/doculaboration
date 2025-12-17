@@ -694,6 +694,7 @@ class Cell(object):
         self.cell_height = row_height
 
         self.merge_spec = CellMergeSpec()
+        self.background = None
         self.note = None
         self.effective_format = CellFormat(format_dict=None)
         self.user_entered_format = CellFormat(format_dict=None)
@@ -703,6 +704,14 @@ class Cell(object):
         self.effective_cell_height = self.cell_height
 
         if self.value:
+            bg_dict = self.value.get('background', {})
+            if bg_dict:
+                bg_dict['image-width'] = None
+                bg_dict['image-height'] = None
+                bg_dict['container-width'] = self.effective_cell_width
+                bg_dict['container-height'] = self.effective_cell_height
+                self.background = CellBackground(bg_dict)
+
             note_dict = self.value.get('notes', {})
             self.note = CellNote(note_dict=note_dict)
 
@@ -733,21 +742,21 @@ class Cell(object):
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], background=self.background)
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, background=self.background)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
@@ -986,8 +995,9 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, background, nesting_level=0, outline_level=0):
         self.effective_format = effective_format
+        self.background = background
         self.nesting_level = nesting_level
         self.outline_level = outline_level
 
@@ -998,8 +1008,9 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, directives=True):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0, directives=True):
+        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1021,7 +1032,7 @@ class StringValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
+        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
         return paragraph
 
 
@@ -1031,8 +1042,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1052,7 +1063,7 @@ class LatexValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, outline_level=self.outline_level, bookmark=bookmark)
+        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, bookmark=bookmark)
         create_latex(container=paragraph, latex_content=self.value)
 
         return paragraph
@@ -1064,8 +1075,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, text_format_runs, formatted_value, background, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1087,7 +1098,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark)
+        paragraph = create_paragraph(container=container, run_list=run_value_list, background=self.background, footnote_list=footnote_list, bookmark=bookmark)
         return paragraph
 
 
@@ -1097,8 +1108,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, image_value, background, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1121,16 +1132,7 @@ class ImageValue(CellValue):
         image_height_in_inches = image_height_in_pixel / dpi_y
 
         if self.value['mode'] in [1, 2, 3, 4]:
-            # image is to be scaled within the cell width and height
-            if image_width_in_inches > container_width:
-                adjust_ratio = (container_width / image_width_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
-
-            if image_height_in_inches > container_height:
-                adjust_ratio = (container_height / image_height_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
+            image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
 
         else:
             pass
@@ -1148,8 +1150,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, content_value, background, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1582,7 +1584,6 @@ class CellNote(object):
 
 
     ''' paragraph attributes dict
-
     '''
     def paragraph_attributes(self):
         attributes = {}
@@ -1613,7 +1614,10 @@ class CellBackground(object):
     def __init__(self, bg_dict={}):
         self.bg_dict = bg_dict
         self.file_path = bg_dict['file-path']
-
+        self.image_width = bg_dict['image-width']
+        self.image_height = bg_dict['image-height']
+        self.container_width = bg_dict['container-width']
+        self.container_height = bg_dict['container-height']
     
     ''' attributes dict for TableCellProperties
     '''

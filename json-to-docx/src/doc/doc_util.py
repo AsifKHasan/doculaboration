@@ -364,7 +364,7 @@ def create_hyperlink(attach_to, anchor, target):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True):
+def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -373,6 +373,11 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	elif type(container) is table._Cell:
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
+
+		# TODO: handle background
+		if background:
+			insert_image(container=container, picture_path=background.file_path, width=background.container_width, height=background.container_height)
+
 
 	elif type(container) is document.Document:
 		# if the conrainer is a Document
@@ -1150,7 +1155,7 @@ def random_string(length=12):
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
 	WIDTH_OFFSET = 0.0
-	HEIGHT_OFFSET = 0.3
+	HEIGHT_OFFSET = 0.0
 
 	fit_within_width = fit_within_width - WIDTH_OFFSET
 	fit_within_height = fit_within_height - HEIGHT_OFFSET

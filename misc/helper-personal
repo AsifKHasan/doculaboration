@@ -5,7 +5,9 @@ cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 ODT=test
 unzip ${ODT}.odt -d test-odt
 
+DOCX=test
+unzip ${DOCX}.docx -d test-docx
+
 pushd test-odt ; zip -r ../${ODT}.odt . ; popd
 
-unzip XYZ.docx -d test-docx
 pushd test-docx && zip -r ..\XYZ.docx . && popd
