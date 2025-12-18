@@ -16,12 +16,15 @@ from copy import deepcopy
 
 from lxml import etree
 
-from docx import Document
-from docx import section, document, table
+from docx import Document, section, document, table
 from docx.text.paragraph import Paragraph
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
+
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
@@ -30,7 +33,6 @@ from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
 
-from docx.opc.constants import RELATIONSHIP_TYPE
 
 import latex2mathml.converter
 
@@ -85,6 +87,40 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 		run = paragraph.add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return paragraph
+
+
+''' insert an image as background
+'''
+def insert_background_image(container, paragraph, image_path):
+
+	# --- Embed image properly ---
+	doc_part = paragraph.part
+	image_part = doc_part._package.image_parts.get_or_add_image_part(image_path)
+	rId = doc_part.relate_to(image_part, RT.IMAGE)
+
+	# --- Inject VML background into cell ---
+	bg_image_xml = """
+	<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+		 xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+		<w:r>
+			<w:pict>
+			<v:rect xmlns:v="urn:schemas-microsoft-com:vml"
+					fill="true"
+					stroke="false"
+					style="position:absolute;width:100%;height:100%;">
+				<v:fill type="frame" r:id="{rId}"/>
+			</v:rect>
+			</w:pict>
+		</w:r>
+	</w:p>
+	"""
+
+	# bg_image_xml_filled = bg_image_xml.format_map({"rId": rId})
+	# container._tc.append(parse_xml(bg_image_xml_filled))
+
+	parser = etree.XMLParser(recover=False)
+	bg_image_xml_filled = etree.XML(bg_image_xml.format(rId=rId), parser)
+	container._tc.append(bg_image_xml_filled)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,7 +324,7 @@ def get_or_create_hyperlink_style(d):
 def add_hyperlink(paragraph, text, url):
     # This gets access to the document.xml.rels file and gets a new relation id value
     part = paragraph.part
-    r_id = part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+    r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
 
     # Create the w:hyperlink tag and add needed values
     hyperlink = OxmlElement('w:hyperlink')
@@ -376,7 +412,7 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 
 		# TODO: handle background
 		if background:
-			insert_image(container=container, picture_path=background.file_path, width=background.container_width, height=background.container_height)
+			insert_background_image(container=container, paragraph=paragraph, image_path=background.file_path)
 
 
 	elif type(container) is document.Document:
@@ -1154,12 +1190,6 @@ def random_string(length=12):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
-	WIDTH_OFFSET = 0.0
-	HEIGHT_OFFSET = 0.0
-
-	fit_within_width = fit_within_width - WIDTH_OFFSET
-	fit_within_height = fit_within_height - HEIGHT_OFFSET
-
 	aspect_ratio = width_to_fit / height_to_fit
 
 	if width_to_fit > fit_within_width:
@@ -1184,78 +1214,6 @@ def strip_math_mode_delimeters(latex_content):
 	# TODO: strip \( and \)
 
 	return stripped
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# various utility data
-
-EMU_PER_INCH = 914500
-
-mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
-# mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
-
-
-HEADING_TO_LEVEL = {
-	'Heading 1': {'outline-level': 1},
-	'Heading 2': {'outline-level': 2},
-	'Heading 3': {'outline-level': 3},
-	'Heading 4': {'outline-level': 4},
-	'Heading 5': {'outline-level': 5},
-	'Heading 6': {'outline-level': 6},
-	'Heading 7': {'outline-level': 7},
-	'Heading 8': {'outline-level': 8},
-	'Heading 9': {'outline-level': 9},
-	'Heading 10': {'outline-level': 10},
-}
-
-
-LEVEL_TO_HEADING = [
-	'Title',
-	'Heading 1',
-	'Heading 2',
-	'Heading 3',
-	'Heading 4',
-	'Heading 5',
-	'Heading 6',
-	'Heading 7',
-	'Heading 8',
-	'Heading 9',
-	'Heading 10',
-]
-
-
-TEXT_VALIGN_MAP = {
-	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
-	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
-	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
-}
-
-
-TEXT_HALIGN_MAP = {
-	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
-	'CENTER': WD_ALIGN_PARAGRAPH.CENTER,
-	'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT,
-	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
-}
-
-
-WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
-
-
-COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
-			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
-
-
-GSHEET_OXML_BORDER_MAPPING = {
-	'DOTTED': 'dotted',
-	'DASHED': 'dashed',
-	'SOLID': 'single',
-	'SOLID_MEDIUM': 'thick',
-	'SOLID_THICK': 'triple',
-	'DOUBLE': 'double',
-	'NONE': 'none'
-}
 
 
 ''' rotate text
@@ -1312,3 +1270,82 @@ def polish_table(table):
 		tcW = c.tcPr.tcW
 		tcW.type = 'auto'
 		tcW.w = 0
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# various utility data
+
+EMU_PER_INCH = 914500
+
+mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
+# mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
+
+
+HEADING_TO_LEVEL = {
+	'Heading 1': {'outline-level': 1},
+	'Heading 2': {'outline-level': 2},
+	'Heading 3': {'outline-level': 3},
+	'Heading 4': {'outline-level': 4},
+	'Heading 5': {'outline-level': 5},
+	'Heading 6': {'outline-level': 6},
+	'Heading 7': {'outline-level': 7},
+	'Heading 8': {'outline-level': 8},
+	'Heading 9': {'outline-level': 9},
+	'Heading 10': {'outline-level': 10},
+}
+
+
+LEVEL_TO_HEADING = [
+	'Title',
+	'Heading 1',
+	'Heading 2',
+	'Heading 3',
+	'Heading 4',
+	'Heading 5',
+	'Heading 6',
+	'Heading 7',
+	'Heading 8',
+	'Heading 9',
+	'Heading 10',
+]
+
+
+TEXT_VALIGN_MAP = {
+	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
+	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
+	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
+}
+
+
+TEXT_HALIGN_MAP = {
+	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
+	'CENTER': WD_ALIGN_PARAGRAPH.CENTER,
+	'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT,
+	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
+}
+
+
+WRAP_STRATEGY_MAP = {
+	'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'
+}
+
+
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+
+GSHEET_OXML_BORDER_MAPPING = {
+	'DOTTED': 'dotted',
+	'DASHED': 'dashed',
+	'SOLID': 'single',
+	'SOLID_MEDIUM': 'thick',
+	'SOLID_THICK': 'triple',
+	'DOUBLE': 'double',
+	'NONE': 'none'
+}
+
+
+PDF_PAGE_HEIGHT_OFFSET = 0.3
+
+

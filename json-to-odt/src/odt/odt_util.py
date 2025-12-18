@@ -68,7 +68,6 @@ def section_list_to_odt(section_list, config):
         draw:fill-image-ref-point-y="0%"
         draw:fill-image-ref-point="center"
         draw:tile-repeat-offset="0% vertical"
-
 '''
 def create_background_image_style(odt, picture_path):
     background_image_style = None
@@ -1017,12 +1016,6 @@ def random_string(length=12):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
-    WIDTH_OFFSET = 0.0
-    HEIGHT_OFFSET = 0.2
-
-    fit_within_width = fit_within_width - WIDTH_OFFSET
-    fit_within_height = fit_within_height - HEIGHT_OFFSET
-
     aspect_ratio = width_to_fit / height_to_fit
 
     if width_to_fit > fit_within_width:
@@ -1115,3 +1108,5 @@ WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
             'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+PDF_PAGE_HEIGHT_OFFSET = 0.5

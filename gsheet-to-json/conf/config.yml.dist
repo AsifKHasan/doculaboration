@@ -13,9 +13,6 @@ gsheet-read-wait-seconds:   70
 # if gsheet read times out how many times the read should be tried in total
 gsheet-read-try-count:      5
 
-# whether images generated from pdf pages should be cropped automatically or not
-autocrop-pdf-pages:         true
-
 dirs:
   # all outputs and temporary downloads go here
   output-dir:               "../../out"

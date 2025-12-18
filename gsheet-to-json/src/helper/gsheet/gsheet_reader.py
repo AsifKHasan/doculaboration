@@ -27,10 +27,12 @@ TOC_COLUMNS = {
   "content-type" : {"availability": "must"},
   "link" : {"availability": "must"},
   "break" : {"availability": "must"},
-  "landscape" : {"availability": "must"},
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
+  "landscape" : {"availability": "must"},
   "bookmark" : {"availability": "preferred"},
+  "autocrop" : {"availability": "preferred"},
+  "page-bg" : {"availability": "preferred"},
   "hide-pageno" : {"availability": "preferred"},
   "hide-heading" : {"availability": "preferred"},
   "different-firstpage" : {"availability": "preferred"},
@@ -56,10 +58,12 @@ level_column = None
 content_type_column = None
 link_column = None
 break_column = None
-landscape_column = None
 page_spec_column = None
 margin_spec_column = None
+landscape_column = None
 bookmark_column = None
+autocrop_column = None
+page_bg_column = None
 hide_pageno_column = None
 hide_heading_column = None
 different_firstpage_column = None
@@ -155,9 +159,10 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
-    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, landscape_column, page_spec_column, margin_spec_column
-    global bookmark_column, hide_pageno_column, hide_heading_column, different_firstpage_column, override_header_column, override_footer_column, background_image_column
-    global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
+    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, page_spec_column, margin_spec_column
+    global landscape_column, bookmark_column, autocrop_column, page_bg_column, hide_pageno_column, hide_heading_column
+    global different_firstpage_column, header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
+    global override_header_column, override_footer_column, background_image_column
     global responsible_column, reviewer_column,status_column, comment_column
 
     section_column = TOC_COLUMNS['section']['column'] if 'section' in TOC_COLUMNS and 'column' in TOC_COLUMNS['section'] else None
@@ -167,10 +172,12 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     content_type_column = TOC_COLUMNS['content-type']['column'] if 'content-type' in TOC_COLUMNS and 'column' in TOC_COLUMNS['content-type'] else None
     link_column = TOC_COLUMNS['link']['column'] if 'link' in TOC_COLUMNS and 'column' in TOC_COLUMNS['link'] else None
     break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
-    landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
     page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
     margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
+    landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
     bookmark_column = TOC_COLUMNS['bookmark']['column'] if 'bookmark' in TOC_COLUMNS and 'column' in TOC_COLUMNS['bookmark'] else None
+    autocrop_column = TOC_COLUMNS['autocrop']['column'] if 'autocrop' in TOC_COLUMNS and 'column' in TOC_COLUMNS['autocrop'] else None
+    page_bg_column = TOC_COLUMNS['page-bg']['column'] if 'page-bg' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-bg'] else None
     hide_pageno_column = TOC_COLUMNS['hide-pageno']['column'] if 'hide-pageno' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-pageno'] else None
     hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
     different_firstpage_column = TOC_COLUMNS['different-firstpage']['column'] if 'different-firstpage' in TOC_COLUMNS and 'column' in TOC_COLUMNS['different-firstpage'] else None
@@ -253,11 +260,13 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'link-target'           : link_target,
             'page-break'            : True if toc[break_column] == "page" else False,
             'section-break'         : True if toc[break_column] == "section" else False,
-            'landscape'             : True if toc[landscape_column] == "Yes" else False,
             'page-spec'             : toc[page_spec_column],
             'margin-spec'           : toc[margin_spec_column],
 
+            'landscape'             : True if toc[landscape_column] == "Yes" else False,
 			'bookmark'           	: {toc[bookmark_column].strip(): f"{str(toc[section_column])} {toc[heading_column]}".strip()} if bookmark_column is not None else None,
+            'autocrop'              : True if toc[autocrop_column] == "Yes" else False,
+            'page-bg'               : True if toc[page_bg_column] == "Yes" else False,
             'hide-pageno'           : True if hide_pageno_column is not None and toc[hide_pageno_column] == "Yes" else False,
             'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
             'different-firstpage'   : True if different_firstpage_column is not None and toc[different_firstpage_column] == "Yes" else False,

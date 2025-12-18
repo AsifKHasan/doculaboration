@@ -292,7 +292,8 @@ class OdtPdfSection(OdtSectionBase):
                     if not first_image:
                         paragraph_attributes['breakbefore'] = 'page'
 
-                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=self.section_height, width_to_fit=image['width'], height_to_fit=image['height'])
+                    fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
+                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
                     draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches)
 
                     style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
