@@ -89,3 +89,30 @@ margin-spec:
     distance:
       header  : 3.85
       footer  : 0.85
+  narrow-no-header:
+    left  : 0.20
+    right : 0.20
+    top   : 0.00
+    bottom: 0.20
+    gutter: 0
+    distance:
+      header  : 0.00
+      footer  : 0.10
+  narrow-no-footer:
+    left  : 0.20
+    right : 0.20
+    top   : 0.20
+    bottom: 0.00
+    gutter: 0
+    distance:
+      header  : 0.10
+      footer  : 0.00
+  narrow-no-header-footer:
+    left  : 0.20
+    right : 0.20
+    top   : 0.00
+    bottom: 0.00
+    gutter: 0
+    distance:
+      header  : 0.00
+      footer  : 0.00

@@ -36,13 +36,16 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
         if file_name.endswith('pdf'):
             file_name = file_name[:-4]
 
+        file_name = file_name + '__'
         dpi = 72
         size = None
 
         # if it is a pdf
         if file_type == 'application/pdf':
             try:
+                # TODO: image files are too big in size
                 images = pdf2image.convert_from_path(file_path, fmt='png', dpi=dpi, size=size, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
+                
                 # mark images for autocropping
                 images = [{'path': im_path, 'autocrop': context['autocrop-pdf-pages']} for im_path in images]
 
@@ -62,10 +65,10 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 if cropped_im:
                     im = cropped_im
                     im.save(image['path'])
-                    trace(f".... CROPPED image {Path(image['path']).name}", nesting_level=nesting_level)
+                    trace(f"CROPPED image {Path(image['path']).name}", nesting_level=nesting_level)
 
                 else:
-                    trace(f".... image {Path(image['path']).name} not cropped", nesting_level=nesting_level)
+                    trace(f"image {Path(image['path']).name} not cropped", nesting_level=nesting_level)
 
             width, height = im.size
             if 'dpi' in im.info:
@@ -82,10 +85,11 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
 
 
 ''' crop the image automatically
+    TODO: looks like it does not work properly
 '''
 def autocrop_image(im, nesting_level):
     min_width_height = 2
-    trace(f".... original image size {im.size}", nesting_level=nesting_level)
+    trace(f"original image size {im.size}", nesting_level=nesting_level)
     bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
     diff = ImageChops.difference(im, bg)
     diff = ImageChops.add(diff, diff, 2.0, -100)
@@ -93,9 +97,9 @@ def autocrop_image(im, nesting_level):
     bbox = diff.getbbox()
     if bbox:
         new_im = im.crop(bbox)
-        trace(f".... cropped  image size {new_im.size}", nesting_level=nesting_level)
+        trace(f"cropped  image size {new_im.size}", nesting_level=nesting_level)
         if new_im.size[0] < min_width_height or new_im.size[1] < min_width_height:
-            trace(f".... cropped image width/height is less than {(min_width_height)}, will use the original image", nesting_level=nesting_level)
+            trace(f"cropped image width/height is less than {(min_width_height)}, will use the original image", nesting_level=nesting_level)
             return None
         else:
             return new_im
