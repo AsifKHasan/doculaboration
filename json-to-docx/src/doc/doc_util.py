@@ -76,6 +76,7 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
 		return container
+	
 	else:
 		paragraph = container.add_paragraph()
 
@@ -86,6 +87,7 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 
 		run = paragraph.add_run()
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		
 		return paragraph
 
 
@@ -1346,6 +1348,7 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-PDF_PAGE_HEIGHT_OFFSET = 0.3
+PDF_PAGE_HEIGHT_OFFSET = 0.0
 
 
+DPI = 72

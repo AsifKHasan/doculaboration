@@ -1125,21 +1125,21 @@ class ImageValue(CellValue):
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
         # even now the width may exceed actual cell width, we need to adjust for that
-        dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
-        dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
+        dpi_x = DPI if self.value['dpi'][0] == 0 else self.value['dpi'][0]
+        dpi_y = DPI if self.value['dpi'][1] == 0 else self.value['dpi'][1]
         image_width_in_pixel = self.value['size'][0]
         image_height_in_pixel = self.value['size'][1]
         image_width_in_inches =  image_width_in_pixel / dpi_x
         image_height_in_inches = image_height_in_pixel / dpi_y
 
+        text_attributes['fontsize'] = 0
+        picture_path = self.value['path']
+
         if self.value['mode'] in [1, 2, 3, 4]:
             image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
 
         else:
-            pass
-
-        text_attributes['fontsize'] = 0
-        picture_path = self.value['path']
+            warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")
 
         where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches, bookmark=bookmark)
         return where
