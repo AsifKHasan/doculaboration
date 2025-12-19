@@ -273,18 +273,32 @@ class DocxPdfSection(DocxSectionBase):
         # the images go one after another
         text_attributes = {'fontsize': 2}
         style_attributes = {}
+        text_format_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
+        
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
-                first_image = True
-                for image in self._section_data['contents']['images']:
+                for i, image in enumerate(self._section_data['contents']['images']):
                     paragraph_attributes = {}
-                    if not first_image:
+                    if i == 0:
                         paragraph_attributes['breakbefore'] = 'page'
 
-                    fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
-                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    insert_image(container=self._doc, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
-                    first_image = False
+                    paragraph = self._doc.add_paragraph()
+                    apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+                    format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False)
+
+                    image_width_in_inches, image_height_in_inches = image['width'], image['height']
+                    fit_within_width = self.section_width
+                    fit_within_height = self.section_height
+                    fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
+
+                    print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
+                    print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
+                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
+                    print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
+                    print()
+                    
+                    insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
+                    # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
 
 
 ''' Docx section content base object

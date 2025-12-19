@@ -65,7 +65,7 @@ def section_list_to_doc(section_list, config):
 
 ''' insert image into a container
 '''
-def insert_image(container, picture_path, width, height, bookmark={}):
+def insert_image(container, picture_path, width=None, height=None, bookmark={}):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 
@@ -75,10 +75,11 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
 
 		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+
 		return container
 	
 	else:
-		paragraph = container.add_paragraph()
+		paragraph = container
 
 		# bookmark
 		if bookmark:
@@ -86,8 +87,13 @@ def insert_image(container, picture_path, width, height, bookmark={}):
 				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
 		run = paragraph.add_run()
-		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
-		
+		if width and height:
+			run.add_picture(picture_path, height=Inches(height), width=Inches(width))
+		elif width is None:
+			run.add_picture(picture_path, height=Inches(height))
+		elif height is None:
+			run.add_picture(picture_path, width=Inches(width))
+
 		return paragraph
 
 
@@ -442,7 +448,15 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 			# debug(f"creating bookmark {k} : {v}")
 			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
 
+	# apply the style if any
+	apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
 
+	return paragraph
+
+
+''' apply paragraph attributes to a paragraph
+'''
+def	apply_paragraph_attributes(paragraph, paragraph_attributes):
 	# apply the style if any
 	if paragraph_attributes:
 		# apply paragraph attrubutes
@@ -1348,7 +1362,7 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-PDF_PAGE_HEIGHT_OFFSET = 0.0
+PDF_PAGE_HEIGHT_OFFSET = 0.5
 
 
 DPI = 72
