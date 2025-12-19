@@ -99,7 +99,8 @@ def autocrop_image_pillow(im_path, nesting_level):
         else:
             width, height = cropped.size
             trace(f"cropped image: size [{width}x{height}]", nesting_level=nesting_level)
-            cropped.save(im_path)
+            cropped.save(im_path, dpi=(dpi_x, dpi_y))
+            # cropped.save(im_path)
 
     return width, height, dpi_x, dpi_y
 

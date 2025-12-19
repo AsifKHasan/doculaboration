@@ -110,7 +110,7 @@ def create_graphic_style(odt, valign, halign):
       <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
     </draw:frame>
 '''
-def create_image_frame(odt, picture_path, valign, halign, width, height):
+def create_image_frame(odt, picture_path, valign, halign, width, height, preserve=None):
     # THIS IS THE Draw:Frame object to return
     draw_frame = None
 
@@ -126,7 +126,13 @@ def create_image_frame(odt, picture_path, valign, halign, width, height):
 
         # finally we need the Draw:Frame object
         # TODO: anchortype for pdf images to be sorted out
+        # print(f"image {picture_path} size is [{width}x{height}], aspect ratios [{height/width}]")
         frame_attributes = {'stylename': frame_style_name, 'anchortype': 'frame', 'width': f"{width}in", 'height': f"{height}in"}
+        if preserve == 'height':
+            frame_attributes = {**frame_attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
+        elif preserve == 'width':
+            frame_attributes = {**frame_attributes, **{'relheight': 'scale-min', 'relwidth': '100%'}}
+
         draw_frame = draw.Frame(attributes=frame_attributes)
 
         draw_frame.addElement(draw_image)
@@ -1109,4 +1115,4 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
             'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
-PDF_PAGE_HEIGHT_OFFSET = 0.5
+PDF_PAGE_HEIGHT_OFFSET = 0.0
