@@ -281,14 +281,12 @@ class DocxPdfSection(DocxSectionBase):
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 for i, image in enumerate(self._section_data['contents']['images']):
-                    paragraph_attributes = {}
-                    if i == 0:
-                        paragraph_attributes['breakbefore'] = 'page'
+                    paragraph_attributes = {'breakbefore': 'page'}
 
                     if self.page_bg == True:
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_width)
+                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_height)
 
                     else:
                         paragraph = self._doc.add_paragraph()
@@ -730,8 +728,6 @@ class Cell(object):
         if self.value:
             bg_dict = self.value.get('background', {})
             if bg_dict:
-                bg_dict['image-width'] = None
-                bg_dict['image-height'] = None
                 bg_dict['container-width'] = self.effective_cell_width
                 bg_dict['container-height'] = self.effective_cell_height
                 self.background = CellBackground(bg_dict)
@@ -1642,6 +1638,7 @@ class CellBackground(object):
         self.image_height = bg_dict['image-height']
         self.container_width = bg_dict['container-width']
         self.container_height = bg_dict['container-height']
+        self.aspect_ratio = self.image_width/self.image_height
     
     ''' attributes dict for TableCellProperties
     '''

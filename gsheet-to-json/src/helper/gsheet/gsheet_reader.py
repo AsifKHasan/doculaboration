@@ -7,7 +7,6 @@ import re
 import importlib
 
 import pygsheets
-import pprint
 
 import urllib.request
 
@@ -196,7 +195,6 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     comment_column = TOC_COLUMNS['comment']['column'] if 'comment' in TOC_COLUMNS and 'column' in TOC_COLUMNS['comment'] else None
 
     toc_list = [toc for toc in toc_list[1:] if toc[process_column] == 'Yes' and toc[level_column] in [0, 1, 2, 3, 4, 5, 6]]
-    # pprint.pprint(toc_list)
 
     section_index = 0
     for toc in toc_list:
@@ -209,7 +207,6 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
 def process_section(context, gsheet, toc, current_document_index, section_index, parent, nesting_level):
     # TODO: some columns may have formula, parse those
     # link column (F, toc[link_column] may be a formula), parse it
-    # print(section_column, toc)
     if toc[content_type_column] in ['gsheet', 'pdf']:
         link_name, link_target = get_gsheet_link(toc[link_column], nesting_level=nesting_level)
         worksheet_name = link_name

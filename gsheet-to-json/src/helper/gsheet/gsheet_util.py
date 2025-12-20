@@ -145,7 +145,7 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
 
         # localpath is the last term if it ends with png/jpg/gif/webp, if not
         url_splitted = url.split('/')
-        if url_splitted[-1].endswith((tuple(SUPPORTED_IMAGE_FORMATS))):
+        if url_splitted[-1].endswith((tuple(SUPPORTED_FILE_FORMATS))):
             local_path = f"{tmp_dir}/{url_splitted[-1]}"
 
         # if it is owncloud, (https://storage.brilliant.com.bd/s/IPO46mdbcetahMf/download) we use the penaltimate term and append a .png
@@ -205,8 +205,8 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
     if len(file_parts) > 1:
         file_ext = '.' + file_parts[-1]
 
-    if not file_ext in SUPPORTED_IMAGE_FORMATS:
-        error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_IMAGE_FORMATS)}] file", nesting_level=nesting_level)
+    if not file_ext in SUPPORTED_FILE_FORMATS:
+        error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_FILE_FORMATS)}] file", nesting_level=nesting_level)
         return None
 
     file_name = file_url.split('/')[-1].strip()
@@ -245,22 +245,19 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
 
     # see if it has something like 'id=' in it, then it will start after the pattern
     id = re.sub(r".*\?id=", "", id)
-    # print(id)
 
     # see if it has something like '/d/' in it, then it will start after the pattern
     id = re.sub(r".*/d/", "", id)
-    # print(id)
 
     # then it will be till end or till before the first '/'
     id = id.split('/')[0]
-    # print(id)
 
     debug(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
     f = drive.CreateFile({'id': id})
     file_name = f['title']
     file_type = f['mimeType']
     if not file_type in ALLOWED_MIME_TYPES:
-        warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_IMAGE_FORMATS)}], it is [{f['mimeType']}]", nesting_level=nesting_level)
+        warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_FILE_FORMATS)}], it is [{f['mimeType']}]", nesting_level=nesting_level)
         return None
 
     expected_extension = MIME_TYPE_TO_FILE_EXT_MAP.get(file_type, None)
@@ -285,6 +282,29 @@ def download_file_from_drive(url, tmp_dir, drive, nesting_level=0):
 
 
 
+def download_image(url, tmp_dir, drive=None, nesting_level=0):
+    data = None
+    if url.startswith('https://drive.google.com/'):
+        data = download_file_from_drive(url=url, tmp_dir=tmp_dir, drive=drive, nesting_level=nesting_level)
+
+    elif url.startswith('http'):
+        # the file url is a normal web url
+        data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
+
+    else:
+        warn(f"the url [{url}] is not a drive or web url", nesting_level=nesting_level)
+        return None
+
+    # if image, calculate dimensions
+    if data['file-type'] in IMAGE_MIME_TYPES:
+        file_path = data['file-path']
+        width, height, dpi_x, dpi_y = image_meta_pillow(file_path, nesting_level=nesting_level)
+        data['image-width'] = float(width / dpi_x)
+        data['image-height'] = float(height / dpi_y)
+
+    return data
+
+
 def read_web_content(web_url, nesting_level=0):
     url = web_url.strip()
 
@@ -300,22 +320,7 @@ def read_web_content(web_url, nesting_level=0):
 
 
 
-def download_image(url, tmp_dir, drive=None, nesting_level=0):
-    data = None
-    if url.startswith('https://drive.google.com/'):
-        data = download_file_from_drive(url=url, tmp_dir=tmp_dir, drive=drive, nesting_level=nesting_level)
-
-    elif url.startswith('http'):
-        # the file url is a normal web url
-        data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
-
-    else:
-        warn(f"the url [{url}] is not a drive or web url", nesting_level=nesting_level)
-
-    return data
-
-
-SUPPORTED_IMAGE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
+SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
 IMAGE_FORMATS = ['.png', '.jpg', '.gif', '.webp']
 
 ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']

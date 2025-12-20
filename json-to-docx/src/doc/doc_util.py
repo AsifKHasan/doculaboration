@@ -11,17 +11,17 @@ import string
 import importlib
 import traceback
 
-from pprint import pprint
 from pathlib import Path
 from copy import deepcopy
 
 from lxml import etree
+import xml.dom.minidom
+
 
 from docx import Document, section, document, table
 from docx.text.paragraph import Paragraph
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
-
 
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
@@ -98,9 +98,50 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}):
 		return paragraph
 
 
-''' insert an image as background
+''' insert an image as page background
 '''
-def insert_background_image(container, paragraph, image_path):
+def insert_background_image(container, paragraph, image_path, width, height):
+	# 1. Add a run to the paagraph
+    run = paragraph.add_run()
+
+    # 2. Add the picture (initially inline)
+    picture = run.add_picture(image_path)
+
+    # 3. Get the XML element and change it from 'inline' to 'anchor'
+    inline = picture._inline
+
+    cx = int(EMU_PER_INCH * width)
+    cy = int(EMU_PER_INCH * height)
+
+    anchor_xml = f"""
+    <wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
+               relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" 
+               allowOverlap="1" {nsdecls('wp', 'a', 'pic', 'r')}>
+        <wp:simplePos x="0" y="0"/>
+        <wp:positionH relativeFrom="column"><wp:posOffset>0</wp:posOffset></wp:positionH>
+        <wp:positionV relativeFrom="line"><wp:posOffset>0</wp:posOffset></wp:positionV>
+        <wp:extent cx="{cx}" cy="{cy}"/>
+        <wp:effectExtent l="0" t="0" r="0" b="0"/>
+        <wp:wrapNone/>
+        <wp:docPr id="1" name="CellBackground"/>
+        <wp:cNvGraphicFramePr/>
+    </wp:anchor>
+    """
+
+    # parser = etree.XMLParser(recover=False)
+    # anchor = etree.XML(anchor_xml.format(cx=cx, cy=cy), parser)
+    anchor = parse_xml(anchor_xml)
+
+    # 4. Transfer the graphic data from the inline tag to the anchor tag
+    # graphic = inline.xpath('.//a:graphic', namespaces=inline.nsmap)[0]
+    graphic = inline.xpath('.//a:graphic')[0]
+    anchor.append(graphic)
+    
+    # 5. Replace the original inline XML with our new anchor XML
+    inline.getparent().replace(inline, anchor)
+
+
+def insert_background_image_earlier(container, paragraph, image_path):
 
 	# --- Embed image properly ---
 	doc_part = paragraph.part
@@ -419,9 +460,12 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
 
-		# TODO: handle background
+		# TODO: container height must be known
 		if background:
-			insert_background_image(container=container, paragraph=paragraph, image_path=background.file_path)
+			width = background.container_width
+			height = background.container_height
+			# height = width / background.aspect_ratio
+			insert_background_image(container=container, paragraph=paragraph, image_path=background.file_path, width=width, height=height)
 
 
 	elif type(container) is document.Document:
@@ -1080,7 +1124,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 def create_page_background(doc, background_image_path, page_width_inches, page_height_inches):
 	drawing_xml = '''
 	<w:drawing>
-		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
 			<wp:simplePos x="0" y="0" />
 			<wp:positionH relativeFrom="page">
 				<wp:posOffset>0</wp:posOffset>
@@ -1144,29 +1188,51 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 	# create a run
 	new_run = new_para.add_run()
 
-	# image
-	# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
+	# put the image
+	shape = new_run.add_picture(image_path_or_stream=background_image_path, height=Inches(page_height_inches))
+	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
+
 	try:
-		shape = new_run.add_picture(image_path_or_stream=background_image_path)
-		current_drawing_element = new_run._r.xpath('//w:drawing')[0]
-
-
 		# tweak the generated inline image
 		parser = etree.XMLParser(recover=True)
 
 		cx = int(EMU_PER_INCH * page_width_inches)
 		cy = int(EMU_PER_INCH * page_height_inches)
 
-		docPr = new_run._r.xpath('//wp:docPr')[0]
+
+		docPr = new_run._r.xpath('.//wp:docPr')[0]
 		doc_id = docPr.get('id')
 		doc_name = docPr.get('name')
 
-		cNvPr = new_run._r.xpath('//pic:cNvPr')[0]
+		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
 		image_id = cNvPr.get('id')
 		image_name = cNvPr.get('name')
+		trace(f"bg image [{image_name}]")
 
-		blip = new_run._r.xpath('//a:blip')[0]
-		rid = blip.xpath('./@r:embed')[0]
+		blip = new_run._r.xpath('.//a:blip')[0]
+
+		rid = None
+		try:
+			rid = blip.xpath('./@r:embed')[0]
+			# trace(f"rid [{rid}]")
+		except:
+			warn(f"rid not found under blip")
+		
+		if rid is None:
+			try:
+				# Assuming blip_element is your element object
+				# namespaces = {'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
+
+				# Access via the attrib dictionary
+				# Note: You must use the {URI} format as the key
+				# attr_key = f"{{{namespaces['r']}}}embed"
+				attr_key = f"r:embed"
+				rid = blip.attrib.get(attr_key)
+				trace(f"rid [{rid}]")
+
+			except Exception as e:
+				warn(f"r:embed not found under blip")
+				raise e
 
 		new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
 		# put the new drawing into first-run
@@ -1290,6 +1356,13 @@ def polish_table(table):
 		tcW = c.tcPr.tcW
 		tcW.type = 'auto'
 		tcW.w = 0
+
+
+def print_xml(element):
+	# Convert your element to a string first (using ET or lxml)
+	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
+	
+	print(xml_str)
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

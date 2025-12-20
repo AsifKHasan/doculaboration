@@ -6,7 +6,7 @@ ODT=doculaboration__examples
 unzip ${ODT}.odt -d test-odt
 
 DOCX=doculaboration__examples
-unzip ${DOCX}.docx -d test1-docx
+unzip ${DOCX}.docx -d test-docx
 
 pushd test-odt ; zip -r ../${ODT}-changed.odt . ; popd
 

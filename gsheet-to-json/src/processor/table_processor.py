@@ -17,7 +17,6 @@ from helper.gdrive.gdrive_util import *
 
 
 def process(gsheet, section_data, context, current_document_index, nesting_level):
-    # print(section_data)
     ws_title = section_data['section-prop']['link']
 
     # if the worksheet has already been read earlier, use the content from cache
@@ -161,7 +160,6 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
             trace(f"formula [{formula_value}] is a link to range [{ws_name}]![{range}]", nesting_level=nesting_level)
             response = get_gsheet_data(google_service=context['service'], gsheet=gsheet, ranges=[f"'{ws_name}'!{range}"])
             range_formula_value = response['sheets'][0]['data'][0]['rowData'][0]['values'][0]['userEnteredValue']['formulaValue']
-            # print(range_formula_value)
             process_formula(formula_value=range_formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
 
     return
