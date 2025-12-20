@@ -9,6 +9,7 @@ import lxml
 import random
 import string
 import importlib
+import traceback
 
 from pprint import pprint
 from pathlib import Path
@@ -1145,35 +1146,38 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 
 	# image
 	# shape = r.add_picture(image_path_or_stream=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
-	shape = new_run.add_picture(image_path_or_stream=background_image_path)
-	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
+	try:
+		shape = new_run.add_picture(image_path_or_stream=background_image_path)
+		current_drawing_element = new_run._r.xpath('//w:drawing')[0]
 
 
-	# tweak the generated inline image
-	parser = etree.XMLParser(recover=True)
+		# tweak the generated inline image
+		parser = etree.XMLParser(recover=True)
 
-	cx = int(EMU_PER_INCH * (page_width_inches - 0.0))
-	cy = int(EMU_PER_INCH * (page_height_inches - 0.0))
+		cx = int(EMU_PER_INCH * page_width_inches)
+		cy = int(EMU_PER_INCH * page_height_inches)
 
-	docPr = new_run._r.xpath('//wp:docPr')[0]
-	doc_id = docPr.get('id')
-	doc_name = docPr.get('name')
+		docPr = new_run._r.xpath('//wp:docPr')[0]
+		doc_id = docPr.get('id')
+		doc_name = docPr.get('name')
 
-	cNvPr = new_run._r.xpath('//pic:cNvPr')[0]
-	image_id = cNvPr.get('id')
-	image_name = cNvPr.get('name')
+		cNvPr = new_run._r.xpath('//pic:cNvPr')[0]
+		image_id = cNvPr.get('id')
+		image_name = cNvPr.get('name')
 
-	blip = new_run._r.xpath('//a:blip')[0]
-	rid = blip.xpath('./@r:embed')[0]
+		blip = new_run._r.xpath('//a:blip')[0]
+		rid = blip.xpath('./@r:embed')[0]
 
-	new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
+		new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
+		# put the new drawing into first-run
+		first_run._r.append(new_drawing_element)
 
+	except Exception as e:
+		error(traceback.format_exc())
 
 	# remove the new-para
 	delete_paragraph(new_para)
 
-	# put the new drawing into first-run
-	first_run._r.append(new_drawing_element)
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

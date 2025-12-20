@@ -277,6 +277,17 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
+''' create a Paragraph Style that forces a switch to this Master Page
+    This is how we change backgrounds mid-document
+'''
+def create_paragraph_with_masterpage(odt, style_name, master_page_name):
+    ps = style.Style(name=style_name, family="paragraph", masterpagename=master_page_name)
+    odt.automaticstyles.addElement(ps)
+    p = text.P(stylename=style_name, text=None)
+
+    return p
+
+
 ''' create style - family paragraph
 '''
 def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None):
@@ -897,22 +908,10 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
     if background_image_path != '':
         background_image_style = create_background_image_style(odt, background_image_path)
         if background_image_style:
-            fillimagewidth = '100%'
-            fillimageheight = '100%'
-            fillimagerefpointx = '0%'
-            fillimagerefpointy = '0%'
-            fillimagerefpoint = 'center'
-            tilerepeatoffset = '0% vertical'
 
             # page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, fillimagewidth=fillimagewidth, fillimageheight=fillimageheight, fillimagerefpointx=fillimagerefpointx, fillimagerefpointy=fillimagerefpointy, fillimagerefpoint=fillimagerefpoint, tilerepeatoffset=tilerepeatoffset)
             page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight,
                                     margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation,
-                                    # fillimagewidth=fillimagewidth,
-                                    # fillimageheight=fillimageheight,
-                                    # fillimagerefpointx=fillimagerefpointx,
-                                    # fillimagerefpointy=fillimagerefpointy,
-                                    # fillimagerefpoint=fillimagerefpoint,
-                                    # tilerepeatoffset=tilerepeatoffset
                                     )
             page_layout_properties.addElement(background_image_style)
 

@@ -16,6 +16,7 @@ yamllint
 pdf2image
 pillow
 latex2mathml
+opencv-python
 setuptools
 ndg-httpsclient
 

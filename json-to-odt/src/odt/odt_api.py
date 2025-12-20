@@ -45,6 +45,9 @@ class OdtSectionBase(object):
         self.background_image = self.section_prop['background-image']
         self.bookmark = self.section_prop['bookmark']
 
+        self.autocrop = self.section_prop['autocrop']
+        self.page_bg = self.section_prop['page-bg']
+
         self.document_index = self.section_meta['document-index']
         self.document_name = self.section_meta['document-name']
         self.section_index = self.section_meta['section-index']
@@ -286,22 +289,41 @@ class OdtPdfSection(OdtSectionBase):
         style_attributes = {}
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
-                first_image = True
-                for image in self._section_data['contents']['images']:
+                for i, image in enumerate(self._section_data['contents']['images']):
                     paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
-                    if not first_image:
+                    if i == 0:
                         paragraph_attributes['breakbefore'] = 'page'
 
-                    fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
-                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                    draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches, preserve='height')
+                    # if the image should be treated as page bg
+                    if self.page_bg:
+                        master_page_name = f"{self.master_page_name}-page-{str(i).zfill(3)}"
+                        page_layout_name = f"{self.page_layout_name}-page-{str(i).zfill(3)}"
 
-                    style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                    paragraph = create_paragraph(self._odt, style_name, bookmark=self.bookmark)
-                    paragraph.addElement(draw_frame)
+                        master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, odt_specs=self._config['page-specs'], master_page_name=master_page_name, page_layout_name=page_layout_name, page_spec=self.page_spec_name, margin_spec=self.margin_spec_name, orientation=self.orientation, background_image_path=image['path'])
+                        master_page_name = master_page.getAttribute('name')
 
-                    self._odt.text.addElement(paragraph)
-                    first_image = False
+                        page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
+                        page_layout = get_page_layout(self._odt, self.page_layout_name)
+
+                        paragraph_style_name = f"{self.master_page_name}-P-{str(i).zfill(3)}"
+                        paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name)
+                        
+                        self._odt.text.addElement(paragraph)
+
+                        self.process_header_footer(master_page, page_layout)
+
+                    # if the image should be inserted in page body area
+                    else:
+                        fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
+                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
+                        draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches, preserve='height')
+
+                        style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+                        paragraph = create_paragraph(self._odt, style_name, bookmark=self.bookmark)
+                        paragraph.addElement(draw_frame)
+
+                        self._odt.text.addElement(paragraph)
+
 
 
 ''' Odt section content base object

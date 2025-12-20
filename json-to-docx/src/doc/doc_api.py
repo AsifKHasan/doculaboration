@@ -46,6 +46,9 @@ class DocxSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
 
+        self.autocrop = self.section_prop['autocrop']
+        self.page_bg = self.section_prop['page-bg']
+
         self.bookmark = self.section_prop['bookmark']
         self.background_image = self.section_prop['background-image']
 
@@ -64,11 +67,15 @@ class DocxSectionBase(object):
 
 
         if self.landscape:
-            self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-            self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+            self.page_width = float(self.page_spec['height'])
+            self.page_height = float(self.page_spec['width'])
+            self.section_width = self.page_width - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = self.page_height - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
         else:
-            self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
-            self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+            self.page_width = float(self.page_spec['width'])
+            self.page_height = float(self.page_spec['height'])
+            self.section_width = self.page_width - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
+            self.section_height = self.page_height - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
 
         # create or get the docx section
@@ -150,10 +157,6 @@ class DocxSectionBase(object):
     '''
     def section_to_doc(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-
-        # TODO: background image if any
-        if self.background_image != '':
-            pass
 
         self.process_header_footer()
 
@@ -282,23 +285,29 @@ class DocxPdfSection(DocxSectionBase):
                     if i == 0:
                         paragraph_attributes['breakbefore'] = 'page'
 
-                    paragraph = self._doc.add_paragraph()
-                    apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                    format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False)
+                    if self.page_bg == True:
+                        paragraph = self._doc.add_paragraph()
+                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_width)
 
-                    image_width_in_inches, image_height_in_inches = image['width'], image['height']
-                    fit_within_width = self.section_width
-                    fit_within_height = self.section_height
-                    fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
+                    else:
+                        paragraph = self._doc.add_paragraph()
+                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False)
 
-                    print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
-                    print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
-                    image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
-                    print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
-                    print()
-                    
-                    insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
-                    # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
+                        image_width_in_inches, image_height_in_inches = image['width'], image['height']
+                        fit_within_width = self.section_width
+                        fit_within_height = self.section_height
+                        fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
+
+                        # print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
+                        # print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
+                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
+                        # print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
+                        # print()
+                        
+                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
+                        # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
 
 
 ''' Docx section content base object
