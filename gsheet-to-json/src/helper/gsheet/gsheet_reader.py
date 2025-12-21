@@ -25,6 +25,7 @@ TOC_COLUMNS = {
   "level" : {"availability": "must"},
   "content-type" : {"availability": "must"},
   "link" : {"availability": "must"},
+  "page-list" : {"availability": "preferred"},
   "break" : {"availability": "must"},
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
@@ -56,6 +57,7 @@ process_column = None
 level_column = None
 content_type_column = None
 link_column = None
+page_list = None
 break_column = None
 page_spec_column = None
 margin_spec_column = None
@@ -158,7 +160,7 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
-    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, page_spec_column, margin_spec_column
+    global section_column, heading_column, process_column, level_column, content_type_column, link_column, page_list_column, break_column, page_spec_column, margin_spec_column
     global landscape_column, bookmark_column, autocrop_column, page_bg_column, hide_pageno_column, hide_heading_column
     global different_firstpage_column, header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
     global override_header_column, override_footer_column, background_image_column
@@ -170,6 +172,7 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     level_column = TOC_COLUMNS['level']['column'] if 'level' in TOC_COLUMNS and 'column' in TOC_COLUMNS['level'] else None
     content_type_column = TOC_COLUMNS['content-type']['column'] if 'content-type' in TOC_COLUMNS and 'column' in TOC_COLUMNS['content-type'] else None
     link_column = TOC_COLUMNS['link']['column'] if 'link' in TOC_COLUMNS and 'column' in TOC_COLUMNS['link'] else None
+    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
     break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
     page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
     margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
@@ -254,6 +257,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'level'                 : int(toc[level_column]),
             'content-type'          : toc[content_type_column],
             'link'                  : link_name,
+            'page-list'             : toc[page_list_column],
             'link-target'           : link_target,
             'page-break'            : True if toc[break_column] == "page" else False,
             'section-break'         : True if toc[break_column] == "section" else False,

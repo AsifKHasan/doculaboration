@@ -42,10 +42,29 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
 
         # if it is a pdf
         if file_type == 'application/pdf':
+            # consider page-list
+            # print(section_data['section-prop']['page-list'])
+            page_list = section_data['section-prop']['page-list']
+            p_lists = []
+            if page_list is None or page_list.strip() == '':
+                p_lists.append(':')
+            else:
+                pls = page_list.split(',')
+                for pl in pls:
+                    p_lists.append(pl.replace(' ', ''))
+
+            # print(p_lists)
+
             try:
                 # split pages into images
-                images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
+                all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
                 
+                images = []
+                for p_list in p_lists:
+                    parts = p_list.split(':')
+                    sl = slice(*(int(p) if p else None for p in parts))
+                    images.extend(all_images[sl])          
+
                 # mark images for autocropping
                 images = [{'path': im_path, 'autocrop': section_data['section-prop']['autocrop']} for im_path in images]
 
