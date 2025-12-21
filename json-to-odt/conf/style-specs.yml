@@ -1,0 +1,21 @@
+style-specs:
+  # Heading 1
+  'Heading 1':
+    'name':                 'Heading_20_1'
+
+  # Heading 2
+  'Heading 2':
+    'name':                 'Heading_20_2'
+    'text-properties':
+      'fontfamily':         'Arial'
+      'fontsize':           '14pt'
+      'fontweight':         'bold'
+      'fontstyle':          'italic'
+      'color':              '#2E74B5'
+    'paragraph-properties':
+      'margintop':          '3.0in'
+      'marginbottom':       ''
+      'marginleft':         '1.0in'
+      'marginright':        '1.0in'
+      'textalign':          'left'
+      'backgroundcolor':    '#333333'

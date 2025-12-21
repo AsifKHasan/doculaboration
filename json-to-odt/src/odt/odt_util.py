@@ -11,6 +11,7 @@ import importlib
 
 from pathlib import Path
 from odf import style, text, draw, table
+from odf.style import Style
 from odf.element import Element
 from namespaces import MATHNS
 from odf.namespaces import DRAWNS
@@ -1045,6 +1046,25 @@ def strip_math_mode_delimeters(latex_content):
     # TODO: strip \( and \)
 
     return stripped
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ODT specific utility functions
+
+''' return the style if exists
+'''
+def get_style_by_name(doc, style_name):
+    # Check common styles
+    for style in doc.styles.getElementsByType(Style):
+        if style.getAttribute("name") == style_name:
+            return style
+        
+    # Check automatic (local) styles
+    for style in doc.automaticstyles.getElementsByType(Style):
+        if style.getAttribute("name") == style_name:
+            return style
+    
+    return None
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
