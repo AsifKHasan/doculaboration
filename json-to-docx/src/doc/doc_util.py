@@ -1365,6 +1365,37 @@ def print_xml(element):
 	print(xml_str)
 
 
+
+''' return the style if exists
+'''
+def get_style_by_name(doc, style_name):
+    # Check common styles
+        
+    # Check automatic (local) styles
+    
+    return None
+
+''' update a style from a given spec
+'''
+def update_style(doc, style_key, style_spec, nesting_level=0):
+    style_name = style_spec.get('name', None)
+    if style_name is None:
+        error(f"style-spec [{style_key}] missing [name] attribute")
+        return
+    
+    else:
+        style = get_style_by_name(doc=doc, style_name=style_name)
+        if style is None:
+            error(f"style [{style_name}] not found .. ")
+            return
+
+    trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+    # style exists, update with spec
+    custom_properties = style_spec.get('text-properties', {})
+        
+    custom_properties = style_spec.get('paragraph-properties', {})
+
+
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 

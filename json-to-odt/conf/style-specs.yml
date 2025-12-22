@@ -1,21 +1,40 @@
-style-specs:
-  # Heading 1
-  'Heading 1':
-    'name':                 'Heading_20_1'
+# Heading 1
+'Heading 1':
+  'name':                           'Heading_20_1'
 
-  # Heading 2
-  'Heading 2':
-    'name':                 'Heading_20_2'
-    'text-properties':
-      'fontfamily':         'Arial'
-      'fontsize':           '14pt'
-      'fontweight':         'bold'
-      'fontstyle':          'italic'
-      'color':              '#2E74B5'
-    'paragraph-properties':
-      'margintop':          '3.0in'
-      'marginbottom':       ''
-      'marginleft':         '1.0in'
-      'marginright':        '1.0in'
-      'textalign':          'left'
-      'backgroundcolor':    '#333333'
+# Heading 2
+'Heading 2':
+  'name':                           'Heading_20_2'
+
+# Heading 3
+'Heading 3':
+  'name':                           'Heading_20_3'
+  'text-properties':
+    'color':                        '#4c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '14pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'bold'
+
+  'paragraph-properties':
+    'backgroundcolor':              '#D8D8D8'
+
+    'border':
+    'border.borderlinewidth':       ''
+    'border.borderbottom':          ''
+    'border.borderlinewidthbottom': ''
+    'border.borderleft':            '1pt double #222222'
+    'border.borderlinewidthleft':   '0.5pt 2.0pt 0.5pt'
+    'border.borderright':           ''
+    'border.borderlinewidthright':  ''
+    'border.bordertop':             ''
+    'border.borderlinewidthtop':    ''
+
+    'margin.marginleft':            '1.0in'
+    'margin.marginright':           '1.0in'
+    'margin.margintop':             '3.0in'
+    'padding.paddingbottom':        '0.25in'
+    'padding.paddingleft':          '0.25in'
+    'padding.paddingright':         '0.25in'
+    'padding.paddingtop':           '0.25in'
+    'textalign':                    'center'

@@ -54,6 +54,13 @@ class OdtFromJson(object):
 		page_spec_file = config_dir / 'page-specs.yml'
 		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
+		# style specs
+		style_spec_file = config_dir / 'style-specs.yml'
+		if Path.exists(page_spec_file):
+			self._CONFIG['style-specs'] = yaml.load(open(style_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+		else:
+			warn(f"No style-spec [{style_spec_file}]' found .. will not override any style")
+
 		# if json name was provided as parameter, override the configuration
 		if self._json:
 			self._CONFIG['jsons'] = [self._json]

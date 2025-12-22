@@ -33,6 +33,7 @@ class OdtSectionBase(object):
         self.page_break = self.section_prop['page-break']
         self.hide_heading = self.section_prop['hide-heading']
         self.heading = self.section_prop['heading']
+        self.different_firstpage = self.section_prop['different-firstpage']
 
         self.landscape = self.section_prop['landscape']
 
@@ -55,6 +56,7 @@ class OdtSectionBase(object):
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
         self.document_first_section = self.section_meta['document-first-section']
+        self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
         self.nesting_level = self.section_meta['nesting-level']
         self.page_layout_name = self.section_meta['page-layout']
 
@@ -62,14 +64,21 @@ class OdtSectionBase(object):
 
 
         # master-page name
-        self.master_page_name = f"mp-{self.section_id}"
         self.page_layout_name = f"pl-{self.section_id}"
-
-        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, odt_specs=self._config['page-specs'], master_page_name=self.master_page_name, page_layout_name=self.page_layout_name, page_spec=self.page_spec_name, margin_spec=self.margin_spec_name, orientation=self.orientation, background_image_path=self.background_image)
+        self.page_layout = create_page_layout(odt=self._odt, page_layout_name=self.page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
+        self.master_page_name = f"mp-{self.section_id}"
+        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.master_page_name, page_layout_name=self.page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
         self.master_page_name = self.master_page.getAttribute('name')
 
-        self.page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
-        self.page_layout = get_page_layout(self._odt, self.page_layout_name)
+        if self.different_firstpage:
+            self.first_page_layout_name = f"pl-{self.section_id}-first"
+            self.first_page_layout = create_page_layout(odt=self._odt, page_layout_name=self.first_page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
+            self.first_master_page_name = f"mp-{self.section_id}"
+            self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_layout_name=self.first_page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
+            self.first_master_page_name = self.first_master_page.getAttribute('name')
+
+            # self.page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
+            # self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
         # print(f"master-page: [{self.master_page_name}], page-layout: [{self.page_layout_name}]")
 
@@ -81,12 +90,12 @@ class OdtSectionBase(object):
             self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
         # headers and footers
-        self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
         self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
         self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+        self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
         self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
         self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
 
         self.section_contents = OdtContent(self._section_data.get('contents'), self.section_width, self.nesting_level)
 
@@ -124,20 +133,24 @@ class OdtSectionBase(object):
         if self.header_odd:
             self.header_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
 
-        if self.header_first:
-            self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
-        if self.header_even:
-            self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
-
         if self.footer_odd:
             self.footer_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
 
-        if self.footer_first:
-            self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+        if self.different_odd_even_pages:
+            if self.header_even:
+                self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
 
-        if self.footer_even:
-            self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+            if self.footer_even:
+                self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+        if self.different_firstpage:
+            if self.header_first:
+                self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+            if self.footer_first:
+                self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+
+
 
 
     ''' generates the odt code
@@ -298,12 +311,12 @@ class OdtPdfSection(OdtSectionBase):
                     if self.page_bg:
                         master_page_name = f"{self.master_page_name}-page-{str(i).zfill(3)}"
                         page_layout_name = f"{self.page_layout_name}-page-{str(i).zfill(3)}"
+                        page_layout = create_page_layout(odt=self._odt, page_layout_name=page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=image['path'])
 
-                        master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, odt_specs=self._config['page-specs'], master_page_name=master_page_name, page_layout_name=page_layout_name, page_spec=self.page_spec_name, margin_spec=self.margin_spec_name, orientation=self.orientation, background_image_path=image['path'])
+                        master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_layout_name=page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=image['path'])
                         master_page_name = master_page.getAttribute('name')
 
-                        page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
-                        page_layout = get_page_layout(self._odt, self.page_layout_name)
+                        page_layout_name = master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
 
                         paragraph_style_name = f"{self.master_page_name}-P-{str(i).zfill(3)}"
                         paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name)
@@ -587,11 +600,11 @@ class OdtPageHeaderFooter(OdtContent):
         if self.content_data is None:
             return
 
-        header_footer_style = create_header_footer(master_page, page_layout, self.header_footer, self.odd_even)
-        if header_footer_style:
+        header_footer = create_header_footer(master_page=master_page, page_layout=page_layout, header_or_footer=self.header_footer, odd_or_even=self.odd_even)
+        if header_footer:
             # iterate through tables and blocks contents
             for block in self.content_list:
-                block.block_to_odt(odt=odt, container=header_footer_style)
+                block.block_to_odt(odt=odt, container=header_footer)
 
 
 ''' Odt Block object wrapper base class (plain odt, table, header etc.)

@@ -11,7 +11,7 @@ import importlib
 
 from pathlib import Path
 from odf import style, text, draw, table
-from odf.style import Style
+from odf.style import Style, TextProperties, ParagraphProperties, PageLayout, MasterPage, Header, HeaderLeft, Footer, FooterLeft
 from odf.element import Element
 from namespaces import MATHNS
 from odf.namespaces import DRAWNS
@@ -884,7 +884,7 @@ def get_page_layout(odt, page_layout_name):
         fillimagerefpoint = 'center'
         tilerepeatoffset = '0% vertical'
 '''
-def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
+def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
     # get one, if not found create one
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name)
     if page_layout is None:
@@ -892,17 +892,17 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
         odt.automaticstyles.addElement(page_layout)
 
     if orientation == 'portrait':
-        pageheight = f"{odt_specs['page-spec'][page_spec]['height']}in"
-        pagewidth = f"{odt_specs['page-spec'][page_spec]['width']}in"
+        pageheight = f"{page_spec['height']}in"
+        pagewidth = f"{page_spec['width']}in"
     else:
-        pageheight = f"{odt_specs['page-spec'][page_spec]['width']}in"
-        pagewidth = f"{odt_specs['page-spec'][page_spec]['height']}in"
+        pageheight = f"{page_spec['width']}in"
+        pagewidth = f"{page_spec['height']}in"
 
-    margintop = f"{odt_specs['margin-spec'][margin_spec]['top']}in"
-    marginbottom = f"{odt_specs['margin-spec'][margin_spec]['bottom']}in"
-    marginleft = f"{odt_specs['margin-spec'][margin_spec]['left']}in"
-    marginright = f"{odt_specs['margin-spec'][margin_spec]['right']}in"
-    # margingutter = f"{odt_specs['margin-spec'][margin_spec]['gutter']}in"
+    margintop = f"{margin_spec['top']}in"
+    marginbottom = f"{margin_spec['bottom']}in"
+    marginleft = f"{margin_spec['left']}in"
+    marginright = f"{margin_spec['right']}in"
+    # margingutter = f"{margin_spec]['gutter']}in"
 
     page_layout_properties = None
     # background-image
@@ -912,7 +912,7 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 
             # page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, fillimagewidth=fillimagewidth, fillimageheight=fillimageheight, fillimagerefpointx=fillimagerefpointx, fillimagerefpointy=fillimagerefpointy, fillimagerefpoint=fillimagerefpoint, tilerepeatoffset=tilerepeatoffset)
             page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight,
-                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation,
+                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation
                                     )
             page_layout_properties.addElement(background_image_style)
 
@@ -933,15 +933,14 @@ def create_page_layout(odt, odt_specs, page_layout_name, page_spec, margin_spec,
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, first_section, document_index, odt_specs, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
+def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
     # TODO: create one, first get/create the page-layout. If first section, update page-layout for *Standarad* master-page
     if first_section and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
         existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
-        page_layout = create_page_layout(odt=odt, odt_specs=odt_specs, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
+        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
         # existing_page_layout = get_page_layout(odt=odt, page_layout_name=existing_page_layout_name)
     else:
-        page_layout = create_page_layout(odt=odt, odt_specs=odt_specs, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
         master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
         odt.masterstyles.addElement(master_page)
 
@@ -956,39 +955,44 @@ def create_master_page(odt, first_section, document_index, odt_specs, master_pag
         <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
     </style:footer-style>
 '''
-def create_header_footer(master_page, page_layout, header_footer, odd_even):
-    header_footer_style = None
-    if header_footer == 'header':
-        if odd_even == 'odd':
-            header_footer_style = style.Header()
-        if odd_even == 'even':
-            header_footer_style = style.HeaderLeft()
-        if odd_even == 'first':
-            # header_footer_style = HeaderFirst()
-            pass
+def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even):
+    header_footer = None
+    header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+    if header_or_footer == 'header':
+        if odd_or_even == 'odd':
+            header_footer = Header()
+        elif odd_or_even == 'even':
+            header_footer = HeaderLeft()
+        # elif odd_or_even == 'first':
+        #     header_footer = Header()
+        #     header_footer.qname = (header_footer.qname[0], "header-first")
 
-    elif header_footer == 'footer':
-        if odd_even == 'odd':
-            header_footer_style = style.Footer()
-        if odd_even == 'even':
-            header_footer_style = style.FooterLeft()
-        if odd_even == 'first':
-            # header_footer_style = FooterFirst()
-            pass
+        if header_footer:
+            # TODO: the height should come from actual header content height
+            header_style = style.HeaderStyle()
+            header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
+            page_layout.addElement(header_style)
 
-    if header_footer_style:
-        # TODO: the height should come from actual header content height
-        header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
-        header_style = style.HeaderStyle()
-        header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
-        footer_style = style.FooterStyle()
-        footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
-        page_layout.addElement(header_style)
-        page_layout.addElement(footer_style)
+            master_page.addElement(header_footer)
 
-        master_page.addElement(header_footer_style)
+    elif header_or_footer == 'footer':
+        if odd_or_even == 'odd':
+            header_footer = Footer()
+        elif odd_or_even == 'even':
+            header_footer = FooterLeft()
+        # elif odd_or_even == 'first':
+        #     header_footer = Footer()
+        #     header_footer.qname = (header_footer.qname[0], "footer-first")
 
-    return header_footer_style
+        if header_footer:
+            # TODO: the height should come from actual header content height
+            footer_style = style.FooterStyle()
+            footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
+            page_layout.addElement(footer_style)
+
+            master_page.addElement(header_footer)
+
+    return header_footer
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1053,18 +1057,60 @@ def strip_math_mode_delimeters(latex_content):
 
 ''' return the style if exists
 '''
-def get_style_by_name(doc, style_name):
+def get_style_by_name(odt, style_name):
     # Check common styles
-    for style in doc.styles.getElementsByType(Style):
+    for style in odt.styles.getElementsByType(Style):
         if style.getAttribute("name") == style_name:
             return style
         
     # Check automatic (local) styles
-    for style in doc.automaticstyles.getElementsByType(Style):
+    for style in odt.automaticstyles.getElementsByType(Style):
         if style.getAttribute("name") == style_name:
             return style
     
     return None
+
+''' update a style from a given spec
+'''
+def update_style(odt, style_key, style_spec, nesting_level=0):
+    style_name = style_spec.get('name', None)
+    if style_name is None:
+        error(f"style-spec [{style_key}] missing [name] attribute")
+        return
+    
+    else:
+        style = get_style_by_name(odt=odt, style_name=style_name)
+        if style is None:
+            error(f"style [{style_name}] not found .. ")
+            return
+
+    trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+    # style exists, update with spec
+    custom_properties = style_spec.get('text-properties', {})
+    text_props_list = style.getElementsByType(TextProperties)
+    if text_props_list:
+        trace(f"updating text-properties", nesting_level=nesting_level+2)
+        text_props = text_props_list[0]
+        for attr_key, attr_value in custom_properties.items():
+            attr_name = attr_key.split('.')[-1]
+            if attr_value and attr_value != '':
+                trace(f"setting '{attr_name}' to [{attr_value}]", nesting_level=nesting_level+3)
+                text_props.setAttribute(attr_name, attr_value)
+
+        # style.addElement(text_props)
+        
+    custom_properties = style_spec.get('paragraph-properties', {})
+    paragraph_props_list = style.getElementsByType(ParagraphProperties)
+    if paragraph_props_list:
+        trace(f"updating paragraph-properties", nesting_level=nesting_level+2)
+        paragraph_props = paragraph_props_list[0]
+        for attr_key, attr_value in custom_properties.items():
+            attr_name = attr_key.split('.')[-1]
+            if attr_value and attr_value != '':
+                trace(f"setting '{attr_name}' to [{attr_value}]", nesting_level=nesting_level+3)
+                paragraph_props.setAttribute(attr_name, attr_value)
+            
+        # style.addElement(paragraph_props)
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1135,3 +1181,190 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
 PDF_PAGE_HEIGHT_OFFSET = 0.0
+
+STYLE_PROPERTY_MAP = {
+    "text-properties": 
+    [
+        "backgroundcolor",
+        "color",
+        "condition",
+        {
+            "country": [
+                "country",
+                "countryasian",
+                "countrycomplex",
+            ]
+        },
+        "display",
+        {
+            "font":
+            [
+                {
+                    "charset": [
+                        "fontcharset",
+                        "fontcharsetasian",
+                        "fontcharsetcomplex",
+                    ],
+                },   
+                {
+                    "family": [
+                        "fontfamily",
+                        "fontfamilyasian",
+                        "fontfamilycomplex",
+                        "fontfamilygeneric",
+                        "fontfamilygenericasian",
+                        "fontfamilygenericcomplex",
+                    ],
+                },
+                {
+                    "name": [
+                        "fontname",
+                        "fontnameasian",
+                        "fontnamecomplex",
+                    ],
+                },   
+                {
+                    "pitch": [
+                        "fontpitch",
+                        "fontpitchasian",
+                        "fontpitchcomplex",
+                    ],
+                },   
+                "fontrelief",
+                {
+                    "size": [
+                        "fontsize",
+                        "fontsizeasian",
+                        "fontsizecomplex",
+                        "fontsizerel",
+                        "fontsizerelasian",
+                        "fontsizerelcomplex",
+                    ],
+                },   
+                {
+                    "style": [
+                        "fontstyle",
+                        "fontstyleasian",
+                        "fontstylecomplex",
+                        "fontstylename",
+                        "fontstylenameasian",
+                        "fontstylenamecomplex",
+                    ],
+                },   
+                "fontvariant",
+                {
+                    "weight": [
+                        "fontweight",
+                        "fontweightasian",
+                        "fontweightcomplex",
+                    ],
+                },
+            ],
+        },  
+        "hyphenate",
+        "hyphenationpushcharcount",
+        "hyphenationremaincharcount",
+        {
+            "language": [
+                "language",
+                "languageasian",
+                "languagecomplex",
+            ],
+        },   
+        "letterkerning",
+        "letterspacing",
+        "scripttype",
+        {
+            "text": [
+                "textblinking",
+                "textcombine",
+                "textcombineendchar",
+                "textcombinestartchar",
+                "textemphasize",
+                "textlinethroughcolor",
+                "textlinethroughmode",
+                "textlinethroughstyle",
+                "textlinethroughtext",
+                "textlinethroughtextstyle",
+                "textlinethroughtype",
+                "textlinethroughwidth",
+                "textoutline",
+                "textposition",
+                "textrotationangle",
+                "textrotationscale",
+                "textscale",
+                "textshadow",
+                "texttransform",
+                "textunderlinecolor",
+                "textunderlinemode",
+                "textunderlinestyle",
+                "textunderlinetype",
+                "textunderlinewidth",
+            ],
+        },   
+        "usewindowfontcolor",
+    ],
+    "paragraph-properties": [
+        "autotextindent",
+        "backgroundcolor",
+        "backgroundtransparency",
+        {
+            "border": [
+                "borderbottom",
+                "borderleft",
+                "borderlinewidth",
+                "borderlinewidthbottom",
+                "borderlinewidthleft",
+                "borderlinewidthright",
+                "borderlinewidthtop",
+                "borderright",
+                "bordertop",
+            ],
+        },
+        "breakafter",
+        "breakbefore",
+        "fontindependentlinespacing",
+        "hyphenationkeep",
+        "hyphenationladdercount",
+        "justifysingleword",
+        "keeptogether",
+        "keepwithnext",
+        "linebreak",
+        "lineheight",
+        "lineheightatleast",
+        "linenumber",
+        "linespacing",
+        {
+            "margin": [
+                "marginbottom",
+                "marginleft",
+                "marginright",
+                "margintop",
+            ],
+        },
+        "numberlines",
+        "orphans",
+        {
+            "padding": [
+                "paddingbottom",
+                "paddingleft",
+                "paddingright",
+                "paddingtop",
+            ],
+        },
+        "pagenumber",
+        "punctuationwrap",
+        "registertrue",
+        "shadow",
+        "snaptolayoutgrid",
+        "tabstopdistance",
+        "textalign",
+        "textalignlast",
+        "textautospace",
+        "textindent",
+        "verticalalign",
+        "widows",
+        "writingmode",
+        "writingmodeautomatic",
+    ],
+}
