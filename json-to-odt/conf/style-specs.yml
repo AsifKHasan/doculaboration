@@ -9,6 +9,9 @@
 # Heading 3
 'Heading 3':
   'name':                           'Heading_20_3'
+
+# page separator 02
+'separator-02':
   'text-properties':
     'color':                        '#4c1130'
     'font.family.fontfamily':       'Droid Sans'

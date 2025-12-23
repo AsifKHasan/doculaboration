@@ -17,7 +17,6 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
-
 TOC_COLUMNS = {
   "section" : {"availability": "must"},
   "heading" : {"availability": "must"},
@@ -25,17 +24,16 @@ TOC_COLUMNS = {
   "level" : {"availability": "must"},
   "content-type" : {"availability": "must"},
   "link" : {"availability": "must"},
-  "page-list" : {"availability": "preferred"},
   "break" : {"availability": "must"},
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
-  "landscape" : {"availability": "must"},
+  "landscape" : {"availability": "preferred"},
+  "heading-style" : {"availability": "preferred"},
+  "page-list" : {"availability": "preferred"},
   "bookmark" : {"availability": "preferred"},
   "autocrop" : {"availability": "preferred"},
   "page-bg" : {"availability": "preferred"},
-  "hide-pageno" : {"availability": "preferred"},
   "hide-heading" : {"availability": "preferred"},
-  "different-firstpage" : {"availability": "preferred"},
   "header-first" : {"availability": "preferred"},
   "header-odd" : {"availability": "preferred"},
   "header-even" : {"availability": "preferred"},
@@ -57,17 +55,17 @@ process_column = None
 level_column = None
 content_type_column = None
 link_column = None
-page_list = None
 break_column = None
 page_spec_column = None
 margin_spec_column = None
 landscape_column = None
+heading_style_column = None
+page_list = None
 bookmark_column = None
 autocrop_column = None
 page_bg_column = None
 hide_pageno_column = None
 hide_heading_column = None
-different_firstpage_column = None
 header_first_column = None
 header_odd_column = None
 header_even_column = None
@@ -160,9 +158,9 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
-    global section_column, heading_column, process_column, level_column, content_type_column, link_column, page_list_column, break_column, page_spec_column, margin_spec_column
-    global landscape_column, bookmark_column, autocrop_column, page_bg_column, hide_pageno_column, hide_heading_column
-    global different_firstpage_column, header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
+    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, page_spec_column, margin_spec_column
+    global landscape_column, heading_style_column, page_list_column, bookmark_column, autocrop_column, page_bg_column, hide_pageno_column, hide_heading_column
+    global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
     global override_header_column, override_footer_column, background_image_column
     global responsible_column, reviewer_column,status_column, comment_column
 
@@ -172,17 +170,16 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     level_column = TOC_COLUMNS['level']['column'] if 'level' in TOC_COLUMNS and 'column' in TOC_COLUMNS['level'] else None
     content_type_column = TOC_COLUMNS['content-type']['column'] if 'content-type' in TOC_COLUMNS and 'column' in TOC_COLUMNS['content-type'] else None
     link_column = TOC_COLUMNS['link']['column'] if 'link' in TOC_COLUMNS and 'column' in TOC_COLUMNS['link'] else None
-    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
     break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
     page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
     margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
     landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
+    heading_style_column = TOC_COLUMNS['heading-style']['column'] if 'heading-style' in TOC_COLUMNS and 'column' in TOC_COLUMNS['heading-style'] else None
+    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
     bookmark_column = TOC_COLUMNS['bookmark']['column'] if 'bookmark' in TOC_COLUMNS and 'column' in TOC_COLUMNS['bookmark'] else None
     autocrop_column = TOC_COLUMNS['autocrop']['column'] if 'autocrop' in TOC_COLUMNS and 'column' in TOC_COLUMNS['autocrop'] else None
     page_bg_column = TOC_COLUMNS['page-bg']['column'] if 'page-bg' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-bg'] else None
-    hide_pageno_column = TOC_COLUMNS['hide-pageno']['column'] if 'hide-pageno' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-pageno'] else None
     hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
-    different_firstpage_column = TOC_COLUMNS['different-firstpage']['column'] if 'different-firstpage' in TOC_COLUMNS and 'column' in TOC_COLUMNS['different-firstpage'] else None
     header_first_column = TOC_COLUMNS['header-first']['column'] if 'header-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-first'] else None
     header_odd_column = TOC_COLUMNS['header-odd']['column'] if 'header-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-odd'] else None
     header_even_column = TOC_COLUMNS['header-even']['column'] if 'header-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-even'] else None
@@ -257,20 +254,19 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'level'                 : int(toc[level_column]),
             'content-type'          : toc[content_type_column],
             'link'                  : link_name,
-            'page-list'             : toc[page_list_column],
             'link-target'           : link_target,
             'page-break'            : True if toc[break_column] == "page" else False,
             'section-break'         : True if toc[break_column] == "section" else False,
             'page-spec'             : toc[page_spec_column],
             'margin-spec'           : toc[margin_spec_column],
 
-            'landscape'             : True if toc[landscape_column] == "Yes" else False,
+            'landscape'             : True if landscape_column is not None and toc[landscape_column] == "Yes" else False,
+            'heading-style'         : toc[heading_style_column] if heading_style_column is not None else '',
+            'page-list'             : toc[page_list_column] if page_list_column is not None else '',
 			'bookmark'           	: {toc[bookmark_column].strip(): f"{str(toc[section_column])} {toc[heading_column]}".strip()} if bookmark_column is not None else None,
-            'autocrop'              : True if toc[autocrop_column] == "Yes" else False,
-            'page-bg'               : True if toc[page_bg_column] == "Yes" else False,
-            'hide-pageno'           : True if hide_pageno_column is not None and toc[hide_pageno_column] == "Yes" else False,
+            'autocrop'              : True if autocrop_column is not None and toc[autocrop_column] == "Yes" else False,
+            'page-bg'               : True if page_bg_column is not None and toc[page_bg_column] == "Yes" else False,
             'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
-            'different-firstpage'   : True if different_firstpage_column is not None and toc[different_firstpage_column] == "Yes" else False,
             'override-header'       : True if override_header_column is not None and toc[override_header_column] == "Yes" else False,
             'override-footer'       : True if override_footer_column is not None and toc[override_footer_column] == "Yes" else False,
             'background-image'      : toc[background_image_column].strip() if background_image_column is not None else '',
@@ -302,7 +298,11 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
     section_meta['page-layout'] = f"{section_prop['page-spec']}-{section_meta['orientation']}-{section_prop['margin-spec']}"
 
-    different_odd_even_pages = False
+    different_header_first_page = False
+    different_footer_first_page = False
+
+    different_header_odd_even_pages = False
+    different_footer_odd_even_pages = False
 
     # the gsheet is a child gsheet, called from a parent gsheet, so header processing depends on override flags
     module = importlib.import_module('processor.table_processor')
@@ -312,20 +312,17 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
         if parent_section_prop['override-header']:
             # debug(f".. this is a child gsheet : header OVERRIDDEN")
-            section_prop['different-firstpage'] = parent_section_prop['different-firstpage']
+            section_meta['different-firstpage'] = parent_section_meta['different-firstpage']
             d['header-first'] = parent['header-first']
             d['header-odd'] = parent['header-odd']
             d['header-even'] = parent['header-even']
 
         else:
             # debug(f".. child gsheet's header is NOT overridden")
-            if section_prop['different-firstpage']:
-                if d['header-first'] != '' and d['header-first'] is not None:
-                    new_section_data = {'section-prop': {'link': d['header-first']}}
-                    d['header-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-
-                else:
-                    d['header-first'] = None
+            if d['header-first'] != '' and d['header-first'] is not None:
+                new_section_data = {'section-prop': {'link': d['header-first']}}
+                d['header-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+                different_header_first_page = True
 
             else:
                 d['header-first'] = None
@@ -342,7 +339,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             if d['header-even'] != '' and d['header-even'] is not None:
                 new_section_data = {'section-prop': {'link': d['header-even']}}
                 d['header-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-                different_odd_even_pages = True
+                different_header_odd_even_pages = True
 
             else:
                 d['header-even'] = d['header-odd']
@@ -350,20 +347,17 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
         if parent_section_prop['override-footer']:
             # debug(f".. this is a child gsheet : footer OVERRIDDEN")
-            section_prop['different-firstpage'] = parent_section_prop['different-firstpage']
+            section_meta['different-firstpage'] = parent_section_meta['different-firstpage']
             d['footer-first'] = parent['footer-first']
             d['footer-odd'] = parent['footer-odd']
             d['footer-even'] = parent['footer-even']
 
         else:
             # debug(f".. child gsheet's footer is NOT overridden")
-            if section_prop['different-firstpage']:
-                if d['footer-first'] != '' and d['footer-first'] is not None:
-                    new_section_data = {'section-prop': {'link': d['footer-first']}}
-                    d['footer-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-
-                else:
-                    d['footer-first'] = None
+            if d['footer-first'] != '' and d['footer-first'] is not None:
+                new_section_data = {'section-prop': {'link': d['footer-first']}}
+                d['footer-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+                different_footer_first_page = True
 
             else:
                 d['footer-first'] = None
@@ -380,32 +374,20 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             if d['footer-even'] != '' and d['footer-even'] is not None:
                 new_section_data = {'section-prop': {'link': d['footer-even']}}
                 d['footer-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-                different_odd_even_pages = True
+                different_footer_odd_even_pages = True
 
             else:
                 d['footer-even'] = d['footer-odd']
 
     else:
         # process header, it may be text or link
-        if section_prop['different-firstpage']:
-            if d['header-first'] != '' and d['header-first'] is not None:
-                new_section_data = {'section-prop': {'link': d['header-first']}}
-                d['header-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-
-            else:
-                d['header-first'] = None
-
-
-            if d['footer-first'] != '' and d['footer-first'] is not None:
-                new_section_data = {'section-prop': {'link': d['footer-first']}}
-                d['footer-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-
-            else:
-                d['footer-first'] = None
+        if d['header-first'] != '' and d['header-first'] is not None:
+            new_section_data = {'section-prop': {'link': d['header-first']}}
+            d['header-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+            different_header_first_page = True
 
         else:
             d['header-first'] = None
-            d['footer-first'] = None
 
 
         if d['header-odd'] != '' and d['header-odd'] is not None:
@@ -419,10 +401,19 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
         if d['header-even'] != '' and d['header-even'] is not None:
             new_section_data = {'section-prop': {'link': d['header-even']}}
             d['header-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-            different_odd_even_pages = True
+            different_header_odd_even_pages = True
 
         else:
             d['header-even'] = d['header-odd']
+
+
+        if d['footer-first'] != '' and d['footer-first'] is not None:
+            new_section_data = {'section-prop': {'link': d['footer-first']}}
+            d['footer-first'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+            different_footer_first_page = True
+
+        else:
+            d['footer-first'] = None
 
 
         if d['footer-odd'] != '' and d['footer-odd'] is not None:
@@ -436,13 +427,14 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
         if d['footer-even'] != '' and d['footer-even'] is not None:
             new_section_data = {'section-prop': {'link': d['footer-even']}}
             d['footer-even'] = module.process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
-            different_odd_even_pages = True
+            different_footer_odd_even_pages = True
 
         else:
             d['footer-even'] = d['footer-odd']
 
 
-    section_meta['different-odd-even-pages'] = different_odd_even_pages
+    section_meta['different-firstpage'] = different_header_first_page or different_footer_first_page
+    section_meta['different-odd-even-pages'] = different_header_odd_even_pages or different_footer_odd_even_pages
 
     # process 'background-image'
     if section_prop['background-image'] != '':

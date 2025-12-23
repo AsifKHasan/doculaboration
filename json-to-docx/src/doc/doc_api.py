@@ -32,11 +32,9 @@ class DocxSectionBase(object):
         self.label = self.section_prop['label']
         self.heading = self.section_prop['heading']
         self.level = self.section_prop['level']
-        self.page_numbering = self.section_prop['hide-pageno']
         self.section_break = self.section_prop['section-break']
         self.page_break = self.section_prop['page-break']
         self.hide_heading = self.section_prop['hide-heading']
-        self.different_firstpage = self.section_prop['different-firstpage']
 
         self.landscape = self.section_prop['landscape']
 
@@ -59,6 +57,7 @@ class DocxSectionBase(object):
         self.orientation = self.section_meta['orientation']
         self.first_section = self.section_meta['first-section']
         self.document_first_section = self.section_meta['document-first-section']
+        self.different_firstpage = self.section_meta['different-firstpage']
         self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
         self.nesting_level = self.section_meta['nesting-level']
         self.page_layout_name = self.section_meta['page-layout']

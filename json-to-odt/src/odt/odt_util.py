@@ -933,7 +933,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
+def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path, next_master_page_style=None):
     # TODO: create one, first get/create the page-layout. If first section, update page-layout for *Standarad* master-page
     if first_section and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
@@ -941,7 +941,7 @@ def create_master_page(odt, first_section, document_index, master_page_name, pag
         page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
         # existing_page_layout = get_page_layout(odt=odt, page_layout_name=existing_page_layout_name)
     else:
-        master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name)
+        master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name, nextstylename=next_master_page_style)
         odt.masterstyles.addElement(master_page)
 
     return master_page
@@ -958,21 +958,21 @@ def create_master_page(odt, first_section, document_index, master_page_name, pag
 def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even):
     header_footer = None
     header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+    mp_name = master_page.getAttribute('name')
+    pl_name = page_layout.getAttribute('name')
     if header_or_footer == 'header':
         if odd_or_even == 'odd':
             header_footer = Header()
         elif odd_or_even == 'even':
             header_footer = HeaderLeft()
-        # elif odd_or_even == 'first':
-        #     header_footer = Header()
-        #     header_footer.qname = (header_footer.qname[0], "header-first")
+        elif odd_or_even == 'first':
+            header_footer = Header()
 
         if header_footer:
             # TODO: the height should come from actual header content height
             header_style = style.HeaderStyle()
             header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
             page_layout.addElement(header_style)
-
             master_page.addElement(header_footer)
 
     elif header_or_footer == 'footer':
@@ -980,17 +980,17 @@ def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even
             header_footer = Footer()
         elif odd_or_even == 'even':
             header_footer = FooterLeft()
-        # elif odd_or_even == 'first':
-        #     header_footer = Footer()
-        #     header_footer.qname = (header_footer.qname[0], "footer-first")
+        elif odd_or_even == 'first':
+            header_footer = Footer()
 
         if header_footer:
             # TODO: the height should come from actual header content height
             footer_style = style.FooterStyle()
             footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
             page_layout.addElement(footer_style)
-
             master_page.addElement(header_footer)
+
+    # print(f"{header_or_footer}:{odd_or_even} going under {mp_name}:{pl_name}")
 
     return header_footer
 

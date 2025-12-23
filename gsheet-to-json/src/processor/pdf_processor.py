@@ -48,6 +48,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
             p_lists = []
             if page_list is None or page_list.strip() == '':
                 p_lists.append(':')
+                pass
             else:
                 pls = page_list.split(',')
                 for pl in pls:
@@ -60,10 +61,22 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
                 
                 images = []
-                for p_list in p_lists:
-                    parts = p_list.split(':')
-                    sl = slice(*(int(p) if p else None for p in parts))
-                    images.extend(all_images[sl])          
+                if len(p_lists) == 0:
+                    images = all_images
+                    
+                else:
+                    for p_list in p_lists:
+                        try:
+                            if ':' not in p_list:
+                                print(p_list)
+                                images.append(all_images[int(p_list)])
+                            else:
+                                parts = p_list.split(':')
+                                print(parts)
+                                sl = slice(*(int(p) if p else None for p in parts))
+                                images.extend(all_images[sl])          
+                        except:
+                            error(f"invalid page-list part [{parts}]", nesting_level=nesting_level+1)
 
                 # mark images for autocropping
                 images = [{'path': im_path, 'autocrop': section_data['section-prop']['autocrop']} for im_path in images]
