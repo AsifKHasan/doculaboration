@@ -28,10 +28,10 @@ class OdtHelper(object):
         self.start_time = int(round(time.time() * 1000))
 
         # override styles
+        self._config['custom-styles'] = {}
         if 'style-specs' in self._config:
-            trace(f"overriding styles from style-specs")
             for k, v in self._config['style-specs'].items():
-                update_style(odt=self._odt, style_key=k, style_spec=v, nesting_level=0)
+                update_style(odt=self._odt, style_key=k, style_spec=v, custom_styles=self._config['custom-styles'], nesting_level=0)
 
         # process the sections
         section_list_to_odt(section_list, self._config)

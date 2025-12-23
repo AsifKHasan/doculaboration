@@ -32,6 +32,7 @@ class OdtSectionBase(object):
         self.page_break = self.section_prop['page-break']
         self.hide_heading = self.section_prop['hide-heading']
         self.heading = self.section_prop['heading']
+        self.heading_style = self.section_prop['heading-style']
 
         self.landscape = self.section_prop['landscape']
 
@@ -242,6 +243,20 @@ class OdtSectionBase(object):
 
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
         paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
+
+        if self.heading_style:
+            style = get_style_by_name(odt=self._odt, style_name=style_name)
+            if style:
+                if self.heading_style not in self._config['custom-styles']:
+                    warn(f"custom style [{self.heading_style}] not defined in style-specs")
+
+                else:
+                    trace(f"applying custom style [{self.heading_style}] to heading")
+                    apply_custom_style(style=style, custom_properties=self._config['custom-styles'][self.heading_style], nesting_level=0)
+
+            else:
+                warn(f"style [{style_name}] not found")
+
         self._odt.text.addElement(paragraph)
 
 

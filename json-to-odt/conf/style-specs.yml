@@ -13,7 +13,7 @@
 # page separator 02
 'separator-02':
   'text-properties':
-    'color':                        '#4c1130'
+    'color':                        '#0c1130'
     'font.family.fontfamily':       'Droid Sans'
     'font.size.fontsize':           '14pt'
     'font.style.fontstyle':         'italic'

@@ -1070,12 +1070,34 @@ def get_style_by_name(odt, style_name):
     
     return None
 
+
+''' apply a custom style to something
+'''
+def apply_custom_style(style, custom_properties, nesting_level=0):
+    for p_type, props in PTOPERTY_TYPES.items():
+        props_list_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])
+        if props_list_by_type is None or len(props_list_by_type) == 0:
+            klass = PTOPERTY_TYPES[p_type]
+            obj = klass(attributes=custom_properties[p_type])
+            style.addElement(obj)
+        else:
+            props_by_type = props_list_by_type[0]       
+            if p_type in custom_properties:
+                for attr, value in custom_properties[p_type].items():
+                    trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
+                    props_by_type.setAttribute(attr, value)
+
+
+
 ''' update a style from a given spec
 '''
-def update_style(odt, style_key, style_spec, nesting_level=0):
+def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
+    custom_properties = parse_style_properties(style_spec=style_spec, nesting_level=nesting_level+1)
+
     style_name = style_spec.get('name', None)
     if style_name is None:
-        error(f"style-spec [{style_key}] missing [name] attribute")
+        trace(f"custom style [{style_key}] added to style cache")
+        custom_styles[style_key] = custom_properties
         return
     
     else:
@@ -1084,37 +1106,37 @@ def update_style(odt, style_key, style_spec, nesting_level=0):
             error(f"style [{style_name}] not found .. ")
             return
 
-    trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
-    # style exists, update with spec
-    custom_properties = style_spec.get('text-properties', {})
-    text_props_list = style.getElementsByType(TextProperties)
-    if text_props_list:
-        trace(f"updating text-properties", nesting_level=nesting_level+2)
-        text_props = text_props_list[0]
-        for attr_key, attr_value in custom_properties.items():
-            attr_name = attr_key.split('.')[-1]
-            if attr_value and attr_value != '':
-                trace(f"setting '{attr_name}' to [{attr_value}]", nesting_level=nesting_level+3)
-                text_props.setAttribute(attr_name, attr_value)
+        # style exists, update with spec
+        trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+        for p_type, props in PTOPERTY_TYPES.items():
+            props_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])[0]
+            if p_type in custom_properties:
+                for attr, value in custom_properties[p_type].items():
+                    trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+2)
+                    props_by_type.setAttribute(attr, value)
 
-        # style.addElement(text_props)
-        
-    custom_properties = style_spec.get('paragraph-properties', {})
-    paragraph_props_list = style.getElementsByType(ParagraphProperties)
-    if paragraph_props_list:
-        trace(f"updating paragraph-properties", nesting_level=nesting_level+2)
-        paragraph_props = paragraph_props_list[0]
-        for attr_key, attr_value in custom_properties.items():
-            attr_name = attr_key.split('.')[-1]
-            if attr_value and attr_value != '':
-                trace(f"setting '{attr_name}' to [{attr_value}]", nesting_level=nesting_level+3)
-                paragraph_props.setAttribute(attr_name, attr_value)
-            
-        # style.addElement(paragraph_props)
+
+''' parse style properties from yml to odt
+'''
+def parse_style_properties(style_spec, nesting_level=0):
+    custom_properties = {}
+    for p_type, props_dict in style_spec.items():
+        if isinstance(props_dict, dict):
+            new_props = {}
+            for key, value in props_dict.items():
+                if value and value != '':
+                    new_key = key.split('.')[-1]
+                    new_props[new_key] = value
+
+            custom_properties[p_type] = new_props
+
+    return custom_properties
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
+
+PTOPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
 
 # seperation (in inches) between two ODT table columns
 COLSEP = (0/72)
