@@ -68,11 +68,11 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                     for p_list in p_lists:
                         try:
                             if ':' not in p_list:
-                                print(p_list)
+                                # print(p_list)
                                 images.append(all_images[int(p_list)])
                             else:
                                 parts = p_list.split(':')
-                                print(parts)
+                                # print(parts)
                                 sl = slice(*(int(p) if p else None for p in parts))
                                 images.extend(all_images[sl])          
                         except:

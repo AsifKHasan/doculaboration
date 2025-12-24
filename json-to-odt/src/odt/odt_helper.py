@@ -28,6 +28,7 @@ class OdtHelper(object):
         self.start_time = int(round(time.time() * 1000))
 
         # override styles
+        trace(f"processing custom styles from conf/style-spec.yml")
         self._config['custom-styles'] = {}
         if 'style-specs' in self._config:
             for k, v in self._config['style-specs'].items():

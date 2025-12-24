@@ -8,6 +8,7 @@ import sys
 import lxml
 import random
 import string
+import types
 import importlib
 import traceback
 
@@ -102,46 +103,48 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}):
 '''
 def insert_background_image(container, paragraph, image_path, width, height):
 	# 1. Add a run to the paagraph
-    run = paragraph.add_run()
+	run = paragraph.add_run()
 
-    # 2. Add the picture (initially inline)
-    picture = run.add_picture(image_path)
+	# 2. Add the picture (initially inline)
+	picture = run.add_picture(image_path)
 
-    # 3. Get the XML element and change it from 'inline' to 'anchor'
-    inline = picture._inline
+	# 3. Get the XML element and change it from 'inline' to 'anchor'
+	inline = picture._inline
 
-    cx = int(EMU_PER_INCH * width)
-    cy = int(EMU_PER_INCH * height)
+	cx = int(EMU_PER_INCH * width)
+	cy = int(EMU_PER_INCH * height)
 
-    anchor_xml = f"""
-    <wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
-               relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" 
-               allowOverlap="1" {nsdecls('wp', 'a', 'pic', 'r')}>
-        <wp:simplePos x="0" y="0"/>
-        <wp:positionH relativeFrom="column"><wp:posOffset>0</wp:posOffset></wp:positionH>
-        <wp:positionV relativeFrom="line"><wp:posOffset>0</wp:posOffset></wp:positionV>
-        <wp:extent cx="{cx}" cy="{cy}"/>
-        <wp:effectExtent l="0" t="0" r="0" b="0"/>
-        <wp:wrapNone/>
-        <wp:docPr id="1" name="CellBackground"/>
-        <wp:cNvGraphicFramePr/>
-    </wp:anchor>
-    """
+	anchor_xml = f"""
+	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
+			   relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" 
+			   allowOverlap="1" {nsdecls('wp', 'a', 'pic', 'r')}>
+		<wp:simplePos x="0" y="0"/>
+		<wp:positionH relativeFrom="column"><wp:posOffset>0</wp:posOffset></wp:positionH>
+		<wp:positionV relativeFrom="line"><wp:posOffset>0</wp:posOffset></wp:positionV>
+		<wp:extent cx="{cx}" cy="{cy}"/>
+		<wp:effectExtent l="0" t="0" r="0" b="0"/>
+		<wp:wrapNone/>
+		<wp:docPr id="1" name="CellBackground"/>
+		<wp:cNvGraphicFramePr/>
+	</wp:anchor>
+	"""
 
-    # parser = etree.XMLParser(recover=False)
-    # anchor = etree.XML(anchor_xml.format(cx=cx, cy=cy), parser)
-    anchor = parse_xml(anchor_xml)
+	# parser = etree.XMLParser(recover=False)
+	# anchor = etree.XML(anchor_xml.format(cx=cx, cy=cy), parser)
+	anchor = parse_xml(anchor_xml)
 
-    # 4. Transfer the graphic data from the inline tag to the anchor tag
-    # graphic = inline.xpath('.//a:graphic', namespaces=inline.nsmap)[0]
-    graphic = inline.xpath('.//a:graphic')[0]
-    anchor.append(graphic)
-    
-    # 5. Replace the original inline XML with our new anchor XML
-    inline.getparent().replace(inline, anchor)
+	# 4. Transfer the graphic data from the inline tag to the anchor tag
+	# graphic = inline.xpath('.//a:graphic', namespaces=inline.nsmap)[0]
+	graphic = inline.xpath('.//a:graphic')[0]
+	anchor.append(graphic)
+	
+	# 5. Replace the original inline XML with our new anchor XML
+	inline.getparent().replace(inline, anchor)
 
 
-def insert_background_image_earlier(container, paragraph, image_path):
+''' insert an image as page background
+'''
+def insert_background_image_old_version(container, paragraph, image_path):
 
 	# --- Embed image properly ---
 	doc_part = paragraph.part
@@ -344,57 +347,57 @@ def set_cell_padding(cell: table._Cell, padding):
 ''' This is needed if we are using the builtin style
 '''
 def get_or_create_hyperlink_style(d):
-    """If this document had no hyperlinks so far, the builtin
-       Hyperlink style will likely be missing and we need to add it.
-       There's no predefined value, different Word versions
-       define it differently.
-       This version is how Word 2019 defines it in the
-       default theme, excluding a theme reference.
-    """
-    if "Hyperlink" not in d.styles:
-        if "Default Character Font" not in d.styles:
-            ds = d.styles.add_style("Default Character Font", WD_STYLE_TYPE.CHARACTER, True)
-            ds.element.set(qn('w:default'), "1")
-            ds.priority = 1
-            ds.hidden = True
-            ds.unhide_when_used = True
-            del ds
-        hs = d.styles.add_style("Hyperlink", WD_STYLE_TYPE.CHARACTER, True)
-        hs.base_style = d.styles["Default Character Font"]
-        hs.unhide_when_used = True
-        hs.font.color.rgb = RGBColor(0x05, 0x63, 0xC1)
-        hs.font.underline = True
-        del hs
+	"""If this document had no hyperlinks so far, the builtin
+	   Hyperlink style will likely be missing and we need to add it.
+	   There's no predefined value, different Word versions
+	   define it differently.
+	   This version is how Word 2019 defines it in the
+	   default theme, excluding a theme reference.
+	"""
+	if "Hyperlink" not in d.styles:
+		if "Default Character Font" not in d.styles:
+			ds = d.styles.add_style("Default Character Font", WD_STYLE_TYPE.CHARACTER, True)
+			ds.element.set(qn('w:default'), "1")
+			ds.priority = 1
+			ds.hidden = True
+			ds.unhide_when_used = True
+			del ds
+		hs = d.styles.add_style("Hyperlink", WD_STYLE_TYPE.CHARACTER, True)
+		hs.base_style = d.styles["Default Character Font"]
+		hs.unhide_when_used = True
+		hs.font.color.rgb = RGBColor(0x05, 0x63, 0xC1)
+		hs.font.underline = True
+		del hs
 
-    return "Hyperlink"
+	return "Hyperlink"
 
 
 ''' add the hyperlink to a run
 '''
 def add_hyperlink(paragraph, text, url):
-    # This gets access to the document.xml.rels file and gets a new relation id value
-    part = paragraph.part
-    r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
+	# This gets access to the document.xml.rels file and gets a new relation id value
+	part = paragraph.part
+	r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
 
-    # Create the w:hyperlink tag and add needed values
-    hyperlink = OxmlElement('w:hyperlink')
-    hyperlink.set(qn('r:id'), r_id, )
+	# Create the w:hyperlink tag and add needed values
+	hyperlink = OxmlElement('w:hyperlink')
+	hyperlink.set(qn('r:id'), r_id, )
 
-    # Create a new run object (a wrapper over a 'w:r' element)
-    new_run = paragraph.add_run(OxmlElement('w:r'))
-    new_run.text = text
+	# Create a new run object (a wrapper over a 'w:r' element)
+	new_run = paragraph.add_run(OxmlElement('w:r'))
+	new_run.text = text
 
-    # Set the run's style to the builtin hyperlink style, defining it if necessary
-    new_run.style = get_or_create_hyperlink_style(part.document)
-    # Alternatively, set the run's formatting explicitly
-    # new_run.font.color.rgb = docx.shared.RGBColor(0, 0, 255)
-    # new_run.font.underline = True
+	# Set the run's style to the builtin hyperlink style, defining it if necessary
+	new_run.style = get_or_create_hyperlink_style(part.document)
+	# Alternatively, set the run's formatting explicitly
+	# new_run.font.color.rgb = docx.shared.RGBColor(0, 0, 255)
+	# new_run.font.underline = True
 
-    # Join all the xml elements together
-    hyperlink.append(new_run._element)
-    paragraph._p.append(hyperlink)
+	# Join all the xml elements together
+	hyperlink.append(new_run._element)
+	paragraph._p.append(hyperlink)
 
-    return hyperlink
+	return hyperlink
 
 
 ''' create a hyperlink
@@ -539,77 +542,77 @@ def delete_paragraph(paragraph):
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
-    # process FN{...} first, we get a list of block dicts
-    inline_blocks = process_footnotes(
-        text_content=text_content, footnote_list=footnote_list
-    )
+	# process FN{...} first, we get a list of block dicts
+	inline_blocks = process_footnotes(
+		text_content=text_content, footnote_list=footnote_list
+	)
 
-    # process LATEX{...} for each text item
-    new_inline_blocks = []
-    for inline_block in inline_blocks:
-        # process only 'text'
-        if "text" in inline_block:
-            new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"])
+	# process LATEX{...} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"])
 
-        else:
-            new_inline_blocks.append(inline_block)
+		else:
+			new_inline_blocks.append(inline_block)
 
-    inline_blocks = new_inline_blocks
+	inline_blocks = new_inline_blocks
 
-    # process PAGE{..} for each text item
-    new_inline_blocks = []
-    for inline_block in inline_blocks:
-        # process only 'text'
-        if "text" in inline_block:
-            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"])
+	# process PAGE{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"])
 
-        else:
-            new_inline_blocks.append(inline_block)
+		else:
+			new_inline_blocks.append(inline_block)
 
-    inline_blocks = new_inline_blocks
+	inline_blocks = new_inline_blocks
 
-    # process LINK{..} for each text item
-    new_inline_blocks = []
-    for inline_block in inline_blocks:
-        # process only 'text'
-        if "text" in inline_block:
-            new_inline_blocks = new_inline_blocks + process_links(inline_block["text"])
+	# process LINK{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_links(inline_block["text"])
 
-        else:
-            new_inline_blocks.append(inline_block)
+		else:
+			new_inline_blocks.append(inline_block)
 
-    inline_blocks = new_inline_blocks
+	inline_blocks = new_inline_blocks
 
-    # we are ready to prepare the content
-    for inline_block in inline_blocks:
-        if "text" in inline_block:
-            run = paragraph.add_run(inline_block["text"])
-            set_text_style(run=run, text_attributes=text_attributes)
+	# we are ready to prepare the content
+	for inline_block in inline_blocks:
+		if "text" in inline_block:
+			run = paragraph.add_run(inline_block["text"])
+			set_text_style(run=run, text_attributes=text_attributes)
 
-        elif "fn" in inline_block:
-            create_footnote(paragraph=paragraph, footnote_tuple=inline_block["fn"])
+		elif "fn" in inline_block:
+			create_footnote(paragraph=paragraph, footnote_tuple=inline_block["fn"])
 
-        elif "latex" in inline_block:
-            run = paragraph.add_run()
-            create_latex(container=run, latex_content=inline_block["latex"])
-            set_text_style(run=run, text_attributes=text_attributes)
+		elif "latex" in inline_block:
+			run = paragraph.add_run()
+			create_latex(container=run, latex_content=inline_block["latex"])
+			set_text_style(run=run, text_attributes=text_attributes)
 
-        elif "page-num" in inline_block:
-            run = add_page_reference(paragraph=paragraph, bookmark_name='')
-            set_text_style(run=run, text_attributes=text_attributes)
+		elif "page-num" in inline_block:
+			run = add_page_reference(paragraph=paragraph, bookmark_name='')
+			set_text_style(run=run, text_attributes=text_attributes)
 
-        elif "page-count" in inline_block:
-            run = add_page_reference(paragraph=paragraph, bookmark_name='*')
-            set_text_style(run=run, text_attributes=text_attributes)
+		elif "page-count" in inline_block:
+			run = add_page_reference(paragraph=paragraph, bookmark_name='*')
+			set_text_style(run=run, text_attributes=text_attributes)
 
-        elif "bookmark-page" in inline_block:
-            # add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
-            run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip())
-            set_text_style(run=run, text_attributes=text_attributes)
+		elif "bookmark-page" in inline_block:
+			# add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
+			run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip())
+			set_text_style(run=run, text_attributes=text_attributes)
 
-        elif 'link' in inline_block:
-            target, anchor = inline_block['link'][0], inline_block['link'][1]
-            create_hyperlink(attach_to=paragraph, anchor=anchor, target=target)
+		elif 'link' in inline_block:
+			target, anchor = inline_block['link'][0], inline_block['link'][1]
+			create_hyperlink(attach_to=paragraph, anchor=anchor, target=target)
 
 
 ''' process footnotes inside text
@@ -695,7 +698,7 @@ def process_bookmark_page_blocks(text_content):
 
 			texts_and_bookmarks.append({'text': text})
 
-            # PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
+			# PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
 			if bookmark_content == '':
 				texts_and_bookmarks.append({"page-num": None})
 
@@ -719,43 +722,43 @@ def process_bookmark_page_blocks(text_content):
 ''' process external url or bookmark links
 '''
 def process_links(text_content):
-    # find out if there is any match with LINK{...}{} inside the text_content
-    links = []
+	# find out if there is any match with LINK{...}{} inside the text_content
+	links = []
 
-    # LINK patterns are like LINK{target}{text} or LINK{target}
-    pattern = r'LINK({[^}]*}){1,2}'
-    current_index = 0
-    for match in re.finditer(pattern, text_content):
-        link_content_pattern = r'([^{}]+)'
-        i = 0
-        target, anchor = None, None
-        for content_match in re.finditer(link_content_pattern, match.group()):
-            if i == 1:
-                target = content_match.group()
-            elif i == 2:
-                anchor = content_match.group()
+	# LINK patterns are like LINK{target}{text} or LINK{target}
+	pattern = r'LINK({[^}]*}){1,2}'
+	current_index = 0
+	for match in re.finditer(pattern, text_content):
+		link_content_pattern = r'([^{}]+)'
+		i = 0
+		target, anchor = None, None
+		for content_match in re.finditer(link_content_pattern, match.group()):
+			if i == 1:
+				target = content_match.group()
+			elif i == 2:
+				anchor = content_match.group()
 
-            i = i + 1
+			i = i + 1
 
-        # we have found a LINK block, we add the preceding text and the LINK block into the list
-        link_start_index, link_end_index = match.span()[0], match.span()[1]
-        if link_start_index >= current_index:
-            # there are preceding text before the link
-            text = text_content[current_index:link_start_index]
-            links.append({'text': text})
+		# we have found a LINK block, we add the preceding text and the LINK block into the list
+		link_start_index, link_end_index = match.span()[0], match.span()[1]
+		if link_start_index >= current_index:
+			# there are preceding text before the link
+			text = text_content[current_index:link_start_index]
+			links.append({'text': text})
 
-            # LINK patterns are like LINK{target}{text} or LINK{target}
-            if target:
-                links.append({"link": [target, anchor]})
+			# LINK patterns are like LINK{target}{text} or LINK{target}
+			if target:
+				links.append({"link": [target, anchor]})
 
-            current_index = link_end_index
+			current_index = link_end_index
 
-    # there may be trailing text
-    text = text_content[current_index:]
+	# there may be trailing text
+	text = text_content[current_index:]
 
-    links.append({'text': text})
+	links.append({'text': text})
 
-    return links
+	return links
 
 
 ''' create a footnote
@@ -840,36 +843,36 @@ def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
 ''' add a PAGE refernce 
 '''
 def add_page_reference(paragraph, bookmark_name):
-    run = paragraph.add_run()
+	run = paragraph.add_run()
 
 	# create a new element and set attributes
-    fldCharBegin = OxmlElement('w:fldChar')
-    fldCharBegin.set(qn('w:fldCharType'), 'begin')
+	fldCharBegin = OxmlElement('w:fldChar')
+	fldCharBegin.set(qn('w:fldCharType'), 'begin')
 
-    # actual PAGE reference
-    instrText = OxmlElement("w:instrText")
-    instrText.set(qn("xml:space"), "preserve")
+	# actual PAGE reference
+	instrText = OxmlElement("w:instrText")
+	instrText.set(qn("xml:space"), "preserve")
 
-    if bookmark_name == '':
-        instrText.text = 'PAGE \\* MERGEFORMAT'
+	if bookmark_name == '':
+		instrText.text = 'PAGE \\* MERGEFORMAT'
 
-    elif bookmark_name == '*':
-        instrText.text = 'NUMPAGES \\* MERGEFORMAT'
+	elif bookmark_name == '*':
+		instrText.text = 'NUMPAGES \\* MERGEFORMAT'
 
-    else:
-        instrText.text = f"PAGEREF {bookmark_name} \\h"
+	else:
+		instrText.text = f"PAGEREF {bookmark_name} \\h"
 
-    fldCharEnd = OxmlElement('w:fldChar')
-    fldCharEnd.set(qn('w:fldCharType'), 'end')
+	fldCharEnd = OxmlElement('w:fldChar')
+	fldCharEnd.set(qn('w:fldCharType'), 'end')
 
-    r_element = run._r
-    r_element.append(fldCharBegin)
-    r_element.append(instrText)
-    r_element.append(fldCharEnd)
+	r_element = run._r
+	r_element.append(fldCharBegin)
+	r_element.append(instrText)
+	r_element.append(fldCharEnd)
 
-    # p_element = paragraph._p
+	# p_element = paragraph._p
 
-    return run
+	return run
 
 
 ''' add link for bookmarks
@@ -1358,6 +1361,8 @@ def polish_table(table):
 		tcW.w = 0
 
 
+''' pretty print element xml
+'''
 def print_xml(element):
 	# Convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
@@ -1366,34 +1371,139 @@ def print_xml(element):
 
 
 
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# DOCX specific utility functions
+
 ''' return the style if exists
 '''
 def get_style_by_name(doc, style_name):
-    # Check common styles
-        
-    # Check automatic (local) styles
-    
-    return None
+	styles = doc.styles
+	return styles[style_name]
+
+
+''' apply a custom style to something
+'''
+def apply_custom_style(style, custom_properties, nesting_level=0):
+	for p_type, props in STYLE_PROPERTY_MAP.items():
+		props_list_by_type = style.getElementsByType(STYLE_PROPERTY_MAP[p_type])
+		if props_list_by_type is None or len(props_list_by_type) == 0:
+			klass = STYLE_PROPERTY_MAP[p_type]
+			obj = klass(attributes=custom_properties[p_type])
+			style.addElement(obj)
+		else:
+			props_by_type = props_list_by_type[0]	   
+			if p_type in custom_properties:
+				for attr, value in custom_properties[p_type].items():
+					trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
+					props_by_type.setAttribute(attr, value)
+
+
 
 ''' update a style from a given spec
 '''
-def update_style(doc, style_key, style_spec, nesting_level=0):
-    style_name = style_spec.get('name', None)
-    if style_name is None:
-        error(f"style-spec [{style_key}] missing [name] attribute")
-        return
-    
-    else:
-        style = get_style_by_name(doc=doc, style_name=style_name)
-        if style is None:
-            error(f"style [{style_name}] not found .. ")
-            return
+def update_style(doc, style_key, style_spec, custom_styles, nesting_level=0):
+	custom_properties = parse_style_properties(style_spec=style_spec, nesting_level=nesting_level+1)
 
-    trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
-    # style exists, update with spec
-    custom_properties = style_spec.get('text-properties', {})
-        
-    custom_properties = style_spec.get('paragraph-properties', {})
+	style_name = style_spec.get('name', None)
+	if style_name is None:
+		trace(f"custom style [{style_key}] added to style cache")
+		custom_styles[style_key] = custom_properties
+		return
+	
+	else:
+		style = get_style_by_name(doc=doc, style_name=style_name)
+		if style is None:
+			error(f"style [{style_name}] not found .. ")
+			return
+
+		# style exists, update with spec
+		trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+
+		# ParagraphStyle
+		if 'ParagraphStyle' in style_spec:
+			if 'font' in style_spec['ParagraphStyle']:
+				# ParagraphStyle - font
+				font = style.font
+				attr_dict = style_spec['ParagraphStyle']['font']
+
+				for attr, value in attr_dict.items():
+					# map keys as defined in DOCX_ATTR_MAP_HINT
+					new_value = map_docx_attr(attr, value)
+					if new_value:
+						value = new_value
+
+					# color needs special treatment
+					if attr == "color":
+						# value should be RGBColor or None
+						font.color.rgb = value
+						continue
+
+					if hasattr(font, attr):
+						setattr(font, attr, value)
+
+
+			# ParagraphStyle - paragraph_format
+			if 'paragraph-format' in style_spec['ParagraphStyle']:
+				pf = style.paragraph_format
+				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
+				
+				for attr, value in attr_dict.items():
+					# map keys as defined in DOCX_ATTR_MAP_HINT
+					new_value = map_docx_attr(attr, value)
+					if new_value:
+						value = new_value
+					if hasattr(pf, attr):
+						setattr(pf, attr, value)
+
+
+
+''' parse style properties from yml to odt
+'''
+def parse_style_properties(style_spec, nesting_level=0):
+	custom_properties = {}
+	for p_type, props_dict in style_spec.items():
+		if isinstance(props_dict, dict):
+			new_props = {}
+			for key, value in props_dict.items():
+				if value and value != '':
+					new_key = key.split('.')[-1]
+					new_props[new_key] = value
+
+			custom_properties[p_type] = new_props
+
+	return custom_properties
+
+
+def to_pt(num):
+	return Pt(float(num))
+
+
+def rgb_from_hex(hexstr):
+    hexstr = hexstr.lstrip("#")
+    return RGBColor(
+        int(hexstr[0:2], 16),
+        int(hexstr[2:4], 16),
+        int(hexstr[4:6], 16),
+    )
+
+def map_docx_attr(attr_key, attr_value):
+	
+	if attr_key in DOCX_ATTR_MAP_HINT:
+		obj = DOCX_ATTR_MAP_HINT[attr_key]
+		trace(f"[{attr_key}] mapper is [{obj}] ")
+
+		# if the mapper is a dict
+		if isinstance(obj, dict):
+			trace(f"[{attr_key}] mapper is a dict")
+			return obj[attr_value]
+
+		# of the mapper is a function
+		if isinstance(obj, types.FunctionType):
+			trace(f"[{attr_key}] mapper is a function")
+			return obj(attr_value)
+		
+	return attr_value
+			
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1474,3 +1584,69 @@ PDF_PAGE_HEIGHT_OFFSET = 0.5
 
 
 DPI = 72
+
+STYLE_PROPERTY_MAP = {
+	"ParagraphStyle": 
+	[
+		{
+			"font":
+			[
+				"name",
+				"size",
+				"color",
+				"bold",
+				"italic",
+				"underline",
+				"strike",
+				"double_strike",
+				"highlight_color",
+				"all_caps",
+				"small_caps",
+				"subscript",
+				"superscript",
+				"complex_script",
+				"cs_bold",
+				"cs_italic",
+				"emboss",
+				"imprint",
+				"outline",
+				"shadow",
+			],
+		},
+		{
+			"paragraph_format":
+			[
+				# A member of the WD_PARAGRAPH_ALIGNMENT enumeration specifying the justification setting for this paragraph.
+				"alignment",
+				# Length value specifying the relative difference in indentation for the first line of the paragraph.
+				"first_line_indent",
+				# True if the paragraph should be kept “in one piece” and not broken across a page boundary when the document is rendered.
+				"keep_together",
+				"keep_with_next",
+				# Length value specifying the space between the left margin and the left side of the paragraph.
+				"left_indent",
+				# float or Length value specifying the space between baselines in successive lines of the paragraph.
+				"line_spacing",
+				# A member of the WD_LINE_SPACING enumeration indicating how the value of line_spacing should be interpreted.
+				"line_spacing_rule",
+				"page_break_before",
+				"right_indent",
+				# Length value specifying the spacing to appear between this paragraph and the subsequent paragraph.
+				"space_after",
+				# Length value specifying the spacing to appear between this paragraph and the prior paragraph.
+				"space_before",
+				# TabStops object providing access to the tab stops defined for this paragraph format
+				"tab_stops",
+				# True if the first and last lines in the paragraph remain on the same page as the rest of the paragraph when Word repaginates the document.
+				"widow_control",
+			],
+		}
+	],
+}
+
+DOCX_ATTR_MAP_HINT = {
+	'alignment': 	TEXT_HALIGN_MAP,
+	'size': 		to_pt,
+	'color':		rgb_from_hex
+}
+
