@@ -32,7 +32,8 @@ class DocHelper(object):
         self._config['custom-styles'] = {}
         if 'style-specs' in self._config:
             for k, v in self._config['style-specs'].items():
-                update_style(doc=self._doc, style_key=k, style_spec=v, custom_styles=self._config['custom-styles'], nesting_level=0)
+                if v:
+                    update_style(doc=self._doc, style_key=k, style_spec=v, custom_styles=self._config['custom-styles'], nesting_level=0)
 
         # process the sections
         section_list_to_doc(section_list, self._config)

@@ -1427,11 +1427,6 @@ def update_style(doc, style_key, style_spec, custom_styles, nesting_level=0):
 				attr_dict = style_spec['ParagraphStyle']['font']
 
 				for attr, value in attr_dict.items():
-					# map keys as defined in DOCX_ATTR_MAP_HINT
-					new_value = map_docx_attr(attr, value)
-					if new_value:
-						value = new_value
-
 					# color needs special treatment
 					if attr == "color":
 						# value should be RGBColor or None
@@ -1448,61 +1443,104 @@ def update_style(doc, style_key, style_spec, custom_styles, nesting_level=0):
 				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
 				
 				for attr, value in attr_dict.items():
-					# map keys as defined in DOCX_ATTR_MAP_HINT
-					new_value = map_docx_attr(attr, value)
-					if new_value:
-						value = new_value
 					if hasattr(pf, attr):
 						setattr(pf, attr, value)
 
 
 
-''' parse style properties from yml to odt
+''' parse style properties from yml to docx
 '''
 def parse_style_properties(style_spec, nesting_level=0):
 	custom_properties = {}
-	for p_type, props_dict in style_spec.items():
-		if isinstance(props_dict, dict):
-			new_props = {}
-			for key, value in props_dict.items():
+
+	if style_spec:
+		for key, value in style_spec.items():
+			if isinstance(value, dict):
+				# If it's another dict, go deeper
+				parse_style_properties(value, nesting_level=nesting_level)
+
+			else:	
 				if value and value != '':
-					new_key = key.split('.')[-1]
-					new_props[new_key] = value
+					if key in DOCX_ATTR_MAP_HINT:
+						trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level)
+						new_key, new_value = map_docx_attr(key, value, nesting_level=nesting_level)
+						trace(f"parsed to property [{new_key}] with value [{new_value}]", nesting_level=nesting_level)
+						if new_value:
+							value = new_value
 
-			custom_properties[p_type] = new_props
+						key = new_key
+						style_spec[new_key] = value
+				else:
+					# style_spec.pop(key, None)
+					pass
 
-	return custom_properties
 
+''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
+'''
+def str_to_size(str, what, nesting_level=0):
+	allowed_units = ['pt', 'in', 'cm', 'mm']
+	match = re.match(r"(\d*\.?\d+)\s*([a-zA-Z]+)", str.strip())
 
-def to_pt(num):
+	# the match must return exactly two groups
+	try:
+		# This will raise a ValueError if there are more or fewer than 2 groups
+		number, unit = match.groups()
+		try:
+			num = float(number)
+			if unit not in allowed_units:
+				warn(f"[{unit}] in [{str}] is not a valid {what} .. allowed values are [{allowed_units}]", nesting_level=nesting_level+1)
+				return None
+			
+			if unit == 'pt':
+				return Pt(num)
+			if unit == 'pt':
+				return Inches(num)
+			if unit == 'cm':
+				return Cm(num)
+
+		except:
+			warn(f"[{str}] is not a valid {what} .. first part must be a number", nesting_level=nesting_level+1)
+			return None
+
+	except ValueError:
+		warn(f"[{str}] is not a valid {what}", nesting_level=nesting_level+1)
+		return None
+
 	return Pt(float(num))
 
 
-def rgb_from_hex(hexstr):
-    hexstr = hexstr.lstrip("#")
+''' conver rgb colors like '#RRGGBB' to RGBColor
+'''
+def rgb_from_hex(str, what, nesting_level=0):
+    hexstr = str.lstrip("#")
     return RGBColor(
         int(hexstr[0:2], 16),
         int(hexstr[2:4], 16),
         int(hexstr[4:6], 16),
     )
 
-def map_docx_attr(attr_key, attr_value):
+
+def map_docx_attr(attr_key, attr_value, nesting_level=0):
 	
 	if attr_key in DOCX_ATTR_MAP_HINT:
-		obj = DOCX_ATTR_MAP_HINT[attr_key]
-		trace(f"[{attr_key}] mapper is [{obj}] ")
+		mapper_dict = DOCX_ATTR_MAP_HINT[attr_key]
+		new_key = mapper_dict.get('new-key', attr_key)
+		obj = mapper_dict['mapper']
 
 		# if the mapper is a dict
 		if isinstance(obj, dict):
-			trace(f"[{attr_key}] mapper is a dict")
-			return obj[attr_value]
+			trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level+1)
+			if attr_value in obj:
+				return new_key, obj[attr_value]
+			else:
+				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(obj.keys())}", nesting_level=nesting_level+1)
 
 		# of the mapper is a function
 		if isinstance(obj, types.FunctionType):
-			trace(f"[{attr_key}] mapper is a function")
-			return obj(attr_value)
+			trace(f"[{attr_key}] mapper is a function [{obj}]", nesting_level=nesting_level+1)
+			return new_key, obj(attr_value, what=attr_key, nesting_level=nesting_level)
 		
-	return attr_value
+	return attr_key, attr_value
 			
 
 
@@ -1585,6 +1623,7 @@ PDF_PAGE_HEIGHT_OFFSET = 0.5
 
 DPI = 72
 
+
 STYLE_PROPERTY_MAP = {
 	"ParagraphStyle": 
 	[
@@ -1644,9 +1683,11 @@ STYLE_PROPERTY_MAP = {
 	],
 }
 
+
 DOCX_ATTR_MAP_HINT = {
-	'alignment': 	TEXT_HALIGN_MAP,
-	'size': 		to_pt,
-	'color':		rgb_from_hex
+	'alignment': 		{'mapper': TEXT_HALIGN_MAP},
+	'size': 			{'mapper': str_to_size},
+	'color':			{'mapper': rgb_from_hex},
+	'backgroundcolor':	{'mapper': rgb_from_hex},
 }
 
