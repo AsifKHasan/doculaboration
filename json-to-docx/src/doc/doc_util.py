@@ -239,7 +239,7 @@ def format_container(container, attributes, it_is_a_table_cell):
 
 	else:
 		if 'borders' in attributes:
-			set_paragraph_border(container, borders=attributes['borders'])
+			set_paragraph_border(where=container._p, borders=attributes['borders'])
 
 		if 'backgroundcolor' in attributes:
 			set_paragraph_bgcolor(container, color=attributes['backgroundcolor'])
@@ -289,8 +289,9 @@ def set_cell_border(cell: table._Cell, borders):
 	val is any of dotted/dashed/single/thick/triple/double/none
 	space is space/padding between text and border in pt
 '''
-def set_paragraph_border(paragraph, borders):
-	pPr = paragraph._p.get_or_add_pPr()
+def set_paragraph_border(where, borders):
+	pPr = where.get_or_add_pPr()
+
 
 	# check for tag existnace, if none found, then create one
 	# pBorders = OxmlElement('w:pBorders')
@@ -1401,6 +1402,7 @@ def get_style_by_name(doc, style_name):
 def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting_level=0):
 	# the following elemnts are to be updated
 	font, pf = None, None
+	border_around = None
 
 	# if style_name
 	if style_name:
@@ -1412,11 +1414,13 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 		# style exists, update with spec
 		font = style.font
 		pf = style.paragraph_format
+		border_around = style._element
 
 
 	elif paragraph is not None:
 		font = paragraph.runs[0].font
 		pf = paragraph.paragraph_format
+		border_around = paragraph._p
 
 
 	# now apply
@@ -1448,11 +1452,9 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 							setattr(pf, attr, value)
 
 	# borders
-	borders = {}
 	if 'borders' in style_spec:
-		if paragraph:
-			print(style_spec['borders'])
-			set_paragraph_border(paragraph=paragraph, borders=style_spec['borders'])
+		if border_around:
+			set_paragraph_border(where=border_around, borders=style_spec['borders'])
 
 
 

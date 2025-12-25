@@ -36,7 +36,7 @@
       'shadow':
 
     'paragraph-format':
-      'alignment':                    'CENTER'
+      'alignment':                    
       'backgroundcolor':              '#D8D8D8'
 
       # margin
@@ -47,8 +47,7 @@
 
   # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
   'borders':
-    'start':                        '1pt double #222222 0.25in'
-    'top':                          '0pt double #222222 0.25in'
-    'end':                          '0pt double #222222 0.25in'
-    'bottom':                       '0pt double #222222 0.25in'
-
+    'start':                          '1pt double #222222 0.25in'
+    'top':                            '0pt double #222222 0.25in'
+    'end':                            '0pt double #222222 0.25in'
+    'bottom':                         '0pt double #222222 0.25in'
