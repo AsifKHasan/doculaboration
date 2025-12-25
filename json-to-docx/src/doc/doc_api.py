@@ -31,6 +31,7 @@ class DocxSectionBase(object):
 
         self.label = self.section_prop['label']
         self.heading = self.section_prop['heading']
+        self.heading_style = self.section_prop['heading-style']
         self.level = self.section_prop['level']
         self.section_break = self.section_prop['section-break']
         self.page_break = self.section_prop['page-break']
@@ -162,6 +163,15 @@ class DocxSectionBase(object):
         heading_text, outline_level, style_name = self.get_heading()
         if heading_text:
             paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
+
+            if self.heading_style:
+                if self.heading_style not in self._config['custom-styles']:
+                    warn(f"custom style [{self.heading_style}] not defined in style-specs")
+
+                else:
+                    trace(f"applying custom style [{self.heading_style}] to heading")
+                    apply_custom_style(doc=self._doc, style_spec=self._config['custom-styles'][self.heading_style], paragraph=paragraph, nesting_level=self.nesting_level+1)
+
 
 
 ''' Docx table section object

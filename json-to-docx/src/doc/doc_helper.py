@@ -28,12 +28,9 @@ class DocHelper(object):
         self.start_time = int(round(time.time() * 1000))
 
         # override styles
-        trace(f"processing custom styles from conf/style-spec.yml")
         self._config['custom-styles'] = {}
         if 'style-specs' in self._config:
-            for k, v in self._config['style-specs'].items():
-                if v:
-                    update_style(doc=self._doc, style_key=k, style_spec=v, custom_styles=self._config['custom-styles'], nesting_level=0)
+            self._config['custom-styles'] = process_custom_style(doc=self._doc, style_spec=self._config['style-specs'], nesting_level=0)
 
         # process the sections
         section_list_to_doc(section_list, self._config)

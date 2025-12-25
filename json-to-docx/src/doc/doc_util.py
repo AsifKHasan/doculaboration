@@ -279,15 +279,24 @@ def set_cell_border(cell: table._Cell, borders):
 
 
 ''' set paragraph borders
+	{
+		"top":		{"sz": , "val": , "color": , "space": , "shadow": },
+		"start":	{},
+		"bottom":	{},
+		"end": 		{},
+	}
+	size is in 1/8 pt units
+	val is any of dotted/dashed/single/thick/triple/double/none
+	space is space/padding between text and border in pt
 '''
 def set_paragraph_border(paragraph, borders):
 	pPr = paragraph._p.get_or_add_pPr()
 
 	# check for tag existnace, if none found, then create one
+	# pBorders = OxmlElement('w:pBorders')
 	pBorders = pPr.first_child_found_in("w:pBorders")
 	if pBorders is None:
 		pBorders = OxmlElement('w:pBorders')
-		pPr.append(pBorders)
 
 	# list over all available tags
 	for edge in ('top', 'start', 'bottom', 'end'):
@@ -296,18 +305,30 @@ def set_paragraph_border(paragraph, borders):
 			edge_str = edge
 			if edge_str == 'start': edge_str = 'left'
 			if edge_str == 'end': edge_str = 'right'
-			tag = 'w:{}'.format(edge_str)
 
-			# check for tag existnace, if none found, then create one
-			element = pBorders.find(qn(tag))
-			if element is None:
-				element = OxmlElement(tag)
-				pBorders.append(element)
+			border = OxmlElement(f'w:{edge_str}')
+			border.set(qn('w:val'), str(edge_data['val']))     # single, double, dashed, dotted
+			border.set(qn('w:sz'), str(edge_data['sz']))          # border width (1/8 pt units)
+			border.set(qn('w:space'), str(edge_data['space']))        # space between text and border
+			border.set(qn('w:color'), str(edge_data['color']))   # hex color
+			pBorders.append(border)
+			trace(f"{edge_str} added")
+			
+			# tag = 'w:{}'.format(edge_str)
 
-			# looks like order of attributes is important
-			for key in ["sz", "val", "color", "space", "shadow"]:
-				if key in edge_data:
-					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+			# # check for tag existnace, if none found, then create one
+			# element = pBorders.find(qn(tag))
+			# if element is None:
+			# 	element = OxmlElement(tag)
+			# 	pBorders.append(element)
+
+			# # looks like order of attributes is important
+			# for key in ["sz", "val", "color", "space", "shadow"]:
+			# 	if key in edge_data:
+			# 		trace(f"adding {key}:{str(edge_data[key])} for {edge_str} border")
+			# 		element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+	pPr.append(pBorders)
 
 
 ''' set table-cell bgcolor
@@ -833,12 +854,6 @@ def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
 	# paragraph._p.append(text)
 	paragraph._p.append(end)
 
-	# run = paragraph.add_run()
-	# tag = run._r
-	# tag.append(start)
-	# tag.append(text)
-	# tag.append(end)
-
 
 ''' add a PAGE refernce 
 '''
@@ -1210,7 +1225,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
 		image_id = cNvPr.get('id')
 		image_name = cNvPr.get('name')
-		trace(f"bg image [{image_name}]")
+		# trace(f"bg image [{image_name}]")
 
 		blip = new_run._r.xpath('.//a:blip')[0]
 
@@ -1381,51 +1396,37 @@ def get_style_by_name(doc, style_name):
 	return styles[style_name]
 
 
-''' apply a custom style to something
+''' apply a custom style to a Style/paragraph
 '''
-def apply_custom_style(style, custom_properties, nesting_level=0):
-	for p_type, props in STYLE_PROPERTY_MAP.items():
-		props_list_by_type = style.getElementsByType(STYLE_PROPERTY_MAP[p_type])
-		if props_list_by_type is None or len(props_list_by_type) == 0:
-			klass = STYLE_PROPERTY_MAP[p_type]
-			obj = klass(attributes=custom_properties[p_type])
-			style.addElement(obj)
-		else:
-			props_by_type = props_list_by_type[0]	   
-			if p_type in custom_properties:
-				for attr, value in custom_properties[p_type].items():
-					trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
-					props_by_type.setAttribute(attr, value)
+def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting_level=0):
+	# the following elemnts are to be updated
+	font, pf = None, None
 
-
-
-''' update a style from a given spec
-'''
-def update_style(doc, style_key, style_spec, custom_styles, nesting_level=0):
-	custom_properties = parse_style_properties(style_spec=style_spec, nesting_level=nesting_level+1)
-
-	style_name = style_spec.get('name', None)
-	if style_name is None:
-		trace(f"custom style [{style_key}] added to style cache")
-		custom_styles[style_key] = custom_properties
-		return
-	
-	else:
+	# if style_name
+	if style_name:
 		style = get_style_by_name(doc=doc, style_name=style_name)
 		if style is None:
 			error(f"style [{style_name}] not found .. ")
 			return
 
 		# style exists, update with spec
-		trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+		font = style.font
+		pf = style.paragraph_format
 
-		# ParagraphStyle
-		if 'ParagraphStyle' in style_spec:
-			if 'font' in style_spec['ParagraphStyle']:
-				# ParagraphStyle - font
-				font = style.font
-				attr_dict = style_spec['ParagraphStyle']['font']
 
+	elif paragraph is not None:
+		font = paragraph.runs[0].font
+		pf = paragraph.paragraph_format
+
+
+	# now apply
+	# ParagraphStyle
+	if 'ParagraphStyle' in style_spec:
+		if 'font' in style_spec['ParagraphStyle']:
+			# ParagraphStyle - font
+			attr_dict = style_spec['ParagraphStyle']['font']
+
+			if font:
 				for attr, value in attr_dict.items():
 					# color needs special treatment
 					if attr == "color":
@@ -1439,20 +1440,50 @@ def update_style(doc, style_key, style_spec, custom_styles, nesting_level=0):
 
 			# ParagraphStyle - paragraph_format
 			if 'paragraph-format' in style_spec['ParagraphStyle']:
-				pf = style.paragraph_format
 				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
 				
-				for attr, value in attr_dict.items():
-					if hasattr(pf, attr):
-						setattr(pf, attr, value)
+				if pf:
+					for attr, value in attr_dict.items():
+						if hasattr(pf, attr):
+							setattr(pf, attr, value)
 
+	# borders
+	borders = {}
+	if 'borders' in style_spec:
+		if paragraph:
+			print(style_spec['borders'])
+			set_paragraph_border(paragraph=paragraph, borders=style_spec['borders'])
+
+
+
+''' process custom styles
+'''
+def process_custom_style(doc, style_spec, nesting_level=0):
+	custom_styles = {}
+	if style_spec:
+		trace(f"processing custom styles from conf/style-spec.yml", nesting_level=nesting_level)
+		parse_style_properties(style_spec, nesting_level=nesting_level+1)
+
+		# iterate and apply or store
+		for key, value in style_spec.items():
+			if value:
+				style_name = value.get('name', None)
+				if style_name:
+					trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
+					apply_custom_style(doc=doc, style_spec=value, style_name=style_name, nesting_level=nesting_level)
+					trace(f"customized  style [{style_name}]", nesting_level=nesting_level)
+
+				else:
+					trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
+					custom_styles[key] = value
+					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level)
+	
+	return custom_styles
 
 
 ''' parse style properties from yml to docx
 '''
 def parse_style_properties(style_spec, nesting_level=0):
-	custom_properties = {}
-
 	if style_spec:
 		for key, value in style_spec.items():
 			if isinstance(value, dict):
@@ -1462,14 +1493,14 @@ def parse_style_properties(style_spec, nesting_level=0):
 			else:	
 				if value and value != '':
 					if key in DOCX_ATTR_MAP_HINT:
-						trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level)
-						new_key, new_value = map_docx_attr(key, value, nesting_level=nesting_level)
-						trace(f"parsed to property [{new_key}] with value [{new_value}]", nesting_level=nesting_level)
+						trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
+						new_value = map_docx_attr(key, value, nesting_level=nesting_level)
+						trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
 						if new_value:
 							value = new_value
 
-						key = new_key
-						style_spec[new_key] = value
+						style_spec[key] = value
+
 				else:
 					# style_spec.pop(key, None)
 					pass
@@ -1493,8 +1524,10 @@ def str_to_size(str, what, nesting_level=0):
 			
 			if unit == 'pt':
 				return Pt(num)
-			if unit == 'pt':
+			
+			if unit == 'in':
 				return Inches(num)
+			
 			if unit == 'cm':
 				return Cm(num)
 
@@ -1509,36 +1542,82 @@ def str_to_size(str, what, nesting_level=0):
 	return Pt(float(num))
 
 
+''' convert strings like '1pt double #222222 0.25in' to border {"sz": , "val": , "color": , "space": , "shadow": }
+	size is in 1/8 pt units
+	val is any of dotted/dashed/single/thick/triple/double/none
+	space is space/padding between text and border in pt
+'''
+def str_to_border(str, what, nesting_level=0):
+	try:
+		# we are expecting at least four parts (sz, val, color, space)
+		sz, val, color, space = str.split()
+
+	except ValueError:
+		warn(f"[{str}] is not a valid {what} ... expecting four parts sz val color space", nesting_level=nesting_level+1)
+		return None
+
+	# sz
+	sz = str_to_size(str=sz, what=what, nesting_level=nesting_level)
+	if sz is not None:
+		sz = sz.pt * 8
+	else:
+		return None
+
+	# val
+	allowed_vals = ['dotted', 'dashed', 'single', 'thick', 'triple', 'double', 'none']
+	if val not in allowed_vals:
+		warn(f"[{val}] is not valid in {what} ... valid values are {allowed_vals}", nesting_level=nesting_level+1)
+		return None
+
+	# color
+	color = color.lstrip("#")
+	if not is_valid_hex(color, 6):
+		warn(f"[{color}] is not valid in {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
+		return None
+
+	# space
+	space = str_to_size(str=space, what=what, nesting_level=nesting_level)
+	if space:
+		space = space.pt
+	else:
+		return None
+	
+	return {"sz": int(sz), "val": val, "color": color, "space": int(space), "shadow": None}
+
+
+
 ''' conver rgb colors like '#RRGGBB' to RGBColor
 '''
 def rgb_from_hex(str, what, nesting_level=0):
     hexstr = str.lstrip("#")
-    return RGBColor(
-        int(hexstr[0:2], 16),
-        int(hexstr[2:4], 16),
-        int(hexstr[4:6], 16),
-    )
+    if is_valid_hex(hexstr, 6):
+        return RGBColor(int(hexstr[0:2], 16), int(hexstr[2:4], 16), int(hexstr[4:6], 16),)
+    else:
+    	warn(f"[{str}] is not a valid {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
+
+
+def is_valid_hex(str, digits):
+	pattern = rf'^[0-9a-fA-F]{{{digits}}}$'
+	return bool(re.fullmatch(pattern, str))
 
 
 def map_docx_attr(attr_key, attr_value, nesting_level=0):
 	
 	if attr_key in DOCX_ATTR_MAP_HINT:
-		mapper_dict = DOCX_ATTR_MAP_HINT[attr_key]
-		new_key = mapper_dict.get('new-key', attr_key)
-		obj = mapper_dict['mapper']
+		obj = DOCX_ATTR_MAP_HINT[attr_key]
 
 		# if the mapper is a dict
 		if isinstance(obj, dict):
-			trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level+1)
+			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
 			if attr_value in obj:
-				return new_key, obj[attr_value]
+				return obj[attr_value]
 			else:
-				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(obj.keys())}", nesting_level=nesting_level+1)
+				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(obj.keys())}", nesting_level=nesting_level)
 
 		# of the mapper is a function
 		if isinstance(obj, types.FunctionType):
-			trace(f"[{attr_key}] mapper is a function [{obj}]", nesting_level=nesting_level+1)
-			return new_key, obj(attr_value, what=attr_key, nesting_level=nesting_level)
+			# trace(f"[{attr_key}] mapper is a function [{obj}]", nesting_level=nesting_level)
+			return obj(attr_value, what=attr_key, nesting_level=nesting_level)
 		
 	return attr_key, attr_value
 			
@@ -1626,68 +1705,72 @@ DPI = 72
 
 STYLE_PROPERTY_MAP = {
 	"ParagraphStyle": 
-	[
-		{
-			"font":
-			[
-				"name",
-				"size",
-				"color",
-				"bold",
-				"italic",
-				"underline",
-				"strike",
-				"double_strike",
-				"highlight_color",
-				"all_caps",
-				"small_caps",
-				"subscript",
-				"superscript",
-				"complex_script",
-				"cs_bold",
-				"cs_italic",
-				"emboss",
-				"imprint",
-				"outline",
-				"shadow",
-			],
-		},
-		{
-			"paragraph_format":
-			[
-				# A member of the WD_PARAGRAPH_ALIGNMENT enumeration specifying the justification setting for this paragraph.
-				"alignment",
-				# Length value specifying the relative difference in indentation for the first line of the paragraph.
-				"first_line_indent",
-				# True if the paragraph should be kept “in one piece” and not broken across a page boundary when the document is rendered.
-				"keep_together",
-				"keep_with_next",
-				# Length value specifying the space between the left margin and the left side of the paragraph.
-				"left_indent",
-				# float or Length value specifying the space between baselines in successive lines of the paragraph.
-				"line_spacing",
-				# A member of the WD_LINE_SPACING enumeration indicating how the value of line_spacing should be interpreted.
-				"line_spacing_rule",
-				"page_break_before",
-				"right_indent",
-				# Length value specifying the spacing to appear between this paragraph and the subsequent paragraph.
-				"space_after",
-				# Length value specifying the spacing to appear between this paragraph and the prior paragraph.
-				"space_before",
-				# TabStops object providing access to the tab stops defined for this paragraph format
-				"tab_stops",
-				# True if the first and last lines in the paragraph remain on the same page as the rest of the paragraph when Word repaginates the document.
-				"widow_control",
-			],
-		}
-	],
+	{
+		"font":
+		[
+			"name",
+			"size",
+			"color",
+			"bold",
+			"italic",
+			"underline",
+			"strike",
+			"double_strike",
+			"highlight_color",
+			"all_caps",
+			"small_caps",
+			"subscript",
+			"superscript",
+			"complex_script",
+			"cs_bold",
+			"cs_italic",
+			"emboss",
+			"imprint",
+			"outline",
+			"shadow",
+		],
+		"paragraph_format":
+		[
+			# A member of the WD_PARAGRAPH_ALIGNMENT enumeration specifying the justification setting for this paragraph.
+			"alignment",
+			# Length value specifying the relative difference in indentation for the first line of the paragraph.
+			"first_line_indent",
+			# True if the paragraph should be kept “in one piece” and not broken across a page boundary when the document is rendered.
+			"keep_together",
+			"keep_with_next",
+			# Length value specifying the space between the left margin and the left side of the paragraph.
+			"left_indent",
+			# float or Length value specifying the space between baselines in successive lines of the paragraph.
+			"line_spacing",
+			# A member of the WD_LINE_SPACING enumeration indicating how the value of line_spacing should be interpreted.
+			"line_spacing_rule",
+			"page_break_before",
+			"right_indent",
+			# Length value specifying the spacing to appear between this paragraph and the subsequent paragraph.
+			"space_after",
+			# Length value specifying the spacing to appear between this paragraph and the prior paragraph.
+			"space_before",
+			# TabStops object providing access to the tab stops defined for this paragraph format
+			"tab_stops",
+			# True if the first and last lines in the paragraph remain on the same page as the rest of the paragraph when Word repaginates the document.
+			"widow_control",
+		],
+	},
 }
 
-
 DOCX_ATTR_MAP_HINT = {
-	'alignment': 		{'mapper': TEXT_HALIGN_MAP},
-	'size': 			{'mapper': str_to_size},
-	'color':			{'mapper': rgb_from_hex},
-	'backgroundcolor':	{'mapper': rgb_from_hex},
+	'color':			rgb_from_hex,
+	'highlight_color':	rgb_from_hex,
+	'backgroundcolor':	rgb_from_hex,
+	'alignment': 		TEXT_HALIGN_MAP,
+	'size': 			str_to_size,
+	'left_indent':      str_to_size,
+	'right_indent':     str_to_size,
+	'space_before':     str_to_size,
+	'space_after':    	str_to_size,
+	'start':            str_to_border,
+	'top':              str_to_border,
+	'end':              str_to_border,
+	'bottom':           str_to_border,
 }
 
