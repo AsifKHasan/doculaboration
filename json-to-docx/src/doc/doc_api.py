@@ -84,12 +84,12 @@ class DocxSectionBase(object):
 
         # headers and footers
         if new_section:
-            self.header_first = DocxPageHeaderFooter(content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-            self.header_odd   = DocxPageHeaderFooter(content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-            self.header_even  = DocxPageHeaderFooter(content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-            self.footer_first = DocxPageHeaderFooter(content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-            self.footer_odd   = DocxPageHeaderFooter(content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-            self.footer_even  = DocxPageHeaderFooter(content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+            self.header_first = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+            self.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+            self.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+            self.footer_first = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+            self.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+            self.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
         else:
             self.header_first = None
@@ -100,7 +100,7 @@ class DocxSectionBase(object):
             self.footer_even  = None
 
 
-        self.section_contents = DocxContent(content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
+        self.section_contents = DocxContent(doc=self._doc, content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
 
 
     ''' get section heading
@@ -162,7 +162,7 @@ class DocxSectionBase(object):
 
         heading_text, outline_level, style_name = self.get_heading()
         if heading_text:
-            paragraph = create_paragraph(container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
+            paragraph = create_paragraph(doc=self._doc, container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
 
             if self.heading_style:
                 if self.heading_style not in self._config['custom-styles']:
@@ -323,8 +323,9 @@ class DocxContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, nesting_level):
+    def __init__(self, doc, content_data, content_width, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        self._doc = doc
         self.content_data = content_data
         self.content_width = content_width
         self.nesting_level = nesting_level
@@ -382,6 +383,7 @@ class DocxContent(object):
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
                             new_row = Row(
+                                doc=self._doc, 
                                 row_num=r,
                                 row_data=row_data,
                                 section_width=self.content_width,
@@ -463,7 +465,7 @@ class DocxContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        next_cell_in_row = Cell(row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
+                        next_cell_in_row = Cell(doc=self._doc, row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -575,11 +577,11 @@ class DocxPageHeaderFooter(DocxContent):
         header_footer : header/footer
         odd_even      : first/odd/even(left)
     '''
-    def __init__(self, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
+    def __init__(self, doc, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         self.nesting_level = nesting_level
-        super().__init__(content_data=content_data, content_width=section_width, nesting_level=nesting_level)
+        super().__init__(doc=doc, content_data=content_data, content_width=section_width, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
@@ -715,7 +717,8 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
+    def __init__(self, doc, row_num, col_num, value, column_widths, row_height, nesting_level):
+        self._doc = doc
         self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
         self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.cell_name = self.cell_id
@@ -767,25 +770,25 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(doc=self._doc, effective_format=self.effective_format, content_value=self.value['contents'])
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], background=self.background)
+                    self.cell_value = ImageValue(doc=self._doc, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], background=self.background)
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, background=self.background)
+                        self.cell_value = TextRunValue(doc=self._doc, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, background=self.background)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = LatexValue(doc=self._doc, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
@@ -848,7 +851,8 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, section_width, column_widths, row_height, nesting_level):
+    def __init__(self, doc, row_num, row_data, section_width, column_widths, row_height, nesting_level):
+        self._doc = doc
         self.row_num, self.section_width, self.column_widths, self.row_height, self.nesting_level = row_num, section_width, column_widths, row_height, nesting_level
         self.row_name = f"row: [{self.row_num+1}]"
 
@@ -857,7 +861,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
+                self.cells.append(Cell(doc=self._doc, row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
                 c = c + 1
 
 
@@ -1024,7 +1028,8 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, background, nesting_level=0, outline_level=0):
+    def __init__(self, doc, effective_format, background, nesting_level=0, outline_level=0):
+        self._doc = doc
         self.effective_format = effective_format
         self.background = background
         self.nesting_level = nesting_level
@@ -1037,8 +1042,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0, directives=True):
-        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, doc, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0, directives=True):
+        super().__init__(doc=doc, effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
 
         if formatted_value:
             self.value = formatted_value
@@ -1061,7 +1066,7 @@ class StringValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
+        paragraph = create_paragraph(doc=self._doc, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives)
         return paragraph
 
 
@@ -1071,8 +1076,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, doc, effective_format, string_value, formatted_value, background, nesting_level=0, outline_level=0):
+        super().__init__(doc=doc, effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1092,7 +1097,7 @@ class LatexValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, bookmark=bookmark)
+        paragraph = create_paragraph(doc=self._doc, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, background=self.background, outline_level=self.outline_level, bookmark=bookmark)
         create_latex(container=paragraph, latex_content=self.value)
 
         return paragraph
@@ -1104,8 +1109,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, background, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, doc, effective_format, text_format_runs, formatted_value, background, nesting_level=0, outline_level=0):
+        super().__init__(doc=doc, effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1127,7 +1132,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(container=container, run_list=run_value_list, background=self.background, footnote_list=footnote_list, bookmark=bookmark)
+        paragraph = create_paragraph(doc=self._doc, container=container, run_list=run_value_list, background=self.background, footnote_list=footnote_list, bookmark=bookmark)
         return paragraph
 
 
@@ -1137,8 +1142,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value, background, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, doc, effective_format, image_value, background, nesting_level=0, outline_level=0):
+        super().__init__(doc=doc, effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1179,8 +1184,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value, background, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, doc, effective_format, content_value, background, nesting_level=0, outline_level=0):
+        super().__init__(doc=doc, effective_format=effective_format, background=background, nesting_level=nesting_level, outline_level=outline_level)
         self.value = content_value
 
 

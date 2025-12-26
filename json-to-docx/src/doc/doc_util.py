@@ -20,12 +20,9 @@ import xml.dom.minidom
 
 
 from docx import Document, section, document, table
-from docx.text.paragraph import Paragraph
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
-from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 
@@ -475,7 +472,7 @@ def create_hyperlink(attach_to, anchor, target):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True):
+def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -506,10 +503,10 @@ def create_paragraph(container, text_content=None, run_list=None, paragraph_attr
 	if run_list is not None:
 		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
-			process_inline_blocks(paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list)
+			process_inline_blocks(doc=doc, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list)
 
 	elif text_content is not None:
-		process_inline_blocks(paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
+		process_inline_blocks(doc=doc, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
 
 
 	# bookmark
@@ -563,7 +560,7 @@ def delete_paragraph(paragraph):
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
-def process_inline_blocks(paragraph, text_content, text_attributes, footnote_list):
+def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnote_list):
 	# process FN{...} first, we get a list of block dicts
 	inline_blocks = process_footnotes(
 		text_content=text_content, footnote_list=footnote_list
@@ -612,7 +609,8 @@ def process_inline_blocks(paragraph, text_content, text_attributes, footnote_lis
 			set_text_style(run=run, text_attributes=text_attributes)
 
 		elif "fn" in inline_block:
-			create_footnote(paragraph=paragraph, footnote_tuple=inline_block["fn"])
+			create_footnote_bayoo(paragraph=paragraph, footnote_tuple=inline_block["fn"])
+			# create_footnote(doc=doc, paragraph=paragraph, footnote_tuple=inline_block["fn"])
 
 		elif "latex" in inline_block:
 			run = paragraph.add_run()
@@ -785,7 +783,35 @@ def process_links(text_content):
 
 ''' create a footnote
 '''
-def create_footnote(paragraph, footnote_tuple):
+def create_footnote(doc, paragraph, footnote_tuple):
+	# create footnote reference
+	r = paragraph.add_run()._r
+	fn_ref = OxmlElement('w:footnoteReference')
+	fn_ref.set(qn('w:id'), footnote_tuple[0])
+	r.append(fn_ref)
+
+	# access footnotes part
+	footnotes_part = doc.part._footnotes_part
+
+	# create footnote
+	fn = OxmlElement('w:footnote')
+	fn.set(qn('w:id'), footnote_tuple[0])
+
+	p_fn = OxmlElement('w:p')
+	r_fn = OxmlElement('w:r')
+	t_fn = OxmlElement('w:t')
+	t_fn.text = footnote_tuple[1]
+
+	r_fn.append(t_fn)
+	p_fn.append(r_fn)
+	fn.append(p_fn)
+
+	footnotes_part._element.append(fn)
+
+
+''' create a footnote
+'''
+def create_footnote_bayoo(paragraph, footnote_tuple):
 	paragraph.add_footnote(footnote_tuple[1])
 
 
