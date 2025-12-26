@@ -20,6 +20,7 @@
     'font.weight.fontweight':       'bold'
 
   'paragraph-properties':
+    'textalign':                    'center'
     'backgroundcolor':              '#D8D8D8'
 
     'border':
@@ -34,10 +35,11 @@
     'border.borderlinewidthtop':    ''
 
     'margin.marginleft':            '1.0in'
+    'margin.margintop':             '1.0in'
     'margin.marginright':           '1.0in'
-    'margin.margintop':             '3.0in'
-    'padding.paddingbottom':        '0.25in'
+    'margin.marginbottom':          '1.0in'
+
     'padding.paddingleft':          '0.25in'
-    'padding.paddingright':         '0.25in'
     'padding.paddingtop':           '0.25in'
-    'textalign':                    'center'
+    'padding.paddingright':         '0.25in'
+    'padding.paddingbottom':        '0.25in'

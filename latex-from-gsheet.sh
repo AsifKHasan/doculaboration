@@ -5,7 +5,7 @@
 DOCUMENT=$1
 
 # set echo off
-PYTHON=python3
+PYTHON=python
 
 # json-from-gsheet
 pushd ./gsheet-to-json/src

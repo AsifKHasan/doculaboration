@@ -27,6 +27,13 @@ class OdtHelper(object):
     def generate_and_save(self, section_list):
         self.start_time = int(round(time.time() * 1000))
 
+        # font specs
+        trace(f"registering fonts from conf/font-spec.yml")
+        if 'font-specs' in self._config:
+            for k, v in self._config['font-specs'].items():
+                if k != 'default':
+                    register_font(odt=self._odt, font_name=k, font_spec=v, nesting_level=0)
+
         # override styles
         trace(f"processing custom styles from conf/style-spec.yml")
         self._config['custom-styles'] = {}

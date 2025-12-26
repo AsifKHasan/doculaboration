@@ -54,6 +54,13 @@ class OdtFromJson(object):
 		page_spec_file = config_dir / 'page-specs.yml'
 		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
+		# font specs
+		font_spec_file = config_dir / 'font-specs.yml'
+		if Path.exists(font_spec_file):
+			self._CONFIG['font-specs'] = yaml.load(open(font_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+		else:
+			warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register")
+
 		# style specs
 		style_spec_file = config_dir / 'style-specs.yml'
 		if Path.exists(page_spec_file):

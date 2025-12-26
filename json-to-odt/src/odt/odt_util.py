@@ -11,7 +11,7 @@ import importlib
 
 from pathlib import Path
 from odf import style, text, draw, table
-from odf.style import Style, TextProperties, ParagraphProperties, PageLayout, MasterPage, Header, HeaderLeft, Footer, FooterLeft
+from odf.style import Style, TextProperties, ParagraphProperties, PageLayout, MasterPage, Header, HeaderLeft, Footer, FooterLeft, FontFace
 from odf.element import Element
 from namespaces import MATHNS
 from odf.namespaces import DRAWNS
@@ -1054,6 +1054,15 @@ def strip_math_mode_delimeters(latex_content):
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ODT specific utility functions
+
+''' registers a font in the document
+'''
+def register_font(odt, font_name, font_spec, nesting_level=0):
+    font_family = font_spec
+    trace(f"registering font [{font_name}] family [{font_spec}]", nesting_level=nesting_level+1)
+    the_font = FontFace(name=font_name, fontfamily=font_family)
+    odt.fontfacedecls.addElement(the_font)
+
 
 ''' return the style if exists
 '''
