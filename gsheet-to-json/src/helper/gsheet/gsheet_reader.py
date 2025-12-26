@@ -27,12 +27,16 @@ TOC_COLUMNS = {
   "break" : {"availability": "must"},
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
+
   "landscape" : {"availability": "preferred"},
   "heading-style" : {"availability": "preferred"},
-  "page-list" : {"availability": "preferred"},
   "bookmark" : {"availability": "preferred"},
+
+  "jpeg-quality" : {"availability": "preferred"},
+  "page-list" : {"availability": "preferred"},
   "autocrop" : {"availability": "preferred"},
   "page-bg" : {"availability": "preferred"},
+ 
   "hide-heading" : {"availability": "preferred"},
   "header-first" : {"availability": "preferred"},
   "header-odd" : {"availability": "preferred"},
@@ -58,13 +62,16 @@ link_column = None
 break_column = None
 page_spec_column = None
 margin_spec_column = None
+
 landscape_column = None
 heading_style_column = None
-page_list = None
 bookmark_column = None
+
+jpeg_quality_column = None
+page_list_column = None
 autocrop_column = None
 page_bg_column = None
-hide_pageno_column = None
+
 hide_heading_column = None
 header_first_column = None
 header_odd_column = None
@@ -99,7 +106,6 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
         for ws_title in context['index-worksheet']:
             try:
                 index_ws = gsheet.worksheet('title', ws_title)
-                
                 if index_ws:
                     break
 
@@ -159,7 +165,7 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
         exit(-1)
 
     global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, page_spec_column, margin_spec_column
-    global landscape_column, heading_style_column, page_list_column, bookmark_column, autocrop_column, page_bg_column, hide_pageno_column, hide_heading_column
+    global landscape_column, heading_style_column, bookmark_column, jpeg_quality_column, page_list_column, autocrop_column, page_bg_column, hide_heading_column
     global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
     global override_header_column, override_footer_column, background_image_column
     global responsible_column, reviewer_column,status_column, comment_column
@@ -173,22 +179,30 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
     page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
     margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
+
     landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
     heading_style_column = TOC_COLUMNS['heading-style']['column'] if 'heading-style' in TOC_COLUMNS and 'column' in TOC_COLUMNS['heading-style'] else None
-    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
     bookmark_column = TOC_COLUMNS['bookmark']['column'] if 'bookmark' in TOC_COLUMNS and 'column' in TOC_COLUMNS['bookmark'] else None
+
+    jpeg_quality_column = TOC_COLUMNS['jpeg-quality']['column'] if 'jpeg-quality' in TOC_COLUMNS and 'column' in TOC_COLUMNS['jpeg-quality'] else None
+    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
     autocrop_column = TOC_COLUMNS['autocrop']['column'] if 'autocrop' in TOC_COLUMNS and 'column' in TOC_COLUMNS['autocrop'] else None
     page_bg_column = TOC_COLUMNS['page-bg']['column'] if 'page-bg' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-bg'] else None
+
     hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
     header_first_column = TOC_COLUMNS['header-first']['column'] if 'header-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-first'] else None
+
     header_odd_column = TOC_COLUMNS['header-odd']['column'] if 'header-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-odd'] else None
     header_even_column = TOC_COLUMNS['header-even']['column'] if 'header-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-even'] else None
     footer_first_column = TOC_COLUMNS['footer-first']['column'] if 'footer-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-first'] else None
     footer_odd_column = TOC_COLUMNS['footer-odd']['column'] if 'footer-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-odd'] else None
     footer_even_column = TOC_COLUMNS['footer-even']['column'] if 'footer-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-even'] else None
+
     override_header_column = TOC_COLUMNS['override-header']['column'] if 'override-header' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-header'] else None
     override_footer_column = TOC_COLUMNS['override-footer']['column'] if 'override-footer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-footer'] else None
+
     background_image_column = TOC_COLUMNS['background-image']['column'] if 'background-image' in TOC_COLUMNS and 'column' in TOC_COLUMNS['background-image'] else None
+
     responsible_column = TOC_COLUMNS['responsible']['column'] if 'responsible' in TOC_COLUMNS and 'column' in TOC_COLUMNS['responsible'] else None
     reviewer_column = TOC_COLUMNS['reviewer']['column'] if 'reviewer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['reviewer'] else None
     status_column = TOC_COLUMNS['status']['column'] if 'status' in TOC_COLUMNS and 'column' in TOC_COLUMNS['status'] else None
@@ -262,14 +276,18 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
             'landscape'             : True if landscape_column is not None and toc[landscape_column] == "Yes" else False,
             'heading-style'         : toc[heading_style_column] if heading_style_column is not None else '',
-            'page-list'             : toc[page_list_column] if page_list_column is not None else '',
 			'bookmark'           	: {toc[bookmark_column].strip(): f"{str(toc[section_column])} {toc[heading_column]}".strip()} if bookmark_column is not None else None,
+
+            'jpeg-quality'          : toc[jpeg_quality_column] if jpeg_quality_column is not None else '',
+            'page-list'             : toc[page_list_column] if page_list_column is not None else '',
             'autocrop'              : True if autocrop_column is not None and toc[autocrop_column] == "Yes" else False,
             'page-bg'               : True if page_bg_column is not None and toc[page_bg_column] == "Yes" else False,
+
             'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
             'override-header'       : True if override_header_column is not None and toc[override_header_column] == "Yes" else False,
             'override-footer'       : True if override_footer_column is not None and toc[override_footer_column] == "Yes" else False,
             'background-image'      : toc[background_image_column].strip() if background_image_column is not None else '',
+
             'responsible'           : toc[responsible_column].strip() if responsible_column is not None else '',
             'reviewer'              : toc[reviewer_column].strip() if reviewer_column is not None else '',
             'status'                : toc[status_column].strip() if status_column is not None else '',

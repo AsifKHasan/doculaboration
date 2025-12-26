@@ -29,7 +29,7 @@ from docx.oxml.ns import nsdecls
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Pt, Cm, Inches, RGBColor, Emu
 
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_BREAK
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
@@ -242,7 +242,7 @@ def format_container(container, attributes, it_is_a_table_cell):
 			set_paragraph_border(where=container._p, borders=attributes['borders'])
 
 		if 'backgroundcolor' in attributes:
-			set_paragraph_bgcolor(container, color=attributes['backgroundcolor'])
+			set_paragraph_bgcolor(where=container._element, color=attributes['backgroundcolor'])
 
 		if 'textalign' in attributes:
 			container.alignment = attributes['textalign']
@@ -341,9 +341,9 @@ def set_cell_bgcolor(cell: table._Cell, color):
 
 ''' set paragraph bgcolor
 '''
-def set_paragraph_bgcolor(paragraph, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
-	paragraph._p.get_or_add_pPr().append(shading_elm_1)
+def set_paragraph_bgcolor(element, color):
+	shd = parse_xml(f'<w:shd {qn("w:val")}="clear" {qn("w:color")}="auto" {qn("w:fill")}="{color}"/>')
+	element.get_or_add_pPr().append(shd)
 
 
 ''' set table-cell borders
@@ -1414,13 +1414,13 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 		# style exists, update with spec
 		font = style.font
 		pf = style.paragraph_format
-		border_around = style._element
+		element = style._element
 
 
 	elif paragraph is not None:
 		font = paragraph.runs[0].font
 		pf = paragraph.paragraph_format
-		border_around = paragraph._p
+		element = paragraph._p
 
 
 	# now apply
@@ -1453,8 +1453,13 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 
 	# borders
 	if 'borders' in style_spec:
-		if border_around:
-			set_paragraph_border(where=border_around, borders=style_spec['borders'])
+		if element:
+			set_paragraph_border(where=element, borders=style_spec['borders'])
+
+	# backgroundcolor
+	if 'backgroundcolor' in style_spec:
+		if element:
+			set_paragraph_bgcolor(where=element, color=style_spec['backgroundcolor'])
 
 
 
@@ -1507,6 +1512,10 @@ def parse_style_properties(style_spec, nesting_level=0):
 					# style_spec.pop(key, None)
 					pass
 
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# various utility functions
 
 ''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
 '''
@@ -1585,7 +1594,6 @@ def str_to_border(str, what, nesting_level=0):
 		return None
 	
 	return {"sz": int(sz), "val": val, "color": color, "space": int(space), "shadow": None}
-
 
 
 ''' conver rgb colors like '#RRGGBB' to RGBColor
@@ -1671,10 +1679,10 @@ TEXT_VALIGN_MAP = {
 
 
 TEXT_HALIGN_MAP = {
-	'LEFT': WD_ALIGN_PARAGRAPH.LEFT,
-	'CENTER': WD_ALIGN_PARAGRAPH.CENTER,
-	'RIGHT': WD_ALIGN_PARAGRAPH.RIGHT,
-	'JUSTIFY': WD_ALIGN_PARAGRAPH.JUSTIFY
+	'LEFT': WD_PARAGRAPH_ALIGNMENT.LEFT,
+	'CENTER': WD_PARAGRAPH_ALIGNMENT.CENTER,
+	'RIGHT': WD_PARAGRAPH_ALIGNMENT.RIGHT,
+	'JUSTIFY': WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 }
 
 

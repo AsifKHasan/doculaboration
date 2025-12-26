@@ -57,8 +57,20 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
             # print(p_lists)
 
             try:
-                # split pages into images
-                all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
+                # split pages into images, jpeg_quality to be considered
+                jpeg_quality = section_data['section-prop']['jpeg-quality'].strip()
+                if jpeg_quality is None or jpeg_quality == '':
+                    jpeg_quality = JPEG_QUALITY_DEFAULT
+                    trace(f"jpeg-quality not specified explicitly .. using default value [{JPEG_QUALITY_DEFAULT}]")
+                else:
+                    try:
+                        jpeg_quality = int(jpeg_quality)
+                    except:
+                        warn(f"specified jpeg-quality [{jpeg_quality}] is not valid .. should be a number between 1-100 .. using default value [{JPEG_QUALITY_DEFAULT}]")
+                        jpeg_quality = JPEG_QUALITY_DEFAULT
+
+                jpegopt = {'quality': jpeg_quality, 'progressive': True, 'optimize': True}
+                all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, jpegopt=jpegopt, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
                 
                 images = []
                 if len(p_lists) == 0:
