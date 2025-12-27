@@ -236,10 +236,10 @@ def format_container(container, attributes, it_is_a_table_cell):
 
 	else:
 		if 'borders' in attributes:
-			set_paragraph_border(where=container._p, borders=attributes['borders'])
+			set_paragraph_border(element=container._p, borders=attributes['borders'])
 
 		if 'backgroundcolor' in attributes:
-			set_paragraph_bgcolor(where=container._element, color=attributes['backgroundcolor'])
+			set_paragraph_bgcolor(element=container._element, color=attributes['backgroundcolor'])
 
 		if 'textalign' in attributes:
 			container.alignment = attributes['textalign']
@@ -286,8 +286,8 @@ def set_cell_border(cell: table._Cell, borders):
 	val is any of dotted/dashed/single/thick/triple/double/none
 	space is space/padding between text and border in pt
 '''
-def set_paragraph_border(where, borders):
-	pPr = where.get_or_add_pPr()
+def set_paragraph_border(element, borders):
+	pPr = element.get_or_add_pPr()
 
 
 	# check for tag existnace, if none found, then create one
@@ -332,15 +332,25 @@ def set_paragraph_border(where, borders):
 ''' set table-cell bgcolor
 '''
 def set_cell_bgcolor(cell: table._Cell, color):
-	shading_elm_1 = parse_xml(r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color))
+	xml = r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color)
+	print(xml)
+	shading_elm_1 = parse_xml(xml)
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
 
 ''' set paragraph bgcolor
 '''
 def set_paragraph_bgcolor(element, color):
-	shd = parse_xml(f'<w:shd {qn("w:val")}="clear" {qn("w:color")}="auto" {qn("w:fill")}="{color}"/>')
-	element.get_or_add_pPr().append(shd)
+	shading = OxmlElement('w:shd')
+
+	# required
+	shading.set(qn('w:val'), 'clear')
+	# text color
+	shading.set(qn('w:color'), 'auto')
+	# background color (hex, no #)	
+	shading.set(qn('w:fill'), color.lstrip('#'))
+
+	element.get_or_add_pPr().append(shading)
 
 
 ''' set table-cell borders
@@ -1480,12 +1490,12 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 	# borders
 	if 'borders' in style_spec:
 		if element:
-			set_paragraph_border(where=element, borders=style_spec['borders'])
+			set_paragraph_border(element=element, borders=style_spec['borders'])
 
 	# backgroundcolor
 	if 'backgroundcolor' in style_spec:
 		if element:
-			set_paragraph_bgcolor(where=element, color=style_spec['backgroundcolor'])
+			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
 
 
 

@@ -770,7 +770,7 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(doc=self._doc, effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(doc=self._doc, effective_format=self.effective_format, content_value=self.value['contents'], background=self.background)
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
@@ -1199,7 +1199,7 @@ class ContentValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}):
-        self.contents = DocxContent(content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
+        self.contents = DocxContent(doc=self._doc, content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
         self.contents.content_to_doc(container=container)
         return None
 
