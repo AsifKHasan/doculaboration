@@ -836,7 +836,14 @@ class Cell(object):
     '''
     def decorate_cell(self):
         # if self.cell_value:
-        table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
+        if self.note:
+            force_halign = self.note.force_halign
+            angle = self.note.angle
+        else:
+            force_halign = False
+            angle = 0
+
+        table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
         format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
 
     ''' Copy format from the cell passed
@@ -936,7 +943,10 @@ class Row(object):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return self.cells[0].note.free_content
+                if self.cells[0].note:
+                    return self.cells[0].note.free_content
+                else:
+                    return False
             else:
                 return False
         else:
@@ -948,7 +958,10 @@ class Row(object):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return (self.cells[0].note.header_rows > 0)
+                if self.cells[0].note:
+                    return (self.cells[0].note.header_rows > 0)
+                else:
+                    return False
             else:
                 return False
         else:
@@ -1238,7 +1251,7 @@ class CellFormat(object):
 
     ''' attributes dict for TableCellProperties
     '''
-    def table_cell_attributes(self, cell_merge_spec, force_halign, angle=0):
+    def table_cell_attributes(self, cell_merge_spec, force_halign=False, angle=0):
         attributes = {}
 
         if force_halign:

@@ -1039,7 +1039,10 @@ class Row(object):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return self.cells[0].note.free_content
+                if self.cells[0].note:
+                    return self.cells[0].note.free_content
+                else:
+                    return False
             else:
                 return False
         else:
@@ -1052,7 +1055,10 @@ class Row(object):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
-                return (self.cells[0].note.header_rows > 0)
+                if self.cells[0].note:
+                    return (self.cells[0].note.header_rows > 0)
+                else:
+                    return False
             else:
                 return False
         else:
