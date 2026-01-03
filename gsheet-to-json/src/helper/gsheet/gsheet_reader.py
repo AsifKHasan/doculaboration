@@ -9,6 +9,7 @@ import importlib
 import pygsheets
 
 import urllib.request
+from copy import deepcopy
 
 from helper.logger import *
 from helper.gsheet.gsheet_util import *
@@ -17,7 +18,7 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
-TOC_COLUMNS = {
+MASTER_TOC_COLUMNS = {
   "section" : {"availability": "must"},
   "heading" : {"availability": "must"},
   "process" : {"availability": "must"},
@@ -28,64 +29,30 @@ TOC_COLUMNS = {
   "page-spec" : {"availability": "must"},
   "margin-spec" : {"availability": "must"},
 
-  "landscape" : {"availability": "preferred"},
-  "heading-style" : {"availability": "preferred"},
-  "bookmark" : {"availability": "preferred"},
+  "landscape" : {"availability": "preferred", "value-if-missing": ""},
+  "heading-style" : {"availability": "preferred", "value-if-missing": ""},
+  "bookmark" : {"availability": "preferred", "value-if-missing": ""},
 
-  "jpeg-quality" : {"availability": "preferred"},
-  "page-list" : {"availability": "preferred"},
-  "autocrop" : {"availability": "preferred"},
-  "page-bg" : {"availability": "preferred"},
+  "jpeg-quality" : {"availability": "preferred", "value-if-missing": '90'},
+  "page-list" : {"availability": "preferred", "value-if-missing": ""},
+  "autocrop" : {"availability": "preferred", "value-if-missing": False},
+  "page-bg" : {"availability": "preferred", "value-if-missing": False},
  
-  "hide-heading" : {"availability": "preferred"},
-  "header-first" : {"availability": "preferred"},
-  "header-odd" : {"availability": "preferred"},
-  "header-even" : {"availability": "preferred"},
-  "footer-first" : {"availability": "preferred"},
-  "footer-odd" : {"availability": "preferred"},
-  "footer-even" : {"availability": "preferred"},
-  "override-header" : {"availability": "preferred"},
-  "override-footer" : {"availability": "preferred"},
-  "background-image" : {"availability": "preferred"},
-  "responsible" : {"availability": "preferred"},
-  "reviewer" : {"availability": "preferred"},
-  "status" : {"availability": "preferred"},
-  "comment" : {"availability": "preferred"},
+  "hide-heading" : {"availability": "preferred", "value-if-missing": False},
+  "header-first" : {"availability": "preferred", "value-if-missing": ""},
+  "header-odd" : {"availability": "preferred", "value-if-missing": ""},
+  "header-even" : {"availability": "preferred", "value-if-missing": ""},
+  "footer-first" : {"availability": "preferred", "value-if-missing": ""},
+  "footer-odd" : {"availability": "preferred", "value-if-missing": ""},
+  "footer-even" : {"availability": "preferred", "value-if-missing": ""},
+  "override-header" : {"availability": "preferred", "value-if-missing": False},
+  "override-footer" : {"availability": "preferred", "value-if-missing": False},
+  "background-image" : {"availability": "preferred", "value-if-missing": ""},
+  "responsible" : {"availability": "preferred", "value-if-missing": ""},
+  "reviewer" : {"availability": "preferred", "value-if-missing": ""},
+  "status" : {"availability": "preferred", "value-if-missing": ""},
+  "comment" : {"availability": "preferred", "value-if-missing": ""},
 }
-
-section_column = None
-heading_column = None
-process_column = None
-level_column = None
-content_type_column = None
-link_column = None
-break_column = None
-page_spec_column = None
-margin_spec_column = None
-
-landscape_column = None
-heading_style_column = None
-bookmark_column = None
-
-jpeg_quality_column = None
-page_list_column = None
-autocrop_column = None
-page_bg_column = None
-
-hide_heading_column = None
-header_first_column = None
-header_odd_column = None
-header_even_column = None
-footer_first_column = None
-footer_odd_column = None
-footer_even_column = None
-override_header_column = None
-override_footer_column = None
-background_image_column = None
-responsible_column = None
-reviewer_column = None
-status_column = None
-comment_column = None
 
 def process_gsheet(context, gsheet, parent, current_document_index, nesting_level):
     data = {'sections': []}
@@ -132,6 +99,9 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     last_column = COLUMNS[index_ws.cols-1]
     toc_list = index_ws.get_values(start='A2', end=f"{last_column}{index_ws.rows}", returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False, value_render='FORMULA')
 
+    # make a deep copy of MASTER_TOC_COLUMNS for this gsheet
+    TOC_COLUMNS = deepcopy(MASTER_TOC_COLUMNS)
+
     # the first item is the heading for all columns which says what data is in which column
     header_list = toc_list[0]
     header_column_index = 0
@@ -151,7 +121,7 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     failed = False
     for toc_column_key, toc_column_value in TOC_COLUMNS.items():
         if 'column' in toc_column_value:
-            trace(f"header [{toc_column_key:<20}], which is [{toc_column_value['availability']}] found in column [{COLUMNS[toc_column_value['column']]:>2}]", nesting_level=nesting_level)
+            trace(f"header [{toc_column_key:<20}], which is [{toc_column_value['availability']}] found in column [{COLUMNS[toc_column_value.get('column')]:>2}]", nesting_level=nesting_level)
 
         else:
             if toc_column_value['availability'] == 'must':
@@ -164,74 +134,30 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
-    global section_column, heading_column, process_column, level_column, content_type_column, link_column, break_column, page_spec_column, margin_spec_column
-    global landscape_column, heading_style_column, bookmark_column, jpeg_quality_column, page_list_column, autocrop_column, page_bg_column, hide_heading_column
-    global header_first_column, header_odd_column, header_even_column, footer_first_column, footer_odd_column, footer_even_column
-    global override_header_column, override_footer_column, background_image_column
-    global responsible_column, reviewer_column,status_column, comment_column
-
-    section_column = TOC_COLUMNS['section']['column'] if 'section' in TOC_COLUMNS and 'column' in TOC_COLUMNS['section'] else None
-    heading_column = TOC_COLUMNS['heading']['column'] if 'heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['heading'] else None
-    process_column = TOC_COLUMNS['process']['column'] if 'process' in TOC_COLUMNS and 'column' in TOC_COLUMNS['process'] else None
-    level_column = TOC_COLUMNS['level']['column'] if 'level' in TOC_COLUMNS and 'column' in TOC_COLUMNS['level'] else None
-    content_type_column = TOC_COLUMNS['content-type']['column'] if 'content-type' in TOC_COLUMNS and 'column' in TOC_COLUMNS['content-type'] else None
-    link_column = TOC_COLUMNS['link']['column'] if 'link' in TOC_COLUMNS and 'column' in TOC_COLUMNS['link'] else None
-    break_column = TOC_COLUMNS['break']['column'] if 'break' in TOC_COLUMNS and 'column' in TOC_COLUMNS['break'] else None
-    page_spec_column = TOC_COLUMNS['page-spec']['column'] if 'page-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-spec'] else None
-    margin_spec_column = TOC_COLUMNS['margin-spec']['column'] if 'margin-spec' in TOC_COLUMNS and 'column' in TOC_COLUMNS['margin-spec'] else None
-
-    landscape_column = TOC_COLUMNS['landscape']['column'] if 'landscape' in TOC_COLUMNS and 'column' in TOC_COLUMNS['landscape'] else None
-    heading_style_column = TOC_COLUMNS['heading-style']['column'] if 'heading-style' in TOC_COLUMNS and 'column' in TOC_COLUMNS['heading-style'] else None
-    bookmark_column = TOC_COLUMNS['bookmark']['column'] if 'bookmark' in TOC_COLUMNS and 'column' in TOC_COLUMNS['bookmark'] else None
-
-    jpeg_quality_column = TOC_COLUMNS['jpeg-quality']['column'] if 'jpeg-quality' in TOC_COLUMNS and 'column' in TOC_COLUMNS['jpeg-quality'] else None
-    page_list_column = TOC_COLUMNS['page-list']['column'] if 'page-list' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-list'] else None
-    autocrop_column = TOC_COLUMNS['autocrop']['column'] if 'autocrop' in TOC_COLUMNS and 'column' in TOC_COLUMNS['autocrop'] else None
-    page_bg_column = TOC_COLUMNS['page-bg']['column'] if 'page-bg' in TOC_COLUMNS and 'column' in TOC_COLUMNS['page-bg'] else None
-
-    hide_heading_column = TOC_COLUMNS['hide-heading']['column'] if 'hide-heading' in TOC_COLUMNS and 'column' in TOC_COLUMNS['hide-heading'] else None
-    header_first_column = TOC_COLUMNS['header-first']['column'] if 'header-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-first'] else None
-
-    header_odd_column = TOC_COLUMNS['header-odd']['column'] if 'header-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-odd'] else None
-    header_even_column = TOC_COLUMNS['header-even']['column'] if 'header-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['header-even'] else None
-    footer_first_column = TOC_COLUMNS['footer-first']['column'] if 'footer-first' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-first'] else None
-    footer_odd_column = TOC_COLUMNS['footer-odd']['column'] if 'footer-odd' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-odd'] else None
-    footer_even_column = TOC_COLUMNS['footer-even']['column'] if 'footer-even' in TOC_COLUMNS and 'column' in TOC_COLUMNS['footer-even'] else None
-
-    override_header_column = TOC_COLUMNS['override-header']['column'] if 'override-header' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-header'] else None
-    override_footer_column = TOC_COLUMNS['override-footer']['column'] if 'override-footer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['override-footer'] else None
-
-    background_image_column = TOC_COLUMNS['background-image']['column'] if 'background-image' in TOC_COLUMNS and 'column' in TOC_COLUMNS['background-image'] else None
-
-    responsible_column = TOC_COLUMNS['responsible']['column'] if 'responsible' in TOC_COLUMNS and 'column' in TOC_COLUMNS['responsible'] else None
-    reviewer_column = TOC_COLUMNS['reviewer']['column'] if 'reviewer' in TOC_COLUMNS and 'column' in TOC_COLUMNS['reviewer'] else None
-    status_column = TOC_COLUMNS['status']['column'] if 'status' in TOC_COLUMNS and 'column' in TOC_COLUMNS['status'] else None
-    comment_column = TOC_COLUMNS['comment']['column'] if 'comment' in TOC_COLUMNS and 'column' in TOC_COLUMNS['comment'] else None
-
-    toc_list = [toc for toc in toc_list[1:] if toc[process_column] == 'Yes' and toc[level_column] in [0, 1, 2, 3, 4, 5, 6]]
+    toc_list = [toc for toc in toc_list[1:] if toc[TOC_COLUMNS['process'].get('column')] == 'Yes' and toc[TOC_COLUMNS['level'].get('column')] in [0, 1, 2, 3, 4, 5, 6]]
 
     section_index = 0
     for toc in toc_list:
-        data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=current_document_index, section_index=section_index, parent=parent, nesting_level=nesting_level))
+        data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=current_document_index, section_index=section_index, parent=parent, TOC_COLUMNS=TOC_COLUMNS, nesting_level=nesting_level))
         section_index = section_index + 1
 
     return data
 
 
-def process_section(context, gsheet, toc, current_document_index, section_index, parent, nesting_level):
+def process_section(context, gsheet, toc, current_document_index, section_index, parent, TOC_COLUMNS, nesting_level):
     # TODO: some columns may have formula, parse those
-    # link column (F, toc[link_column] may be a formula), parse it
-    if toc[content_type_column] in ['gsheet', 'pdf']:
-        link_name, link_target = get_gsheet_link(toc[link_column], nesting_level=nesting_level)
+    # link column (link) may be a formula, parse it
+    if toc[TOC_COLUMNS['content-type'].get('column')] in ['gsheet', 'pdf']:
+        link_name, link_target = get_gsheet_link(toc[TOC_COLUMNS['link'].get('column')], nesting_level=nesting_level)
         worksheet_name = link_name
 
-    elif toc[content_type_column] == 'table':
-        link_name, link_target = get_worksheet_link(toc[link_column], nesting_level=nesting_level), None
+    elif toc[TOC_COLUMNS['content-type'].get('column')] == 'table':
+        link_name, link_target = get_worksheet_link(toc[TOC_COLUMNS['link'].get('column')], nesting_level=nesting_level), None
         worksheet_name = link_name
 
     else:
-        link_name, link_target = toc[link_column], None
-        worksheet_name = toc[content_type_column]
+        link_name, link_target = toc[TOC_COLUMNS['link'].get('column')], None
+        worksheet_name = toc[TOC_COLUMNS['content-type'].get('column')]
 
     if section_index == 0:
         document_first_section = True
@@ -262,42 +188,42 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
             'document-first-section': document_first_section,
         },
         'section-prop' : {
-            'label'                 : str(toc[section_column]),
-            'heading'               : toc[heading_column],
-            'process'               : toc[process_column],
-            'level'                 : int(toc[level_column]),
-            'content-type'          : toc[content_type_column],
+            'label'                 : str(toc[TOC_COLUMNS['section'].get('column')]),
+            'heading'               : toc[TOC_COLUMNS['heading'].get('column')],
+            'process'               : toc[TOC_COLUMNS['process'].get('column')],
+            'level'                 : int(toc[TOC_COLUMNS['level'].get('column')]),
+            'content-type'          : toc[TOC_COLUMNS['content-type'].get('column')],
             'link'                  : link_name,
             'link-target'           : link_target,
-            'page-break'            : True if toc[break_column] == "page" else False,
-            'section-break'         : True if toc[break_column] == "section" else False,
-            'page-spec'             : toc[page_spec_column],
-            'margin-spec'           : toc[margin_spec_column],
+            'page-break'            : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='break', look_up_value='page', nesting_level=nesting_level+1),
+            'section-break'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='break', look_up_value='section', nesting_level=nesting_level+1),
+            'page-spec'             : toc[TOC_COLUMNS['page-spec'].get('column')],
+            'margin-spec'           : toc[TOC_COLUMNS['margin-spec'].get('column')],
 
-            'landscape'             : True if landscape_column is not None and toc[landscape_column] == "Yes" else False,
-            'heading-style'         : toc[heading_style_column] if heading_style_column is not None else '',
-			'bookmark'           	: {toc[bookmark_column].strip(): f"{str(toc[section_column])} {toc[heading_column]}".strip()} if bookmark_column is not None else None,
+            'landscape'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='landscape', look_up_value='Yes', nesting_level=nesting_level+1),
+            'heading-style'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading-style', nesting_level=nesting_level+1),
+			'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1): f"{str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1))} {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1)}".strip()},
 
-            'jpeg-quality'          : toc[jpeg_quality_column] if jpeg_quality_column is not None else '',
-            'page-list'             : toc[page_list_column] if page_list_column is not None else '',
-            'autocrop'              : True if autocrop_column is not None and toc[autocrop_column] == "Yes" else False,
-            'page-bg'               : True if page_bg_column is not None and toc[page_bg_column] == "Yes" else False,
+            'jpeg-quality'          : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='jpeg-quality', nesting_level=nesting_level+1),
+            'page-list'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-list', nesting_level=nesting_level+1),
+            'autocrop'              : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='autocrop', look_up_value='Yes', nesting_level=nesting_level+1),
+            'page-bg'               : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-bg', look_up_value='Yes', nesting_level=nesting_level+1),
 
-            'hide-heading'          : True if hide_heading_column is not None and toc[hide_heading_column] == "Yes" else False,
-            'override-header'       : True if override_header_column is not None and toc[override_header_column] == "Yes" else False,
-            'override-footer'       : True if override_footer_column is not None and toc[override_footer_column] == "Yes" else False,
-            'background-image'      : toc[background_image_column].strip() if background_image_column is not None else '',
+            'hide-heading'          : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='hide-heading', look_up_value='Yes', nesting_level=nesting_level+1),
+            'override-header'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='override-header', look_up_value='Yes', nesting_level=nesting_level+1),
+            'override-footer'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='override-footer', look_up_value='Yes', nesting_level=nesting_level+1),
+            'background-image'      : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='background-image', nesting_level=nesting_level+1),
 
-            'responsible'           : toc[responsible_column].strip() if responsible_column is not None else '',
-            'reviewer'              : toc[reviewer_column].strip() if reviewer_column is not None else '',
-            'status'                : toc[status_column].strip() if status_column is not None else '',
+            'responsible'           : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='responsible', nesting_level=nesting_level+1),
+            'reviewer'              : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='reviewer', nesting_level=nesting_level+1),
+            'status'                : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='status', nesting_level=nesting_level+1),
         },
-        'header-odd'            : get_worksheet_link(toc[header_odd_column]) if header_odd_column is not None else '',
-        'header-even'           : get_worksheet_link(toc[header_even_column]) if header_even_column is not None else '',
-        'footer-odd'            : get_worksheet_link(toc[footer_odd_column]) if footer_odd_column is not None else '',
-        'footer-even'           : get_worksheet_link(toc[footer_even_column]) if footer_even_column is not None else '',
-        'header-first'          : get_worksheet_link(toc[header_first_column]) if header_first_column is not None else '',
-        'footer-first'          : get_worksheet_link(toc[footer_first_column]) if footer_first_column is not None else '',
+        'header-odd'            : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='header-odd', nesting_level=nesting_level+1)),
+        'header-even'           : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='header-even', nesting_level=nesting_level+1)),
+        'header-first'          : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='header-first', nesting_level=nesting_level+1)),
+        'footer-odd'            : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='footer-odd', nesting_level=nesting_level+1)),
+        'footer-even'           : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='footer-even', nesting_level=nesting_level+1)),
+        'footer-first'          : get_worksheet_link(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='footer-first', nesting_level=nesting_level+1)),
         }
 
     section_meta = d['section-meta']
