@@ -376,6 +376,12 @@ class OdtPdfSection(OdtSectionBase):
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 for i, image in enumerate(self._section_data['contents']['images']):
+                    # we need to set bookmark for each pdf page if the section has a bookmark arrached with it, we just append page number
+                    this_image_bookmark = None
+                    if self.bookmark:
+                        key = list(self.bookmark)[0]
+                        this_image_bookmark = f"{key}.{str(i).zfill(3)}"
+
                     paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
                     if i == 0:
                         paragraph_attributes['breakbefore'] = 'page'
@@ -393,6 +399,8 @@ class OdtPdfSection(OdtSectionBase):
 
                         paragraph_style_name = f"{self.master_page_name}-P-{str(i).zfill(3)}"
                         paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name)
+                        if this_image_bookmark:
+                            paragraph.addElement(text.Bookmark(name=this_image_bookmark))
                         
                         self._odt.text.addElement(paragraph)
 
@@ -405,8 +413,11 @@ class OdtPdfSection(OdtSectionBase):
                         draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches, preserve='height')
 
                         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-                        paragraph = create_paragraph(self._odt, style_name, bookmark=self.bookmark)
+
+                        paragraph = create_paragraph(self._odt, style_name)
                         paragraph.addElement(draw_frame)
+                        if this_image_bookmark:
+                            paragraph.addElement(text.Bookmark(name=this_image_bookmark))
 
                         self._odt.text.addElement(paragraph)
 
