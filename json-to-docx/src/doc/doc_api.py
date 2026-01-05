@@ -662,18 +662,26 @@ class DocxTable(DocxBlock):
                 row = self.table_cell_matrix[row_index]
                 for col_index in range(0, len(row.cells)):
                     cell = row.cells[col_index]
-                    if cell.merge_spec.multi_row == MultiSpan.FirstCell or cell.merge_spec.multi_col == MultiSpan.FirstCell:
-                        # this is the first cell of a merge, we need to get the last cell
-                        start_table_cell = tbl.cell(row_index, col_index)
-                        end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
-                        start_table_cell.merge(end_table_cell)
+                    if cell:
+                        if cell.merge_spec.multi_row == MultiSpan.FirstCell or cell.merge_spec.multi_col == MultiSpan.FirstCell:
+                            # this is the first cell of a merge, we need to get the last cell
+                            start_table_cell = tbl.cell(row_index, col_index)
+                            end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
+                            start_table_cell.merge(end_table_cell)
+                    else:
+                        warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be")
+
 
             #  decorate cells
             for row_index in range(0, len(self.table_cell_matrix)):
                 row = self.table_cell_matrix[row_index]
                 for col_index in range(0, len(row.cells)):
                     cell = row.cells[col_index]
-                    cell.decorate_cell()
+                    if cell:
+                        cell.decorate_cell()
+                    else:
+                        # warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be")
+                        pass
 
 
 ''' Docx Block object wrapper
@@ -808,6 +816,7 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc_table_cell(self, table, table_cell):
+        # trace(f"{self}")
         self.table_cell = table_cell
         table_cell.width = Inches(self.cell_width)
         if self.effective_format:
@@ -971,12 +980,16 @@ class Row(object):
     ''' generates the docx code
     '''
     def row_to_doc_table_row(self, table, table_row):
+        # trace(f"{self}")
         table_row.height = Inches(self.row_height)
 
         # iterate over the cells
         for cell_index in range(0, len(self.cells)):
             cell = self.cells[cell_index]
-            cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
+            if cell:
+                cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
+            else:
+                warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{self.row_num}], cell [{cell_index}] is None, that should not be")
 
 
 ''' gsheet text format object wrapper
