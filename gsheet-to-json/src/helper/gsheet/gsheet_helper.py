@@ -13,6 +13,7 @@ from pydrive2.drive import GoogleDrive
 from helper.logger import *
 from helper.gsheet.gsheet_util import *
 from helper.gsheet.gsheet_reader import *
+from helper.gdrive.gdrive_util import *
 
 class GsheetHelper(object):
 
@@ -42,7 +43,11 @@ class GsheetHelper(object):
         credentials = ServiceAccountCredentials.from_json_keyfile_name(config['files']['google-cred'], scopes=['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'])
         credentials.authorize(httplib2.Http())
 
+        # the gsheet service
         self._context['service'] = discovery.build('sheets', 'v4', credentials=credentials)
+
+        # the drive service
+        self._context['drive-service'] = discovery.build('drive', 'v3', credentials=credentials)
 
         gauth = GoogleAuth()
         gauth.credentials = credentials
@@ -82,6 +87,8 @@ class GsheetHelper(object):
                         error(f"[{len(gsheets)}] gsheets found with the name [{gsheet_title}] .. quiting", nesting_level=nesting_level)
                         for gsheet in gsheets:
                             error(f"[{gsheet.id}]")
+
+                        get_drive_file(service=self._context['drive-service'], drive_file_name=gsheet_title, verbose=True, nesting_level=nesting_level+1)
 
                         sys.exit(1)
 
