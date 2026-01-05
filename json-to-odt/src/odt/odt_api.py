@@ -929,7 +929,7 @@ class Cell(object):
     ''' odt code for cell content
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
-        trace(f"{self}")
+        # trace(f"{self}")
         paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign)}
         text_attributes = self.effective_format.text_attributes(self.note.angle)
 

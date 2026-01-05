@@ -20,6 +20,7 @@ import xml.dom.minidom
 
 
 from docx import Document, section, document, table
+# from docx.document import Document as _Document
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
@@ -31,6 +32,7 @@ from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
+from docx.text.paragraph import Paragraph
 
 
 import latex2mathml.converter
@@ -78,7 +80,11 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}):
 		return container
 	
 	else:
-		paragraph = container
+		# print(f"container is a [{container}]")
+		if is_document(container):
+			paragraph = container.add_paragraph()
+		elif is_paragraph(container):
+			paragraph = container
 
 		# bookmark
 		if bookmark:
@@ -185,10 +191,10 @@ def create_table(container, num_rows, num_cols, container_width=None):
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
-	elif type(container) is table._Cell:
+	elif is_table_cell(container):
 		# if the conrainer is a Cell
 		tbl = container.add_table(num_rows, num_cols)
-	elif type(container) is document.Document:
+	elif is_document(container):
 		# if the conrainer is a Document
 		tbl = container.add_table(num_rows, num_cols)
 
@@ -333,7 +339,7 @@ def set_paragraph_border(element, borders):
 '''
 def set_cell_bgcolor(cell: table._Cell, color):
 	xml = r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color)
-	print(xml)
+	# print(xml)
 	shading_elm_1 = parse_xml(xml)
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
@@ -488,7 +494,7 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 		# if the container is a Header/Footer
 		paragraph = container.add_paragraph()
 
-	elif type(container) is table._Cell:
+	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
 
@@ -500,12 +506,16 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 			insert_background_image(container=container, paragraph=paragraph, image_path=background.file_path, width=width, height=height)
 
 
-	elif type(container) is document.Document:
+	elif is_document(container):
 		# if the conrainer is a Document
 		paragraph = container.add_paragraph()
 
+	elif is_paragraph(container):
+		pass
+
 	else:
 		# if the conrainer is anything else
+		warn(f"container is neither document, nor paragraph, nor header/footer, nor table cell .. adding a paragraph")
 		paragraph = container.add_paragraph()
 
 
@@ -1314,6 +1324,26 @@ def is_table_cell(container):
 		return False
 
 
+''' whether the container is a document or not
+'''
+def is_document(container):
+	# if container is n instance of table-cell
+	if type(container) is document.Document:
+		return True
+	else:
+		return False
+
+
+''' whether the container is a paragraph or not
+'''
+def is_paragraph(container):
+	# if container is n instance of table-cell
+	if isinstance(container, Paragraph):
+		return True
+	else:
+		return False
+
+
 ''' given pixel size, calculate the row height in inches
 	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
@@ -1419,7 +1449,7 @@ def print_xml(element):
 	# Convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 	
-	print(xml_str)
+	# print(xml_str)
 
 
 

@@ -816,6 +816,7 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc(self, container):
+        # trace(f"{self}")
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
