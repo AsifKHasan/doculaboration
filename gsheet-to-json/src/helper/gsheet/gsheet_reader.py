@@ -19,39 +19,39 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
 MASTER_TOC_COLUMNS = {
-  "section" : {"availability": "must"},
-  "heading" : {"availability": "must"},
-  "process" : {"availability": "must"},
-  "level" : {"availability": "must"},
-  "content-type" : {"availability": "must"},
+  "section" : {"availability": "must", "blank-allowed": True},
+  "heading" : {"availability": "must", "blank-allowed": True},
+  "process" : {"availability": "must", "blank-allowed": True},
+  "level" : {"availability": "must", "blank-allowed": False},
+  "content-type" : {"availability": "must", "blank-allowed": False},
   "link" : {"availability": "must"},
   "break" : {"availability": "must"},
-  "page-spec" : {"availability": "must"},
-  "margin-spec" : {"availability": "must"},
+  "page-spec" : {"availability": "must", "blank-allowed": False},
+  "margin-spec" : {"availability": "must", "blank-allowed": False},
 
-  "landscape" : {"availability": "preferred", "value-if-missing": ""},
-  "heading-style" : {"availability": "preferred", "value-if-missing": ""},
-  "bookmark" : {"availability": "preferred", "value-if-missing": ""},
+  "landscape" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "bookmark" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 
-  "jpeg-quality" : {"availability": "preferred", "value-if-missing": '90'},
-  "page-list" : {"availability": "preferred", "value-if-missing": ""},
-  "autocrop" : {"availability": "preferred", "value-if-missing": False},
-  "page-bg" : {"availability": "preferred", "value-if-missing": False},
+  "jpeg-quality" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": '90'},
+  "page-list" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "autocrop" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "page-bg" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
  
-  "hide-heading" : {"availability": "preferred", "value-if-missing": False},
-  "header-first" : {"availability": "preferred", "value-if-missing": ""},
-  "header-odd" : {"availability": "preferred", "value-if-missing": ""},
-  "header-even" : {"availability": "preferred", "value-if-missing": ""},
-  "footer-first" : {"availability": "preferred", "value-if-missing": ""},
-  "footer-odd" : {"availability": "preferred", "value-if-missing": ""},
-  "footer-even" : {"availability": "preferred", "value-if-missing": ""},
-  "override-header" : {"availability": "preferred", "value-if-missing": False},
-  "override-footer" : {"availability": "preferred", "value-if-missing": False},
-  "background-image" : {"availability": "preferred", "value-if-missing": ""},
-  "responsible" : {"availability": "preferred", "value-if-missing": ""},
-  "reviewer" : {"availability": "preferred", "value-if-missing": ""},
-  "status" : {"availability": "preferred", "value-if-missing": ""},
-  "comment" : {"availability": "preferred", "value-if-missing": ""},
+  "hide-heading" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "header-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "header-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "header-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "override-header" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "override-footer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "background-image" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "responsible" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "reviewer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "status" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "comment" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 }
 
 def process_gsheet(context, gsheet, parent, current_document_index, nesting_level):
@@ -134,12 +134,24 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     if failed:
         exit(-1)
 
-    toc_list = [toc for toc in toc_list[1:] if toc[TOC_COLUMNS['process'].get('column')] == 'Yes' and toc[TOC_COLUMNS['level'].get('column')] in [0, 1, 2, 3, 4, 5, 6]]
+    # toc_list = [toc for toc in toc_list[1:] if toc[TOC_COLUMNS['process'].get('column')] == 'Yes']
+    toc_list_to_process = []
+    for row, toc in enumerate(toc_list[1:], 3):
+        if toc[TOC_COLUMNS['process'].get('column')] == 'Yes':
+            trace(f"toc row [{row}] will be processed", nesting_level=nesting_level)
+
+            # check if any of the columns that do not allow blanks is missing values
+
+            toc_list_to_process.append(toc)
+            # toc[TOC_COLUMNS['level'].get('column')] in [0, 1, 2, 3, 4, 5, 6]
+
+        else:
+            trace(f"toc row [{row}] will NOT be processed", nesting_level=nesting_level)
+
 
     section_index = 0
-    for toc in toc_list:
+    for section_index, toc in enumerate(toc_list_to_process):
         data['sections'].append(process_section(context=context, gsheet=gsheet, toc=toc, current_document_index=current_document_index, section_index=section_index, parent=parent, TOC_COLUMNS=TOC_COLUMNS, nesting_level=nesting_level))
-        section_index = section_index + 1
 
     return data
 
