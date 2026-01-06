@@ -831,10 +831,22 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
-                paragraph_attributes = self.note.paragraph_attributes()
-                text_attributes = self.effective_format.text_format.text_attributes()
-                footnote_list = self.note.footnotes
+                if self.effective_format:
+                    table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
+                    if self.effective_format.text_format:
+                        text_attributes = self.effective_format.text_format.text_attributes()
+                    else:
+                        text_attributes = {}
+                else:
+                    table_cell_attributes = {}
+                    text_attributes = {}
+
+                if self.note:
+                    paragraph_attributes = self.note.paragraph_attributes()
+                    footnote_list = self.note.footnotes
+                else:
+                    paragraph_attributes = {}
+                    footnote_list = {}
 
                 where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
 

@@ -930,11 +930,28 @@ class Cell(object):
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False):
         # trace(f"{self}")
-        paragraph_attributes = {**self.note.paragraph_attributes(),  **self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign)}
-        text_attributes = self.effective_format.text_attributes(self.note.angle)
+        if self.note:
+            paragraph_attributes_from_notes = self.note.paragraph_attributes()
+            style_attributes = self.note.style_attributes()
+            footnote_list = self.note.footnotes
+            force_halign = self.note.force_halign
+            angle = self.note.angle
+        else:
+            paragraph_attributes_from_notes = {}
+            style_attributes = {}
+            footnote_list = {}
+            force_halign = False
+            angle = 0
 
-        style_attributes = self.note.style_attributes()
-        footnote_list = self.note.footnotes
+        if self.effective_format:
+            paragraph_attributes_from_effective_format = self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=force_halign)
+            text_attributes = self.effective_format.text_attributes(angle)
+        else:
+            paragraph_attributes_from_effective_format = {}
+            text_attributes = {}
+
+        paragraph_attributes = {**paragraph_attributes_from_notes,  **paragraph_attributes_from_effective_format}
+
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
@@ -942,10 +959,12 @@ class Cell(object):
             if self.cell_value:
                 self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
 
+
     ''' Copy format from the cell passed
     '''
     def copy_format_from(self, from_cell):
         self.effective_format = from_cell.effective_format
+
 
     ''' is the cell part of a merge
     '''

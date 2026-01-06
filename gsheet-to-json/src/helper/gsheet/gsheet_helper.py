@@ -44,7 +44,7 @@ class GsheetHelper(object):
         credentials.authorize(httplib2.Http())
 
         # the gsheet service
-        self._context['service'] = discovery.build('sheets', 'v4', credentials=credentials)
+        self._context['gsheet-service'] = discovery.build('sheets', 'v4', credentials=credentials)
 
         # the drive service
         self._context['drive-service'] = discovery.build('drive', 'v3', credentials=credentials)
@@ -81,15 +81,17 @@ class GsheetHelper(object):
                     query = f'name = "{gsheet_title}"'
                     
                     debug(f"opening gsheet : [{gsheet_title}]", nesting_level=nesting_level)
-                    # gsheet = self._context['_G'].open(gsheet_title)
                     gsheets = self._context['_G'].open_all(query=query)
+                    for gsheet in gsheets:
+                        # Call the API to get permissions
+                        results = self._context['drive-service'].permissions().list(fileId=gsheet.id, fields="permissions(id, emailAddress, role, displayName)").execute()
+                        trace(f"[{gsheet_title}] found with id [{gsheet.id}]", nesting_level=nesting_level)
+                        permissions = results.get('permissions', [])
+                        for perm in permissions:
+                            trace(f"{perm['role'].upper()}: {perm.get('displayName')} ({perm.get('emailAddress')})", nesting_level=nesting_level+1)
+
                     if len(gsheets) > 1:
                         error(f"[{len(gsheets)}] gsheets found with the name [{gsheet_title}] .. quiting", nesting_level=nesting_level)
-                        for gsheet in gsheets:
-                            error(f"[{gsheet.id}]")
-
-                        get_drive_file(service=self._context['drive-service'], drive_file_name=gsheet_title, verbose=True, nesting_level=nesting_level+1)
-
                         sys.exit(1)
 
                     elif len(gsheets) == 1:
@@ -105,7 +107,7 @@ class GsheetHelper(object):
                 # optimization - read the full gsheet
                 debug(f"reading gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
 
-                response = get_gsheet_data(google_service=self._context['service'], gsheet=gsheet)
+                response = get_gsheet_data(google_service=self._context['gsheet-service'], gsheet=gsheet)
                 # make a dictionary key'ed by worksheet_name
                 response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
                 self._context['gsheet-data'][gsheet_title] = response
