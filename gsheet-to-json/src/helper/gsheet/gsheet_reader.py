@@ -138,10 +138,15 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     toc_list_to_process = []
     for row, toc in enumerate(toc_list[1:], 3):
         if toc[TOC_COLUMNS['process'].get('column')] == 'Yes':
-            trace(f"toc row [{row}] will be processed", nesting_level=nesting_level)
-
             # check if any of the columns that do not allow blanks is missing values
+            for k, v in TOC_COLUMNS.items():
+                if 'column' in v and 'blank-allowed' in v:
+                    if v['blank-allowed'] == False:
+                        if toc[v['column']] == '':
+                            error(f"toc row [{row}] must have some value for [{k}] in column [{COLUMNS[v['column']]}].. exiting", nesting_level=nesting_level)
+                            exit(1)
 
+            trace(f"toc row [{row}] will be processed", nesting_level=nesting_level)
             toc_list_to_process.append(toc)
             # toc[TOC_COLUMNS['level'].get('column')] in [0, 1, 2, 3, 4, 5, 6]
 
