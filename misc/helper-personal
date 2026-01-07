@@ -11,3 +11,31 @@ unzip ${DOCX}.docx -d test-docx
 pushd test-odt ; zip -r ../${ODT}-changed.odt . ; popd
 
 pushd test-docx && zip -r ..\XYZ.docx . && popd
+
+search
+\(document #([0-9]+)\)
+replace
+[LINK{A.$1.PPP}{Attachment #$1} (page PAGE{A.$1.PPP})]
+
+[LINK{A.NN.PPP}{Attachment #NN} (page PAGE{A.NN.PPP})]
+
+[NoA]
+[LINK{A.05.PPP}{Attachment #05} (page PAGE{A.05.PPP})]
+
+[Contract]
+[LINK{A.06.PPP}{Attachment #06} (page PAGE{A.06.PPP})]
+
+[Qpay proposal]
+[LINK{A.18.000}{Attachment #18} (page PAGE{A.18.000})]
+
+[Qpay brochure]
+[LINK{A.25.000}{Attachment #25} (page PAGE{A.25.000})]
+
+[Qpay circular]
+[LINK{A.43.000}{Attachment #43} (page PAGE{A.43.000})]
+
+[Qpay letter]
+[LINK{A.44.000}{Attachment #44} (page PAGE{A.44.000})]
+
+[Termination]
+[LINK{A.47.000}{Attachment #47} (page PAGE{A.47.000})]
