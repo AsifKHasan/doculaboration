@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 '''
 '''
+
 from collections import defaultdict
 
-import re
+# import re
 import importlib
 
 import pygsheets
 
-import urllib.request
+# import urllib.request
 from copy import deepcopy
 
 from helper.logger import *
-from helper.gsheet.gsheet_util import *
+from helper.util import *
+
 
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
 
 MASTER_TOC_COLUMNS = {
   "section" : {"availability": "must", "blank-allowed": True},
@@ -54,6 +57,9 @@ MASTER_TOC_COLUMNS = {
   "comment" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 }
 
+
+''' process gsheet from the toc
+'''
 def process_gsheet(context, gsheet, parent, current_document_index, nesting_level):
     data = {'sections': []}
 
@@ -161,6 +167,8 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
     return data
 
 
+''' process a toc section
+'''
 def process_section(context, gsheet, toc, current_document_index, section_index, parent, TOC_COLUMNS, nesting_level):
     # TODO: some columns may have formula, parse those
     # link column (link) may be a formula, parse it
@@ -399,7 +407,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
     # process 'background-image'
     if section_prop['background-image'] != '':
-        bg_dict = download_image(url=section_prop['background-image'], tmp_dir=context['tmp-dir'], drive=context['drive'], nesting_level=nesting_level)
+        bg_dict = download_image(drive_service=context['drive-service'], url=section_prop['background-image'], tmp_dir=context['tmp-dir'], nesting_level=nesting_level)
         if bg_dict:
             section_prop['background-image'] = bg_dict['file-path']
         else:

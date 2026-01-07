@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+'''
+'''
 
 import sys
 import pygsheets
@@ -7,13 +9,10 @@ import httplib2
 
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient import discovery
-from pydrive2.auth import GoogleAuth
-from pydrive2.drive import GoogleDrive
 
 from helper.logger import *
-from helper.gsheet.gsheet_util import *
+from helper.util import *
 from helper.gsheet.gsheet_reader import *
-from helper.gdrive.gdrive_util import *
 
 class GsheetHelper(object):
 
@@ -35,7 +34,7 @@ class GsheetHelper(object):
         # as we go further we put everything inside a single dict _context
         self._context = {}
 
-        debug(f"authorizing with Google")
+        debug(f"authorizing with Google", nesting_level=0)
 
         _G = pygsheets.authorize(service_account_file=config['files']['google-cred'])
         self._context['_G'] = _G
@@ -49,10 +48,6 @@ class GsheetHelper(object):
         # the drive service
         self._context['drive-service'] = discovery.build('drive', 'v3', credentials=credentials)
 
-        gauth = GoogleAuth()
-        gauth.credentials = credentials
-
-        self._context['drive'] = GoogleDrive(gauth)
         self._context['tmp-dir'] = config['dirs']['temp-dir']
         self._context['index-worksheet'] = config['index-worksheet']
         self._context['gsheet-read-wait-seconds'] = config['gsheet-read-wait-seconds']
@@ -61,7 +56,7 @@ class GsheetHelper(object):
 
         self.current_document_index = -1
 
-        debug(f"authorized  with Google")
+        debug(f"authorized  with Google", nesting_level=0)
 
 
     ''' read the gsheet
@@ -107,7 +102,8 @@ class GsheetHelper(object):
                 # optimization - read the full gsheet
                 debug(f"reading gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
 
-                response = get_gsheet_data(google_service=self._context['gsheet-service'], gsheet=gsheet)
+                response = get_gsheet_data(google_service=self._context['gsheet-service'], gsheet=gsheet, nesting_level=nesting_level+1)
+
                 # make a dictionary key'ed by worksheet_name
                 response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
                 self._context['gsheet-data'][gsheet_title] = response

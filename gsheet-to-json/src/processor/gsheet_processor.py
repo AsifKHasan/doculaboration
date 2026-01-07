@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 '''
 '''
+
 from helper.logger import *
 from helper.gsheet.gsheet_helper import GsheetHelper
-from helper.gsheet.gsheet_util import *
+from helper.util import *
 
 def process(gsheet, section_data, context, current_document_index, nesting_level):
     gsheet_title = section_data['section-prop']['link']

@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 '''
 '''
+
+from pathlib import Path
 import cv2
 import numpy as np
 import pdf2image
 import pdf2image.exceptions
 from PIL import Image, ImageChops, ImageOps
-from pathlib import Path
 
 from helper.logger import *
+from helper.util import *
 from helper.gsheet.gsheet_helper import GsheetHelper
-from helper.gsheet.gsheet_util import *
 
 def process(gsheet, section_data, context, current_document_index, nesting_level):
     pdf_title = section_data['section-prop']['link']
@@ -19,12 +20,12 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
     if pdf_url.startswith('https://drive.google.com/file/d/'):
         # the file is from gdrive
         info(f"processing drive file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
-        data = download_file_from_drive(pdf_url, context['tmp-dir'], context['drive'], nesting_level=nesting_level+1)
+        data = download_file_from_drive(drive_service=context['drive-service'], url=pdf_url, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
 
     elif pdf_url.startswith('http'):
         # the file url is a normal web url
         info(f"processing web file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
-        data = download_file_from_web(pdf_url, context['tmp-dir'], nesting_level=nesting_level+1)
+        data = download_file_from_web(url=pdf_url, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
 
     else:
         warn(f"the url {pdf_url} is neither a web nor a gdrive url", nesting_level=nesting_level+1)
