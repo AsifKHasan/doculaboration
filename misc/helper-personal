@@ -18,35 +18,21 @@ replace
 [LINK{A.$1.PPP}{Attachment #$1} (page PAGE{A.$1.PPP})]
 
 search
-\[([0-9]+?)\.([0-9]+?)\]
+\[([0-9a-c]+?)\.([0-9]+?)\]
 replace
-[LINK{A.$1.$2}{Attachment #$1} (page PAGE{A.$1.$2})]
+[LINK{A.$1.$2}{A.$1} (p.PAGE{A.$1.$2})]
 
 search
-(\[LINK{A\..+\..+}{Attachment #.+} \(page PAGE{A\..+\..+}\)\])(\[LINK{A\..+\..+}{Attachment #.+} \(page PAGE{A\..+\..+}\)\])
+(\[LINK{A\..+?\..+?}{A\..+?} \(p\.PAGE{A\..+?\..+?}\)\])(\[LINK{A\..+?\..+?}{A\..+?} \(p\.PAGE{A\..+?\..+?}\)\])
 replace
 $1
 
 
 
-Earlier you wrote the following (enclosed between two separator lines) in relation to BKB's claim #22
+Earlier you wrote the following (enclosed between two separator lines) in relation to BKB's claim #6
 
 ------------------------------------------------------------------------------------------------------
+
 ------------------------------------------------------------------------------------------------------
 				
-The numbers in square brackets are references to attachments. I need the actual number of the documents you referred and the actual page numbers of that document you were referring to.
-
-
-
-
-
-
-
-
-Earlier you wrote something in relation to BKB's claim #22 under the section *b. Actual findings related to the claim*
-
-2. Claimant’s entitlement to damages. The claimant’s Statement of Claim seeks compensation for specific losses—such as lost business opportunities and reputational harm—caused by BKB’s misrepresentations and wrongful termination [9]. The claimant’s damages claim is supported by evidence of performance (UAT, limited live operation and implemented features) and by BKB’s breaches (wrongful termination, non‑cooperation and engagement of competing vendors) [5] [6] [7].			
-
-3. No lawful termination or breach by the claimant. As previously demonstrated, BKB failed to provide the required ninety‑day notice before termination and demanded uncontracted hardware [1] [4]. The claimant delivered the platform and performed its obligations. Under section 73 of the Contract Act, BKB cannot claim compensation when it is the party in breach.		
-				
-The numbers in square brackets are references to attachments. I need the actual number of the documents you referred and the actual page numbers of that document you were referring to.
+The number inside the square brackets [] are references to attachments. I need the actual number of the documents you referred and the actual page numbers of that document you were referring to.
