@@ -653,8 +653,8 @@ class DocxTable(DocxBlock):
                 row.row_to_doc_table_row(table=tbl, table_row=table_row)
 
             # header rows
-            for r in reversed(range(0, self.header_row_count)):
-                trace(f"repeating row : {r}")
+            for r in range(0, self.header_row_count):
+                # trace(f"repeating row : {r}")
                 set_repeat_table_header(tbl.rows[r])
 
             # merge cells
@@ -796,13 +796,14 @@ class Cell(object):
                             self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
             else:
-                self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value=None, formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, background=self.background, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
             self.cell_value = None
             self.formatted_value = ''
             self.is_empty = True
+            # print(f"{self} is empty")
 
 
 
@@ -1621,7 +1622,9 @@ class CellNote(object):
         self.script = note_dict.get('script')
 
         # content
-        if self.content is not None and self.content in ['free', 'out-of-cell']:
+        # if self.content is not None and self.content in ['free', 'out-of-cell']:
+        if self.content in ['free', 'out-of-cell']:
+            print(f"free content")
             self.free_content = True
 
         # script

@@ -40,15 +40,15 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
         if 'values' in row_data:
             # start at column B
             for cell_data in row_data['values'][1:]:
+                # process note
+                if 'note' in cell_data:
+                    note_json = cell_data['note']
+                    tmp_dir = context['tmp-dir']
+
+                    process_note(note_json=note_json, cell_data=cell_data, row=row, val=val, tmp_dir=tmp_dir, context=context, nesting_level=nesting_level)
+
                 if 'userEnteredValue' in cell_data:
                     user_entered_value = cell_data['userEnteredValue']
-
-                    # process note
-                    if 'note' in cell_data:
-                        note_json = cell_data['note']
-                        tmp_dir = context['tmp-dir']
-
-                        process_note(note_json=note_json, cell_data=cell_data, row=row, val=val, tmp_dir=tmp_dir, context=context, nesting_level=nesting_level)
 
                     # process where cell contains formulas - image, link to another worksheet, link to another document in gdrive or url
                     if 'formulaValue' in user_entered_value:
