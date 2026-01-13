@@ -988,16 +988,11 @@ def set_updatefields_true(docx_path):
 ''' given an docx file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
-	# Constants for Word SaveAs operation
-	wdFormatPDF = 17 # The file format value for PDF
-	# PDF export quality setting (optional, can use other values if needed)
+	# Constants for Word Export
+	wdExportFormatPDF = 17
 	wdExportOptimizeForPrint = 0
-	wdExportOptimizeForMinumumSize = 1
-
-	# PDF export bookmark options
-	# wdExportCreateNoBookmarks = 0
-	# wdExportCreateWordBookmarks = 1 # Uses actual Word bookmarks (less common)
-	wdExportCreateHeadingBookmarks = 2 # Uses document headings (most common for TOC)
+	wdExportAllDocument = 0
+	wdExportCreateHeadingBookmarks = 1  # This enables the bookmarks
 
 	pdf_path = infile + '.pdf'
 	try:
@@ -1008,17 +1003,16 @@ def generate_pdf(infile, outdir):
 	try:
 		doc = word.Documents.Open(infile)
 		try:
-			doc.SaveAs(pdf_path, 
-			  FileFormat = wdFormatPDF, 
-			  OptimizeFor=wdExportOptimizeForPrint, # or wdExportOptimizeForMinumumSize
-            	Item=wdExportCreateHeadingBookmarks, # This parameter enables bookmarks from headings
-            	IncludeDocProps=True,
-            	KeepIRM=True,
-            	CreateBookmarks=wdExportCreateHeadingBookmarks,
-            	DocStructureOnly=False,
-            	FirstPage=0,
-            	LastPage=-1,
-            	UseISO19005_1=False)
+			doc.ExportAsFixedFormat(pdf_path, 
+				ExportFormat=wdExportFormatPDF,
+				OpenAfterExport=False,
+				OptimizeFor=wdExportOptimizeForPrint,
+				Range=wdExportAllDocument,
+				Item=0, # wdExportDocumentContent
+				IncludeDocProps=True,
+				KeepIRM=True,
+				CreateBookmarks=wdExportCreateHeadingBookmarks # KEY PARAMETER
+        )				
 
 		except Exception as e:
 			raise e
