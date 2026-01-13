@@ -142,8 +142,8 @@ def insert_background_image(container, paragraph, image_path, width, height):
 
 	# 4. Transfer the graphic data from the inline tag to the anchor tag
 	# graphic = inline.xpath('.//a:graphic', namespaces=inline.nsmap)[0]
-	# graphic = inline.xpath('.//a:graphic')[0]
-	# anchor.append(graphic)
+	graphic = inline.xpath('.//a:graphic')[0]
+	anchor.append(graphic)
 	
 	# 5. Replace the original inline XML with our new anchor XML
 	inline.getparent().replace(inline, anchor)
