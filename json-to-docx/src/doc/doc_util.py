@@ -109,7 +109,7 @@ def insert_background_image(container, paragraph, image_path, width, height):
 	run = paragraph.add_run()
 
 	# 2. Add the picture (initially inline)
-	picture = run.add_picture(image_path, wodth=Inches(width), height=Inches(height))
+	picture = run.add_picture(image_path, width=Inches(width), height=Inches(height))
 
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
