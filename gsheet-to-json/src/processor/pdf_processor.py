@@ -20,7 +20,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
     if pdf_url.startswith('https://drive.google.com/file/d/'):
         # the file is from gdrive
         info(f"processing drive file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
-        data = download_file_from_drive(drive_service=context['drive-service'], url=pdf_url, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
+        data = download_file_from_drive(drive_service=context['drive-service'], url=pdf_url, title=pdf_title, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
 
     elif pdf_url.startswith('http'):
         # the file url is a normal web url

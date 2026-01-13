@@ -94,7 +94,7 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
             
             # download image
             debug(f"downloading bg image {url}", nesting_level=nesting_level)
-            bg_image_dict = download_image(drive_service=context['drive-service'], url=url, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
+            bg_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
             cell_data['background'] = bg_image_dict
             debug(f"downloaded  bg image {url}", nesting_level=nesting_level)
 
@@ -129,7 +129,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         # this may be a drive file
         if url.startswith('https://drive.google.com/'):
             info(f"processing drive file ... [{title}] : [{url}]", nesting_level=nesting_level)
-            data = download_file_from_drive(drive_service=context['drive-service'], url=url, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
+            data = download_file_from_drive(drive_service=context['drive-service'], url=url, title=title, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
             # if it is an image
             if data['file-type'].startswith('image/'):
                 # TODO: we are hardcoding shape, dpi and other parameters for images

@@ -408,7 +408,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
     # process 'background-image'
     if section_prop['background-image'] != '':
-        bg_dict = download_image(drive_service=context['drive-service'], url=section_prop['background-image'], tmp_dir=context['tmp-dir'], nesting_level=nesting_level)
+        bg_dict = download_image(drive_service=context['drive-service'], url=section_prop['background-image'], title=None, tmp_dir=context['tmp-dir'], nesting_level=nesting_level)
         if bg_dict:
             section_prop['background-image'] = bg_dict['file-path']
         else:

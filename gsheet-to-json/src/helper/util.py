@@ -79,7 +79,7 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
     "https://drive.google.com/open?id=1rVmH-dHciYgPwJC0EFpHIXaZ_H1j5LDu"
     "https://drive.google.com/file/d/10bjxB_yjXgtaGZWJLVCQ28a7G_PPBLk-"
 '''
-def download_file_from_drive(drive_service, url, tmp_dir, nesting_level=0):
+def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0):
     file_url = url.strip()
 
     id = file_url.replace('https://drive.google.com/', '')
@@ -99,8 +99,12 @@ def download_file_from_drive(drive_service, url, tmp_dir, nesting_level=0):
     if not file:
         error(f"drive file [{id}] could not be accessed", nesting_level=nesting_level)
         return None
-        
-    file_name = file['name']
+    
+    if title:
+        file_name = title
+    else:
+        file_name = file['name']
+    
     file_type = file['mimeType']
     if not file_type in ALLOWED_MIME_TYPES:
         warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_FILE_FORMATS)}], it is [{file_type}]", nesting_level=nesting_level)
@@ -447,10 +451,10 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
 ''' download an image from a web or drive url and return a dict
     {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}
 '''
-def download_image(drive_service, url, tmp_dir, nesting_level=0):
+def download_image(drive_service, url, title, tmp_dir, nesting_level=0):
     data = None
     if url.startswith('https://drive.google.com/'):
-        data = download_file_from_drive(drive_service=drive_service, url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
+        data = download_file_from_drive(drive_service=drive_service, url=url, title=title, tmp_dir=tmp_dir, nesting_level=nesting_level)
 
     elif url.startswith('http'):
         # the file url is a normal web url
