@@ -1838,7 +1838,7 @@ STYLE_PROPERTY_MAP = {
 DOCX_ATTR_MAP_HINT = {
 	'color':			rgb_from_hex,
 	'highlight_color':	rgb_from_hex,
-	'backgroundcolor':	rgb_from_hex,
+	# 'backgroundcolor':	rgb_from_hex,
 	'alignment': 		TEXT_HALIGN_MAP,
 	'size': 			str_to_size,
 	'left_indent':      str_to_size,
