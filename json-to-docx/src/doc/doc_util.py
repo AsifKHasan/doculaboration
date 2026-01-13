@@ -317,6 +317,7 @@ def set_paragraph_border(element, borders):
 			border.set(qn('w:color'), str(edge_data['color']))   # hex color
 			pBorders.append(border)
 			trace(f"{edge_str} added")
+			print(edge_data)
 			
 			# tag = 'w:{}'.format(edge_str)
 

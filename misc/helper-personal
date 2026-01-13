@@ -16,7 +16,7 @@ unzip %DOCX%.docx -d test-docx
 
 pushd test-odt ; zip -r ../${ODT}-changed.odt . ; popd
 
-pushd test-docx && zip -r ..\XYZ.docx . && popd
+pushd test-docx && zip -r ..\%DOCX%.docx . && popd
 
 search
 \(document #([0-9]+)\)

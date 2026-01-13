@@ -62,12 +62,12 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 jpeg_quality = section_data['section-prop']['jpeg-quality'].strip()
                 if jpeg_quality is None or jpeg_quality == '':
                     jpeg_quality = JPEG_QUALITY_DEFAULT
-                    trace(f"jpeg-quality not specified explicitly .. using default value [{JPEG_QUALITY_DEFAULT}]")
+                    trace(f"jpeg-quality not specified explicitly .. using default value [{JPEG_QUALITY_DEFAULT}]", nesting_level=nesting_level)
                 else:
                     try:
                         jpeg_quality = int(jpeg_quality)
                     except:
-                        warn(f"specified jpeg-quality [{jpeg_quality}] is not valid .. should be a number between 1-100 .. using default value [{JPEG_QUALITY_DEFAULT}]")
+                        warn(f"specified jpeg-quality [{jpeg_quality}] is not valid .. should be a number between 1-100 .. using default value [{JPEG_QUALITY_DEFAULT}]", nesting_level=nesting_level)
                         jpeg_quality = JPEG_QUALITY_DEFAULT
 
                 jpegopt = {'quality': jpeg_quality, 'progressive': True, 'optimize': True}

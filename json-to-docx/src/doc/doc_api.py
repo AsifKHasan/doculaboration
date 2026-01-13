@@ -169,7 +169,7 @@ class DocxSectionBase(object):
                     warn(f"custom style [{self.heading_style}] not defined in style-specs")
 
                 else:
-                    trace(f"applying custom style [{self.heading_style}] to heading")
+                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=self.nesting_level+1)
                     apply_custom_style(doc=self._doc, style_spec=self._config['custom-styles'][self.heading_style], paragraph=paragraph, nesting_level=self.nesting_level+1)
 
 
@@ -1624,7 +1624,7 @@ class CellNote(object):
         # content
         # if self.content is not None and self.content in ['free', 'out-of-cell']:
         if self.content in ['free', 'out-of-cell']:
-            print(f"free content")
+            # print(f"free content")
             self.free_content = True
 
         # script
