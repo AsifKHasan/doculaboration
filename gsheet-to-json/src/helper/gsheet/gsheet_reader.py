@@ -115,11 +115,11 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
         # see if it is a header we know of
         toc_column = TOC_COLUMNS.get(header, None)
         if toc_column:
-            trace(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]", nesting_level=nesting_level)
+            # trace(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]", nesting_level=nesting_level)
             TOC_COLUMNS[header]['column'] = header_column_index
 
         else:
-            trace(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]. This column is not necessary for processing, will be ignored", nesting_level=nesting_level)
+            warn(f"[{header:<20}] found at column [{COLUMNS[header_column_index]:>2}]. This column is not necessary for processing, will be ignored", nesting_level=nesting_level)
 
         header_column_index = header_column_index + 1
 
@@ -152,12 +152,13 @@ def process_gsheet(context, gsheet, parent, current_document_index, nesting_leve
                             error(f"toc row [{row}] must have some value for [{k}] in column [{COLUMNS[v['column']]}].. exiting", nesting_level=nesting_level)
                             exit(1)
 
-            trace(f"toc row [{row}] will be processed", nesting_level=nesting_level)
+            # trace(f"toc row [{row}] will be processed", nesting_level=nesting_level)
             toc_list_to_process.append(toc)
             # toc[TOC_COLUMNS['level'].get('column')] in [0, 1, 2, 3, 4, 5, 6]
 
         else:
-            trace(f"toc row [{row}] will NOT be processed", nesting_level=nesting_level)
+            # trace(f"toc row [{row}] will NOT be processed", nesting_level=nesting_level)
+            pass
 
 
     section_index = 0
@@ -227,7 +228,7 @@ def process_section(context, gsheet, toc, current_document_index, section_index,
 
             'landscape'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='landscape', look_up_value='Yes', nesting_level=nesting_level+1),
             'heading-style'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading-style', nesting_level=nesting_level+1),
-			'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1): f"{str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1))} {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1)}".strip()},
+			'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='bookmark', nesting_level=nesting_level+1): f"{str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1))} {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1)}".strip()},
 
             'jpeg-quality'          : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='jpeg-quality', nesting_level=nesting_level+1),
             'page-list'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-list', nesting_level=nesting_level+1),

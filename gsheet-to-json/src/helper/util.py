@@ -523,7 +523,7 @@ def get_worksheet_link(value, nesting_level=0):
 '''
 def translate_dict_to_value(data_list, dict_obj, first_key, look_up_key='column', look_up_value=None, on_success=True, on_failure=False, nesting_level=0):
     if first_key not in dict_obj:
-        trace(f"[{first_key:<20}]: not found in dict .. defaulting to [{on_failure}]", nesting_level=nesting_level)
+        # trace(f"[{first_key:<20}]: not found in dict .. defaulting to [{on_failure}]", nesting_level=nesting_level)
         return on_failure
 
     obj = dict_obj[first_key]
@@ -534,21 +534,21 @@ def translate_dict_to_value(data_list, dict_obj, first_key, look_up_key='column'
         else:
             value_to_return = on_failure
 
-        trace(f"[{first_key:<20}]:[{look_up_key}] NOT found in dict .. defaulting to [{value_to_return}]", nesting_level=nesting_level)
+        # trace(f"[{first_key:<20}]:[{look_up_key}] NOT found in dict .. defaulting to [{value_to_return}]", nesting_level=nesting_level)
         return value_to_return
 
     # get the value in the data_list
     value = data_list[obj[look_up_key]].strip()
     if look_up_value is None:
-        trace(f"[{first_key:<20}]: found .. returning '{value}'", nesting_level=nesting_level)
+        # trace(f"[{first_key:<20}]: found .. returning '{value}'", nesting_level=nesting_level)
         return value
 
     if value == look_up_value:
-        trace(f"[{first_key:<20}]: value '{value}' matched with expected '{look_up_value}' ... returning [{on_success}]", nesting_level=nesting_level)
+        # trace(f"[{first_key:<20}]: value '{value}' matched with expected '{look_up_value}' ... returning [{on_success}]", nesting_level=nesting_level)
         return on_success
 
     else:
-        trace(f"[{first_key:<20}]: value '{value}' NOT matched with expected '{look_up_value}' ... returning [{on_failure}]", nesting_level=nesting_level)
+        # trace(f"[{first_key:<20}]: value '{value}' NOT matched with expected '{look_up_value}' ... returning [{on_failure}]", nesting_level=nesting_level)
         return on_failure
 
 

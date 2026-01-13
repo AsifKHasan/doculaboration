@@ -131,7 +131,7 @@ def autocrop_image_pillow(im_path, nesting_level):
     else:
         dpi_x, dpi_y = DPI, DPI
 
-    trace(f"original image size [{width}x{height}]", nesting_level=nesting_level)
+    # trace(f"original image size [{width}x{height}]", nesting_level=nesting_level)
     bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
     diff = ImageChops.difference(im, bg)
     diff = ImageChops.add(diff, diff, 2.0, 0)
@@ -140,10 +140,11 @@ def autocrop_image_pillow(im_path, nesting_level):
     if bbox:
         cropped = im.crop(bbox)
         if cropped.size[1] < min_width_height or cropped.size[0] < min_width_height:
-            trace(f"cropped image width/height [{cropped.size[0]}x{cropped.size[1]}] is less than {(min_width_height)}, will use the original image", nesting_level=nesting_level)
+            # trace(f"cropped image width/height [{cropped.size[0]}x{cropped.size[1]}] is less than {(min_width_height)}, will use the original image", nesting_level=nesting_level)
+            pass
         else:
             width, height = cropped.size
-            trace(f"cropped image: size [{width}x{height}]", nesting_level=nesting_level)
+            # trace(f"cropped image: size [{width}x{height}]", nesting_level=nesting_level)
             cropped.save(im_path, dpi=(dpi_x, dpi_y))
             # cropped.save(im_path)
 

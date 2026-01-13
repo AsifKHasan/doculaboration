@@ -653,8 +653,8 @@ class DocxTable(DocxBlock):
                 row.row_to_doc_table_row(table=tbl, table_row=table_row)
 
             # header rows
-            for r in range(0, self.header_row_count):
-                # debug('repeating row : {0}'.format(self.header_row_count))
+            for r in reversed(range(0, self.header_row_count)):
+                trace(f"repeating row : {r}")
                 set_repeat_table_header(tbl.rows[r])
 
             # merge cells
