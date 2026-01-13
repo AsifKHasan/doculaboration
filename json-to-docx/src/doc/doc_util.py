@@ -109,7 +109,7 @@ def insert_background_image(container, paragraph, image_path, width, height):
 	run = paragraph.add_run()
 
 	# 2. Add the picture (initially inline)
-	picture = run.add_picture(image_path)
+	picture = run.add_picture(image_path, wodth=Inches(width), height=Inches(height))
 
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
@@ -122,8 +122,12 @@ def insert_background_image(container, paragraph, image_path, width, height):
 			   relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" 
 			   allowOverlap="1" {nsdecls('wp', 'a', 'pic', 'r')}>
 		<wp:simplePos x="0" y="0"/>
-		<wp:positionH relativeFrom="column"><wp:posOffset>0</wp:posOffset></wp:positionH>
-		<wp:positionV relativeFrom="line"><wp:posOffset>0</wp:posOffset></wp:positionV>
+		<wp:positionH relativeFrom="column">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionH>
+		<wp:positionV relativeFrom="line">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionV>
 		<wp:extent cx="{cx}" cy="{cy}"/>
 		<wp:effectExtent l="0" t="0" r="0" b="0"/>
 		<wp:wrapNone/>
@@ -138,8 +142,8 @@ def insert_background_image(container, paragraph, image_path, width, height):
 
 	# 4. Transfer the graphic data from the inline tag to the anchor tag
 	# graphic = inline.xpath('.//a:graphic', namespaces=inline.nsmap)[0]
-	graphic = inline.xpath('.//a:graphic')[0]
-	anchor.append(graphic)
+	# graphic = inline.xpath('.//a:graphic')[0]
+	# anchor.append(graphic)
 	
 	# 5. Replace the original inline XML with our new anchor XML
 	inline.getparent().replace(inline, anchor)
@@ -316,22 +320,6 @@ def set_paragraph_border(element, borders):
 			border.set(qn('w:space'), str(edge_data['space']))        # space between text and border
 			border.set(qn('w:color'), str(edge_data['color']))   # hex color
 			pBorders.append(border)
-			# trace(f"{edge_str} added")
-			# print(edge_data)
-			
-			# tag = 'w:{}'.format(edge_str)
-
-			# # check for tag existnace, if none found, then create one
-			# element = pBorders.find(qn(tag))
-			# if element is None:
-			# 	element = OxmlElement(tag)
-			# 	pBorders.append(element)
-
-			# # looks like order of attributes is important
-			# for key in ["sz", "val", "color", "space", "shadow"]:
-			# 	if key in edge_data:
-			# 		trace(f"adding {key}:{str(edge_data[key])} for {edge_str} border")
-			# 		element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 	pPr.append(pBorders)
 
@@ -1256,7 +1244,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 
 	# put the image
 	shape = new_run.add_picture(image_path_or_stream=background_image_path, height=Inches(page_height_inches))
-	current_drawing_element = new_run._r.xpath('//w:drawing')[0]
+	# current_drawing_element = new_run._r.xpath('//w:drawing')[0]
 
 	try:
 		# tweak the generated inline image
@@ -1543,12 +1531,12 @@ def process_custom_style(doc, style_spec, nesting_level=0):
 			if value:
 				style_name = value.get('name', None)
 				if style_name:
-					trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
+					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
 					apply_custom_style(doc=doc, style_spec=value, style_name=style_name, nesting_level=nesting_level)
 					trace(f"customized  style [{style_name}]", nesting_level=nesting_level)
 
 				else:
-					trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
+					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
 					custom_styles[key] = value
 					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level)
 	
@@ -1567,9 +1555,9 @@ def parse_style_properties(style_spec, nesting_level=0):
 			else:	
 				if value and value != '':
 					if key in DOCX_ATTR_MAP_HINT:
-						trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
+						# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
 						new_value = map_docx_attr(key, value, nesting_level=nesting_level)
-						trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
+						# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
 						if new_value:
 							value = new_value
 
