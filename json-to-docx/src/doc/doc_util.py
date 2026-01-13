@@ -988,6 +988,17 @@ def set_updatefields_true(docx_path):
 ''' given an docx file generates pdf in the given directory
 '''
 def generate_pdf(infile, outdir):
+	# Constants for Word SaveAs operation
+	wdFormatPDF = 17 # The file format value for PDF
+	# PDF export quality setting (optional, can use other values if needed)
+	wdExportOptimizeForPrint = 0
+	wdExportOptimizeForMinumumSize = 1
+
+	# PDF export bookmark options
+	# wdExportCreateNoBookmarks = 0
+	# wdExportCreateWordBookmarks = 1 # Uses actual Word bookmarks (less common)
+	wdExportCreateHeadingBookmarks = 2 # Uses document headings (most common for TOC)
+
 	pdf_path = infile + '.pdf'
 	try:
 		word = client.DispatchEx("Word.Application")
@@ -997,7 +1008,17 @@ def generate_pdf(infile, outdir):
 	try:
 		doc = word.Documents.Open(infile)
 		try:
-			doc.SaveAs(pdf_path, FileFormat = 17)
+			doc.SaveAs(pdf_path, 
+			  FileFormat = wdFormatPDF, 
+			  OptimizeFor=wdExportOptimizeForPrint, # or wdExportOptimizeForMinumumSize
+            	Item=wdExportCreateHeadingBookmarks, # This parameter enables bookmarks from headings
+            	IncludeDocProps=True,
+            	KeepIRM=True,
+            	CreateBookmarks=wdExportCreateHeadingBookmarks,
+            	DocStructureOnly=False,
+            	FirstPage=0,
+            	LastPage=-1,
+            	UseISO19005_1=False)
 
 		except Exception as e:
 			raise e
