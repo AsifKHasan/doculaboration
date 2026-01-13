@@ -41,14 +41,14 @@
       # margin
       'left_indent':        '1.0in'
       'right_indent':       '1.0in'
-      'space_before':       '3.0in'
-      'space_after':        '3.0in'
+      'space_before':       '1.0in'
+      'space_after':        '1.0in'
 
-    'backgroundcolor':      '#D8D8D8'
+    'backgroundcolor':      'D8D8D8'
 
   # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
   'borders':
     'start':                '2pt double #222222 0.25in'
-    # 'top':                  '0pt double #222222 0.25in'
-    # 'end':                  '0pt double #222222 0.25in'
-    # 'bottom':               '0pt double #222222 0.25in'
+    'top':                  '0pt none #222222 0.25in'
+    'end':                  '0pt none #222222 0.25in'
+    'bottom':               '0pt none #222222 0.25in'
