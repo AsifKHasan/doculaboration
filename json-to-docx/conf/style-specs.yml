@@ -44,7 +44,8 @@
       'space_before':       '1.0in'
       'space_after':        '1.0in'
 
-    'backgroundcolor':      'D8D8D8'
+  # shading
+  'backgroundcolor':      '#D8D8D8'
 
   # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
   'borders':
