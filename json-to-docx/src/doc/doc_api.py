@@ -191,9 +191,9 @@ class DocxTableSection(DocxSectionBase):
     def section_to_doc(self):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
+        super().process_header_footer()
         super().section_to_doc()
         self.section_contents.content_to_doc(container=self._doc)
-        super().process_header_footer()
 
 
 ''' Docx gsheet section object
@@ -209,14 +209,13 @@ class DocxGsheetSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        super().process_header_footer()
         super().section_to_doc()
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
             # process the sections
             section_list_to_doc(self._section_data['contents']['sections'], self._config)
-
-        super().process_header_footer()
 
 
 ''' Docx ToC section object
@@ -232,9 +231,9 @@ class DocxToCSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        super().process_header_footer()
         super().section_to_doc()
         create_index(self._doc, index_type='toc')
-        super().process_header_footer()
 
 
 ''' Docx LoT section object
@@ -250,9 +249,9 @@ class DocxLoTSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        super().process_header_footer()
         super().section_to_doc()
         create_index(self._doc, index_type='lot')
-        super().process_header_footer()
 
 
 ''' Docx LoF section object
@@ -268,9 +267,9 @@ class DocxLoFSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        super().process_header_footer()
         super().section_to_doc()
         create_index(self._doc, index_type='lof')
-        super().process_header_footer()
 
 
 ''' Docx Pdf section object
@@ -286,6 +285,7 @@ class DocxPdfSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_doc(self):
+        super().process_header_footer()
         super().section_to_doc()
 
         # the images go one after another
@@ -321,8 +321,6 @@ class DocxPdfSection(DocxSectionBase):
                         
                         insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
                         # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
-
-        super().process_header_footer()
 
 
 ''' Docx section content base object
