@@ -1547,13 +1547,13 @@ def process_custom_style(doc, style_spec, nesting_level=0):
 				style_name = value.get('name', None)
 				if style_name:
 					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
-					apply_custom_style(doc=doc, style_spec=value, style_name=style_name, nesting_level=nesting_level)
-					trace(f"customized  style [{style_name}]", nesting_level=nesting_level)
+					apply_custom_style(doc=doc, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
+					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
 
 				else:
 					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
 					custom_styles[key] = value
-					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level)
+					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
 
