@@ -45,7 +45,7 @@ from helper.logger import *
 
 ''' process a list of section_data and generate docx code
 '''
-def section_list_to_doc(section_list, config):
+def section_list_to_doc(section_list, config, nesting_level=0):
 	first_section = True
 	for section in section_list:
 		section_meta = section['section-meta']
@@ -66,7 +66,7 @@ def section_list_to_doc(section_list, config):
 
 ''' insert image into a container
 '''
-def insert_image(container, picture_path, width=None, height=None, bookmark={}):
+def insert_image(container, picture_path, width=None, height=None, bookmark={}, nesting_level=0):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 
@@ -104,7 +104,7 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}):
 
 ''' insert an image as page background
 '''
-def insert_background_image(container, paragraph, image_path, width, height):
+def insert_background_image(container, paragraph, image_path, width, height, nesting_level=0):
 	# 1. Add a run to the paagraph
 	run = paragraph.add_run()
 
@@ -151,7 +151,7 @@ def insert_background_image(container, paragraph, image_path, width, height):
 
 ''' insert an image as page background
 '''
-def insert_background_image_old_version(container, paragraph, image_path):
+def insert_background_image_old_version(container, paragraph, image_path, nesting_level=0):
 
 	# --- Embed image properly ---
 	doc_part = paragraph.part
@@ -188,7 +188,7 @@ def insert_background_image_old_version(container, paragraph, image_path):
 
 ''' create a Table
 '''
-def create_table(container, num_rows, num_cols, container_width=None):
+def create_table(container, num_rows, num_cols, container_width=None, nesting_level=0):
 	tbl = None
 
 	# debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
@@ -210,7 +210,7 @@ def create_table(container, num_rows, num_cols, container_width=None):
 
 ''' set repeat table row on every new page
 '''
-def set_repeat_table_header(row):
+def set_repeat_table_header(row, nesting_level=0):
 	tr = row._tr
 	trPr = tr.get_or_add_trPr()
 	tblHeader = OxmlElement('w:tblHeader')
@@ -222,7 +222,7 @@ def set_repeat_table_header(row):
 ''' format container (paragraph or cell)
 	border, bgcolor, padding, valign, halign
 '''
-def format_container(container, attributes, it_is_a_table_cell):
+def format_container(container, attributes, it_is_a_table_cell, nesting_level=0):
 	# borders
 	if it_is_a_table_cell:
 		if 'padding' in attributes:
@@ -257,7 +257,7 @@ def format_container(container, attributes, it_is_a_table_cell):
 
 ''' set table-cell borders
 '''
-def set_cell_border(cell: table._Cell, borders):
+def set_cell_border(cell: table._Cell, borders, nesting_level=0):
 	tc = cell._tc
 	tcPr = tc.get_or_add_tcPr()
 
@@ -296,7 +296,7 @@ def set_cell_border(cell: table._Cell, borders):
 	val is any of dotted/dashed/single/thick/triple/double/none
 	space is space/padding between text and border in pt
 '''
-def set_paragraph_border(element, borders):
+def set_paragraph_border(element, borders, nesting_level=0):
 	pPr = element.get_or_add_pPr()
 
 
@@ -326,7 +326,7 @@ def set_paragraph_border(element, borders):
 
 ''' set table-cell bgcolor
 '''
-def set_cell_bgcolor(cell: table._Cell, color):
+def set_cell_bgcolor(cell: table._Cell, color, nesting_level=0):
 	xml = r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color)
 	# print(xml)
 	shading_elm_1 = parse_xml(xml)
@@ -335,7 +335,7 @@ def set_cell_bgcolor(cell: table._Cell, color):
 
 ''' set paragraph bgcolor
 '''
-def set_paragraph_bgcolor(element, color):
+def set_paragraph_bgcolor(element, color, nesting_level=0):
 	shading = OxmlElement('w:shd')
 
 	# required
@@ -350,7 +350,7 @@ def set_paragraph_bgcolor(element, color):
 
 ''' set table-cell borders
 '''
-def set_cell_padding(cell: table._Cell, padding):
+def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	tc = cell._tc
 	tcPr = tc.get_or_add_tcPr()
 	tcMar = OxmlElement('w:tcMar')
@@ -370,7 +370,7 @@ def set_cell_padding(cell: table._Cell, padding):
 
 ''' This is needed if we are using the builtin style
 '''
-def get_or_create_hyperlink_style(d):
+def get_or_create_hyperlink_style(d, nesting_level=0):
 	"""If this document had no hyperlinks so far, the builtin
 	   Hyperlink style will likely be missing and we need to add it.
 	   There's no predefined value, different Word versions
@@ -398,7 +398,7 @@ def get_or_create_hyperlink_style(d):
 
 ''' add the hyperlink to a run
 '''
-def add_hyperlink(paragraph, text, url):
+def add_hyperlink(paragraph, text, url, nesting_level=0):
 	# This gets access to the document.xml.rels file and gets a new relation id value
 	part = paragraph.part
 	r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
@@ -426,7 +426,7 @@ def add_hyperlink(paragraph, text, url):
 
 ''' create a hyperlink
 '''
-def create_hyperlink(attach_to, anchor, target):
+def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 	# if the anchor is not an url, it is a bookmark
 	if not target.startswith('http'):
 		target_text = target.strip()
@@ -477,7 +477,7 @@ def create_hyperlink(attach_to, anchor, target):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True):
+def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -532,7 +532,7 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 
 ''' apply paragraph attributes to a paragraph
 '''
-def	apply_paragraph_attributes(paragraph, paragraph_attributes):
+def	apply_paragraph_attributes(paragraph, paragraph_attributes, nesting_level=0):
 	# apply the style if any
 	if paragraph_attributes:
 		# apply paragraph attrubutes
@@ -561,7 +561,7 @@ def	apply_paragraph_attributes(paragraph, paragraph_attributes):
 
 ''' remove a paragraph
 '''
-def delete_paragraph(paragraph):
+def delete_paragraph(paragraph, nesting_level=0):
 	p = paragraph._element
 	p.getparent().remove(p)
 	# p._p = p._element = None
@@ -569,7 +569,7 @@ def delete_paragraph(paragraph):
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
-def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnote_list):
+def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnote_list, nesting_level=0):
 	# process FN{...} first, we get a list of block dicts
 	inline_blocks = process_footnotes(
 		text_content=text_content, footnote_list=footnote_list
@@ -646,7 +646,7 @@ def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnot
 
 ''' process footnotes inside text
 '''
-def process_footnotes(text_content, footnote_list):
+def process_footnotes(text_content, footnote_list, nesting_level=0):
 	# if text contains footnotes we make a list containing texts->footnote->text->footnote ......
 	texts_and_footnotes = []
 
@@ -678,7 +678,7 @@ def process_footnotes(text_content, footnote_list):
 
 ''' process latex blocks inside text
 '''
-def process_latex_blocks(text_content):
+def process_latex_blocks(text_content, nesting_level=0):
 	# find out if there is any match with LATEX$...$ inside the text_content
 	texts_and_latex = []
 
@@ -710,7 +710,7 @@ def process_latex_blocks(text_content):
 
 ''' process bookmark page ref inside text
 '''
-def process_bookmark_page_blocks(text_content):
+def process_bookmark_page_blocks(text_content, nesting_level=0):
 	# find out if there is any match with PAGE{...} inside the text_content
 	texts_and_bookmarks = []
 
@@ -750,7 +750,7 @@ def process_bookmark_page_blocks(text_content):
 
 ''' process external url or bookmark links
 '''
-def process_links(text_content):
+def process_links(text_content, nesting_level=0):
 	# find out if there is any match with LINK{...}{} inside the text_content
 	links = []
 
@@ -792,7 +792,7 @@ def process_links(text_content):
 
 ''' create a footnote
 '''
-def create_footnote(doc, paragraph, footnote_tuple):
+def create_footnote(doc, paragraph, footnote_tuple, nesting_level=0):
 	# create footnote reference
 	r = paragraph.add_run()._r
 	fn_ref = OxmlElement('w:footnoteReference')
@@ -820,13 +820,13 @@ def create_footnote(doc, paragraph, footnote_tuple):
 
 ''' create a footnote
 '''
-def create_footnote_bayoo(paragraph, footnote_tuple):
+def create_footnote_bayoo(paragraph, footnote_tuple, nesting_level=0):
 	paragraph.add_footnote(footnote_tuple[1])
 
 
 ''' add a latex/mathml run into a paragraph
 '''
-def create_latex(container, latex_content):
+def create_latex(container, latex_content, nesting_level=0):
 	if latex_content is not None:
 		mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
 
@@ -842,7 +842,7 @@ def create_latex(container, latex_content):
 
 ''' tex/character style for text run
 '''
-def set_text_style(run, text_attributes):
+def set_text_style(run, text_attributes, nesting_level=0):
 	if text_attributes:
 		if 'fontweight' in text_attributes:
 			run.bold = True
@@ -873,7 +873,7 @@ def set_text_style(run, text_attributes):
 
 ''' create a bookmark
 '''
-def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
+def add_bookmark(paragraph, bookmark_name, bookmark_text='', nesting_level=0):
 	# debug(f"creating bookmark {bookmark_name} : {bookmark_text}")
 	start = OxmlElement('w:bookmarkStart')
 	start.set(qn('w:id'), '0')
@@ -893,7 +893,7 @@ def add_bookmark(paragraph, bookmark_name, bookmark_text=''):
 
 ''' add a PAGE refernce 
 '''
-def add_page_reference(paragraph, bookmark_name):
+def add_page_reference(paragraph, bookmark_name, nesting_level=0):
 	run = paragraph.add_run()
 
 	# create a new element and set attributes
@@ -928,7 +928,7 @@ def add_page_reference(paragraph, bookmark_name):
 
 ''' add link for bookmarks
 '''
-def add_link(paragraph, link_to, text, tool_tip=None):
+def add_link(paragraph, link_to, text, tool_tip=None, nesting_level=0):
 	# create hyperlink node
 	hyperlink = OxmlElement('w:hyperlink')
 
@@ -956,7 +956,7 @@ def add_link(paragraph, link_to, text, tool_tip=None):
 
 ''' update docx indexes by opening and closing the docx, rest is done by macros
 '''
-def update_indexes(docx_path):
+def update_indexes(docx_path, nesting_level=0):
 
 	try:
 		word = client.DispatchEx("Word.Application")
@@ -974,7 +974,7 @@ def update_indexes(docx_path):
 
 ''' set docx updateFields property true
 '''
-def set_updatefields_true(docx_path):
+def set_updatefields_true(docx_path, nesting_level=0):
 	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 	doc = Document(docx_path)
 	# add child to doc.settings element
@@ -987,7 +987,7 @@ def set_updatefields_true(docx_path):
 
 ''' given an docx file generates pdf in the given directory
 '''
-def generate_pdf(infile, outdir):
+def generate_pdf(infile, outdir, nesting_level=0):
 	# Constants for Word Export
 	wdExportFormatPDF = 17
 	wdExportOptimizeForPrint = 0
@@ -1029,7 +1029,7 @@ def generate_pdf(infile, outdir):
 
 ''' create table-of-contents
 '''
-def create_index(doc, index_type):
+def create_index(doc, index_type, nesting_level=0):
 	paragraph = doc.add_paragraph()
 	run = paragraph.add_run()
 
@@ -1068,7 +1068,7 @@ def create_index(doc, index_type):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path):
+def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, nesting_level=0):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
@@ -1123,7 +1123,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		create_page_background(doc=doc, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches)
+		create_page_background(doc=doc, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
 
 	return docx_section, new_section
 
@@ -1190,7 +1190,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 		</wp14:sizeRelV>
 	</wp:anchor>
 '''
-def create_page_background(doc, background_image_path, page_width_inches, page_height_inches):
+def create_page_background(doc, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
 	drawing_xml = '''
 	<w:drawing>
 		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
@@ -1276,7 +1276,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
 		image_id = cNvPr.get('id')
 		image_name = cNvPr.get('name')
-		# trace(f"bg image [{image_name}]")
+		trace(f"bg image [{image_name}]", nesting_level=nesting_level)
 
 		blip = new_run._r.xpath('.//a:blip')[0]
 
@@ -1320,7 +1320,7 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 
 ''' whether the container is a table-cell or not
 '''
-def is_table_cell(container):
+def is_table_cell(container, nesting_level=0):
 	# if container is n instance of table-cell
 	if type(container) is table._Cell:
 		return True
@@ -1330,7 +1330,7 @@ def is_table_cell(container):
 
 ''' whether the container is a document or not
 '''
-def is_document(container):
+def is_document(container, nesting_level=0):
 	# if container is n instance of table-cell
 	if type(container) is document.Document:
 		return True
@@ -1340,7 +1340,7 @@ def is_document(container):
 
 ''' whether the container is a paragraph or not
 '''
-def is_paragraph(container):
+def is_paragraph(container, nesting_level=0):
 	# if container is n instance of table-cell
 	if isinstance(container, Paragraph):
 		return True
@@ -1351,20 +1351,20 @@ def is_paragraph(container):
 ''' given pixel size, calculate the row height in inches
 	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
-def row_height_in_inches(pixel_size):
+def row_height_in_inches(pixel_size, nesting_level=0):
 	return float((pixel_size) / 96)
 
 
 ''' get a random string
 '''
-def random_string(length=12):
+def random_string(length=12, nesting_level=0):
 	letters = string.ascii_uppercase
 	return ''.join(random.choice(letters) for i in range(length))
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
-def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
 	aspect_ratio = width_to_fit / height_to_fit
 
 	if width_to_fit > fit_within_width:
@@ -1379,7 +1379,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 
 '''
 '''
-def strip_math_mode_delimeters(latex_content):
+def strip_math_mode_delimeters(latex_content, nesting_level=0):
 	# strip SPACES
 	stripped = latex_content.strip()
 
@@ -1393,7 +1393,7 @@ def strip_math_mode_delimeters(latex_content):
 
 ''' rotate text
 '''
-def rotate_text(cell: table._Cell, direction: str):
+def rotate_text(cell: table._Cell, direction: str, nesting_level=0):
 	# direction: tbRl -- top to bottom, btLr -- bottom to top
 	assert direction in ("tbRl", "btLr")
 	tc = cell._tc
@@ -1405,7 +1405,7 @@ def rotate_text(cell: table._Cell, direction: str):
 
 ''' copy cell border from one cell to another
 '''
-def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
+def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell, nesting_level=0):
 	from_tc = from_cell._tc
 	from_tcPr = from_tc.get_or_add_tcPr()
 
@@ -1422,7 +1422,7 @@ def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell):
 
 ''' merge another docx into this document
 '''
-def merge_document(placeholder, docx_path):
+def merge_document(placeholder, docx_path, nesting_level=0):
 	# the document is in the same folder as the template, get the path
 	# docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
 	sub_doc = Document(docx_path)
@@ -1437,7 +1437,7 @@ def merge_document(placeholder, docx_path):
 
 ''' polish a table
 '''
-def polish_table(table):
+def polish_table(table, nesting_level=0):
 	for r in table.rows:
 		# no preferred width for the last column
 		c = r._tr.tc_lst[-1]
@@ -1449,7 +1449,7 @@ def polish_table(table):
 
 ''' pretty print element xml
 '''
-def print_xml(element):
+def print_xml(element, nesting_level=0):
 	# Convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 	
@@ -1462,7 +1462,7 @@ def print_xml(element):
 
 ''' return the style if exists
 '''
-def get_style_by_name(doc, style_name):
+def get_style_by_name(doc, style_name, nesting_level=0):
 	styles = doc.styles
 	return styles[style_name]
 
@@ -1676,7 +1676,7 @@ def rgb_from_hex(str, what, nesting_level=0):
     	warn(f"[{str}] is not a valid {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
 
 
-def is_valid_hex(str, digits):
+def is_valid_hex(str, digits, nesting_level=0):
 	pattern = rf'^[0-9a-fA-F]{{{digits}}}$'
 	return bool(re.fullmatch(pattern, str))
 
