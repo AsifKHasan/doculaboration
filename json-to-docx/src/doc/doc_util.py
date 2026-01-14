@@ -1124,16 +1124,13 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 	# TODO: background-image
 	if background_image_path != '':
 		# create_page_background(doc=doc, header=docx_section.header, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
-		header = docx_section.header
-		add_background_image_to_header(header, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
+		add_background_image_to_header(docx_section=docx_section, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 
 	return docx_section, new_section
 
 
 ''' create page background
-	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0"
-		relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1"
-		allowOverlap="1">
+	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
 		<wp:simplePos x="0" y="0" />
 		<wp:positionH relativeFrom="page">
 			<wp:posOffset>0</wp:posOffset>
@@ -1222,6 +1219,13 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 						</pic:nvPicPr>
 						<pic:blipFill>
 							<a:blip r:embed="{rid}">
+								<a:extLst>
+									<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+										<a14:useLocalDpi
+											xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+											val="0" />
+									</a:ext>
+								</a:extLst>
 							</a:blip>
 							<a:stretch>
 								<a:fillRect />
@@ -1318,12 +1322,13 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 
 ''' Inserts an image into the header, stretches it to page size, and makes it floating behind text.
 '''
-def add_background_image_to_header(header, image_path, width, height, nesting_level=0):
+def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
-    p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
-    run = p.add_run()
-    inline = run.add_picture(image_path, width=width, height=height)
-    inline_to_anchored_behind(inline, width=width, height=height)
+	for header in [docx_section.first_page_header, docx_section.header, docx_section.even_page_header]:
+		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+		run = p.add_run()
+		inline = run.add_picture(image_path, width=width, height=height)
+		inline_to_anchored_behind(inline, width=width, height=height)
 
 
 ''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
