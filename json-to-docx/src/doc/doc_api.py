@@ -296,18 +296,17 @@ class DocxPdfSection(DocxSectionBase):
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 for i, image in enumerate(self._section_data['contents']['images']):
-                    # paragraph_attributes = {'breakbefore': 'page'}
-                    paragraph_attributes = {}
-
                     if self.page_bg == True:
+                        paragraph_attributes = {'breakbefore': 'page'}
                         background_image_path = image['path']
                         # add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=True, nesting_level=self.nesting_level)
                         # print(background_image_path)
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        create_page_background(doc=self._doc, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
+                        create_page_background(doc=self._doc, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
 
                     else:
+                        paragraph_attributes = {}
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=self.nesting_level+1)
                         format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=self.nesting_level+1)
