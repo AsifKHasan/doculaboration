@@ -296,12 +296,15 @@ class DocxPdfSection(DocxSectionBase):
         if 'contents' in self._section_data:
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 for i, image in enumerate(self._section_data['contents']['images']):
-                    paragraph_attributes = {'breakbefore': 'page'}
+                    # paragraph_attributes = {'breakbefore': 'page'}
+                    paragraph_attributes = {}
 
                     if self.page_bg == True:
+                        background_image_path = image['path']
+                        # print(background_image_path)
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
+                        create_page_background(doc=self._doc, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
 
                     else:
                         paragraph = self._doc.add_paragraph()

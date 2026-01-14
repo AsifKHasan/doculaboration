@@ -1314,6 +1314,68 @@ def create_page_background(doc, background_image_path, page_width_inches, page_h
 	delete_paragraph(new_para)
 
 
+''' Inserts an image into the header, stretches it to page size, and makes it floating behind text.
+'''
+def add_background_image_to_header(header, image_path, width, height, nesting_level=0):
+    # Put it in its own paragraph at start
+    p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+    run = p.add_run()
+    inline = run.add_picture(image_path, width=width, height=height)
+    # inline_to_anchored_behind(inline)
+
+
+''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
+	positioned at page origin and behind text.
+'''
+def inline_to_anchored_behind(inline, nesting_level=0):
+    inline_elm = inline._inline  # CT_Inline element
+
+    anchor = OxmlElement("wp:anchor")
+    anchor.set("simplePos", "0")
+    anchor.set("relativeHeight", "0")
+    anchor.set("behindDoc", "1")          # behind text
+    anchor.set("locked", "0")
+    anchor.set("layoutInCell", "1")
+    anchor.set("allowOverlap", "1")
+    anchor.set("distT", "0")
+    anchor.set("distB", "0")
+    anchor.set("distL", "0")
+    anchor.set("distR", "0")
+
+    # required children: wp:simplePos, wp:positionH, wp:positionV, wp:extent, wp:effectExtent, wp:wrapNone, ...
+    simplePos = OxmlElement("wp:simplePos")
+    simplePos.set("x", "0")
+    simplePos.set("y", "0")
+    anchor.append(simplePos)
+
+    positionH = OxmlElement("wp:positionH")
+    positionH.set("relativeFrom", "page")
+    posOffsetH = OxmlElement("wp:posOffset")
+    posOffsetH.text = "0"
+    positionH.append(posOffsetH)
+    anchor.append(positionH)
+
+    positionV = OxmlElement("wp:positionV")
+    positionV.set("relativeFrom", "page")
+    posOffsetV = OxmlElement("wp:posOffset")
+    posOffsetV.text = "0"
+    positionV.append(posOffsetV)
+    anchor.append(positionV)
+
+    # Move over the existing wp:extent (size) and other needed children from inline to anchor
+    # We keep the same graphic and size Word generated.
+    for child in list(inline_elm):
+        # We'll skip wp:docPr because anchor needs it too (we can keep it)
+        anchor.append(child)
+
+    wrapNone = OxmlElement("wp:wrapNone")
+    anchor.append(wrapNone)
+
+    # Replace inline with anchor in the parent <w:drawing>
+    drawing = inline_elm.getparent()
+    drawing.remove(inline_elm)
+    drawing.append(anchor)
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
