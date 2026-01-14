@@ -8,6 +8,8 @@ from docx.oxml.ns import qn
 
 A4_W = Inches(8.27)
 A4_H = Inches(11.69)
+A4_W_IN = 8.27
+A4_H_IN = 11.69
 
 def set_a4_no_margins(section):
     section.page_width = A4_W
@@ -19,68 +21,103 @@ def set_a4_no_margins(section):
     section.header_distance = Inches(0)
     section.footer_distance = Inches(0)
 
-def inline_to_anchored_behind(inline):
-    """
-    Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
-    positioned at page origin and behind text.
-    """
-    inline_elm = inline._inline  # CT_Inline element
 
-    anchor = OxmlElement("wp:anchor")
-    anchor.set("simplePos", "0")
-    anchor.set("relativeHeight", "0")
-    anchor.set("behindDoc", "1")          # behind text
-    anchor.set("locked", "0")
-    anchor.set("layoutInCell", "1")
-    anchor.set("allowOverlap", "1")
-    anchor.set("distT", "0")
-    anchor.set("distB", "0")
-    anchor.set("distL", "0")
-    anchor.set("distR", "0")
+EMU_PER_INCH = 914400  # Word uses EMU units
 
-    # required children: wp:simplePos, wp:positionH, wp:positionV, wp:extent, wp:effectExtent, wp:wrapNone, ...
+def _emu(inches: float) -> int:
+    return int(inches * EMU_PER_INCH)
+
+def make_inline_picture_anchored_behind(inline, page_width_in=8.27, page_height_in=11.69):
+    """
+    Convert a python-docx inline picture into a floating anchored picture,
+    placed at the top-left of the page and behind text.
+
+    This edits the existing <wp:inline> so we preserve the valid picture structure.
+    """
+    inline_elm = inline._inline  # the <wp:inline> element
+
+    # Rename <wp:inline> -> <wp:anchor>
+    inline_elm.tag = qn("wp:anchor")
+
+    # Anchor attributes (Word is picky about these)
+    inline_elm.set("simplePos", "0")
+    inline_elm.set("relativeHeight", "0")
+    inline_elm.set("behindDoc", "1")
+    inline_elm.set("locked", "0")
+    inline_elm.set("layoutInCell", "1")
+    inline_elm.set("allowOverlap", "1")
+    inline_elm.set("distT", "0")
+    inline_elm.set("distB", "0")
+    inline_elm.set("distL", "0")
+    inline_elm.set("distR", "0")
+
+    # Build required children: simplePos, positionH, positionV
     simplePos = OxmlElement("wp:simplePos")
     simplePos.set("x", "0")
     simplePos.set("y", "0")
-    anchor.append(simplePos)
 
     positionH = OxmlElement("wp:positionH")
     positionH.set("relativeFrom", "page")
     posOffsetH = OxmlElement("wp:posOffset")
     posOffsetH.text = "0"
     positionH.append(posOffsetH)
-    anchor.append(positionH)
 
     positionV = OxmlElement("wp:positionV")
     positionV.set("relativeFrom", "page")
     posOffsetV = OxmlElement("wp:posOffset")
     posOffsetV.text = "0"
     positionV.append(posOffsetV)
-    anchor.append(positionV)
 
-    # Move over the existing wp:extent (size) and other needed children from inline to anchor
-    # We keep the same graphic and size Word generated.
-    for child in list(inline_elm):
-        # We'll skip wp:docPr because anchor needs it too (we can keep it)
-        anchor.append(child)
+    # Insert at the beginning, BEFORE wp:extent
+    # (inline originally starts with wp:extent)
+    inline_elm.insert(0, simplePos)
+    inline_elm.insert(1, positionH)
+    inline_elm.insert(2, positionV)
 
+    # Ensure wrapNone exists right after effectExtent
     wrapNone = OxmlElement("wp:wrapNone")
-    anchor.append(wrapNone)
 
-    # Replace inline with anchor in the parent <w:drawing>
-    drawing = inline_elm.getparent()
-    drawing.remove(inline_elm)
-    drawing.append(anchor)
+    # Find effectExtent if present; if not, create one after extent
+    extent = inline_elm.find(qn("wp:extent"))
+    effectExtent = inline_elm.find(qn("wp:effectExtent"))
 
-def add_background_image_to_header(header, image_path, width=A4_W, height=A4_H):
-    """
-    Inserts an image into the header, stretches it to page size, and makes it floating behind text.
-    """
-    # Put it in its own paragraph at start
+    if effectExtent is None:
+        effectExtent = OxmlElement("wp:effectExtent")
+        effectExtent.set("l", "0")
+        effectExtent.set("t", "0")
+        effectExtent.set("r", "0")
+        effectExtent.set("b", "0")
+        # place it after extent
+        if extent is not None:
+            idx = list(inline_elm).index(extent)
+            inline_elm.insert(idx + 1, effectExtent)
+        else:
+            inline_elm.insert(3, effectExtent)
+
+    # Insert wrapNone immediately after effectExtent if not already there
+    children = list(inline_elm)
+    eff_idx = children.index(effectExtent)
+    if not any(c.tag == qn("wp:wrapNone") for c in children):
+        inline_elm.insert(eff_idx + 1, wrapNone)
+
+    # IMPORTANT: set extent to full page (if you want exact A4 stretch)
+    # (python-docx may have already set it based on add_picture width/height,
+    # but this forces correctness)
+    if extent is not None:
+        extent.set("cx", str(_emu(page_width_in)))
+        extent.set("cy", str(_emu(page_height_in)))
+
+
+def add_background_image_to_header(header, image_path):
     p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
     run = p.add_run()
-    inline = run.add_picture(image_path, width=width, height=height)
-    inline_to_anchored_behind(inline)
+
+    # Insert as inline (valid)
+    inline = run.add_picture(image_path, width=Inches(A4_W_IN), height=Inches(A4_H_IN))
+
+    # Convert to anchored behind text (still valid if done carefully)
+    make_inline_picture_anchored_behind(inline, page_width_in=A4_W_IN, page_height_in=A4_H_IN)
+
 
 def clear_header_footer(hf):
     # Remove all paragraphs in header/footer so we can set our own cleanly
