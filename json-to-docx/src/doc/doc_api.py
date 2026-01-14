@@ -173,6 +173,7 @@ class DocxSectionBase(object):
                     apply_custom_style(doc=self._doc, style_spec=self._config['custom-styles'][self.heading_style], paragraph=paragraph, nesting_level=self.nesting_level+1)
 
 
+
 ''' Docx table section object
 '''
 class DocxTableSection(DocxSectionBase):
@@ -285,11 +286,26 @@ class DocxPdfSection(DocxSectionBase):
     '''
     def process_pdf_page_header_footer(self, docx_section):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        if self._section_data['header-odd']:
+            docx_section.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        else:
+            docx_section.header_odd = None
 
-        docx_section.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-        docx_section.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-        docx_section.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-        docx_section.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        if self._section_data['header-even']:
+            docx_section.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+        else:
+            docx_section.header_even = None
+
+        if self._section_data['footer-odd']:
+            docx_section.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        else:
+            docx_section.footer_odd = None
+
+        if self._section_data['footer-even']:
+            docx_section.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+        else:
+            docx_section.footer_even = None
+
 
         if docx_section.header_odd:
             docx_section.header_odd.content_to_doc(container=docx_section.header)
@@ -325,7 +341,7 @@ class DocxPdfSection(DocxSectionBase):
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
 
                         background_image_path = image['path']
-                        docx_section, _ = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=self.nesting_level)
+                        docx_section, _ = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=self.nesting_level)
                         # TODO: this new docx_section's header-footer to be handled. this new section, should have odd and eveen header footer defined, but not first
                         self.process_pdf_page_header_footer(docx_section=docx_section)
 

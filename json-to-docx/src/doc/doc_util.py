@@ -1069,7 +1069,7 @@ def create_index(doc, index_type, nesting_level=0):
 ''' add or update a document section
 '''
 def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
-	#  if it is a section break, we insert a new section
+	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
 		docx_section = doc.add_section(WD_SECTION.NEW_PAGE)
@@ -1123,7 +1123,6 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		# create_page_background(doc=doc, header=docx_section.header, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
 		add_background_image_to_header(docx_section=docx_section, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 
 	return docx_section, new_section
@@ -1219,13 +1218,6 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 						</pic:nvPicPr>
 						<pic:blipFill>
 							<a:blip r:embed="{rid}">
-								<a:extLst>
-									<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-										<a14:useLocalDpi
-											xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
-											val="0" />
-									</a:ext>
-								</a:extLst>
 							</a:blip>
 							<a:stretch>
 								<a:fillRect />
@@ -1254,7 +1246,7 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 	'''
 
 	# get the current/last paragraph
-	first_para = doc.paragraphs[-1]
+	first_para = header.paragraphs[0]
 	first_run = first_para.add_run()
 
 	# add a new paragraph paragraph
@@ -1324,11 +1316,13 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 '''
 def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
-	for header in [docx_section.first_page_header, docx_section.header, docx_section.even_page_header]:
+	for header in [docx_section.header, docx_section.even_page_header]:
 		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
 		run = p.add_run()
 		inline = run.add_picture(image_path, width=width, height=height)
 		inline_to_anchored_behind(inline, width=width, height=height)
+		unlock_picture_aspect_ratio(inline)
+		force_picture_transform(inline, width_in=width, height_in=height)
 
 
 ''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
@@ -1407,6 +1401,89 @@ def inline_to_anchored_behind(inline, width, height, nesting_level=0):
     if extent is not None:
         extent.set("cx", str(_emu(width)))
         extent.set("cy", str(_emu(height)))
+
+
+''' Removes/sets noChangeAspect on a:picLocks so the picture can stretch freely.
+	Works for both <wp:inline> and <wp:anchor> (same underlying structure).
+'''
+def unlock_picture_aspect_ratio(inline_or_anchor):
+    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
+    # Find a:pic in the drawing
+    pic = drawing.find(".//" + qn("pic:pic"))
+    if pic is None:
+        return
+
+    # Non-visual picture properties: pic:nvPicPr
+    nvPicPr = pic.find(qn("pic:nvPicPr"))
+    if nvPicPr is None:
+        return
+
+    cNvPicPr = nvPicPr.find(qn("pic:cNvPicPr"))
+    if cNvPicPr is None:
+        return
+
+    picLocks = cNvPicPr.find(qn("a:picLocks"))
+    if picLocks is None:
+        picLocks = OxmlElement("a:picLocks")
+        cNvPicPr.append(picLocks)
+
+    # noChangeAspect="0" means NOT locked. If it's "1" it's locked.
+    picLocks.set("noChangeAspect", "0")
+
+
+''' Forces the internal DrawingML transform to match width/height,
+	resets scaling to 100%, and removes cropping.
+
+	This helps when Word 'snaps back' to aspect ratio behavior or applies
+	internal scaling/cropping that fights wp:extent sizing.
+'''
+def force_picture_transform(inline_or_anchor, width_in: float, height_in: float):
+    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
+
+    # Find picture element
+    pic = drawing.find(".//" + qn("pic:pic"))
+    if pic is None:
+        return
+
+    # Remove cropping if present: pic:blipFill/a:srcRect
+    blipFill = pic.find(qn("pic:blipFill"))
+    if blipFill is not None:
+        srcRect = blipFill.find(qn("a:srcRect"))
+        if srcRect is not None:
+            blipFill.remove(srcRect)
+
+    # Ensure shape properties exist: pic:spPr
+    spPr = pic.find(qn("pic:spPr"))
+    if spPr is None:
+        spPr = OxmlElement("pic:spPr")
+        pic.append(spPr)
+
+    # Ensure transform exists: a:xfrm
+    xfrm = spPr.find(qn("a:xfrm"))
+    if xfrm is None:
+        xfrm = OxmlElement("a:xfrm")
+        # Best placed near start of spPr
+        spPr.insert(0, xfrm)
+
+    # Ensure offset exists: a:off (top-left of the shape)
+    off = xfrm.find(qn("a:off"))
+    if off is None:
+        off = OxmlElement("a:off")
+        xfrm.insert(0, off)
+    off.set("x", "0")
+    off.set("y", "0")
+
+    # Ensure extent exists: a:ext (size of the shape)
+    ext = xfrm.find(qn("a:ext"))
+    if ext is None:
+        ext = OxmlElement("a:ext")
+        xfrm.append(ext)
+
+    ext.set("cx", str(_emu(width_in)))
+    ext.set("cy", str(_emu(height_in)))
+
+    # Reset any scale attributes (rare, but some docs have them)
+    # Some producers add chExt / chOff etc. We won’t add those; we just ensure ext is correct.
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1951,4 +2028,3 @@ DOCX_ATTR_MAP_HINT = {
 	'end':              str_to_border,
 	'bottom':           str_to_border,
 }
-
