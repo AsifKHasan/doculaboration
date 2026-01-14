@@ -301,6 +301,7 @@ class DocxPdfSection(DocxSectionBase):
 
                     if self.page_bg == True:
                         background_image_path = image['path']
+                        # add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=True, nesting_level=self.nesting_level)
                         # print(background_image_path)
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)

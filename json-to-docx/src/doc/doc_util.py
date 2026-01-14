@@ -1068,7 +1068,7 @@ def create_index(doc, index_type, nesting_level=0):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, nesting_level=0):
+def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
@@ -1088,13 +1088,13 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 			doc.add_page_break()
 
 
-	docx_section.first_page_header.is_linked_to_previous = False
-	docx_section.header.is_linked_to_previous = False
-	docx_section.even_page_header.is_linked_to_previous = False
+	docx_section.first_page_header.is_linked_to_previous = link_to_previous
+	docx_section.header.is_linked_to_previous = link_to_previous
+	docx_section.even_page_header.is_linked_to_previous = link_to_previous
 
-	docx_section.first_page_footer.is_linked_to_previous = False
-	docx_section.footer.is_linked_to_previous = False
-	docx_section.even_page_footer.is_linked_to_previous = False
+	docx_section.first_page_footer.is_linked_to_previous = link_to_previous
+	docx_section.footer.is_linked_to_previous = link_to_previous
+	docx_section.even_page_footer.is_linked_to_previous = link_to_previous
 
 	if orientation == 'landscape':
 		docx_section.orient = WD_ORIENT.LANDSCAPE
@@ -1123,7 +1123,9 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		create_page_background(doc=doc, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
+		create_page_background(doc=doc, header=docx_section.header, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
+		# header = docx_section.header
+		# add_background_image_to_header(header, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 
 	return docx_section, new_section
 
@@ -1190,7 +1192,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 		</wp14:sizeRelV>
 	</wp:anchor>
 '''
-def create_page_background(doc, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
+def create_page_background(doc, header, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
 	drawing_xml = '''
 	<w:drawing>
 		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
