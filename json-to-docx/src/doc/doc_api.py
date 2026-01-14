@@ -173,7 +173,6 @@ class DocxSectionBase(object):
                     apply_custom_style(doc=self._doc, style_spec=self._config['custom-styles'][self.heading_style], paragraph=paragraph, nesting_level=self.nesting_level+1)
 
 
-
 ''' Docx table section object
 '''
 class DocxTableSection(DocxSectionBase):

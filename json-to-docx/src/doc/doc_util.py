@@ -1069,7 +1069,7 @@ def create_index(doc, index_type, nesting_level=0):
 ''' add or update a document section
 '''
 def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
-	#  if it is a section break, we isnert a new section
+	#  if it is a section break, we insert a new section
 	if section_break:
 		new_section = True
 		docx_section = doc.add_section(WD_SECTION.NEW_PAGE)
@@ -1119,7 +1119,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 	doc.settings.odd_and_even_pages_header_footer = different_odd_even_pages
 
 	# get the actual width
-	actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
+	# actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
 
 	# TODO: background-image
 	if background_image_path != '':
