@@ -1558,6 +1558,7 @@ def process_custom_style(doc, style_spec, nesting_level=0):
 	return custom_styles
 
 
+
 ''' parse style properties from yml to docx
 '''
 def parse_style_properties(style_spec, nesting_level=0):
