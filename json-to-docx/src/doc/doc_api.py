@@ -301,12 +301,12 @@ class DocxPdfSection(DocxSectionBase):
                     if self.page_bg == True:
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_height)
+                        create_page_background(doc=self._doc, background_image_path=image['path'], page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
 
                     else:
                         paragraph = self._doc.add_paragraph()
-                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False)
+                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=self.nesting_level+1)
+                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=self.nesting_level+1)
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
@@ -315,11 +315,11 @@ class DocxPdfSection(DocxSectionBase):
 
                         # print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
                         # print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
-                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
+                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=self.nesting_level+1)
                         # print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
                         # print()
                         
-                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches)
+                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches, nesting_level=self.nesting_level+1)
                         # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
 
 
