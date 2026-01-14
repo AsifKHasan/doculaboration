@@ -120,14 +120,14 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
 
     # if the file is already in the local_path, we do not download it
     if Path(local_path).exists():
-        debug(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
+        trace(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
 
     # finally download the file
-    debug(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
+    trace(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
     try:
         download_media_from_dive(drive_service=drive_service, file_id=id, local_path=local_path, nesting_level=nesting_level+1)
-        debug(f"drive file downloaded at: [{local_path}]", nesting_level=nesting_level)
+        trace(f"drive file downloaded at: [{local_path}]", nesting_level=nesting_level)
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
 
     except:
@@ -136,11 +136,6 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
 
 
 ''' copy drive file of a given id with a new name/title
-'''
-def copy_drive_file(drive_service, origin_file_id, copy_title, nesting_level):
-    """
-    Copy an existing file.
-
     Args:
         service: Drive API service instance.
         origin_file_id: ID of the origin file to copy.
@@ -148,7 +143,8 @@ def copy_drive_file(drive_service, origin_file_id, copy_title, nesting_level):
 
     Returns:
         The copied file if successful, None otherwise.
-    """
+'''
+def copy_drive_file(drive_service, origin_file_id, copy_title, nesting_level):
     copied_file = {'title': copy_title}
     try:
         return drive_service.files().copy(fileId=origin_file_id, body=copied_file).execute()
@@ -287,14 +283,14 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
         local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
         if Path(local_path).exists():
-            debug(f"file existing   [{file_url}]", nesting_level=nesting_level)
+            trace(f"file existing   [{file_url}]", nesting_level=nesting_level)
             # pass
         else:
             file_data = requests.get(file_url).content
             with open(local_path, 'wb') as handler:
                 handler.write(file_data)
 
-            debug(f"file downloaded [{file_url}]", nesting_level=nesting_level)
+            trace(f"file downloaded [{file_url}]", nesting_level=nesting_level)
 
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
     except:
@@ -412,7 +408,7 @@ def download_image_from_formula(image_formula, tmp_dir, row_height, nesting_leve
         try:
             # if the image is already in the local_path, we do not download it
             if Path(local_path).exists():
-                debug(f"image existing   at: [{local_path}]", nesting_level=nesting_level)
+                trace(f"image existing   at: [{local_path}]", nesting_level=nesting_level)
             else:
                 response = requests.get(url, stream=True)
                 if not response.ok:

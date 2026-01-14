@@ -114,8 +114,8 @@ def insert_background_image(container, paragraph, image_path, width, height, nes
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
 
-	cx = int(EMU_PER_INCH * width)
-	cy = int(EMU_PER_INCH * height)
+	cx = str(_emu(width))
+	cy = str(_emu(height))
 
 	anchor_xml = f"""
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
@@ -1123,9 +1123,9 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 
 	# TODO: background-image
 	if background_image_path != '':
-		create_page_background(doc=doc, header=docx_section.header, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
-		# header = docx_section.header
-		# add_background_image_to_header(header, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
+		# create_page_background(doc=doc, header=docx_section.header, background_image_path=background_image_path, page_width_inches=docx_section.page_width.inches, page_height_inches=docx_section.page_height.inches, nesting_level=nesting_level+1)
+		header = docx_section.header
+		add_background_image_to_header(header, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 
 	return docx_section, new_section
 
@@ -1267,8 +1267,8 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 		# tweak the generated inline image
 		parser = etree.XMLParser(recover=True)
 
-		cx = int(EMU_PER_INCH * page_width_inches)
-		cy = int(EMU_PER_INCH * page_height_inches)
+		cx = str(_emu(page_width_inches))
+		cy = str(_emu(page_height_inches))
 
 
 		docPr = new_run._r.xpath('.//wp:docPr')[0]
@@ -1323,64 +1323,93 @@ def add_background_image_to_header(header, image_path, width, height, nesting_le
     p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
     run = p.add_run()
     inline = run.add_picture(image_path, width=width, height=height)
-    # inline_to_anchored_behind(inline)
+    inline_to_anchored_behind(inline, width=width, height=height)
 
 
 ''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
 	positioned at page origin and behind text.
 '''
-def inline_to_anchored_behind(inline, nesting_level=0):
-    inline_elm = inline._inline  # CT_Inline element
+def inline_to_anchored_behind(inline, width, height, nesting_level=0):
+    inline_elm = inline._inline  # the <wp:inline> element
 
-    anchor = OxmlElement("wp:anchor")
-    anchor.set("simplePos", "0")
-    anchor.set("relativeHeight", "0")
-    anchor.set("behindDoc", "1")          # behind text
-    anchor.set("locked", "0")
-    anchor.set("layoutInCell", "1")
-    anchor.set("allowOverlap", "1")
-    anchor.set("distT", "0")
-    anchor.set("distB", "0")
-    anchor.set("distL", "0")
-    anchor.set("distR", "0")
+    # Rename <wp:inline> -> <wp:anchor>
+    inline_elm.tag = qn("wp:anchor")
 
-    # required children: wp:simplePos, wp:positionH, wp:positionV, wp:extent, wp:effectExtent, wp:wrapNone, ...
+    # Anchor attributes (Word is picky about these)
+    inline_elm.set("simplePos", "0")
+    inline_elm.set("relativeHeight", "0")
+    inline_elm.set("behindDoc", "1")
+    inline_elm.set("locked", "0")
+    inline_elm.set("layoutInCell", "1")
+    inline_elm.set("allowOverlap", "1")
+    inline_elm.set("distT", "0")
+    inline_elm.set("distB", "0")
+    inline_elm.set("distL", "0")
+    inline_elm.set("distR", "0")
+
+    # Build required children: simplePos, positionH, positionV
     simplePos = OxmlElement("wp:simplePos")
     simplePos.set("x", "0")
     simplePos.set("y", "0")
-    anchor.append(simplePos)
 
     positionH = OxmlElement("wp:positionH")
     positionH.set("relativeFrom", "page")
     posOffsetH = OxmlElement("wp:posOffset")
     posOffsetH.text = "0"
     positionH.append(posOffsetH)
-    anchor.append(positionH)
 
     positionV = OxmlElement("wp:positionV")
     positionV.set("relativeFrom", "page")
     posOffsetV = OxmlElement("wp:posOffset")
     posOffsetV.text = "0"
     positionV.append(posOffsetV)
-    anchor.append(positionV)
 
-    # Move over the existing wp:extent (size) and other needed children from inline to anchor
-    # We keep the same graphic and size Word generated.
-    for child in list(inline_elm):
-        # We'll skip wp:docPr because anchor needs it too (we can keep it)
-        anchor.append(child)
+    # Insert at the beginning, BEFORE wp:extent
+    # (inline originally starts with wp:extent)
+    inline_elm.insert(0, simplePos)
+    inline_elm.insert(1, positionH)
+    inline_elm.insert(2, positionV)
 
+    # Ensure wrapNone exists right after effectExtent
     wrapNone = OxmlElement("wp:wrapNone")
-    anchor.append(wrapNone)
 
-    # Replace inline with anchor in the parent <w:drawing>
-    drawing = inline_elm.getparent()
-    drawing.remove(inline_elm)
-    drawing.append(anchor)
+    # Find effectExtent if present; if not, create one after extent
+    extent = inline_elm.find(qn("wp:extent"))
+    effectExtent = inline_elm.find(qn("wp:effectExtent"))
+
+    if effectExtent is None:
+        effectExtent = OxmlElement("wp:effectExtent")
+        effectExtent.set("l", "0")
+        effectExtent.set("t", "0")
+        effectExtent.set("r", "0")
+        effectExtent.set("b", "0")
+        # place it after extent
+        if extent is not None:
+            idx = list(inline_elm).index(extent)
+            inline_elm.insert(idx + 1, effectExtent)
+        else:
+            inline_elm.insert(3, effectExtent)
+
+    # Insert wrapNone immediately after effectExtent if not already there
+    children = list(inline_elm)
+    eff_idx = children.index(effectExtent)
+    if not any(c.tag == qn("wp:wrapNone") for c in children):
+        inline_elm.insert(eff_idx + 1, wrapNone)
+
+    # IMPORTANT: set extent to full page (if you want exact A4 stretch)
+    # (python-docx may have already set it based on add_picture width/height,
+    # but this forces correctness)
+    if extent is not None:
+        extent.set("cx", str(_emu(width)))
+        extent.set("cy", str(_emu(height)))
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
+
+def _emu(inches: float) -> int:
+    return int(inches * EMU_PER_INCH)
+
 
 ''' whether the container is a table-cell or not
 '''
@@ -1516,7 +1545,6 @@ def polish_table(table, nesting_level=0):
 def print_xml(element, nesting_level=0):
 	# Convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
-	
 	# print(xml_str)
 
 
@@ -1587,12 +1615,12 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 
 	# borders
 	if 'borders' in style_spec:
-		if element:
+		if element is not None:
 			set_paragraph_border(element=element, borders=style_spec['borders'])
 
 	# backgroundcolor
 	if 'backgroundcolor' in style_spec:
-		if element:
+		if element is not None:
 			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
 
 

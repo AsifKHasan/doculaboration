@@ -282,6 +282,29 @@ class DocxPdfSection(DocxSectionBase):
         super().__init__(section_data, config)
 
 
+    ''' Pdf Page specific Header/Footer processing
+    '''
+    def process_pdf_page_header_footer(self, docx_section):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+
+        docx_section.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+        docx_section.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+        docx_section.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+        docx_section.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+
+        if docx_section.header_odd:
+            docx_section.header_odd.content_to_doc(container=docx_section.header)
+
+        if docx_section.header_even:
+            docx_section.header_even.content_to_doc(container=docx_section.even_page_header)
+
+        if docx_section.footer_odd:
+            docx_section.footer_odd.content_to_doc(container=docx_section.footer)
+
+        if docx_section.footer_even:
+            docx_section.footer_even.content_to_doc(container=docx_section.even_page_footer)
+
+
     ''' generates the docx code
     '''
     def section_to_doc(self):
@@ -297,13 +320,17 @@ class DocxPdfSection(DocxSectionBase):
             if self._section_data['contents'] and 'images' in self._section_data['contents']:
                 for i, image in enumerate(self._section_data['contents']['images']):
                     if self.page_bg == True:
-                        paragraph_attributes = {'breakbefore': 'page'}
-                        background_image_path = image['path']
-                        # add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=True, nesting_level=self.nesting_level)
-                        # print(background_image_path)
+                        # paragraph_attributes = {'breakbefore': 'page'}
+                        paragraph_attributes = {}
                         paragraph = self._doc.add_paragraph()
                         apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
-                        create_page_background(doc=self._doc, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
+
+                        background_image_path = image['path']
+                        docx_section, _ = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=self.nesting_level)
+                        # TODO: this new docx_section's header-footer to be handled. this new section, should have odd and eveen header footer defined, but not first
+                        self.process_pdf_page_header_footer(docx_section=docx_section)
+
+                        # create_page_background(doc=self._doc, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
 
                     else:
                         paragraph_attributes = {}

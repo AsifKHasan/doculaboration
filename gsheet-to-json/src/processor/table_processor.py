@@ -93,10 +93,10 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
             url = note_dict['background'].get('url')
             
             # download image
-            debug(f"downloading bg image {url}", nesting_level=nesting_level)
+            debug(f"downloading bg image {url}", nesting_level=nesting_level+1)
             bg_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
             cell_data['background'] = bg_image_dict
-            debug(f"downloaded  bg image {url}", nesting_level=nesting_level)
+            # trace(f"downloaded  bg image {url}", nesting_level=nesting_level+1)
 
 
 ''' parse formula

@@ -62,7 +62,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 jpeg_quality = section_data['section-prop']['jpeg-quality'].strip()
                 if jpeg_quality is None or jpeg_quality == '':
                     jpeg_quality = JPEG_QUALITY_DEFAULT
-                    trace(f"jpeg-quality not specified explicitly .. using default value [{JPEG_QUALITY_DEFAULT}]", nesting_level=nesting_level+1)
+                    # trace(f"jpeg-quality not specified explicitly .. using default value [{JPEG_QUALITY_DEFAULT}]", nesting_level=nesting_level+1)
                 else:
                     try:
                         jpeg_quality = int(jpeg_quality)
