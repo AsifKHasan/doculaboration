@@ -820,7 +820,7 @@ class Cell(object):
 
         self.merge_spec = CellMergeSpec()
         self.note = None
-        self.background = None
+        self.inline_image = None
         self.effective_format = CellFormat(format_dict=None)
         self.user_entered_format = CellFormat(format_dict=None)
 
@@ -831,9 +831,9 @@ class Cell(object):
         self.image_frame = None
 
         if self.value:
-            bg_dict = self.value.get('background', {})
-            if bg_dict:
-                self.background = CellBackground(bg_dict)
+            ii_dict = self.value.get('inline-image', {})
+            if ii_dict:
+                self.inline_image = InlineImage(ii_dict)
 
             note_dict = self.value.get('notes', {})
             self.note = CellNote(note_dict=note_dict)
@@ -894,6 +894,7 @@ class Cell(object):
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
+
     ''' odt code for cell content
     '''
     def cell_to_odt_table_cell(self, odt, table_name):
@@ -913,21 +914,24 @@ class Cell(object):
             table_cell_attributes = self.merge_spec.table_cell_attributes()
 
             background_image_style = None
-            if self.background:
+            if self.inline_image:
                 # now if the background does not have any position, it is to be trated as a background image
-                if self.background.position is None:
-                    background_image_style = create_background_image_style(odt=odt, picture_path=self.background.file_path, nesting_level=self.nesting_level+1)
+                if self.inline_image.type == 'background':
+                    background_image_style = create_background_image_style(odt=odt, picture_path=self.inline_image.file_path, nesting_level=self.nesting_level+1)
 
                 # the image is positioned, it is to be positioned as a non-bg image
-                else:
+                elif self.inline_image.type == 'inline':
                     halign, valign = 'center', 'middle'
-                    positions = self.background.position.split(' ')
+                    positions = self.inline_image.position.split(' ')
                     if len(positions) == 2:
                         halign, valign = positions[0], positions[1]
                     elif len(positions) == 1:
                         halign = positions[0]
 
-                    self.image_frame = create_image_frame(odt=odt, picture_path=self.background.file_path, valign=valign, halign=halign, width=self.background.image_width, height=self.background.image_height, wrap=self.background.wrap, anchor_type='paragraph', preserve=None, neting_level=self.nesting_level+1)
+                    self.image_frame = create_image_frame(odt=odt, picture_path=self.inline_image.file_path, valign=valign, halign=halign, width=self.inline_image.image_width, height=self.inline_image.image_height, wrap=self.inline_image.wrap, anchor_type='paragraph', preserve=None, nesting_level=self.nesting_level+1)
+
+                else:
+                    warn(f"invalid inline-image type [{self.inline_image.type}]", nesting_level=self.nesting_level)
 
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=self.nesting_level+1)
 
@@ -939,6 +943,7 @@ class Cell(object):
             table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
 
         return table_cell
+
 
     ''' odt code for cell content
     '''
@@ -1970,21 +1975,23 @@ class CellNote(object):
         return attributes
 
 
-''' gsheet cell background wrapper
-    NOTE: for now only image background is supported
+''' gsheet cell inline-image wrapper
 '''
-class CellBackground(object):
+class InlineImage(object):
 
     ''' constructor
     '''
-    def __init__(self, bg_dict={}):
-        self.bg_dict = bg_dict
-        self.file_path = bg_dict['file-path']
-        self.file_type = bg_dict['file-type']
-        self.image_width = bg_dict['image-width']
-        self.image_height = bg_dict['image-height']
-        self.position = bg_dict.get('position', None)
-        self.wrap = bg_dict.get('wrap', None)
+    def __init__(self, ii_dict={}):
+        self.ii_dict = ii_dict
+        self.file_path = ii_dict['file-path']
+        self.file_type = ii_dict['file-type']
+        self.image_width = ii_dict['image-width']
+        self.image_height = ii_dict['image-height']
+        self.type = ii_dict.get('type')
+        self.extend_container_height = ii_dict.get('extend-container-height')
+        self.fill_width = ii_dict.get('fill-width')
+        self.position = ii_dict.get('position')
+        self.wrap = ii_dict.get('wrap')
 
     
     ''' attributes dict for TableCellProperties
