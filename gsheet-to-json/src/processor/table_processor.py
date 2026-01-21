@@ -89,13 +89,25 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
     # check for *background* note and process
     if 'background' in note_dict:
         # NOTE: for now supports image url only
-        if 'url' in note_dict['background']:
-            url = note_dict['background'].get('url')
+        bg_dict = note_dict['background']
+        if 'url' in bg_dict:
+            url = bg_dict.get('url')
             
             # download image
             debug(f"downloading bg image {url}", nesting_level=nesting_level+1)
             bg_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
             cell_data['background'] = bg_image_dict
+
+            # position is horizontal and vertical positions center-middle, center-left
+            if 'position' in bg_dict:
+                cell_data['background']['position'] = bg_dict['position']
+
+            # wrap can be none, parallel - this is only meaningful when ?
+            cell_data['background']['wrap'] = bg_dict.get('wrap', 'parallel')
+
+            # fill can be none, width, height, both, extend-cell-height
+            cell_data['background']['fill'] = bg_dict.get('fill', 'both')
+
             # trace(f"downloaded  bg image {url}", nesting_level=nesting_level+1)
 
 

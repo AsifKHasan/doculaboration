@@ -32,7 +32,7 @@ else:
 
 ''' process a list of section_data and generate odt code
 '''
-def section_list_to_odt(section_list, config):
+def section_list_to_odt(section_list, config, nesting_level=0):
     first_section = True
     for section in section_list:
         section_meta = section['section-meta']
@@ -70,18 +70,19 @@ def section_list_to_odt(section_list, config):
         draw:fill-image-ref-point="center"
         draw:tile-repeat-offset="0% vertical"
 '''
-def create_background_image_style(odt, picture_path):
+def create_background_image_style(odt, picture_path, nesting_level=0):
     background_image_style = None
 
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
     if href:
-        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center', 'repeat': 'stretch', }
+        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center center', 'repeat': 'stretch', }
+
         # background_image_style_attributes = {'href': href}
         background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)
 
     else:
-        warn(f"image {picture_path} could not be added into the document")
+        warn(f"image {picture_path} could not be added into the document", nesting_level=nesting_level)
 
     return background_image_style
 
@@ -91,10 +92,10 @@ def create_background_image_style(odt, picture_path):
       <style:graphic-properties style:wrap="none" style:vertical-pos="top" style:vertical-rel="paragraph" style:horizontal-pos="center" style:horizontal-rel="page" style:mirror="none" fo:clip="rect(0in, 0in, 0in, 0in)" draw:luminance="0%" draw:contrast="0%" draw:red="0%" draw:green="0%" draw:blue="0%" draw:gamma="100%" draw:color-inversion="false" draw:image-opacity="100%" draw:color-mode="standard" draw:wrap-influence-on-position="once-concurrent" loext:allow-overlap="true"/>
     </style:style>
 '''
-def create_graphic_style(odt, valign, halign):
+def create_graphic_style(odt, valign, halign, wrap='parallel', nesting_level=0):
     style_name = f"fr-{random_string()}"
 
-    graphic_properties_attributes = {'wrap': 'none', 'verticalpos': valign, 'horizontalpos': halign}
+    graphic_properties_attributes = {'verticalpos': valign, 'horizontalpos': halign, 'wrap': wrap}
     graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
 
     graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
@@ -111,7 +112,7 @@ def create_graphic_style(odt, valign, halign):
       <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
     </draw:frame>
 '''
-def create_image_frame(odt, picture_path, valign, halign, width, height, preserve=None):
+def create_image_frame(odt, picture_path, valign, halign, width, height, wrap='parallel', anchor_type='Frame', preserve=None, nesting_level=0):
     # THIS IS THE Draw:Frame object to return
     draw_frame = None
 
@@ -123,12 +124,12 @@ def create_image_frame(odt, picture_path, valign, halign, width, height, preserv
         # image_attributes[('draw', 'mimetype')] = 'image/png'
         draw_image = draw.Image(attributes=image_attributes)
 
-        frame_style_name = create_graphic_style(odt, valign, halign)
+        frame_style_name = create_graphic_style(odt=odt, valign=valign, halign=halign, wrap=wrap)
 
         # finally we need the Draw:Frame object
         # TODO: anchortype for pdf images to be sorted out
         # print(f"image {picture_path} size is [{width}x{height}], aspect ratios [{height/width}]")
-        frame_attributes = {'stylename': frame_style_name, 'anchortype': 'frame', 'width': f"{width}in", 'height': f"{height}in"}
+        frame_attributes = {'stylename': frame_style_name, 'anchortype': anchor_type, 'width': f"{width}in", 'height': f"{height}in"}
         if preserve == 'height':
             frame_attributes = {**frame_attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
         elif preserve == 'width':
@@ -146,7 +147,7 @@ def create_image_frame(odt, picture_path, valign, halign, width, height, preserv
 
 ''' create a text_a
 '''
-def create_text_a(anchor, target):
+def create_text_a(anchor, target, nesting_level=0):
     
     # if the anchor is not an url, it is a bookmark
     if not target.startswith('http'):
@@ -173,7 +174,7 @@ def create_text_a(anchor, target):
 
 ''' create a Table
 '''
-def create_table(odt, table_name, table_style_attributes, table_properties_attributes):
+def create_table(odt, table_name, table_style_attributes, table_properties_attributes, nesting_level=0):
     if 'family' not in table_style_attributes:
         table_style_attributes['family'] = 'table'
 
@@ -193,13 +194,13 @@ def create_table(odt, table_name, table_style_attributes, table_properties_attri
 
 ''' create table-header-rows
 '''
-def create_table_header_rows():
+def create_table_header_rows(nesting_level=0):
     return table.TableHeaderRows()
 
 
 ''' create TableColumn
 '''
-def create_table_column(odt, table_column_name, table_column_style_attributes, table_column_properties_attributes):
+def create_table_column(odt, table_column_name, table_column_style_attributes, table_column_properties_attributes, nesting_level=0):
     if 'family' not in table_column_style_attributes:
         table_column_style_attributes['family'] = 'table-column'
 
@@ -217,7 +218,7 @@ def create_table_column(odt, table_column_name, table_column_style_attributes, t
 
 ''' create TableRow
 '''
-def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes):
+def create_table_row(odt, table_row_style_attributes, table_row_properties_attributes, nesting_level=0):
     if 'family' not in table_row_style_attributes:
         table_row_style_attributes['family'] = 'table-row'
 
@@ -236,7 +237,7 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
 ''' create TableCell
 '''
-def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=None):
+def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=None, nesting_level=0):
     if 'family' not in table_cell_style_attributes:
         table_cell_style_attributes['family'] = 'table-cell'
 
@@ -259,7 +260,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
 
 ''' create CoveredTableCell
 '''
-def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes):
+def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, nesting_level=0):
     if 'family' not in table_cell_style_attributes:
         table_cell_style_attributes['family'] = 'table-cell'
 
@@ -281,7 +282,7 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 ''' create a Paragraph Style that forces a switch to this Master Page
     This is how we change backgrounds mid-document
 '''
-def create_paragraph_with_masterpage(odt, style_name, master_page_name):
+def create_paragraph_with_masterpage(odt, style_name, master_page_name, nesting_level=0):
     ps = style.Style(name=style_name, family="paragraph", masterpagename=master_page_name)
     odt.automaticstyles.addElement(ps)
     p = text.P(stylename=style_name, text=None)
@@ -291,7 +292,7 @@ def create_paragraph_with_masterpage(odt, style_name, master_page_name):
 
 ''' create style - family paragraph
 '''
-def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None):
+def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None, text_attributes=None, nesting_level=0):
     # we may need to create the style-name
     if style_attributes is None:
         style_attributes = {}
@@ -321,7 +322,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, directives=True):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, directives=True, nesting_level=0):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -357,7 +358,7 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
 
 ''' add text span, s, c to a paragraph
 '''
-def add_text_to_paragraph(paragraph, text_string):
+def add_text_to_paragraph(paragraph, text_string, nesting_level=0):
     matches = []
     matches = matches + [(match.start(), match.end(), 'space') for match in re.finditer(r'^ {1,}', text_string)]
     matches = matches + [(match.start(), match.end(), 'space') for match in re.finditer(r' {2,}', text_string)]
@@ -378,7 +379,7 @@ def add_text_to_paragraph(paragraph, text_string):
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, nesting_level=0):
     paragraph = None
 
     # process FN{...} first, we get a list of block dicts
@@ -486,7 +487,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
 ''' process footnotes inside text
 '''
-def process_footnotes(text_content, footnote_list):
+def process_footnotes(text_content, footnote_list, nesting_level=0):
     # if text contains footnotes we make a list containing texts->footnote->text->footnote ......
     texts_and_footnotes = []
 
@@ -518,7 +519,7 @@ def process_footnotes(text_content, footnote_list):
 
 ''' process latex blocks inside text
 '''
-def process_latex_blocks(text_content):
+def process_latex_blocks(text_content, nesting_level=0):
     # find out if there is any match with LATEX$...$ inside the text_content
     texts_and_latex = []
 
@@ -550,7 +551,7 @@ def process_latex_blocks(text_content):
 
 ''' process bookmark page ref inside text
 '''
-def process_bookmark_page_blocks(text_content):
+def process_bookmark_page_blocks(text_content, nesting_level=0):
     # find out if there is any match with PAGE{...} inside the text_content
     texts_and_bookmarks = []
 
@@ -589,7 +590,7 @@ def process_bookmark_page_blocks(text_content):
 
 ''' process external url or bookmark links
 '''
-def process_links(text_content):
+def process_links(text_content, nesting_level=0):
     # find out if there is any match with LINK{...}{} inside the text_content
     links = []
 
@@ -632,7 +633,7 @@ def process_links(text_content):
 
 ''' create a footnote
 '''
-def create_footnote(footnote_tuple):
+def create_footnote(footnote_tuple, nesting_level=0):
     citation, footnote = footnote_tuple[0], footnote_tuple[1]
     note = text.Note(noteclass='footnote')
     note_citation = text.NoteCitation(label=citation)
@@ -647,7 +648,7 @@ def create_footnote(footnote_tuple):
 
 ''' create latex object
 '''
-def create_latex(latex_content):
+def create_latex(latex_content, nesting_level=0):
     # convert to MathML
     if latex_content is not None:
         mathml_output = latex2mathml.converter.convert(strip_math_mode_delimeters(latex_content))
@@ -666,7 +667,7 @@ def create_latex(latex_content):
 
 ''' write a mathml draw-frame
 '''
-def create_mathml(odt, style_name, latex_content):
+def create_mathml(odt, style_name, latex_content, nesting_level=0):
     # process styles
     style = odt.getStyleByName(style_name)
     if style is None:
@@ -683,7 +684,7 @@ def create_mathml(odt, style_name, latex_content):
 
 ''' odf.math.Math element
 '''
-def mathml_odf(mathml_content):
+def mathml_odf(mathml_content, nesting_level=0):
     # TODO: process the generated MathML
     mathml = mathml_content
     math_ = parseString(mathml.encode('utf-8'))
@@ -695,7 +696,7 @@ def mathml_odf(mathml_content):
 
 ''' odf.math.Math element generator
 '''
-def mathml_odf_(parent):
+def mathml_odf_(parent, nesting_level=0):
     elem = Element(qname = (MATHNS,parent.tagName))
     if parent.attributes:
         for attr, value in parent.attributes.items():
@@ -716,7 +717,7 @@ def mathml_odf_(parent):
 
 ''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
 '''
-def update_indexes(odt, odt_path):
+def update_indexes(odt, odt_path, nesting_level=0):
     document_url = Path(odt_path).as_uri()
 
     macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
@@ -730,7 +731,7 @@ def update_indexes(odt, odt_path):
 
 ''' given an odt file generates pdf in the given directory
 '''
-def generate_pdf(infile, outdir):
+def generate_pdf(infile, outdir, nesting_level=0):
     command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{outdir}" "{infile}"'
     subprocess.call(command_line, shell=True)
 
@@ -750,7 +751,7 @@ def generate_pdf(infile, outdir):
     <text:index-entry-link-end/>
   </text:table-of-content-entry-template>
 '''
-def create_toc():
+def create_toc(nesting_level=0):
     name = 'Table of Content'
     toc = text.TableOfContent(name=name)
     toc_source = text.TableOfContentSource(outlinelevel=10)
@@ -783,7 +784,7 @@ def create_toc():
 
 ''' create illustration-index
 '''
-def create_lof():
+def create_lof(nesting_level=0):
     name = 'List of Figures'
     toc = text.TableOfContent(name=name)
     toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
@@ -818,7 +819,7 @@ def create_lof():
 
 ''' create Table-index
 '''
-def create_lot():
+def create_lot(nesting_level=0):
     name = 'List of Tables'
     toc = text.TableOfContent(name=name)
     toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
@@ -856,7 +857,7 @@ def create_lot():
 
 ''' get master-page by name
 '''
-def get_master_page(odt, master_page_name):
+def get_master_page(odt, master_page_name, nesting_level=0):
     for master_page in odt.masterstyles.getElementsByType(style.MasterPage):
         if master_page.getAttribute('name') == master_page_name:
             return master_page
@@ -867,7 +868,7 @@ def get_master_page(odt, master_page_name):
 
 ''' get page-layout by name
 '''
-def get_page_layout(odt, page_layout_name):
+def get_page_layout(odt, page_layout_name, nesting_level=0):
     for page_layout in odt.automaticstyles.getElementsByType(style.PageLayout):
         if page_layout.getAttribute('name') == page_layout_name:
             return page_layout
@@ -884,7 +885,7 @@ def get_page_layout(odt, page_layout_name):
         fillimagerefpoint = 'center'
         tilerepeatoffset = '0% vertical'
 '''
-def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, background_image_path):
+def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, background_image_path, nesting_level=0):
     # get one, if not found create one
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name)
     if page_layout is None:
@@ -933,7 +934,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path, next_master_page_style=None):
+def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path, next_master_page_style=None, nesting_level=0):
     # TODO: create one, first get/create the page-layout. If first section, update page-layout for *Standarad* master-page
     if first_section and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
@@ -955,7 +956,7 @@ def create_master_page(odt, first_section, document_index, master_page_name, pag
         <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
     </style:footer-style>
 '''
-def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even):
+def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even, nesting_level=0):
     header_footer = None
     header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
     mp_name = master_page.getAttribute('name')
@@ -1000,7 +1001,7 @@ def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even
 
 ''' process line-breaks
 '''
-def process_line_breaks(text, keep_line_breaks):
+def process_line_breaks(text, keep_line_breaks, nesting_level=0):
     if keep_line_breaks:
         new_text = text.replace('\n', '<text:line-break/>')
         return new_text
@@ -1012,20 +1013,20 @@ def process_line_breaks(text, keep_line_breaks):
 ''' given pixel size, calculate the row height in inches
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
-def row_height_in_inches(pixel_size):
+def row_height_in_inches(pixel_size, nesting_level=0):
     return float((pixel_size) / 96)
 
 
 ''' get a random string
 '''
-def random_string(length=12):
+def random_string(length=12, nesting_level=0):
     letters = string.ascii_uppercase
     return ''.join(random.choice(letters) for i in range(length))
 
 
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
-def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit):
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
     aspect_ratio = width_to_fit / height_to_fit
 
     if width_to_fit > fit_within_width:
@@ -1040,7 +1041,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 
 ''' strip LaTeX math mode delimeter ($)
 '''
-def strip_math_mode_delimeters(latex_content):
+def strip_math_mode_delimeters(latex_content, nesting_level=0):
     # strip SPACES
     stripped = latex_content.strip()
 
@@ -1066,7 +1067,7 @@ def register_font(odt, font_name, font_spec, nesting_level=0):
 
 ''' return the style if exists
 '''
-def get_style_by_name(odt, style_name):
+def get_style_by_name(odt, style_name, nesting_level=0):
     # Check common styles
     for style in odt.styles.getElementsByType(Style):
         if style.getAttribute("name") == style_name:

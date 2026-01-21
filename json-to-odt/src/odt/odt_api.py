@@ -410,7 +410,7 @@ class OdtPdfSection(OdtSectionBase):
                     else:
                         fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
                         image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                        draw_frame = create_image_frame(self._odt, image['path'], 'center', 'center', image_width_in_inches, image_height_in_inches, preserve='height')
+                        draw_frame = create_image_frame(odt=self._odt, picture_path=image['path'], valign='middle', halign='center', width=image_width_in_inches, height=image_height_in_inches, preserve='height')
 
                         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
 
@@ -828,6 +828,7 @@ class Cell(object):
         self.effective_cell_width = self.cell_width
         self.effective_cell_height = self.cell_height
 
+        self.image_frame = None
 
         if self.value:
             bg_dict = self.value.get('background', {})
@@ -913,9 +914,22 @@ class Cell(object):
 
             background_image_style = None
             if self.background:
-                background_image_style = create_background_image_style(odt=odt, picture_path=self.background.file_path)
+                # now if the background does not have any position, it is to be trated as a background image
+                if self.background.position is None:
+                    background_image_style = create_background_image_style(odt=odt, picture_path=self.background.file_path, nesting_level=self.nesting_level+1)
 
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style)
+                # the image is positioned, it is to be positioned as a non-bg image
+                else:
+                    halign, valign = 'center', 'middle'
+                    positions = self.background.position.split(' ')
+                    if len(positions) == 2:
+                        halign, valign = positions[0], positions[1]
+                    elif len(positions) == 1:
+                        halign = positions[0]
+
+                    self.image_frame = create_image_frame(odt=odt, picture_path=self.background.file_path, valign=valign, halign=halign, width=self.background.image_width, height=self.background.image_height, wrap=self.background.wrap, anchor_type='paragraph', preserve=None, neting_level=self.nesting_level+1)
+
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=self.nesting_level+1)
 
             if table_cell:
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
@@ -957,7 +971,10 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                # place the image frame
+                if self.image_frame:
+                    paragraph.addElement(self.image_frame)
 
 
     ''' Copy format from the cell passed
@@ -1245,6 +1262,8 @@ class StringValue(CellValue):
         paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives)
         container.addElement(paragraph)
 
+        return paragraph
+
 
 ''' LaTex type CellValue
 '''
@@ -1279,6 +1298,8 @@ class LatexValue(CellValue):
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_mathml(odt, style_name, latex_content=self.value)
         container.addElement(paragraph)
+
+        return paragraph
 
 
 ''' text-run type CellValue
@@ -1320,6 +1341,8 @@ class TextRunValue(CellValue):
         )
         paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
         container.addElement(paragraph)
+
+        return paragraph
 
 
 ''' image type CellValue
@@ -1372,12 +1395,14 @@ class ImageValue(CellValue):
         text_attributes['fontsize'] = 2
         picture_path = self.value['path']
 
-        draw_frame = create_image_frame(odt, picture_path, IMAGE_POSITION[self.effective_format.valign.valign], IMAGE_POSITION[self.effective_format.halign.halign], image_width_in_inches, image_height_in_inches)
+        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, valign=IMAGE_POSITION[self.effective_format.valign.valign], halign=IMAGE_POSITION[self.effective_format.halign.halign], width=image_width_in_inches, height=image_height_in_inches, nesting_level=self.nesting_level+1)
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
         paragraph.addElement(draw_frame)
         container.addElement(paragraph)
+
+        return paragraph
 
 
 ''' content type CellValue
@@ -1403,6 +1428,8 @@ class ContentValue(CellValue):
     def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
         self.contents = OdtContent(self.value, container_width, self.nesting_level)
         self.contents.content_to_odt(odt=odt, container=container)
+
+        return None
 
 
 ''' gsheet cell format object wrapper
@@ -1953,6 +1980,11 @@ class CellBackground(object):
     def __init__(self, bg_dict={}):
         self.bg_dict = bg_dict
         self.file_path = bg_dict['file-path']
+        self.file_type = bg_dict['file-type']
+        self.image_width = bg_dict['image-width']
+        self.image_height = bg_dict['image-height']
+        self.position = bg_dict.get('position', None)
+        self.wrap = bg_dict.get('wrap', None)
 
     
     ''' attributes dict for TableCellProperties
