@@ -212,8 +212,6 @@ class OdtSectionBase(object):
             pass
 
 
-
-
     ''' generates the odt code
     '''
     def section_to_odt(self):
@@ -260,6 +258,7 @@ class OdtSectionBase(object):
         self._odt.text.addElement(paragraph)
 
 
+
 ''' Odt table section object
 '''
 class OdtTableSection(OdtSectionBase):
@@ -275,6 +274,7 @@ class OdtTableSection(OdtSectionBase):
     def section_to_odt(self):
         super().section_to_odt()
         self.section_contents.content_to_odt(odt=self._odt, container=self._odt.text)
+
 
 
 ''' Odt gsheet section object
@@ -298,6 +298,7 @@ class OdtGsheetSection(OdtSectionBase):
             section_list_to_odt(self._section_data['contents']['sections'], self._config)
 
 
+
 ''' Odt ToC section object
 '''
 class OdtToCSection(OdtSectionBase):
@@ -315,6 +316,7 @@ class OdtToCSection(OdtSectionBase):
         toc = create_toc()
         if toc:
             self._odt.text.addElement(toc)
+
 
 
 ''' Odt LoT section object
@@ -336,6 +338,7 @@ class OdtLoTSection(OdtSectionBase):
             self._odt.text.addElement(toc)
 
 
+
 ''' Odt LoF section object
 '''
 class OdtLoFSection(OdtSectionBase):
@@ -353,6 +356,7 @@ class OdtLoFSection(OdtSectionBase):
         toc = create_lof()
         if toc:
             self._odt.text.addElement(toc)
+
 
 
 ''' Odt Pdf section object
@@ -383,7 +387,7 @@ class OdtPdfSection(OdtSectionBase):
                         this_image_bookmark = f"{key}.{str(i).zfill(3)}"
 
                     paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
-                    if i == 0:
+                    if True:
                         paragraph_attributes['breakbefore'] = 'page'
 
                     # if the image should be treated as page bg
@@ -410,12 +414,30 @@ class OdtPdfSection(OdtSectionBase):
                     else:
                         fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
                         image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
-                        draw_frame = create_image_frame(odt=self._odt, picture_path=image['path'], valign='middle', halign='center', width=image_width_in_inches, height=image_height_in_inches, preserve='height')
+
+                        # we need to create an inline-image object
+                        ii_dict = {
+                            'file-path': image['path'],
+                            'image-width': image_width_in_inches,
+                            'image-height': image_height_in_inches,
+                            'type': 'inline',
+                            'extend-container-height': False,
+                            'fill-width': False,
+                            # there is a quirk here valign is not middle, it is center
+                            'position': 'center center',
+                        }
+
+                        inline_image = InlineImage(ii_dict=ii_dict)
+
+                        graphic_properties_attributes = inline_image.graphic_properties_attributes()
+                        # frame_attributes = inline_image.frame_attributes(preserve='height')
+                        frame_attributes = inline_image.frame_attributes(preserve='height')
+                        draw_frame = create_image_frame(odt=self._odt, picture_path=image['path'], frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes)
 
                         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-
                         paragraph = create_paragraph(self._odt, style_name)
                         paragraph.addElement(draw_frame)
+
                         if this_image_bookmark:
                             paragraph.addElement(text.Bookmark(name=this_image_bookmark))
 
@@ -663,6 +685,7 @@ class OdtContent(object):
             block.block_to_odt(odt=odt, container=container)
 
 
+
 ''' Odt Page Header Footer object
 '''
 class OdtPageHeaderFooter(OdtContent):
@@ -694,6 +717,7 @@ class OdtPageHeaderFooter(OdtContent):
                 block.block_to_odt(odt=odt, container=header_footer)
 
 
+
 ''' Odt Block object wrapper base class (plain odt, table, header etc.)
 '''
 class OdtBlock(object):
@@ -702,6 +726,7 @@ class OdtBlock(object):
     '''
     def __init__(self):
         pass
+
 
 
 ''' Odt Table object wrapper
@@ -772,6 +797,7 @@ class OdtTable(OdtBlock):
         container.addElement(table)
 
 
+
 ''' Odt Block object wrapper
 '''
 class OdtParagraph(OdtBlock):
@@ -799,204 +825,10 @@ class OdtParagraph(OdtBlock):
             cell_to_produce.cell_to_odt(odt=odt, container=container)
 
 
+
 #   ----------------------------------------------------------------------------------------------------------------
-#   gsheet cell wrappers
+#   gsheet row and cell wrappers
 #   ----------------------------------------------------------------------------------------------------------------
-
-''' gsheet Cell object wrapper
-'''
-class Cell(object):
-
-    ''' constructor
-    '''
-    def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
-        self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
-        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
-        self.cell_name = self.cell_id
-        self.value = value
-        self.text_format_runs = []
-        self.cell_width = self.column_widths[self.col_num]
-        self.cell_height = row_height
-
-        self.merge_spec = CellMergeSpec()
-        self.note = None
-        self.inline_image = None
-        self.effective_format = CellFormat(format_dict=None)
-        self.user_entered_format = CellFormat(format_dict=None)
-
-        # considering merges, we have effective cell width and height
-        self.effective_cell_width = self.cell_width
-        self.effective_cell_height = self.cell_height
-
-        self.image_frame = None
-
-        if self.value:
-            ii_dict = self.value.get('inline-image', {})
-            if ii_dict:
-                self.inline_image = InlineImage(ii_dict)
-
-            note_dict = self.value.get('notes', {})
-            self.note = CellNote(note_dict=note_dict)
-
-            self.formatted_value = self.value.get('formattedValue', '')
-
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
-
-            for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
-
-            # presence of userEnteredFormat makes the cell non-empty
-            if 'userEnteredFormat' in self.value:
-                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
-                self.is_empty = False
-
-                # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
-                if 'backgroundColor' in self.value.get('userEnteredFormat'):
-                    self.effective_format.bgcolor = self.user_entered_format.bgcolor
-
-            else:
-                self.user_entered_format = None
-                self.is_empty = True
-
-            # we need to identify exactly what kind of value the cell contains
-            if 'contents' in self.value:
-                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
-
-            elif 'userEnteredValue' in self.value:
-                if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
-
-                else:
-                    if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
-
-                    else:
-                        if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
-
-                        else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
-
-            else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
-
-        else:
-            # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
-            self.cell_value = None
-            self.formatted_value = ''
-            self.is_empty = True
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
-        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
-        return s
-
-
-    ''' odt code for cell content
-    '''
-    def cell_to_odt_table_cell(self, odt, table_name):
-        self.table_name = table_name
-        col_a1 = COLUMNS[self.col_num+1]
-        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
-
-        table_cell_properties_attributes = {}
-        if self.effective_format:
-            table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
-        else:
-            table_cell_properties_attributes = {}
-            warn(f"{self} : NO effective_format")
-
-        if not self.is_covered():
-            # wrap this into a table-cell
-            table_cell_attributes = self.merge_spec.table_cell_attributes()
-
-            background_image_style = None
-            if self.inline_image:
-                # now if the background does not have any position, it is to be trated as a background image
-                if self.inline_image.type == 'background':
-                    background_image_style = create_background_image_style(odt=odt, picture_path=self.inline_image.file_path, nesting_level=self.nesting_level+1)
-
-                # the image is positioned, it is to be positioned as a non-bg image
-                elif self.inline_image.type == 'inline':
-                    halign, valign = 'center', 'middle'
-                    positions = self.inline_image.position.split(' ')
-                    if len(positions) == 2:
-                        halign, valign = positions[0], positions[1]
-                    elif len(positions) == 1:
-                        halign = positions[0]
-
-                    self.image_frame = create_image_frame(odt=odt, picture_path=self.inline_image.file_path, valign=valign, halign=halign, width=self.inline_image.image_width, height=self.inline_image.image_height, wrap=self.inline_image.wrap, anchor_type='paragraph', preserve=None, nesting_level=self.nesting_level+1)
-
-                else:
-                    warn(f"invalid inline-image type [{self.inline_image.type}]", nesting_level=self.nesting_level)
-
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=self.nesting_level+1)
-
-            if table_cell:
-                self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
-
-        else:
-            # wrap this into a covered-table-cell
-            table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
-
-        return table_cell
-
-
-    ''' odt code for cell content
-    '''
-    def cell_to_odt(self, odt, container, is_table_cell=False):
-        # trace(f"{self}")
-        if self.note:
-            paragraph_attributes_from_notes = self.note.paragraph_attributes()
-            style_attributes = self.note.style_attributes()
-            footnote_list = self.note.footnotes
-            force_halign = self.note.force_halign
-            angle = self.note.angle
-        else:
-            paragraph_attributes_from_notes = {}
-            style_attributes = {}
-            footnote_list = {}
-            force_halign = False
-            angle = 0
-
-        if self.effective_format:
-            paragraph_attributes_from_effective_format = self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=force_halign)
-            text_attributes = self.effective_format.text_attributes(angle)
-        else:
-            paragraph_attributes_from_effective_format = {}
-            text_attributes = {}
-
-        paragraph_attributes = {**paragraph_attributes_from_notes,  **paragraph_attributes_from_effective_format}
-
-
-        # for string and image it returns a paragraph, for embedded content a list
-        # the content is not valid for multirow LastCell and InnerCell
-        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.cell_value:
-                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
-                # place the image frame
-                if self.image_frame:
-                    paragraph.addElement(self.image_frame)
-
-
-    ''' Copy format from the cell passed
-    '''
-    def copy_format_from(self, from_cell):
-        self.effective_format = from_cell.effective_format
-
-
-    ''' is the cell part of a merge
-    '''
-    def is_covered(self):
-        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell] or self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
-            return True
-
-        else:
-            return False
-
 
 ''' gsheet Row object wrapper
 '''
@@ -1147,6 +979,448 @@ class Row(object):
         return table_row
 
 
+
+''' gsheet Cell object wrapper
+'''
+class Cell(object):
+
+    ''' constructor
+    '''
+    def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
+        self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
+        self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
+        self.cell_name = self.cell_id
+        self.value = value
+        self.text_format_runs = []
+        self.cell_width = self.column_widths[self.col_num]
+        self.cell_height = row_height
+
+        self.merge_spec = CellMergeSpec()
+        self.note = None
+        self.effective_format = CellFormat(format_dict=None)
+        self.user_entered_format = CellFormat(format_dict=None)
+
+        # considering merges, we have effective cell width and height
+        self.effective_cell_width = self.cell_width
+        self.effective_cell_height = self.cell_height
+
+        # a cell may have multiple images as inline images
+        self.inline_images = []
+        self.image_frames = []
+
+        if self.value:
+            if 'inline-image' in self.value:
+                for ii_dict in self.value.get('inline-image', []):
+                    self.inline_images.append(InlineImage(ii_dict))
+                
+            note_dict = self.value.get('notes', {})
+            self.note = CellNote(note_dict=note_dict)
+
+            self.formatted_value = self.value.get('formattedValue', '')
+
+            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+
+            for text_format_run in self.value.get('textFormatRuns', []):
+                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
+
+            # presence of userEnteredFormat makes the cell non-empty
+            if 'userEnteredFormat' in self.value:
+                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
+                self.is_empty = False
+
+                # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
+                if 'backgroundColor' in self.value.get('userEnteredFormat'):
+                    self.effective_format.bgcolor = self.user_entered_format.bgcolor
+
+            else:
+                self.user_entered_format = None
+                self.is_empty = True
+
+            # we need to identify exactly what kind of value the cell contains
+            if 'contents' in self.value:
+                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
+
+            elif 'userEnteredValue' in self.value:
+                if 'image' in self.value['userEnteredValue']:
+                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+
+                else:
+                    if len(self.text_format_runs):
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
+
+                    else:
+                        if self.note.script and self.note.script == 'latex':
+                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+
+                        else:
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
+
+            else:
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
+
+        else:
+            # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
+            self.cell_value = None
+            self.formatted_value = ''
+            self.is_empty = True
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        return s
+
+
+    ''' odt code for cell content
+    '''
+    def cell_to_odt_table_cell(self, odt, table_name):
+        self.table_name = table_name
+        col_a1 = COLUMNS[self.col_num+1]
+        table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
+
+        table_cell_properties_attributes = {}
+        if self.effective_format:
+            table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec)
+        else:
+            table_cell_properties_attributes = {}
+            warn(f"{self} : NO effective_format")
+
+        if not self.is_covered():
+            # wrap this into a table-cell
+            table_cell_attributes = self.merge_spec.table_cell_attributes()
+
+            background_image_style = None
+            for inline_image in self.inline_images:
+                # now if the background does not have any position, it is to be trated as a background image
+                if inline_image.type == 'background':
+                    background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=self.nesting_level+1)
+
+                # the image is positioned, it is to be positioned as a non-bg image
+                elif inline_image.type == 'inline':
+                    graphic_properties_attributes = inline_image.graphic_properties_attributes()
+                    frame_attributes = inline_image.frame_attributes()
+                    self.image_frames.append(create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=self.nesting_level+1))
+
+                else:
+                    warn(f"invalid inline-image type [{inline_image.type}]", nesting_level=self.nesting_level)
+
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=self.nesting_level+1)
+
+            if table_cell:
+                self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
+
+        else:
+            # wrap this into a covered-table-cell
+            table_cell = create_covered_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes)
+
+        return table_cell
+
+
+    ''' odt code for cell content
+    '''
+    def cell_to_odt(self, odt, container, is_table_cell=False):
+        # trace(f"{self}")
+        if self.note:
+            paragraph_attributes_from_notes = self.note.paragraph_attributes()
+            style_attributes = self.note.style_attributes()
+            footnote_list = self.note.footnotes
+            force_halign = self.note.force_halign
+            angle = self.note.angle
+        else:
+            paragraph_attributes_from_notes = {}
+            style_attributes = {}
+            footnote_list = {}
+            force_halign = False
+            angle = 0
+
+        if self.effective_format:
+            paragraph_attributes_from_effective_format = self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=force_halign)
+            text_attributes = self.effective_format.text_attributes(angle)
+        else:
+            paragraph_attributes_from_effective_format = {}
+            text_attributes = {}
+
+        paragraph_attributes = {**paragraph_attributes_from_notes,  **paragraph_attributes_from_effective_format}
+
+
+        # for string and image it returns a paragraph, for embedded content a list
+        # the content is not valid for multirow LastCell and InnerCell
+        if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
+            if self.cell_value:
+                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                # place the image frame
+                if paragraph:
+                    for image_frame in self.image_frames:
+                        paragraph.addElement(image_frame)
+                else:
+                    pass
+                    # warn(f"No paragraph to add inline image(s) to", nesting_level=self.nesting_level)
+
+
+    ''' Copy format from the cell passed
+    '''
+    def copy_format_from(self, from_cell):
+        self.effective_format = from_cell.effective_format
+
+
+    ''' is the cell part of a merge
+    '''
+    def is_covered(self):
+        if self.merge_spec.multi_col in [MultiSpan.InnerCell, MultiSpan.LastCell] or self.merge_spec.multi_row in [MultiSpan.InnerCell, MultiSpan.LastCell]:
+            return True
+
+        else:
+            return False
+
+
+
+''' gsheet cell value object wrapper
+'''
+class CellValue(object):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, nesting_level=0, outline_level=0):
+        self.effective_format = effective_format
+        self.nesting_level = nesting_level
+        self.outline_level = outline_level
+
+
+
+''' string type CellValue
+'''
+class StringValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        if formatted_value:
+            self.value = formatted_value
+        else:
+            if string_value and 'stringValue' in string_value:
+                self.value = string_value['stringValue']
+            else:
+                self.value = ''
+
+        self.keep_line_breaks = keep_line_breaks
+        self.bookmark = bookmark
+        self.directives = directives
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"string : [{self.value}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+        if container is None:
+            container = odt.text
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives)
+        container.addElement(paragraph)
+
+        return paragraph
+
+
+
+''' LaTex type CellValue
+'''
+class LatexValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        if formatted_value:
+            self.value = formatted_value
+        else:
+            if string_value and 'stringValue' in string_value:
+                self.value = string_value['stringValue']
+            else:
+                self.value = ''
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"latex : [{self.value}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+        if container is None:
+            container = odt.text
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_mathml(odt, style_name, latex_content=self.value)
+        container.addElement(paragraph)
+
+        return paragraph
+
+
+
+''' text-run type CellValue
+'''
+class TextRunValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        self.text_format_runs = text_format_runs
+        self.formatted_value = formatted_value
+        self.keep_line_breaks = keep_line_breaks
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"text-run : [{self.formatted_value}]"
+        return s
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+        if container is None:
+            container = odt.text
+
+        run_value_list = []
+        processed_idx = len(self.formatted_value)
+        for text_format_run in reversed(self.text_format_runs):
+            text = self.formatted_value[:processed_idx]
+            run_value_list.insert(0, text_format_run.text_attributes(text))
+            processed_idx = text_format_run.start_index
+
+        style_name = create_paragraph_style(
+            odt,
+            style_attributes=style_attributes,
+            paragraph_attributes=paragraph_attributes,
+            text_attributes=text_attributes,
+        )
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
+        container.addElement(paragraph)
+
+        return paragraph
+
+
+
+''' image type CellValue
+'''
+class ImageValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, image_value, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        self.value = image_value
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"image : [{self.value}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+        if container is None:
+            container = odt.text
+
+        # even now the width may exceed actual cell width, we need to adjust for that
+        dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
+        dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
+        image_width_in_pixel = self.value['size'][0]
+        image_height_in_pixel = self.value['size'][1]
+        image_width_in_inches =  image_width_in_pixel / dpi_x
+        image_height_in_inches = image_height_in_pixel / dpi_y
+
+        if self.value['mode'] in [1, 2, 3, 4]:
+            # image is to be scaled within the cell width and height
+            if image_width_in_inches > container_width:
+                adjust_ratio = (container_width / image_width_in_inches)
+                image_width_in_inches = image_width_in_inches * adjust_ratio
+                image_height_in_inches = image_height_in_inches * adjust_ratio
+
+            if image_height_in_inches > container_height:
+                adjust_ratio = (container_height / image_height_in_inches)
+                image_width_in_inches = image_width_in_inches * adjust_ratio
+                image_height_in_inches = image_height_in_inches * adjust_ratio
+
+        else:
+            pass
+
+        text_attributes['fontsize'] = 2
+        picture_path = self.value['path']
+
+        # we need to create an inline-image object
+        ii_dict = {
+            'file-path': picture_path,
+            'image-width': image_width_in_inches,
+            'image-height': image_height_in_inches,
+            'type': 'inline',
+            'extend-container-height': False,
+            'fill-width': False,
+            'position': f"{IMAGE_POSITION[self.effective_format.halign.halign]} {IMAGE_POSITION[self.effective_format.valign.valign]}",
+        }
+
+        inline_image = InlineImage(ii_dict=ii_dict)
+
+        graphic_properties_attributes = inline_image.graphic_properties_attributes()
+        frame_attributes = inline_image.frame_attributes()
+        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=self.nesting_level+1)
+
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
+        paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
+        paragraph.addElement(draw_frame)
+        container.addElement(paragraph)
+
+        return paragraph
+
+
+
+''' content type CellValue
+'''
+class ContentValue(CellValue):
+
+    ''' constructor
+    '''
+    def __init__(self, effective_format, content_value, nesting_level=0, outline_level=0):
+        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+        self.value = content_value
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"content : [{self.value['sheets'][0]['properties']['title']}]"
+        return s
+
+
+    ''' generates the odt code
+    '''
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+        self.contents = OdtContent(self.value, container_width, self.nesting_level)
+        self.contents.content_to_odt(odt=odt, container=container)
+
+        return None
+
+
+
+#   ----------------------------------------------------------------------------------------------------------------
+#   gsheet cell property wrappers
+#   ----------------------------------------------------------------------------------------------------------------
+
 ''' gsheet text format object wrapper
 '''
 class TextFormat(object):
@@ -1216,225 +1490,6 @@ class TextFormat(object):
 
         return attributes
 
-
-''' gsheet cell value object wrapper
-'''
-class CellValue(object):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, nesting_level=0, outline_level=0):
-        self.effective_format = effective_format
-        self.nesting_level = nesting_level
-        self.outline_level = outline_level
-
-
-''' string type CellValue
-'''
-class StringValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        if formatted_value:
-            self.value = formatted_value
-        else:
-            if string_value and 'stringValue' in string_value:
-                self.value = string_value['stringValue']
-            else:
-                self.value = ''
-
-        self.keep_line_breaks = keep_line_breaks
-        self.bookmark = bookmark
-        self.directives = directives
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"string : [{self.value}]"
-        return s
-
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        if container is None:
-            container = odt.text
-
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives)
-        container.addElement(paragraph)
-
-        return paragraph
-
-
-''' LaTex type CellValue
-'''
-class LatexValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        if formatted_value:
-            self.value = formatted_value
-        else:
-            if string_value and 'stringValue' in string_value:
-                self.value = string_value['stringValue']
-            else:
-                self.value = ''
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"latex : [{self.value}]"
-        return s
-
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        if container is None:
-            container = odt.text
-
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_mathml(odt, style_name, latex_content=self.value)
-        container.addElement(paragraph)
-
-        return paragraph
-
-
-''' text-run type CellValue
-'''
-class TextRunValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.text_format_runs = text_format_runs
-        self.formatted_value = formatted_value
-        self.keep_line_breaks = keep_line_breaks
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"text-run : [{self.formatted_value}]"
-        return s
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        if container is None:
-            container = odt.text
-
-        run_value_list = []
-        processed_idx = len(self.formatted_value)
-        for text_format_run in reversed(self.text_format_runs):
-            text = self.formatted_value[:processed_idx]
-            run_value_list.insert(0, text_format_run.text_attributes(text))
-            processed_idx = text_format_run.start_index
-
-        style_name = create_paragraph_style(
-            odt,
-            style_attributes=style_attributes,
-            paragraph_attributes=paragraph_attributes,
-            text_attributes=text_attributes,
-        )
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks)
-        container.addElement(paragraph)
-
-        return paragraph
-
-
-''' image type CellValue
-'''
-class ImageValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.value = image_value
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"image : [{self.value}]"
-        return s
-
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        if container is None:
-            container = odt.text
-
-        # even now the width may exceed actual cell width, we need to adjust for that
-        dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
-        dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
-        image_width_in_pixel = self.value['size'][0]
-        image_height_in_pixel = self.value['size'][1]
-        image_width_in_inches =  image_width_in_pixel / dpi_x
-        image_height_in_inches = image_height_in_pixel / dpi_y
-
-        if self.value['mode'] in [1, 2, 3, 4]:
-            # image is to be scaled within the cell width and height
-            if image_width_in_inches > container_width:
-                adjust_ratio = (container_width / image_width_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
-
-            if image_height_in_inches > container_height:
-                adjust_ratio = (container_height / image_height_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
-
-        else:
-            pass
-
-        text_attributes['fontsize'] = 2
-        picture_path = self.value['path']
-
-        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, valign=IMAGE_POSITION[self.effective_format.valign.valign], halign=IMAGE_POSITION[self.effective_format.halign.halign], width=image_width_in_inches, height=image_height_in_inches, nesting_level=self.nesting_level+1)
-
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
-        paragraph.addElement(draw_frame)
-        container.addElement(paragraph)
-
-        return paragraph
-
-
-''' content type CellValue
-'''
-class ContentValue(CellValue):
-
-    ''' constructor
-    '''
-    def __init__(self, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
-        self.value = content_value
-
-
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"content : [{self.value['sheets'][0]['properties']['title']}]"
-        return s
-
-
-    ''' generates the odt code
-    '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        self.contents = OdtContent(self.value, container_width, self.nesting_level)
-        self.contents.content_to_odt(odt=odt, container=container)
-
-        return None
 
 
 ''' gsheet cell format object wrapper
@@ -1563,6 +1618,7 @@ class CellFormat(object):
         return f"{IMAGE_POSITION[self.valign.valign]} {IMAGE_POSITION[self.halign.halign]}"
 
 
+
 ''' gsheet cell borders object wrapper
 '''
 class Borders(object):
@@ -1651,6 +1707,7 @@ class Borders(object):
         return attributes
 
 
+
 ''' gsheet cell border object wrapper
 '''
 class Border(object):
@@ -1680,6 +1737,7 @@ class Border(object):
     '''
     def value(self):
         return f"{self.width}pt {self.style} {self.color.value()}"
+
 
 
 ''' Cell Merge spec wrapper
@@ -1713,6 +1771,7 @@ class CellMergeSpec(object):
         return attributes
 
 
+
 ''' gsheet rowMetadata object wrapper
 '''
 class RowMetadata(object):
@@ -1724,6 +1783,7 @@ class RowMetadata(object):
         self.inches = row_height_in_inches(self.pixel_size)
 
 
+
 ''' gsheet columnMetadata object wrapper
 '''
 class ColumnMetadata(object):
@@ -1732,6 +1792,7 @@ class ColumnMetadata(object):
     '''
     def __init__(self, column_metadata_dict):
         self.pixel_size = int(column_metadata_dict['pixelSize'])
+
 
 
 ''' gsheet merge object wrapper
@@ -1754,6 +1815,7 @@ class Merge(object):
     '''
     def __repr__(self):
         return f"{COLUMNS[self.start_col+1]}{self.start_row+3}:{COLUMNS[self.end_col]}{self.end_row+2}"
+
 
 
 ''' gsheet color object wrapper
@@ -1800,6 +1862,7 @@ class RgbColor(object):
         return False
 
 
+
 ''' gsheet cell padding object wrapper
 '''
 class Padding(object):
@@ -1837,6 +1900,7 @@ class Padding(object):
         return attributes
 
 
+
 ''' gsheet text format run object wrapper
 '''
 class TextFormatRun(object):
@@ -1860,6 +1924,7 @@ class TextFormatRun(object):
         text_attributes = self.format.text_attributes()
 
         return {'text': text[self.start_index:], 'text-attributes': text_attributes}
+
 
 
 ''' gsheet cell notes object wrapper
@@ -1975,6 +2040,7 @@ class CellNote(object):
         return attributes
 
 
+
 ''' gsheet cell inline-image wrapper
 '''
 class InlineImage(object):
@@ -1983,23 +2049,45 @@ class InlineImage(object):
     '''
     def __init__(self, ii_dict={}):
         self.ii_dict = ii_dict
-        self.file_path = ii_dict['file-path']
-        self.file_type = ii_dict['file-type']
-        self.image_width = ii_dict['image-width']
-        self.image_height = ii_dict['image-height']
-        self.type = ii_dict.get('type')
-        self.extend_container_height = ii_dict.get('extend-container-height')
-        self.fill_width = ii_dict.get('fill-width')
-        self.position = ii_dict.get('position')
-        self.wrap = ii_dict.get('wrap')
+        self.file_path = ii_dict.get('file-path', None)
+        self.file_type = ii_dict.get('file-type', None)
+        self.image_width = ii_dict.get('image-width', None)
+        self.image_height = ii_dict.get('image-height', None)
+        self.type = ii_dict.get('type', 'inline')
+        self.extend_container_height = ii_dict.get('extend-container-height', False)
+        self.fill_width = ii_dict.get('fill-width', True)
+        self.position = ii_dict.get('position', 'center middle')
+        self.wrap = ii_dict.get('wrap', 'parallel')
+
+        self.anchor_type = 'paragraph'
+
+        self.halign, self.valign = 'center', 'middle'
+        positions = self.position.split(' ')
+        if len(positions) == 2:
+            self.halign, self.valign = positions[0], positions[1]
+        elif len(positions) == 1:
+            self.halign = positions[0]
 
     
-    ''' attributes dict for TableCellProperties
+    ''' attributes dict for GraphicProperties
     '''
-    def table_cell_properties_attributes(self):
-        attributes = {}
+    def graphic_properties_attributes(self):
+        attributes = {'verticalpos': self.valign, 'horizontalpos': self.halign, 'wrap': self.wrap}
 
         return attributes
+
+
+    ''' attributes dict for DrawFrame
+    '''
+    def frame_attributes(self, preserve=None):
+        attributes = {'anchortype': self.anchor_type, 'width': f"{self.image_width}in", 'height': f"{self.image_height}in"}
+        if preserve == 'height':
+            attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
+        elif preserve == 'width':
+            attributes = {**attributes, **{'relheight': 'scale-min', 'relwidth': '100%'}}
+
+        return attributes
+
 
 
 ''' gsheet vertical alignment object wrapper
@@ -2015,6 +2103,7 @@ class VerticalAlignment(object):
             self.valign = TEXT_VALIGN_MAP.get('TOP')
 
 
+
 ''' gsheet horizontal alignment object wrapper
 '''
 class HorizontalAlignment(object):
@@ -2028,6 +2117,7 @@ class HorizontalAlignment(object):
             self.halign = TEXT_HALIGN_MAP.get('LEFT')
 
 
+
 ''' gsheet wrapping object wrapper
 '''
 class Wrapping(object):
@@ -2039,6 +2129,7 @@ class Wrapping(object):
             self.wrapping = WRAP_STRATEGY_MAP.get(wrap, 'WRAP')
         else:
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
+
 
 
 ''' gsheet textRotation object wrapper
@@ -2058,6 +2149,7 @@ class TextRotation(object):
                 self.angle = text_rotation["angle"]
 
 
+
 ''' Helper for cell span specification
 '''
 class MultiSpan(object):
@@ -2065,6 +2157,7 @@ class MultiSpan(object):
     FirstCell = 'FirstCell'
     InnerCell = 'InnerCell'
     LastCell = 'LastCell'
+
 
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -2078,11 +2171,13 @@ def process_table(section_data, config):
     section.section_to_odt()
 
 
+
 ''' Gsheet processor
 '''
 def process_gsheet(section_data, config):
     section = OdtGsheetSection(section_data, config)
     section.section_to_odt()
+
 
 
 ''' Table of Content processor
@@ -2092,11 +2187,13 @@ def process_toc(section_data, config):
     section.section_to_odt()
 
 
+
 ''' List of Figure processor
 '''
 def process_lof(section_data, config):
     section = OdtLoFSection(section_data, config)
     section.section_to_odt()
+
 
 
 ''' List of Table processor
@@ -2106,6 +2203,7 @@ def process_lot(section_data, config):
     section.section_to_odt()
 
 
+
 ''' pdf processor
 '''
 def process_pdf(section_data, config):
@@ -2113,10 +2211,12 @@ def process_pdf(section_data, config):
     section.section_to_odt()
 
 
+
 ''' odt processor
 '''
 def process_odt(section_data, config):
     warn(f"content type [odt] not supported")
+
 
 
 ''' docx processor

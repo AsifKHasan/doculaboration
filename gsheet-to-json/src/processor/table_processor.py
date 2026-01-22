@@ -88,31 +88,44 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
 
     # check for *inline-image* note and process
     if 'inline-image' in note_dict:
-        ii_dict = note_dict['inline-image']
-        if 'url' in ii_dict:
-            url = ii_dict.get('url')
-            
-            # download image
-            debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
-            ii_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
-            cell_data['inline-image'] = ii_image_dict
+        inline_image_list = []
+        # this may be a dict for one single image or a list for multiple images
+        if isinstance(note_dict['inline-image'], dict):
+            inline_image_list.append(note_dict['inline-image'])
 
-            # type background/inline
-            cell_data['inline-image']['type'] = ii_dict.get('type', 'background')
+        elif isinstance(note_dict['inline-image'], list):
+            for ii_dict in note_dict.get('inline-image', []):
+                inline_image_list.append(ii_dict)
+        
+        else:
+            warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
 
-            # extend-container-height true/false,
-            cell_data['inline-image']['extend-container-height'] = ii_dict.get('extend-container-height', False)
+        cell_data['inline-image'] = []
+        for ii_dict in inline_image_list:
+            if 'url' in ii_dict:
+                url = ii_dict.get('url')
+                
+                # download image
+                debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+                ii_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
 
-            # fill-width true/false,
-            cell_data['inline-image']['fill-width'] = ii_dict.get('fill-width', True)
+                # type background/inline
+                ii_image_dict['type'] = ii_dict.get('type', 'background')
 
-            # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
-            cell_data['inline-image']['position'] = ii_dict.get('position', 'center middle')
+                # extend-container-height true/false,
+                ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
 
-            # wrap none/parallel
-            cell_data['inline-image']['wrap'] = ii_dict.get('wrap', 'parallel')
+                # fill-width true/false,
+                ii_image_dict['fill-width'] = ii_dict.get('fill-width', True)
 
-            # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+                # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
+                ii_image_dict['position'] = ii_dict.get('position', 'center middle')
+
+                # wrap none/parallel
+                ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
+
+                cell_data['inline-image'].append(ii_image_dict)
+                # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
 
 
 ''' parse formula

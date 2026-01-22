@@ -92,10 +92,9 @@ def create_background_image_style(odt, picture_path, nesting_level=0):
       <style:graphic-properties style:wrap="none" style:vertical-pos="top" style:vertical-rel="paragraph" style:horizontal-pos="center" style:horizontal-rel="page" style:mirror="none" fo:clip="rect(0in, 0in, 0in, 0in)" draw:luminance="0%" draw:contrast="0%" draw:red="0%" draw:green="0%" draw:blue="0%" draw:gamma="100%" draw:color-inversion="false" draw:image-opacity="100%" draw:color-mode="standard" draw:wrap-influence-on-position="once-concurrent" loext:allow-overlap="true"/>
     </style:style>
 '''
-def create_graphic_style(odt, valign, halign, wrap='parallel', nesting_level=0):
+def create_graphic_style(odt, graphic_properties_attributes, nesting_level=0):
     style_name = f"fr-{random_string()}"
 
-    graphic_properties_attributes = {'verticalpos': valign, 'horizontalpos': halign, 'wrap': wrap}
     graphic_properties = style.GraphicProperties(attributes=graphic_properties_attributes)
 
     graphic_style_attributes = {'name': style_name, 'family': 'graphic', 'parentstylename': 'Graphics'}
@@ -112,8 +111,7 @@ def create_graphic_style(odt, valign, halign, wrap='parallel', nesting_level=0):
       <draw:image xlink:href="Pictures/1000000000000258000002F8CC673C705E8CE146.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/jpeg"/>
     </draw:frame>
 '''
-def create_image_frame(odt, picture_path, valign, halign, width, height, wrap='parallel', anchor_type='Frame', preserve=None, nesting_level=0):
-    # THIS IS THE Draw:Frame object to return
+def create_image_frame(odt, picture_path, graphic_properties_attributes, frame_attributes, nesting_level=0):
     draw_frame = None
 
     # first the image to be added into the document
@@ -121,22 +119,14 @@ def create_image_frame(odt, picture_path, valign, halign, width, height, wrap='p
     if href:
         # next we need the Draw:Image object
         image_attributes = {'href': href}
-        # image_attributes[('draw', 'mimetype')] = 'image/png'
         draw_image = draw.Image(attributes=image_attributes)
 
-        frame_style_name = create_graphic_style(odt=odt, valign=valign, halign=halign, wrap=wrap)
+        # create the graphic-style
+        frame_style_name = create_graphic_style(odt=odt, graphic_properties_attributes=graphic_properties_attributes)
 
         # finally we need the Draw:Frame object
-        # TODO: anchortype for pdf images to be sorted out
-        # print(f"image {picture_path} size is [{width}x{height}], aspect ratios [{height/width}]")
-        frame_attributes = {'stylename': frame_style_name, 'anchortype': anchor_type, 'width': f"{width}in", 'height': f"{height}in"}
-        if preserve == 'height':
-            frame_attributes = {**frame_attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
-        elif preserve == 'width':
-            frame_attributes = {**frame_attributes, **{'relheight': 'scale-min', 'relwidth': '100%'}}
-
+        frame_attributes = {**{'stylename': frame_style_name}, **frame_attributes}
         draw_frame = draw.Frame(attributes=frame_attributes)
-
         draw_frame.addElement(draw_image)
 
     else:
