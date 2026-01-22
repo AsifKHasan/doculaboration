@@ -9,6 +9,7 @@ import lxml
 import random
 import string
 import types
+import random
 import importlib
 import traceback
 
@@ -102,11 +103,110 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}, 
 		return paragraph
 
 
+''' insert anchored image in a cell with margins
+'''
+def insert_cell_image(cell, image_path, width, position='center bottom', margin_pt=2, offsets_pt=(2, 2), nesting_level=0):
+    relative_h = 'column'
+    relative_v = 'paragraph'
+
+    # Optional offsets (in EMU)
+    offX = _pt_to_emu(offsets_pt[0])
+    offY = _pt_to_emu(offsets_pt[1])
+
+    # If margin is a single number, apply to all sides. 
+    if isinstance(margin_pt, int):
+        m = {'t': _pt_to_emu(margin_pt), 'b': _pt_to_emu(margin_pt), 'l': _pt_to_emu(margin_pt), 'r': _pt_to_emu(margin_pt)}
+
+    # If it's a dict, use specific values.
+    else:
+        m = {'t': _pt_to_emu(margin_pt.get('t', 0)), 'b': _pt_to_emu(margin_pt.get('b', 0)), 
+             'l': _pt_to_emu(margin_pt.get('l', 0)), 'r': _pt_to_emu(margin_pt.get('r', 0))}
+
+    mapping = {
+        'left top':      {'h': 'left',   'v': 'top'},
+        'center top':    {'h': 'center', 'v': 'top'},
+        'right top':     {'h': 'right',  'v': 'top'},
+        'left middle':   {'h': 'left',   'v': 'center'},
+        'center middle': {'h': 'center', 'v': 'center'},
+        'right middle':  {'h': 'right',  'v': 'center'},
+        'left bottom':   {'h': 'left',   'v': 'bottom'},
+        'center bottom': {'h': 'center', 'v': 'bottom'},
+        'right bottom':  {'h': 'right',  'v': 'bottom'},
+    }
+    
+    aligns = mapping.get(position, mapping['center middle'])
+    paragraph = cell.paragraphs[0]
+    run = paragraph.add_run()
+    shape = run.add_picture(image_path, width=Inches(width))
+    inline = shape._inline
+    rId = inline.graphic.graphicData.pic.blipFill.blip.embed
+    cx, cy = inline.extent.cx, inline.extent.cy
+    pic_id = random.randint(1000, 10000)
+    name = f"Picture-{pic_id}"
+
+    # Logic: distT, distB, distL, distR control the "text wrap buffer"
+    anchor_xml = f'''
+	<wp:anchor distT="{m['t']}" distB="{m['b']}" distL="{m['l']}" distR="{m['r']}"
+            simplePos="0" relativeHeight="251658240" behindDoc="0"
+            locked="0" layoutInCell="1" allowOverlap="1"
+            {nsdecls('wp', 'a', 'pic', 'r')}>
+		<wp:simplePos x="0" y="0" />
+        <wp:positionH relativeFrom="{relative_h}">
+            <wp:align>{aligns['h']}</wp:align>
+        </wp:positionH>
+        <wp:positionV relativeFrom="{relative_v}">
+            <wp:align>{aligns['v']}</wp:align>
+        </wp:positionV>
+        <wp:extent cx="{cx}" cy="{cy}"/>
+        <wp:effectExtent l="0" t="0" r="0" b="0"/>
+		<wp:wrapSquare wrapText="bothSides" />
+		<wp:docPr id="{pic_id}" name="{name}" />
+		<wp:cNvGraphicFramePr>
+			<a:graphicFrameLocks
+				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+				noChangeAspect="1" />
+		</wp:cNvGraphicFramePr>
+		<a:graphic
+			xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+			<a:graphicData
+				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+				<pic:pic
+					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:nvPicPr>
+						<pic:cNvPr id="{pic_id}" name="{name}" />
+						<pic:cNvPicPr />
+					</pic:nvPicPr>
+					<pic:blipFill>
+						<a:blip r:embed="{rId}">
+						</a:blip>
+						<a:stretch>
+							<a:fillRect />
+						</a:stretch>
+					</pic:blipFill>
+					<pic:spPr>
+						<a:xfrm>
+							<a:off x="0" y="0" />
+							<a:ext cx="{cx}" cy="{cy}" />
+						</a:xfrm>
+						<a:prstGeom prst="rect">
+							<a:avLst />
+						</a:prstGeom>
+					</pic:spPr>
+				</pic:pic>
+			</a:graphicData>
+		</a:graphic>
+	</wp:anchor>
+    '''
+
+    anchor = parse_xml(anchor_xml)
+    inline.getparent().replace(inline, anchor)
+
+
 ''' insert an image as page background
 '''
-def insert_background_image(container, paragraph, image_path, width, height, nesting_level=0):
+def create_cell_background(cell, image_path, width, height, nesting_level=0):
 	# 1. Add a run to the paagraph
-	run = paragraph.add_run()
+	run = cell.paragraphs[0].add_run()
 
 	# 2. Add the picture (initially inline)
 	picture = run.add_picture(image_path, width=Inches(width), height=Inches(height))
@@ -148,39 +248,6 @@ def insert_background_image(container, paragraph, image_path, width, height, nes
 	# 5. Replace the original inline XML with our new anchor XML
 	inline.getparent().replace(inline, anchor)
 
-
-''' insert an image as page background
-'''
-def insert_background_image_old_version(container, paragraph, image_path, nesting_level=0):
-
-	# --- Embed image properly ---
-	doc_part = paragraph.part
-	image_part = doc_part._package.image_parts.get_or_add_image_part(image_path)
-	rId = doc_part.relate_to(image_part, RT.IMAGE)
-
-	# --- Inject VML background into cell ---
-	bg_image_xml = """
-	<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-		 xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-		<w:r>
-			<w:pict>
-			<v:rect xmlns:v="urn:schemas-microsoft-com:vml"
-					fill="true"
-					stroke="false"
-					style="position:absolute;width:100%;height:100%;">
-				<v:fill type="frame" r:id="{rId}"/>
-			</v:rect>
-			</w:pict>
-		</w:r>
-	</w:p>
-	"""
-
-	# bg_image_xml_filled = bg_image_xml.format_map({"rId": rId})
-	# container._tc.append(parse_xml(bg_image_xml_filled))
-
-	parser = etree.XMLParser(recover=False)
-	bg_image_xml_filled = etree.XML(bg_image_xml.format(rId=rId), parser)
-	container._tc.append(bg_image_xml_filled)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -477,7 +544,7 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, background={}, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
+def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -486,14 +553,6 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
-
-		# TODO: container height must be known
-		if background:
-			width = background.container_width
-			height = background.container_height
-			# height = width / background.aspect_ratio
-			insert_background_image(container=container, paragraph=paragraph, image_path=background.file_path, width=width, height=height)
-
 
 	elif is_document(container):
 		# if the conrainer is a Document
@@ -504,7 +563,7 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 
 	else:
 		# if the conrainer is anything else
-		warn(f"container is neither document, nor paragraph, nor header/footer, nor table cell .. adding a paragraph")
+		warn(f"container is neither document, nor paragraph, nor header/footer, nor table cell .. adding a paragraph", nesting_level=nesting_level)
 		paragraph = container.add_paragraph()
 
 
@@ -1406,7 +1465,7 @@ def inline_to_anchored_behind(inline, width, height, nesting_level=0):
 ''' Removes/sets noChangeAspect on a:picLocks so the picture can stretch freely.
 	Works for both <wp:inline> and <wp:anchor> (same underlying structure).
 '''
-def unlock_picture_aspect_ratio(inline_or_anchor):
+def unlock_picture_aspect_ratio(inline_or_anchor, nesting_level=0):
     drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
     # Find a:pic in the drawing
     pic = drawing.find(".//" + qn("pic:pic"))
@@ -1437,7 +1496,7 @@ def unlock_picture_aspect_ratio(inline_or_anchor):
 	This helps when Word 'snaps back' to aspect ratio behavior or applies
 	internal scaling/cropping that fights wp:extent sizing.
 '''
-def force_picture_transform(inline_or_anchor, width_in: float, height_in: float):
+def force_picture_transform(inline_or_anchor, width_in: float, height_in: float, nesting_level=0):
     drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
 
     # Find picture element
@@ -1489,8 +1548,16 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float)
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
+''' inches to emu
+'''
 def _emu(inches: float) -> int:
     return int(inches * EMU_PER_INCH)
+
+
+''' pt to emu
+'''
+def _pt_to_emu(pt):
+    return int(pt * EMU_PER_PT)
 
 
 ''' whether the container is a table-cell or not
@@ -1552,7 +1619,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 	return width_to_fit, height_to_fit
 
 
-'''
+''' strip delimeters for math mode
 '''
 def strip_math_mode_delimeters(latex_content, nesting_level=0):
 	# strip SPACES
@@ -1706,7 +1773,6 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
 
 
-
 ''' process custom styles
 '''
 def process_custom_style(doc, style_spec, nesting_level=0):
@@ -1730,7 +1796,6 @@ def process_custom_style(doc, style_spec, nesting_level=0):
 					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
-
 
 
 ''' parse style properties from yml to docx
@@ -1851,13 +1916,16 @@ def rgb_from_hex(str, what, nesting_level=0):
     	warn(f"[{str}] is not a valid {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
 
 
+''' is the string a valid hex-string
+'''
 def is_valid_hex(str, digits, nesting_level=0):
 	pattern = rf'^[0-9a-fA-F]{{{digits}}}$'
 	return bool(re.fullmatch(pattern, str))
 
 
+''' map attribute key/value to a modified ke/value
+'''
 def map_docx_attr(attr_key, attr_value, nesting_level=0):
-	
 	if attr_key in DOCX_ATTR_MAP_HINT:
 		obj = DOCX_ATTR_MAP_HINT[attr_key]
 
@@ -1882,6 +1950,7 @@ def map_docx_attr(attr_key, attr_value, nesting_level=0):
 # various utility data
 
 EMU_PER_INCH = 914500
+EMU_PER_PT = 12700
 
 mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
 # mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
