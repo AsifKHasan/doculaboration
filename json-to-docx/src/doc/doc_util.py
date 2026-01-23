@@ -22,7 +22,7 @@ import xml.dom.minidom
 
 from docx import Document, section, document, table
 # from docx.document import Document as _Document
-from docx.oxml import OxmlElement, parse_xml
+from docx.oxml import OxmlElement, parse_xml, ns
 from docx.oxml.ns import qn, nsdecls
 
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
@@ -202,11 +202,13 @@ def insert_cell_image(cell, image_path, width, position='center bottom', margin_
     inline.getparent().replace(inline, anchor)
 
 
-''' insert an image as page background
+''' insert an image as cell background
 '''
 def create_cell_background(cell, image_path, width, height, nesting_level=0):
+	
 	# 1. Add a run to the paagraph
-	run = cell.paragraphs[0].add_run()
+	paragraph = cell.paragraphs[0]
+	run = paragraph.add_run()
 
 	# 2. Add the picture (initially inline)
 	picture = run.add_picture(image_path, width=Inches(width), height=Inches(height))
@@ -248,6 +250,65 @@ def create_cell_background(cell, image_path, width, height, nesting_level=0):
 	# 5. Replace the original inline XML with our new anchor XML
 	inline.getparent().replace(inline, anchor)
 
+	# move this run to the 0th index of the paragraph
+	move_run_to_start(paragraph, run)
+
+	_zero_paragraph_spacing(paragraph)
+
+
+''' insert an image as cell background
+'''
+def create_cell_background_new(cell, image_path, width, height, nesting_level=0):
+
+	# 1. Clear outer cell and apply vertical alignment
+    cell._element.clear_content()
+
+    # 2. Create a stacking table (1x1)
+    stack_table = cell.add_table(rows=1, cols=1)
+    _remove_table_borders(stack_table)
+    stack_cell = stack_table.cell(0, 0)
+    _remove_cell_margins(stack_cell)
+
+    # 3. Background layer (image)
+    bg_table = stack_cell.add_table(rows=1, cols=1)
+    _remove_table_borders(bg_table)
+    bg_cell = bg_table.cell(0, 0)
+    _remove_cell_margins(bg_cell)
+
+    p_img = bg_cell.paragraphs[0]
+    run = p_img.add_run()
+    run.add_picture(image_path, width=width, height=height)
+    _zero_paragraph_spacing(p_img)
+
+    # 4. Overlay layer (text)
+    fg_table = stack_cell.add_table(rows=1, cols=1)
+    _remove_table_borders(fg_table)
+    fg_cell = fg_table.cell(0, 0)
+    _remove_cell_margins(fg_cell)
+
+    p_txt = fg_cell.paragraphs[0]
+    _zero_paragraph_spacing(p_txt)
+
+    return fg_cell
+
+
+''' inside a paragraph move a run from anywhere to start as the 0th run
+'''
+def move_run_to_start(paragraph, run_obj):
+	p_element = paragraph._p
+	r_element = run_obj._element
+    
+	p_element.remove(r_element)
+    
+    # Check if properties exist; if so, put run after them. 
+	pPr = p_element.pPr
+	if pPr is not None:
+		pPr.addnext(r_element)
+
+    # If not, put run at the very top.
+	else:
+		p_element.insert(0, r_element)
+		
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -432,6 +493,60 @@ def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	tcPr.append(tcMar)
 
 
+''' remove table borders
+'''
+def _remove_table_borders(table):
+    tbl = table._element
+    tblPr = tbl.tblPr or OxmlElement("w:tblPr")
+
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(ns.qn("w:val"), "nil")
+        borders.append(el)
+
+    tblPr.append(borders)
+    tbl.append(tblPr)
+
+
+''' remove cell margins
+'''
+def _remove_cell_margins(cell):
+    tcPr = cell._element.tcPr or OxmlElement("w:tcPr")
+
+    tcMar = OxmlElement("w:tcMar")
+    for side in ("top", "left", "bottom", "right"):
+        el = OxmlElement(f"w:{side}")
+        el.set(ns.qn("w:w"), "0")
+        el.set(ns.qn("w:type"), "dxa")
+        tcMar.append(el)
+
+    tcPr.append(tcMar)
+    cell._element.append(tcPr)
+
+
+''' assert if a cell is not a covered cell
+'''
+def _assert_not_merge_continuation(cell):
+    tcPr = cell._element.tcPr
+    if tcPr is None:
+        return
+    vMerge = tcPr.find(ns.qn("w:vMerge"))
+    if vMerge is not None and vMerge.get(ns.qn("w:val")) == "continue":
+        raise ValueError(
+            "Cannot insert content into a merged-cell continuation. "
+            "Use the merge-restart cell only."
+        )
+
+
+''' remove all spacing around a paragraph
+'''
+def _zero_paragraph_spacing(p):
+    pf = p.paragraph_format
+    pf.space_before = 0
+    pf.space_after = 0
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
 
@@ -544,7 +659,7 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
+def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, bg_image=None, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -553,6 +668,10 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
+		if bg_image is not None:
+			fg_cell = create_cell_background(cell=container, image_path=bg_image.file_path, width=bg_image.container_width, height=bg_image.container_height, nesting_level=nesting_level+1)
+			paragraph = fg_cell.paragraphs[0]
+			# pass
 
 	elif is_document(container):
 		# if the conrainer is a Document
