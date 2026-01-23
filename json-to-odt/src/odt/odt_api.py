@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-import json
-import importlib
-import inspect
-from pprint import pprint
-
 from odt.odt_util import *
 from helper.logger import *
 

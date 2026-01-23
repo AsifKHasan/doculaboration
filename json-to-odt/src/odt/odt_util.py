@@ -2,6 +2,7 @@
 
 ''' various utilities for generating an Openoffice odt document
 '''
+
 import re
 import platform
 import subprocess
@@ -11,7 +12,7 @@ import importlib
 
 from pathlib import Path
 from odf import style, text, draw, table
-from odf.style import Style, TextProperties, ParagraphProperties, PageLayout, MasterPage, Header, HeaderLeft, Footer, FooterLeft, FontFace
+from odf.style import Style, TextProperties, ParagraphProperties, Header, HeaderLeft, Footer, FooterLeft, FontFace
 from odf.element import Element
 from namespaces import MATHNS
 from odf.namespaces import DRAWNS

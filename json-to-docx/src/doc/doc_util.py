@@ -13,22 +13,19 @@ import random
 import importlib
 import traceback
 
-from pathlib import Path
 from copy import deepcopy
 
 from lxml import etree
-import xml.dom.minidom
 
 
 from docx import Document, section, document, table
-# from docx.document import Document as _Document
 from docx.oxml import OxmlElement, parse_xml, ns
 from docx.oxml.ns import qn, nsdecls
 
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
-from docx.shared import Pt, Cm, Inches, RGBColor, Emu
+from docx.shared import Pt, Cm, Inches, RGBColor
 
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT, WD_BREAK
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.section import WD_SECTION, WD_ORIENT
 from docx.enum.style import WD_STYLE_TYPE
