@@ -1241,7 +1241,9 @@ class ImageValue(CellValue):
         picture_path = self.value['path']
 
         if self.value['mode'] in [1, 2, 3, 4]:
+            trace(f"trying to fit image [{image_width_in_inches}x{image_height_in_inches}] inside container [{container_width}x{container_height}]")
             image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
+            trace(f"image fitted as     [{image_width_in_inches}x{image_height_in_inches}] inside container [{container_width}x{container_height}]")
 
         else:
             warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")

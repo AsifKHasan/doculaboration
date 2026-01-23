@@ -1017,16 +1017,15 @@ def random_string(length=12, nesting_level=0):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
-    aspect_ratio = width_to_fit / height_to_fit
+	scale = min(
+        fit_within_width / width_to_fit,
+        fit_within_height / height_to_fit
+    )
 
-    if width_to_fit > fit_within_width:
-        width_to_fit = fit_within_width
-        height_to_fit = width_to_fit / aspect_ratio
-        if height_to_fit > fit_within_height:
-            height_to_fit = fit_within_height
-            width_to_fit = height_to_fit * aspect_ratio
-
-    return width_to_fit, height_to_fit
+	return (
+        width_to_fit * scale,
+        height_to_fit * scale,
+    )
 
 
 ''' strip LaTeX math mode delimeter ($)
