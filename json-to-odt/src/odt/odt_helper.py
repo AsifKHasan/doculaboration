@@ -9,6 +9,7 @@ import datetime
 
 from odf import opendocument
 
+from odt.odt_util import StyleSpecs
 from odt.odt_util import *
 from helper.logger import *
 
@@ -35,11 +36,9 @@ class OdtHelper(object):
                     register_font(odt=self._odt, font_name=k, font_spec=v, nesting_level=0)
 
         # override styles
-        trace(f"processing custom styles from conf/style-spec.yml")
-        self._config['custom-styles'] = {}
-        if 'style-specs' in self._config:
-            for k, v in self._config['style-specs'].items():
-                update_style(odt=self._odt, style_key=k, style_spec=v, custom_styles=self._config['custom-styles'], nesting_level=0)
+        trace(f"processing custom styles from conf/style-specs.yml")
+        for k, v in StyleSpecs.data.items():
+            update_style(odt=self._odt, style_key=k, style_spec=v, custom_styles=StyleSpecs.data, nesting_level=0)
 
         # process the sections
         section_list_to_odt(section_list, self._config)

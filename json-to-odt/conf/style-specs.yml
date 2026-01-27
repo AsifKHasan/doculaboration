@@ -43,3 +43,51 @@
     'padding.paddingtop':           '0.25in'
     'padding.paddingright':         '0.25in'
     'padding.paddingbottom':        '0.25in'
+
+'section-section-1':
+  'text-properties':
+    'color':                        '#0c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '14pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'bold'
+
+  'paragraph-properties':
+    'textalign':                    'center'
+
+    'margin.marginleft':            '0.01in'
+    'margin.margintop':             '0.01in'
+    'margin.marginright':           '0.01in'
+    'margin.marginbottom':          '0.01in'
+
+    'padding.paddingleft':          '0.01in'
+    'padding.paddingtop':           '0.01in'
+    'padding.paddingright':         '0.01in'
+    'padding.paddingbottom':        '0.01in'
+
+  'inline-image':
+    - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
+
+'section-heading-1':
+  'text-properties':
+    'color':                        '#0c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '14pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'bold'
+
+  'paragraph-properties':
+    'textalign':                    'left'
+
+    'margin.marginleft':            '0.01in'
+    'margin.margintop':             '0.01in'
+    'margin.marginright':           '0.01in'
+    'margin.marginbottom':          '0.01in'
+
+    'padding.paddingleft':          '0.01in'
+    'padding.paddingtop':           '0.01in'
+    'padding.paddingright':         '0.01in'
+    'padding.paddingbottom':        '0.01in'
+
+  'inline-image':
+    - url:                          'https://spectrum-bd.biz/data/artifacts/cell-backgrounds/cell-bg-01.png'

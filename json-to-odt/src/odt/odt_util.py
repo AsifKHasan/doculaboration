@@ -3,14 +3,22 @@
 ''' various utilities for generating an Openoffice odt document
 '''
 
+import io
 import re
+import yaml
 import platform
 import subprocess
 import random
 import string
 import importlib
+import requests
 
 from pathlib import Path
+from PIL import Image
+
+from googleapiclient import errors
+from googleapiclient.http import MediaIoBaseDownload
+
 from odf import style, text, draw, table
 from odf.style import Style, TextProperties, ParagraphProperties, Header, HeaderLeft, Footer, FooterLeft, FontFace
 from odf.element import Element
@@ -1116,6 +1124,48 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                     props_by_type.setAttribute(attr, value)
 
 
+    # check for *inline-image* and process
+    if 'inline-image' in style_spec:
+        inline_image_list = []
+        # this may be a dict for one single image or a list for multiple images
+        if isinstance(style_spec['inline-image'], dict):
+            inline_image_list.append(style_spec['inline-image'])
+
+        elif isinstance(style_spec['inline-image'], list):
+            for ii_dict in style_spec.get('inline-image', []):
+                inline_image_list.append(ii_dict)
+        
+        else:
+            warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
+
+        custom_styles[style_key]['inline-image'] = []
+        for ii_dict in inline_image_list:
+            if 'url' in ii_dict:
+                url = ii_dict.get('url')
+                
+                # download image
+                debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+                ii_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
+
+                # type background/inline
+                ii_image_dict['type'] = ii_dict.get('type', 'background')
+
+                # extend-container-height true/false,
+                ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
+
+                # fill-width true/false,
+                ii_image_dict['fill-width'] = ii_dict.get('fill-width', True)
+
+                # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
+                ii_image_dict['position'] = ii_dict.get('position', 'center middle')
+
+                # wrap none/parallel
+                ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
+
+                custom_styles[style_key]['inline-image'].append(ii_image_dict)
+                # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+
 ''' parse style properties from yml to odt
 '''
 def parse_style_properties(style_spec, nesting_level=0):
@@ -1131,6 +1181,174 @@ def parse_style_properties(style_spec, nesting_level=0):
             custom_properties[p_type] = new_props
 
     return custom_properties
+
+
+
+''' download an image from a web or drive url and return a dict
+    {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}
+'''
+def download_image(drive_service, url, title, tmp_dir, nesting_level=0):
+    data = None
+    if url.startswith('https://drive.google.com/'):
+        data = download_file_from_drive(drive_service=drive_service, url=url, title=title, tmp_dir=tmp_dir, nesting_level=nesting_level)
+
+    elif url.startswith('http'):
+        # the file url is a normal web url
+        data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
+
+    else:
+        warn(f"the url [{url}] is not a drive or web url", nesting_level=nesting_level)
+        return None
+
+    # if image, calculate dimensions
+    if data['file-type'] in IMAGE_MIME_TYPES:
+        file_path = data['file-path']
+        width, height, dpi_x, dpi_y = image_meta_pillow(file_path, nesting_level=nesting_level)
+        data['image-width'] = float(width / dpi_x)
+        data['image-height'] = float(height / dpi_y)
+
+    return data
+
+
+
+''' download a file from a drive url and return a dict
+    {'file-name': file-name, 'file-type': file-type, 'file-path': local_path)}
+    drive file id may have many forms like
+    "https://drive.google.com/open?id=1rVmH-dHciYgPwJC0EFpHIXaZ_H1j5LDu"
+    "https://drive.google.com/file/d/10bjxB_yjXgtaGZWJLVCQ28a7G_PPBLk-"
+'''
+def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0):
+    file_url = url.strip()
+
+    id = file_url.replace('https://drive.google.com/', '')
+    # print(id)
+
+    # see if it has something like 'id=' in it, then it will start after the pattern
+    id = re.sub(r".*\?id=", "", id)
+
+    # see if it has something like '/d/' in it, then it will start after the pattern
+    id = re.sub(r".*/d/", "", id)
+
+    # then it will be till end or till before the first '/'
+    id = id.split('/')[0]
+
+    # get file metadata
+    file = drive_file_metadata(drive_service=drive_service, file_id=id, nesting_level=nesting_level+1)
+    if not file:
+        error(f"drive file [{id}] could not be accessed", nesting_level=nesting_level)
+        return None
+    
+    if title:
+        file_name = title
+    else:
+        file_name = file['name']
+    
+    file_type = file['mimeType']
+    if not file_type in ALLOWED_MIME_TYPES:
+        warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_FILE_FORMATS)}], it is [{file_type}]", nesting_level=nesting_level)
+        return None
+    
+    # determine file extension
+    expected_extension = MIME_TYPE_TO_FILE_EXT_MAP.get(file_type, None)
+    if expected_extension and not file_name.endswith(expected_extension):
+        file_name = file_name + expected_extension
+
+    local_path = f"{tmp_dir}/{file_name}"
+    local_path = Path(local_path).resolve()
+
+    # if the file is already in the local_path, we do not download it
+    if Path(local_path).exists():
+        trace(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+
+    # finally download the file
+    trace(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
+    try:
+        download_media_from_dive(drive_service=drive_service, file_id=id, local_path=local_path, nesting_level=nesting_level+1)
+        trace(f"drive file downloaded at: [{local_path}]", nesting_level=nesting_level)
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+
+    except:
+        error(f"could not download : [{file_url}]", nesting_level=nesting_level)
+        return None
+
+
+
+''' download a file from a web url and return a dict
+    {'file-name': file-name, 'file-type': file-type, 'file-path': local_path)}
+'''
+def download_file_from_web(url, tmp_dir, nesting_level=0):
+    file_url = url.strip()
+    file_parts = file_url.split('.')
+    if len(file_parts) > 1:
+        file_ext = '.' + file_parts[-1]
+
+    if not file_ext in SUPPORTED_FILE_FORMATS:
+        error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_FILE_FORMATS)}] file", nesting_level=nesting_level)
+        return None
+
+    file_name = file_url.split('/')[-1].strip()
+    file_type = FILE_EXT_TO_MIME_TYPE_MAP.get(file_ext, None)
+
+    # download pdf in url into localpath
+    try:
+        local_path = f"{tmp_dir}/{file_name}"
+        local_path = Path(local_path).resolve()
+        # if the pdf is already in the local_path, we do not download it
+        if Path(local_path).exists():
+            trace(f"file existing   [{file_url}]", nesting_level=nesting_level)
+            # pass
+        else:
+            file_data = requests.get(file_url).content
+            with open(local_path, 'wb') as handler:
+                handler.write(file_data)
+
+            trace(f"file downloaded [{file_url}]", nesting_level=nesting_level)
+
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+    except:
+        error(f"could not download : [{file_url}]", nesting_level=nesting_level)
+        return None
+
+
+
+''' get image metadata using Pillow
+'''
+def image_meta_pillow(im_path, nesting_level=0):
+    im = Image.open(im_path)
+    width, height = im.size
+
+    if 'dpi' in im.info:
+        dpi_x, dpi_y = im.info['dpi']
+    else:
+        dpi_x, dpi_y = DPI, DPI
+
+    return width, height, dpi_x, dpi_y
+
+
+''' get drive file metadata dict given a file id
+
+'''
+def drive_file_metadata(drive_service, file_id, nesting_level=0):
+    file = drive_service.files().get(fileId=file_id,fields="id,name,mimeType").execute()
+    return file
+
+
+''' download media from drive given the id to a local path
+'''
+def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0):
+    request = drive_service.files().get_media(fileId=file_id,)
+
+    fh = io.FileIO(local_path, "wb")
+    downloader = MediaIoBaseDownload(fh, request)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+        trace(f"Downloaded {int(status.progress() * 100)}%", nesting_level=nesting_level)
+
+    return done
+
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1390,3 +1608,33 @@ STYLE_PROPERTY_MAP = {
         "writingmodeautomatic",
     ],
 }
+
+DPI = 72
+SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
+ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
+IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+MIME_TYPE_TO_FILE_EXT_MAP = {
+    'application/pdf': '.pdf', 
+    'image/png': '.png', 
+    'image/jpeg': '.jpg', 
+    'image/gif': '.gif', 
+    'image/webp': '.webp'
+}
+FILE_EXT_TO_MIME_TYPE_MAP = {
+    '.pdf': 'application/pdf', 
+    '.png': 'image/png', 
+    '.jpg': 'image/jpeg', 
+    '.gif': 'image/gif', 
+    '.webp': 'image/webp' 
+}
+
+
+''' style specs read from ../conf/style-specs.yml
+'''
+class StyleSpecs:
+    data = {}
+
+    @classmethod
+    def load(cls, path):
+        with open(path, 'r') as f:
+            cls.data = yaml.safe_load(f)

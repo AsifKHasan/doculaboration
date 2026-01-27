@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from odt.odt_util import StyleSpecs
 from odt.odt_util import *
 from helper.logger import *
 
@@ -240,12 +241,14 @@ class OdtSectionBase(object):
         if self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
             if style:
-                if self.heading_style not in self._config['custom-styles']:
+                # if self.heading_style not in self._config['custom-styles']:
+                if self.heading_style not in StyleSpecs.data:
                     warn(f"custom style [{self.heading_style}] not defined in style-specs")
 
                 else:
                     trace(f"applying custom style [{self.heading_style}] to heading")
-                    apply_custom_style(style=style, custom_properties=self._config['custom-styles'][self.heading_style], nesting_level=0)
+                    # apply_custom_style(style=style, custom_properties=self._config['custom-styles'][self.heading_style], nesting_level=0)
+                    apply_custom_style(style=style, custom_properties=StyleSpecs.data[self.heading_style], nesting_level=0)
 
             else:
                 warn(f"style [{style_name}] not found")
@@ -1086,7 +1089,21 @@ class Cell(object):
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes()
 
+            # handle cell background image
             background_image_style = None
+
+            # the cell may have a custom style with a bg image 
+            if self.note.style is not None and self.note.style in StyleSpecs.data:
+                # this custom style may have an inline-image, if so apply it
+                if 'inline-image' in StyleSpecs.data[self.note.style]:
+                    for ii_dict in StyleSpecs.data[self.note.style]['inline-image']:
+                        inline_image = InlineImage(ii_dict)
+
+                        # consider only the first bg image
+                        if inline_image.type == 'background':
+                            background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=self.nesting_level+1)
+
+            # and/or there might me inline images in notes
             for inline_image in self.inline_images:
                 # now if the background does not have any position, it is to be trated as a background image
                 if inline_image.type == 'background':
@@ -1149,6 +1166,13 @@ class Cell(object):
                 if paragraph:
                     for image_frame in self.image_frames:
                         paragraph.addElement(image_frame)
+
+                    # the cell/paragraph may have custom style, if so apply it
+                    if self.note.style is not None and self.note.style in StyleSpecs.data:
+                        trace(f"applying custom style [{self.note.style}] to {self}")
+                        style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"))
+                        apply_custom_style(style=style, custom_properties=StyleSpecs.data[self.note.style], nesting_level=self.nesting_level+1)
+
                 else:
                     pass
                     # warn(f"No paragraph to add inline image(s) to", nesting_level=self.nesting_level)

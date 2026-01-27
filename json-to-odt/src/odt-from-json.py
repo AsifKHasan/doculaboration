@@ -10,6 +10,7 @@ import argparse
 from pathlib import Path
 
 from odt.odt_helper import OdtHelper
+from odt.odt_util import StyleSpecs
 from odt.odt_util import *
 from helper.logger import *
 from helper import logger
@@ -64,7 +65,7 @@ class OdtFromJson(object):
 		# style specs
 		style_spec_file = config_dir / 'style-specs.yml'
 		if Path.exists(page_spec_file):
-			self._CONFIG['style-specs'] = yaml.load(open(style_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+			StyleSpecs.load(style_spec_file)
 		else:
 			warn(f"No style-spec [{style_spec_file}]' found .. will not override any style")
 
