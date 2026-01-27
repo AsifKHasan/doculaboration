@@ -2,11 +2,11 @@
 '''
 '''
 
+from ggle.gsheet_helper import GsheetHelper
 from helper.logger import *
-from helper.gsheet.gsheet_helper import GsheetHelper
 from helper.util import *
 
-def process(gsheet, section_data, context, current_document_index, nesting_level):
+def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document_index, nesting_level=0):
     gsheet_title = section_data['section-prop']['link']
     gsheet_url = section_data['section-prop']['link-target']
 

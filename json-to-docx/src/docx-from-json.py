@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import json
 import time
 import yaml
-import datetime
 import argparse
 from pathlib import Path
 
@@ -17,35 +13,24 @@ from helper import logger
 
 class DocFromJson(object):
 
-    def __init__(self, config_path, json=None):
+    def __init__(self):
         self.start_time = int(round(time.time() * 1000))
-        self._config_path = Path(config_path).resolve()
-        self._data = {}
-        self._json = json
 
-    def run(self):
-        self.set_up()
-        # process jsons one by one
-        for json in self._CONFIG['jsons']:
-            self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
-            self.load_json()
 
-            # doc-helper
-            self._CONFIG['files']['output-docx'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.docx"
-            doc_helper = DocHelper(self._CONFIG)
-            doc_helper.generate_and_save(self._data['sections'])
-
-            if self._CONFIG['docx-related']['generate-pdf']:
-                info(msg=f"generating pdf ..")
-                pdf_start_time = int(round(time.time() * 1000))
-                generate_pdf(self._CONFIG['files']['output-docx'], self._CONFIG['dirs']['output-dir'])
-                self.end_time = int(round(time.time() * 1000))
-                info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
-
-            self.tear_down()
-
-    def set_up(self):
+    def run(self, config_file, json_file=None, nesting_level=0):
         # configuration
+        # configuration
+        config_service = ConfigService(config_file=config_file, nesting_level=0)
+
+        # initialize GoogleServices
+        google_services = GoogleServices(json_path=config_service._google_cred_json_path, nesting_level=0)
+
+
+        # if gsheet name was provided as parameter, override the gsheet_list
+        if gsheet:
+            config_service._gsheet_list = [gsheet]
+
+
         self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
         config_dir = self._config_path.parent
 
@@ -78,13 +63,34 @@ class DocFromJson(object):
         if not 'files' in self._CONFIG:
             self._CONFIG['files'] = {}
 
-    def load_json(self):
-        with open(self._CONFIG['files']['input-json'], "r") as f:
-            self._data = json.load(f)
 
-    def tear_down(self):
-        self.end_time = int(round(time.time() * 1000))
-        info(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
+        # process jsons one by one
+        for json in self._CONFIG['jsons']:
+            self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
+
+            # load json file
+            with open(self._CONFIG['files']['input-json'], "r") as f:
+                self._data = json.load(f)
+
+            # doc-helper
+            self._CONFIG['files']['output-docx'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.docx"
+            doc_helper = DocHelper(self._CONFIG)
+            doc_helper.generate_and_save(self._data['sections'])
+
+            if self._CONFIG['docx-related']['generate-pdf']:
+                info(msg=f"generating pdf ..")
+                pdf_start_time = int(round(time.time() * 1000))
+                generate_pdf(self._CONFIG['files']['output-docx'], self._CONFIG['dirs']['output-dir'])
+                self.end_time = int(round(time.time() * 1000))
+                info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
+
+            # tear down
+            self.end_time = int(round(time.time() * 1000))
+            info(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
+
+    def set_up(self):
+
+
 
 
 if __name__ == '__main__':
@@ -94,5 +100,5 @@ if __name__ == '__main__':
 	ap.add_argument("-j", "--json", required=False, help="json name to override json list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = DocFromJson(args["config"], args["json"])
-	generator.run()
+	generator = DocFromJson()
+	generator.run(config_file=args["config"], json_file=args["json"])

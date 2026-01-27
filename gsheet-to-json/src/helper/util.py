@@ -12,7 +12,6 @@ import urllib3
 from googleapiclient import errors
 from googleapiclient.http import MediaIoBaseDownload
 
-# import pygsheets
 from PIL import Image
 
 from helper.logger import *
@@ -23,11 +22,8 @@ from helper.logger import *
 # -------------------------------------------------------------------------------------------------------
 ''' get data from a gsheet
 '''
-def get_gsheet_data(google_service, gsheet, ranges=[], include_grid_data=True, nesting_level=0):
-    # The spreadsheet to request.
-    spreadsheet_id = gsheet.id
-
-    request = google_service.spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=ranges, includeGridData=include_grid_data)
+def get_gsheet_data(sheets_service, spreadsheet_id, ranges=[], include_grid_data=True, nesting_level=0):
+    request = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=ranges, includeGridData=include_grid_data)
     response = request.execute()
 
     return response
@@ -161,7 +157,7 @@ def read_drive_file(drive_service, drive_url, nesting_level):
     id = url.replace('https://drive.google.com/file/d/', '')
     id = id.split('/')[0]
     # debug(f"drive file id to be read from is {id}", nesting_level=nesting_level)
-    f = context['drive'].CreateFile({'id': id})
+    f = drive_service.CreateFile({'id': id})
     if f['mimeType'] != 'text/plain':
         warn(f"drive url {url} mime-type is {f['mimeType']} which may not be readable as text", nesting_level=nesting_level)
 
@@ -582,3 +578,45 @@ MIME_TYPE_TO_FILE_EXT_MAP = {
 DPI = 72
 
 JPEG_QUALITY_DEFAULT = 90
+
+
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+
+MASTER_TOC_COLUMNS = {
+  "section" : {"availability": "must", "blank-allowed": True},
+  "heading" : {"availability": "must", "blank-allowed": True},
+  "process" : {"availability": "must", "blank-allowed": True},
+  "level" : {"availability": "must", "blank-allowed": False},
+  "content-type" : {"availability": "must", "blank-allowed": False},
+  "link" : {"availability": "must"},
+  "break" : {"availability": "must"},
+  "page-spec" : {"availability": "must", "blank-allowed": False},
+  "margin-spec" : {"availability": "must", "blank-allowed": False},
+
+  "landscape" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "bookmark" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+  "jpeg-quality" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": '90'},
+  "page-list" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "autocrop" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "page-bg" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+ 
+  "hide-heading" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "header-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "header-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "header-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "footer-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "override-header" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "override-footer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+  "background-image" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "responsible" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "reviewer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "status" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+  "comment" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+}

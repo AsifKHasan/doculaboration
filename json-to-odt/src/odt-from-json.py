@@ -1,97 +1,57 @@
 #!/usr/bin/env python
 '''
 '''
-import sys
-import json
 import time
-import yaml
-import datetime
+import json
 import argparse
-from pathlib import Path
 
-from odt.odt_helper import OdtHelper
-from odt.odt_util import StyleSpecs
-from odt.odt_util import *
+from ggle.google_services import GoogleServices
+from helper.config_service import ConfigService
 from helper.logger import *
-from helper import logger
+from odt.odt_helper import OdtHelper
+from odt.odt_util import *
 
 class OdtFromJson(object):
 
-	def __init__(self, config_path, json=None):
+	def __init__(self):
 		self.start_time = int(round(time.time() * 1000))
-		self._config_path = Path(config_path).resolve()
-		self._data = {}
-		self._json = json
 
-	def run(self):
-		self.set_up()
+
+	def run(self, config_file, json_file=None, nesting_level=0):
+		# configuration
+		config_service = ConfigService(config_file=config_file, nesting_level=nesting_level)
+
+		# initialize GoogleServices
+		google_services = GoogleServices(json_path=config_service._google_cred_json_path, nesting_level=nesting_level)
+
+		# if json name was provided as parameter, override the gsheet_list
+		if json_file:
+			config_service._json_list = [json_file]
+
+
 		# process jsons one by one
-		for json in self._CONFIG['jsons']:
-			self._CONFIG['files']['input-json'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.json"
-			self.load_json()
+		for json_file in config_service._json_list:
+			config_service._input_json = config_service._output_dir / f"{json_file}.json"
+			config_service._output_odt = config_service._output_dir / f"{json_file}.odt"
+			with open(config_service._input_json, "r") as f:
+				self._data = json.load(f)
+
 
 			# odt-helper
-			self._CONFIG['files']['output-odt'] = f"{self._CONFIG['dirs']['output-dir']}/{json}.odt"
-			odt_helper = OdtHelper(self._CONFIG)
+			odt_helper = OdtHelper()
 			odt_helper.generate_and_save(self._data['sections'])
 
-			if self._CONFIG['odt-related']['generate-pdf']:
-				info(msg=f"generating pdf ..")
+			if config_service._generate_pdf:
+				info(msg=f"generating pdf ..", nesting_level=nesting_level+1)
 				pdf_start_time = int(round(time.time() * 1000))
-				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'])
+				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'], nesting_level=nesting_level+1)
 				self.end_time = int(round(time.time() * 1000))
-				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds")
+				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds", nesting_level=nesting_level)
 
-			self.tear_down()
+            # tear down
+			self.end_time = int(round(time.time() * 1000))
+			debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
 
-	def set_up(self):
-		# configuration
-		self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-		config_dir = self._config_path.parent
-
-		logger.LOG_LEVEL = self._CONFIG.get('log-level', 0)
-
-		# page specs
-		page_spec_file = config_dir / 'page-specs.yml'
-		self._CONFIG['page-specs'] = yaml.load(open(page_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-
-		# font specs
-		font_spec_file = config_dir / 'font-specs.yml'
-		if Path.exists(font_spec_file):
-			self._CONFIG['font-specs'] = yaml.load(open(font_spec_file, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-		else:
-			warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register")
-
-		# style specs
-		style_spec_file = config_dir / 'style-specs.yml'
-		if Path.exists(page_spec_file):
-			StyleSpecs.load(style_spec_file)
-		else:
-			warn(f"No style-spec [{style_spec_file}]' found .. will not override any style")
-
-		# if json name was provided as parameter, override the configuration
-		if self._json:
-			self._CONFIG['jsons'] = [self._json]
-
-		self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
-		self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
-		if not Path.exists(self._CONFIG['dirs']['temp-dir']):
-			Path.mkdir(self._CONFIG['dirs']['temp-dir'])
-
-		self._CONFIG['dirs']['temp-dir'] = str(self._CONFIG['dirs']['temp-dir']).replace('\\', '/')
-
-		self._CONFIG['files']['odt-template'] = config_dir / self._CONFIG['files']['odt-template']
-
-		if not 'files' in self._CONFIG:
-			self._CONFIG['files'] = {}
-
-	def load_json(self):
-		with open(self._CONFIG['files']['input-json'], "r") as f:
-			self._data = json.load(f)
-
-	def tear_down(self):
-		self.end_time = int(round(time.time() * 1000))
-		debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
 
 if __name__ == '__main__':
 	# construct the argument parse and parse the arguments
@@ -100,5 +60,5 @@ if __name__ == '__main__':
 	ap.add_argument("-j", "--json", required=False, help="json name to override json list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = OdtFromJson(args["config"], args["json"])
-	generator.run()
+	generator = OdtFromJson()
+	generator.run(config_file=args["config"], json_file=args["json"], nesting_level=0)

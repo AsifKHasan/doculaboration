@@ -6,26 +6,27 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pdf2image
-import pdf2image.exceptions
+# import pdf2image.exceptions
 from PIL import Image, ImageChops, ImageOps
 
+from ggle.google_services import GoogleServices
+from helper.config_service import ConfigService
 from helper.logger import *
 from helper.util import *
-from helper.gsheet.gsheet_helper import GsheetHelper
 
-def process(gsheet, section_data, context, current_document_index, nesting_level):
+def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document_index, nesting_level=0):
     pdf_title = section_data['section-prop']['link']
     pdf_url = section_data['section-prop']['link-target']
 
     if pdf_url.startswith('https://drive.google.com/file/d/'):
         # the file is from gdrive
         info(f"processing drive file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
-        data = download_file_from_drive(drive_service=context['drive-service'], url=pdf_url, title=pdf_title, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
+        data = download_file_from_drive(drive_service=GoogleServices().drive_api, url=pdf_url, title=pdf_title, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
 
     elif pdf_url.startswith('http'):
         # the file url is a normal web url
         info(f"processing web file ... [{pdf_title}] : [{pdf_url}]", nesting_level=nesting_level)
-        data = download_file_from_web(url=pdf_url, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
+        data = download_file_from_web(url=pdf_url, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
 
     else:
         warn(f"the url {pdf_url} is neither a web nor a gdrive url", nesting_level=nesting_level+1)
@@ -71,7 +72,7 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                         jpeg_quality = JPEG_QUALITY_DEFAULT
 
                 jpegopt = {'quality': jpeg_quality, 'progressive': True, 'optimize': True}
-                all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, jpegopt=jpegopt, output_file=file_name, paths_only=True, output_folder=context['tmp-dir'])
+                all_images = pdf2image.convert_from_path(file_path, fmt='jpg', dpi=DPI, size=None, transparent=True, jpegopt=jpegopt, output_file=file_name, paths_only=True, output_folder=ConfigService()._temp_dir)
                 
                 images = []
                 if len(p_lists) == 0:

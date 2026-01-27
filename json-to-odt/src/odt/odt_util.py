@@ -5,7 +5,6 @@
 
 import io
 import re
-import yaml
 import platform
 import subprocess
 import random
@@ -1627,14 +1626,3 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
     '.gif': 'image/gif', 
     '.webp': 'image/webp' 
 }
-
-
-''' style specs read from ../conf/style-specs.yml
-'''
-class StyleSpecs:
-    data = {}
-
-    @classmethod
-    def load(cls, path):
-        with open(path, 'r') as f:
-            cls.data = yaml.safe_load(f)

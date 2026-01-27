@@ -3,20 +3,20 @@
 # log level (0-TRACE, 1-DEBUG, 2-INFO, 3-WARN, 4-ERROR) below which logs will not be printed
 log-level:                  1
 
-dirs:
-  # some stock files (images) that we do not want to download from outside
-  data-dir:                 "../data"
-  # all outputs and temporary downloads go here
-  output-dir:               "../../out"
+# the google service account credential for accessing the gsheet(s) (this file must never be in the repo)
+google-cred:              "./credential.json"
 
-files:
-  # the odt template based on which the output odt is generated (should definitely be blank with some styles customized as preferred)
-  odt-template:             "./template-classic.odt"
+# some stock files (images) that we do not want to download from outside
+data-dir:                 "../data"
+# all outputs and temporary downloads go here
+output-dir:               "../../out"
+
+# the odt template based on which the output odt is generated (should definitely be blank with some styles customized as preferred)
+odt-template:             "./template-classic.odt"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one odt
   - "json-file-name"
 
-odt-related:
-  # whether the pdf will be generated from the output odt after generation (requires Openoffice installed)
-  generate-pdf:             true
+# whether the pdf will be generated from the output odt after generation (requires Openoffice installed)
+generate-pdf:             true

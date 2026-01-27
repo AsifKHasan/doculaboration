@@ -1,71 +1,45 @@
 #!/usr/bin/env python
 '''
 '''
-import sys
 import json
-import importlib
 import time
-import yaml
-import datetime
 import argparse
-import pprint
-from pathlib import Path
 
+from ggle.google_services import GoogleServices
+from ggle.gsheet_helper import GsheetHelper
+from helper.config_service import ConfigService
 from helper.logger import *
-from helper import logger
-from helper.gsheet.gsheet_helper import GsheetHelper
 
 
 class JsonFromGsheet(object):
 
-    def __init__(self, config_path, gsheet=None):
+    def __init__(self):
         self.start_time = int(round(time.time() * 1000))
-        self._config_path = Path(config_path).resolve()
-        self._data = {}
-        self._gsheet = gsheet
 
-    def run(self):
-        self.set_up()
+    def run(self, config_file, gsheet=None):
+        # configuration
+        config_service = ConfigService(config_file=config_file, nesting_level=0)
+
+        # initialize GoogleServices
+        google_services = GoogleServices(json_path=config_service._google_cred_json_path, nesting_level=0)
+
+
+        # if gsheet name was provided as parameter, override the gsheet_list
+        if gsheet:
+            config_service._gsheet_list = [gsheet]
 
         # process gsheets one by one
-        for gsheet_title in self._CONFIG['gsheets']:
-            self._CONFIG['files']['output-json'] = f"{self._CONFIG['dirs']['output-dir']}/{gsheet_title}.json"
-            self._data = self._gsheethelper.read_gsheet(gsheet_title=gsheet_title, nesting_level=0)
-            self.save_json()
+        gsheet_helper = GsheetHelper()
+        for gsheet_title in config_service._gsheet_list:
+            output_json_path = f"{config_service._output_dir}/{gsheet_title}.json"
+            gsheet_data = gsheet_helper.read_gsheet(gsheet_title=gsheet_title, gsheet_url=None, parent=None, nesting_level=0)
+            with open(output_json_path, "w") as f:
+                f.write(json.dumps(gsheet_data, sort_keys=False, indent=4))
 
-        self.tear_down()
 
-    def set_up(self):
-        # configuration
-        self._CONFIG = yaml.load(open(self._config_path, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
-        config_dir = self._config_path.parent
-
-        logger.LOG_LEVEL = self._CONFIG.get("log-level", 0)
-
-        if 'autocrop-pdf-pages' not in self._CONFIG:
-            self._CONFIG['autocrop-pdf-pages'] = True
-
-        # if gsheet name was provided as parameter, override the configuration
-        if self._gsheet:
-            self._CONFIG["gsheets"] = [self._gsheet]
-
-        self._CONFIG['dirs']['output-dir'] = config_dir / self._CONFIG['dirs']['output-dir']
-        self._CONFIG['dirs']['temp-dir'] = self._CONFIG['dirs']['output-dir'] / 'tmp'
-        self._CONFIG['dirs']['temp-dir'].mkdir(parents=True, exist_ok=True)
-
-        self._CONFIG['files']['google-cred'] = config_dir / self._CONFIG['files']['google-cred']
-
-        # gsheet-helper
-        self._gsheethelper = GsheetHelper()
-        self._gsheethelper.init(self._CONFIG)
-
-    def save_json(self):
-        with open(self._CONFIG['files']['output-json'], "w") as f:
-            f.write(json.dumps(self._data, sort_keys=False, indent=4))
-
-    def tear_down(self):
+        # tear down 
         self.end_time = int(round(time.time() * 1000))
-        info(f"{self._gsheethelper.current_document_index+1} documents/gsheets processed")
+        info(f"{gsheet_helper.current_document_index+1} documents/gsheets processed")
         info(f"script took {(self.end_time - self.start_time)/1000} seconds")
         # input("Press Enter to continue...")
 
@@ -77,5 +51,5 @@ if __name__ == '__main__':
 	ap.add_argument("-g", "--gsheet", required=False, help="gsheet name to override gsheet list provided in configuration")
 	args = vars(ap.parse_args())
 
-	generator = JsonFromGsheet(args["config"], args["gsheet"])
-	generator.run()
+	generator = JsonFromGsheet()
+	generator.run(config_file=args["config"], gsheet=args["gsheet"])

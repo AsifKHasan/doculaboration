@@ -13,13 +13,11 @@ gsheet-read-wait-seconds:   70
 # if gsheet read times out how many times the read should be tried in total
 gsheet-read-try-count:      5
 
-dirs:
-  # all outputs and temporary downloads go here
-  output-dir:               "../../out"
+# all outputs and temporary downloads go here
+output-dir:               "../../out"
 
-files:
-  # the google service account credential for accessing the gsheet(s) (this file must never be in the repo)
-  google-cred:              "./credential.json"
+# the google service account credential for accessing the gsheet(s) (this file must never be in the repo)
+google-cred:              "./credential.json"
 
 gsheets:
   # the gsheet(s) that will processed to generate output(s). One gsheet outputs one json

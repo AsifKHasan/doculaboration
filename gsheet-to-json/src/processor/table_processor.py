@@ -2,32 +2,27 @@
 '''
 '''
 
-from collections import defaultdict
-
-import sys
 import re
-import time
 import json
-import pygsheets
 
-import urllib.request
-
+from ggle.google_services import GoogleServices
+from helper.config_service import ConfigService
 from helper.logger import *
 from helper.util import *
 
 
-def process(gsheet, section_data, context, current_document_index, nesting_level):
+def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document_index, nesting_level=0):
     ws_title = section_data['section-prop']['link']
 
     # if the worksheet has already been read earlier, use the content from cache
-    if ws_title in context['worksheet-cache'][gsheet.title]:
-        return context['worksheet-cache'][gsheet.title][ws_title]
+    if ws_title in worksheet_cache[gsheet.title]:
+        return worksheet_cache[gsheet.title][ws_title]
 
     info(f"processing ... [{gsheet.title}] : [{ws_title}]", nesting_level=nesting_level)
 
-    # get the worksheet data from the context['gsheet-data']
-    if ws_title in context['gsheet-data'][gsheet.title]:
-        worksheet_data = context['gsheet-data'][gsheet.title][ws_title]
+    # get the worksheet data from the gsheet_data
+    if ws_title in gsheet_data[gsheet.title]:
+        worksheet_data = gsheet_data[gsheet.title][ws_title]
     else:
         warn(f"worksheet [{ws_title}] not found", nesting_level=nesting_level)
         return {}
@@ -43,9 +38,9 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                 # process note
                 if 'note' in cell_data:
                     note_json = cell_data['note']
-                    tmp_dir = context['tmp-dir']
+                    tmp_dir = ConfigService()._temp_dir
 
-                    process_note(note_json=note_json, cell_data=cell_data, row=row, val=val, tmp_dir=tmp_dir, context=context, nesting_level=nesting_level)
+                    process_note(note_json=note_json, cell_data=cell_data, row=row, val=val, tmp_dir=tmp_dir, nesting_level=nesting_level)
 
                 if 'userEnteredValue' in cell_data:
                     user_entered_value = cell_data['userEnteredValue']
@@ -54,9 +49,9 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
                     if 'formulaValue' in user_entered_value:
                         formula_value = user_entered_value['formulaValue']
                         row_height = worksheet_data['data'][0]['rowMetadata'][row]['pixelSize']
-                        tmp_dir = context['tmp-dir']
+                        tmp_dir = ConfigService()._temp_dir
 
-                        process_formula(formula_value=formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+                        process_formula(formula_value=formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, worksheet_cache=worksheet_cache, gsheet_data=gsheet_data, current_document_index=current_document_index, nesting_level=nesting_level)
 
                     else:
                         # TODO: 
@@ -67,14 +62,14 @@ def process(gsheet, section_data, context, current_document_index, nesting_level
 
         row = row + 1
 
-    context['worksheet-cache'][gsheet.title][ws_title] = worksheet_data
+    worksheet_cache[gsheet.title][ws_title] = worksheet_data
 
     return worksheet_data
 
 
-''' parse formula
+''' parse note
 '''
-def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level=0):
+def process_note(note_json, cell_data, row, val, tmp_dir, nesting_level=0):
     try:
         note_dict = json.loads(note_json)
 
@@ -107,7 +102,7 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
                 
                 # download image
                 debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
-                ii_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
+                ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
 
                 # type background/inline
                 ii_image_dict['type'] = ii_dict.get('type', 'background')
@@ -130,7 +125,7 @@ def process_note(note_json, cell_data, row, val, tmp_dir, context, nesting_level
 
 ''' parse formula
 '''
-def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, worksheet_data, gsheet, section_data, context, current_document_index, nesting_level):
+def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, worksheet_data, gsheet, section_data, worksheet_cache, gsheet_data, current_document_index, nesting_level):
     # content can be an IMAGE/image with an image formula like "=image(....)"
     m = re.match(r'=IMAGE\((?P<name>.+)\)', formula_value, re.IGNORECASE)
     if m and m.group('name') is not None:
@@ -145,7 +140,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
     m = re.match(r'=HYPERLINK\("#gid=(?P<ws_gid>.+)",\s*"(?P<ws_title>.+)"\)', formula_value, re.IGNORECASE)
     if m and m.group('ws_gid') is not None and m.group('ws_title') is not None:
         new_section_data = {'section-prop': {'link': m.group('ws_title')}}
-        cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level+1)
+        cell_data['contents'] = process(gsheet=gsheet, section_data=new_section_data, worksheet_cache=worksheet_cache, gsheet_data=gsheet_data, current_document_index=current_document_index, nesting_level=nesting_level+1)
 
         return
 
@@ -158,7 +153,7 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
         # this may be a drive file
         if url.startswith('https://drive.google.com/'):
             info(f"processing drive file ... [{title}] : [{url}]", nesting_level=nesting_level)
-            data = download_file_from_drive(drive_service=context['drive-service'], url=url, title=title, tmp_dir=context['tmp-dir'], nesting_level=nesting_level+1)
+            data = download_file_from_drive(drive_service=GoogleServices().drive_api, url=url, title=title, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
             # if it is an image
             if data['file-type'].startswith('image/'):
                 # TODO: we are hardcoding shape, dpi and other parameters for images
@@ -187,8 +182,8 @@ def process_formula(formula_value, cell_data, row, val, row_height, tmp_dir, wor
             ws_name = m.group('ws_name')
             range = m.group('range')
             trace(f"formula [{formula_value}] is a link to range [{ws_name}]![{range}]", nesting_level=nesting_level)
-            response = get_gsheet_data(google_service=context['service'], gsheet=gsheet, ranges=[f"'{ws_name}'!{range}"])
+            response = get_gsheet_data(sheets_service=GoogleServices().sheets_api, spreadsheet_id=gsheet.id, ranges=[f"'{ws_name}'!{range}"])
             range_formula_value = response['sheets'][0]['data'][0]['rowData'][0]['values'][0]['userEnteredValue']['formulaValue']
-            process_formula(formula_value=range_formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, context=context, current_document_index=current_document_index, nesting_level=nesting_level)
+            process_formula(formula_value=range_formula_value, cell_data=cell_data, row=row, val=val, row_height=row_height, tmp_dir=tmp_dir, worksheet_data=worksheet_data, gsheet=gsheet, section_data=section_data, current_document_index=current_document_index, nesting_level=nesting_level)
 
     return
