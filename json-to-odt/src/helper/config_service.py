@@ -28,7 +28,7 @@ class ConfigService:
         self._log_level = _config_dict.get("log-level", 0)
         logger.LOG_LEVEL = self._log_level
 
-        self._google_cred_json_path = _config_dict.get('google-cred', None)
+        self._google_cred_json_path = Path(_config_dict.get('google-cred', None)).resolve()
         self._json_list = _config_dict.get('jsons', [])
         self._data_dir = Path(_config_dict.get('data-dir', '../data')).resolve()
         self._output_dir = Path(_config_dict.get('output-dir', '../../out')).resolve()
@@ -56,7 +56,6 @@ class ConfigService:
             self._style_specs = yaml.safe_load(open(style_spec_file, 'r', encoding='utf-8'))
         else:
             warn(f"No style-spec [{style_spec_file}]' found .. will not override any style", nesting_level=nesting_level)
-
 
         self._initialized = True
 

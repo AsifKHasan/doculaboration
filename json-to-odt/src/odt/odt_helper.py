@@ -27,6 +27,7 @@ class OdtHelper(object):
     '''
     def generate_and_save(self, section_list, nesting_level=0):
         self.start_time = int(round(time.time() * 1000))
+
         # font specs
         trace(f"registering fonts from conf/font-spec.yml")
         for k, v in ConfigService()._font_specs.items():
@@ -39,7 +40,7 @@ class OdtHelper(object):
             update_style(odt=self._odt, style_key=k, style_spec=v, custom_styles=ConfigService()._style_specs, nesting_level=0)
 
         # process the sections
-        section_list_to_odt(section_list)
+        section_list_to_odt(odt=self._odt, section_list=section_list)
 
         self.end_time = int(round(time.time() * 1000))
         debug(msg=f"generating odt .. done {(self.end_time - self.start_time)/1000} seconds", nesting_level=nesting_level)

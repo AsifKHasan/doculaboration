@@ -22,6 +22,7 @@ class ConfigService:
             return
         
         self._config_path = Path(config_file).resolve()
+
         self._config_dir = self._config_path.parent
         _config_dict = yaml.safe_load(open(self._config_path, 'r', encoding='utf-8'))
 
@@ -30,7 +31,7 @@ class ConfigService:
 
         self._gsheet_list = _config_dict.get('gsheets', [])
         self._output_dir = Path(_config_dict.get('output-dir', '../../out')).resolve()
-        self._google_cred_json_path = _config_dict.get('google-cred', None)
+        self._google_cred_json_path = Path(_config_dict.get('google-cred', None)).resolve()
         self._autocrop_pdf_pages = _config_dict.get('autocrop-pdf-pages', False)
 
         self._temp_dir = self._output_dir / 'tmp'

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from odt.odt_util import StyleSpecs
+from helper.config_service import ConfigService
 from odt.odt_util import *
 from helper.logger import *
 
@@ -14,9 +14,8 @@ class OdtSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        self._config = config
-        self._odt = self._config['odt']
+    def __init__(self, odt, section_data, nesting_level=0):
+        self._odt = odt
         self._section_data = section_data
 
         self.section_meta = self._section_data['section-meta']
@@ -33,10 +32,10 @@ class OdtSectionBase(object):
         self.landscape = self.section_prop['landscape']
 
         self.page_spec_name = self.section_prop['page-spec']
-        self.page_spec = self._config['page-specs']['page-spec'][self.page_spec_name]
+        self.page_spec = ConfigService()._page_specs['page-spec'][self.page_spec_name]
 
         self.margin_spec_name = self.section_prop['margin-spec']
-        self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
+        self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
 
         self.background_image = self.section_prop['background-image']
         self.bookmark = self.section_prop['bookmark']
@@ -84,8 +83,6 @@ class OdtSectionBase(object):
             # self.page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
             # self.page_layout = get_page_layout(self._odt, self.page_layout_name)
 
-        # print(f"master-page: [{self.master_page_name}], page-layout: [{self.page_layout_name}]")
-
         if self.landscape:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
@@ -102,27 +99,21 @@ class OdtSectionBase(object):
         self.footer_first = None
 
         if self._section_data['header-odd']:
-            # print(f"[{self.section_id}] : creating ['header-odd']")
             self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
     
         if self._section_data['footer-odd']:
-            # print(f"[{self.section_id}] : creating ['footer-odd']")
             self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
 
         if self._section_data['header-even']:
-            # print(f"[{self.section_id}] : creating ['header-even']")
             self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
 
         if self._section_data['footer-even']:
-            # print(f"[{self.section_id}] : creating ['footer-even']")
             self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
 
         if self._section_data['header-first']:
-            # print(f"[{self.section_id}] : creating ['header-first']")
             self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
 
         if self._section_data['footer-first']:
-            # print(f"[{self.section_id}] : creating ['footer-first']")
             self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
 
         self.section_contents = OdtContent(self._section_data.get('contents'), self.section_width, self.nesting_level)
@@ -163,54 +154,30 @@ class OdtSectionBase(object):
             page_layout = self.first_page_layout
 
             if self.header_first:
-                # print(f".... header-first")
                 self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
-            else:
-                # print(f".... header-first null")
-                pass
 
             if self.footer_first:
-                # print(f".... footer-first")
                 self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
-            else:
-                # print(f".... footer-first null")
-                pass
 
         master_page = self.master_page
         page_layout = self.page_layout
 
         if self.header_odd:
-            # print(f".... header-odd")
             self.header_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
-        else:
-            # print(f".... header-odd null")
-            pass
 
         if self.footer_odd:
-            # print(f".... footer-odd")
             self.footer_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
-        else:
-            # print(f".... footer-odd null")
-            pass
 
         if self.header_even:
-            # print(f".... header-even")
             self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
-        else:
-            # print(f".... header-even null")
-            pass
 
         if self.footer_even:
-            # print(f".... footer-even")
             self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
-        else:
-            # print(f".... footer-even null")
-            pass
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
+    def section_to_odt(self, nesting_level=0):
         self.process_header_footer()
 
         #  get heading
@@ -241,17 +208,15 @@ class OdtSectionBase(object):
         if self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
             if style:
-                # if self.heading_style not in self._config['custom-styles']:
-                if self.heading_style not in StyleSpecs.data:
-                    warn(f"custom style [{self.heading_style}] not defined in style-specs")
+                if self.heading_style not in ConfigService()._style_specs:
+                    warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
                 else:
-                    trace(f"applying custom style [{self.heading_style}] to heading")
-                    # apply_custom_style(style=style, custom_properties=self._config['custom-styles'][self.heading_style], nesting_level=0)
-                    apply_custom_style(style=style, custom_properties=StyleSpecs.data[self.heading_style], nesting_level=0)
+                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
+                    apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.heading_style], nesting_level=nesting_level+1)
 
             else:
-                warn(f"style [{style_name}] not found")
+                warn(f"style [{style_name}] not found", nesting_level=nesting_level)
 
         self._odt.text.addElement(paragraph)
 
@@ -263,14 +228,14 @@ class OdtTableSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
         self.section_contents.content_to_odt(odt=self._odt, container=self._odt.text)
 
 
@@ -281,19 +246,19 @@ class OdtGsheetSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
             # process the sections
-            section_list_to_odt(self._section_data['contents']['sections'], self._config)
+            section_list_to_odt(odt=self._odt, section=self._section_data['contents']['sections'], nesting_level=nesting_level+1)
 
 
 
@@ -303,15 +268,15 @@ class OdtToCSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
-        toc = create_toc()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
+        toc = create_toc(nesting_level=nesting_level)
         if toc:
             self._odt.text.addElement(toc)
 
@@ -323,15 +288,15 @@ class OdtLoTSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
-        toc = create_lot()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
+        toc = create_lot(nesting_level=nesting_level)
         if toc:
             self._odt.text.addElement(toc)
 
@@ -343,15 +308,15 @@ class OdtLoFSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
-        toc = create_lof()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
+        toc = create_lof(nesting_level=nesting_level)
         if toc:
             self._odt.text.addElement(toc)
 
@@ -363,14 +328,14 @@ class OdtPdfSection(OdtSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, odt, section_data, nesting_level=0):
+        super().__init__(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the odt code
     '''
-    def section_to_odt(self):
-        super().section_to_odt()
+    def section_to_odt(self, nesting_level=0):
+        super().section_to_odt(nesting_level=nesting_level)
 
         # the images go one after another
         text_attributes = {'fontsize': 2}
@@ -707,7 +672,6 @@ class OdtPageHeaderFooter(OdtContent):
 
         mp_name = master_page.getAttribute('name')
         pl_name = page_layout.getAttribute('name')
-        # print(f"[{mp_name}] : creating {self.id}")
         header_footer = create_header_footer(master_page=master_page, page_layout=page_layout, header_or_footer=self.header_footer, odd_or_even=self.odd_even)
         if header_footer:
             # iterate through tables and blocks contents
@@ -1093,15 +1057,16 @@ class Cell(object):
             background_image_style = None
 
             # the cell may have a custom style with a bg image 
-            if self.note.style is not None and self.note.style in StyleSpecs.data:
+            if self.note.style is not None and self.note.style in ConfigService()._style_specs:
                 # this custom style may have an inline-image, if so apply it
-                if 'inline-image' in StyleSpecs.data[self.note.style]:
-                    for ii_dict in StyleSpecs.data[self.note.style]['inline-image']:
+                if 'inline-image' in ConfigService()._style_specs[self.note.style]:
+                    for ii_dict in ConfigService()._style_specs[self.note.style]['inline-image']:
                         inline_image = InlineImage(ii_dict)
 
                         # consider only the first bg image
                         if inline_image.type == 'background':
                             background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=self.nesting_level+1)
+
 
             # and/or there might me inline images in notes
             for inline_image in self.inline_images:
@@ -1168,10 +1133,10 @@ class Cell(object):
                         paragraph.addElement(image_frame)
 
                     # the cell/paragraph may have custom style, if so apply it
-                    if self.note.style is not None and self.note.style in StyleSpecs.data:
+                    if self.note.style is not None and self.note.style in ConfigService()._style_specs:
                         trace(f"applying custom style [{self.note.style}] to {self}")
                         style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"))
-                        apply_custom_style(style=style, custom_properties=StyleSpecs.data[self.note.style], nesting_level=self.nesting_level+1)
+                        apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.note.style], nesting_level=self.nesting_level+1)
 
                 else:
                     pass
@@ -1481,7 +1446,6 @@ class TextFormat(object):
         if self.font_family:
             attributes['fontname'] = self.font_family
             attributes['fontnameasian'] = self.font_family
-            # print(self.font_family)
             # attributes['fontnamecomplex'] = self.font_family
 
         attributes['fontsize'] = self.font_size
@@ -2185,60 +2149,60 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config):
-    section = OdtTableSection(section_data, config)
-    section.section_to_odt()
+def process_table(odt, section_data, nesting_level=0):
+    section = OdtTableSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config):
-    section = OdtGsheetSection(section_data, config)
-    section.section_to_odt()
+def process_gsheet(odt, section_data, nesting_level=0):
+    section = OdtGsheetSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config):
-    section = OdtToCSection(section_data, config)
-    section.section_to_odt()
+def process_toc(odt, section_data, nesting_level=0):
+    section = OdtToCSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config):
-    section = OdtLoFSection(section_data, config)
-    section.section_to_odt()
+def process_lof(odt, section_data, nesting_level=0):
+    section = OdtLoFSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config):
-    section = OdtLoTSection(section_data, config)
-    section.section_to_odt()
+def process_lot(odt, section_data, nesting_level=0):
+    section = OdtLoTSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config):
-    section = OdtPdfSection(section_data, config)
-    section.section_to_odt()
+def process_pdf(odt, section_data, nesting_level=0):
+    section = OdtPdfSection(odt=odt, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_odt(nesting_level=nesting_level)
 
 
 
 ''' odt processor
 '''
-def process_odt(section_data, config):
+def process_odt(odt, section_data, nesting_level=0):
     warn(f"content type [odt] not supported")
 
 
 
 ''' docx processor
 '''
-def process_docx(section_data, config):
+def process_docx(odt, section_data, nesting_level=0):
     warn(f"content type [docx] not supported")

@@ -29,6 +29,8 @@ from xml.dom import Node
 
 import latex2mathml.converter
 
+from ggle.google_services import GoogleServices
+from helper.config_service import ConfigService
 from helper.logger import *
 
 
@@ -40,11 +42,11 @@ else:
 
 ''' process a list of section_data and generate odt code
 '''
-def section_list_to_odt(section_list, config, nesting_level=0):
+def section_list_to_odt(odt, section_list, nesting_level=0):
     first_section = True
-    for section in section_list:
-        section_meta = section['section-meta']
-        section_prop = section['section-prop']
+    for section_data in section_list:
+        section_meta = section_data['section-meta']
+        section_prop = section_data['section-prop']
 
         if section_prop['label'] != '':
             info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
@@ -56,10 +58,10 @@ def section_list_to_odt(section_list, config, nesting_level=0):
         if first_section:
             first_section = False
 
-
+        # invoke processor based on content type
         module = importlib.import_module("odt.odt_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
-        func(section, config)
+        func(odt=odt, section_data=section_data, nesting_level=nesting_level)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -729,14 +731,14 @@ def update_indexes(odt, odt_path, nesting_level=0):
 
 ''' given an odt file generates pdf in the given directory
 '''
-def generate_pdf(infile, outdir, nesting_level=0):
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{outdir}" "{infile}"'
+def generate_pdf(odt_path, output_dir, nesting_level=0):
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{output_dir}" "{odt_path}"'
     subprocess.call(command_line, shell=True)
 
     #  now there should be a pdf file, we need to rename it
-    file_to_rename = infile.replace(r'.odt', r'.pdf')
-    rename_to = infile + '.pdf'
-    Path(file_to_rename).replace(rename_to)
+    pdf_path_to_rename = odt_path.with_suffix('.pdf')
+    rename_to = odt_path.with_name(odt_path.name + ".pdf")
+    Path(pdf_path_to_rename).replace(rename_to)
 
 
 ''' create table-of-contents
@@ -989,8 +991,6 @@ def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even
             page_layout.addElement(footer_style)
             master_page.addElement(header_footer)
 
-    # print(f"{header_or_footer}:{odd_or_even} going under {mp_name}:{pl_name}")
-
     return header_footer
 
 
@@ -1103,14 +1103,13 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
 
     style_name = style_spec.get('name', None)
     if style_name is None:
-        trace(f"custom style [{style_key}] added to style cache")
         custom_styles[style_key] = custom_properties
-        return
+        trace(f"custom style [{style_key}] added to style cache", nesting_level=nesting_level)
     
     else:
         style = get_style_by_name(odt=odt, style_name=style_name)
         if style is None:
-            error(f"style [{style_name}] not found .. ")
+            error(f"style [{style_name}] not found .. ", nesting_level=nesting_level)
             return
 
         # style exists, update with spec
@@ -1144,7 +1143,7 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                 
                 # download image
                 debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
-                ii_image_dict = download_image(drive_service=context['drive-service'], url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
+                ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
 
                 # type background/inline
                 ii_image_dict['type'] = ii_dict.get('type', 'background')
@@ -1220,7 +1219,6 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
     file_url = url.strip()
 
     id = file_url.replace('https://drive.google.com/', '')
-    # print(id)
 
     # see if it has something like 'id=' in it, then it will start after the pattern
     id = re.sub(r".*\?id=", "", id)

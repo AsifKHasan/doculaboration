@@ -31,20 +31,20 @@ class OdtFromJson(object):
 
 		# process jsons one by one
 		for json_file in config_service._json_list:
-			config_service._input_json = config_service._output_dir / f"{json_file}.json"
-			config_service._output_odt = config_service._output_dir / f"{json_file}.odt"
-			with open(config_service._input_json, "r") as f:
+			config_service._input_json_path = config_service._output_dir / f"{json_file}.json"
+			config_service._output_odt_path = config_service._output_dir / f"{json_file}.odt"
+			with open(config_service._input_json_path, "r") as f:
 				self._data = json.load(f)
-
 
 			# odt-helper
 			odt_helper = OdtHelper()
-			odt_helper.generate_and_save(self._data['sections'])
+			odt_helper.generate_and_save(section_list=self._data['sections'], nesting_level=nesting_level+1)
 
+			# pdf to be generated
 			if config_service._generate_pdf:
 				info(msg=f"generating pdf ..", nesting_level=nesting_level+1)
 				pdf_start_time = int(round(time.time() * 1000))
-				generate_pdf(self._CONFIG['files']['output-odt'], self._CONFIG['dirs']['output-dir'], nesting_level=nesting_level+1)
+				generate_pdf(odt_path=config_service._output_odt_path, output_dir=config_service._output_dir, nesting_level=nesting_level+1)
 				self.end_time = int(round(time.time() * 1000))
 				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds", nesting_level=nesting_level)
 
