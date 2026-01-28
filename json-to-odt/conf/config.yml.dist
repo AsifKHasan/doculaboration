@@ -8,6 +8,7 @@ google-cred:              "./credential.json"
 
 # some stock files (images) that we do not want to download from outside
 data-dir:                 "../data"
+
 # all outputs and temporary downloads go here
 output-dir:               "../../out"
 

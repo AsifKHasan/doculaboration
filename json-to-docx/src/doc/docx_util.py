@@ -43,20 +43,20 @@ from helper.logger import *
 
 ''' process a list of section_data and generate docx code
 '''
-def section_list_to_doc(section_list, config, nesting_level=0):
+def section_list_to_docx(docx, section_list, nesting_level=0):
 	first_section = True
-	for section in section_list:
-		section_meta = section['section-meta']
-		section_prop = section['section-prop']
+	for section_data in section_list:
+		section_meta = section_data['section-meta']
+		section_prop = section_data['section-prop']
 
 		if section_prop['label'] != '':
-			info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+			info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=nesting_level)
 		else:
-			info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+			info(f"writing : {section_prop['heading'].strip()}", nesting_level=nesting_level)
 
-		module = importlib.import_module("doc.doc_api")
+		module = importlib.import_module("doc.docx_api")
 		func = getattr(module, f"process_{section_prop['content-type']}")
-		func(section, config)
+		func(docx=docx, section_data=section_data, nesting_level=nesting_level+1)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -656,7 +656,7 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(doc, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, bg_image=None, outline_level=0, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
+def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, bg_image=None, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -687,33 +687,38 @@ def create_paragraph(doc, container, text_content=None, run_list=None, paragraph
 	if run_list is not None:
 		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
-			process_inline_blocks(doc=doc, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list)
+			process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list, nesting_level=nesting_level+1)
 
 	elif text_content is not None:
-		process_inline_blocks(doc=doc, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list)
+		process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list, nesting_level=nesting_level+1)
 
 
 	# bookmark
 	if bookmark:
 		for k, v in bookmark.items():
 			# debug(f"creating bookmark {k} : {v}")
-			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
+			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 	# apply the style if any
-	apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+	apply_paragraph_attributes(docx=docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
 
 	return paragraph
 
 
 ''' apply paragraph attributes to a paragraph
 '''
-def	apply_paragraph_attributes(paragraph, paragraph_attributes, nesting_level=0):
+def	apply_paragraph_attributes(docx, paragraph, paragraph_attributes, nesting_level=0):
 	# apply the style if any
 	if paragraph_attributes:
 		# apply paragraph attrubutes
 		if 'stylename' in paragraph_attributes:
 			style_name = paragraph_attributes['stylename']
-			paragraph.style = style_name
+			# check if the style exists
+			style = get_style_by_name(docx=docx, style_name=style_name)
+			if style is not None:
+				paragraph.style = style_name
+			else:
+				warn(f"style {style_name} not found in standard styles", nesting_level=nesting_level)
 
 		pf = paragraph.paragraph_format
 
@@ -744,7 +749,7 @@ def delete_paragraph(paragraph, nesting_level=0):
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
-def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnote_list, nesting_level=0):
+def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, nesting_level=0):
 	# process FN{...} first, we get a list of block dicts
 	inline_blocks = process_footnotes(
 		text_content=text_content, footnote_list=footnote_list
@@ -794,7 +799,7 @@ def process_inline_blocks(doc, paragraph, text_content, text_attributes, footnot
 
 		elif "fn" in inline_block:
 			create_footnote_bayoo(paragraph=paragraph, footnote_tuple=inline_block["fn"])
-			# create_footnote(doc=doc, paragraph=paragraph, footnote_tuple=inline_block["fn"])
+			# create_footnote(docx=docx, paragraph=paragraph, footnote_tuple=inline_block["fn"])
 
 		elif "latex" in inline_block:
 			run = paragraph.add_run()
@@ -967,7 +972,7 @@ def process_links(text_content, nesting_level=0):
 
 ''' create a footnote
 '''
-def create_footnote(doc, paragraph, footnote_tuple, nesting_level=0):
+def create_footnote(docx, paragraph, footnote_tuple, nesting_level=0):
 	# create footnote reference
 	r = paragraph.add_run()._r
 	fn_ref = OxmlElement('w:footnoteReference')
@@ -975,7 +980,7 @@ def create_footnote(doc, paragraph, footnote_tuple, nesting_level=0):
 	r.append(fn_ref)
 
 	# access footnotes part
-	footnotes_part = doc.part._footnotes_part
+	footnotes_part = docx.part._footnotes_part
 
 	# create footnote
 	fn = OxmlElement('w:footnote')
@@ -1139,8 +1144,8 @@ def update_indexes(docx_path, nesting_level=0):
 		raise e
 
 	try:
-		doc = word.Documents.Open(docx_path)
-		doc.Close()
+		docx = word.Documents.Open(docx_path)
+		docx.Close()
 	except Exception as e:
 		raise e
 	finally:
@@ -1151,13 +1156,13 @@ def update_indexes(docx_path, nesting_level=0):
 '''
 def set_updatefields_true(docx_path, nesting_level=0):
 	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-	doc = Document(docx_path)
-	# add child to doc.settings element
+	docx = Document(docx_path)
+	# add child to docx.settings element
 	element_updatefields = lxml.etree.SubElement(
-		doc.settings.element, f"{namespace}updateFields"
+		docx.settings.element, f"{namespace}updateFields"
 	)
 	element_updatefields.set(f"{namespace}val", "true")
-	doc.save(docx_path)
+	docx.save(docx_path)
 
 
 ''' given an docx file generates pdf in the given directory
@@ -1176,9 +1181,9 @@ def generate_pdf(infile, outdir, nesting_level=0):
 		raise e
 
 	try:
-		doc = word.Documents.Open(infile)
+		docx = word.Documents.Open(infile)
 		try:
-			doc.ExportAsFixedFormat(pdf_path, 
+			docx.ExportAsFixedFormat(pdf_path, 
 				ExportFormat=wdExportFormatPDF,
 				OpenAfterExport=False,
 				OptimizeFor=wdExportOptimizeForPrint,
@@ -1193,7 +1198,7 @@ def generate_pdf(infile, outdir, nesting_level=0):
 			raise e
 
 		finally:
-			doc.Close()
+			docx.Close()
 
 	except Exception as e:
 		raise e
@@ -1204,8 +1209,8 @@ def generate_pdf(infile, outdir, nesting_level=0):
 
 ''' create table-of-contents
 '''
-def create_index(doc, index_type, nesting_level=0):
-	paragraph = doc.add_paragraph()
+def create_index(docx, index_type, nesting_level=0):
+	paragraph = docx.add_paragraph()
 	run = paragraph.add_run()
 
 	# create a new element with attributes
@@ -1243,11 +1248,11 @@ def create_index(doc, index_type, nesting_level=0):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(doc, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
+def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
-		docx_section = doc.add_section(WD_SECTION.NEW_PAGE)
+		docx_section = docx.add_section(WD_SECTION.NEW_PAGE)
 
 	else:
 		# we are continuing the last section
@@ -1256,11 +1261,11 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 		else:
 			new_section = False
 
-		docx_section = doc.sections[-1]
+		docx_section = docx.sections[-1]
 
 		#  we may have a page break
 		if page_break:
-			doc.add_page_break()
+			docx.add_page_break()
 
 
 	docx_section.first_page_header.is_linked_to_previous = link_to_previous
@@ -1291,7 +1296,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
 
 	docx_section.different_first_page_header_footer = different_firstpage
-	doc.settings.odd_and_even_pages_header_footer = different_odd_even_pages
+	docx.settings.odd_and_even_pages_header_footer = different_odd_even_pages
 
 	# get the actual width
 	# actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
@@ -1363,7 +1368,7 @@ def add_or_update_document_section(doc, page_spec, margin_spec, orientation, dif
 		</wp14:sizeRelV>
 	</wp:anchor>
 '''
-def create_page_background(doc, header, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
+def create_page_background(docx, header, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
 	drawing_xml = '''
 	<w:drawing>
 		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
@@ -1425,7 +1430,7 @@ def create_page_background(doc, header, background_image_path, page_width_inches
 	first_run = first_para.add_run()
 
 	# add a new paragraph paragraph
-	new_para = doc.add_paragraph()
+	new_para = docx.add_paragraph()
 
 	# create a run
 	new_run = new_para.add_run()
@@ -1818,21 +1823,26 @@ def print_xml(element, nesting_level=0):
 
 ''' return the style if exists
 '''
-def get_style_by_name(doc, style_name, nesting_level=0):
-	styles = doc.styles
-	return styles[style_name]
+def get_style_by_name(docx, style_name, nesting_level=0):
+	for style in docx.styles:
+		# style.name is the UI name (e.g., 'Normal', 'Heading 1')
+		# style.element.styleId is the XML ID (e.g., 'Normal', 'Heading1')
+		if style_name in (style.name, style.element.styleId):
+			return style
+    
+	return None
 
 
 ''' apply a custom style to a Style/paragraph
 '''
-def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting_level=0):
+def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nesting_level=0):
 	# the following elemnts are to be updated
 	font, pf = None, None
 	border_around = None
 
 	# if style_name
 	if style_name:
-		style = get_style_by_name(doc=doc, style_name=style_name)
+		style = get_style_by_name(docx=docx, style_name=style_name)
 		if style is None:
 			error(f"style [{style_name}] not found .. ")
 			return
@@ -1890,7 +1900,7 @@ def apply_custom_style(doc, style_spec, style_name=None, paragraph=None, nesting
 
 ''' process custom styles
 '''
-def process_custom_style(doc, style_spec, nesting_level=0):
+def process_custom_style(docx, style_spec, nesting_level=0):
 	custom_styles = {}
 	if style_spec:
 		trace(f"processing custom styles from conf/style-spec.yml", nesting_level=nesting_level)
@@ -1902,7 +1912,7 @@ def process_custom_style(doc, style_spec, nesting_level=0):
 				style_name = value.get('name', None)
 				if style_name:
 					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
-					apply_custom_style(doc=doc, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
+					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
 					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
 
 				else:

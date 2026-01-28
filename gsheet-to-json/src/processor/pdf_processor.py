@@ -45,7 +45,6 @@ def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document
         # if it is a pdf
         if file_type == 'application/pdf':
             # consider page-list
-            # print(section_data['section-prop']['page-list'])
             page_list = section_data['section-prop']['page-list']
             p_lists = []
             if page_list is None or page_list.strip() == '':
@@ -56,7 +55,6 @@ def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document
                 for pl in pls:
                     p_lists.append(pl.replace(' ', ''))
 
-            # print(p_lists)
 
             try:
                 # split pages into images, jpeg_quality to be considered
@@ -82,11 +80,9 @@ def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document
                     for p_list in p_lists:
                         try:
                             if ':' not in p_list:
-                                # print(p_list)
                                 images.append(all_images[int(p_list)])
                             else:
                                 parts = p_list.split(':')
-                                # print(parts)
                                 sl = slice(*(int(p) if p else None for p in parts))
                                 images.extend(all_images[sl])          
                         except:

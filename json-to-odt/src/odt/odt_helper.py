@@ -4,15 +4,11 @@
 '''
 
 import time
-import yaml
-import datetime
 
 from odf import opendocument
 
-from ggle.google_services import GoogleServices
 from helper.config_service import ConfigService
 from helper.logger import *
-
 from odt.odt_util import *
 
 class OdtHelper(object):

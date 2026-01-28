@@ -246,9 +246,9 @@ class GsheetHelper(object):
 
         # transform to a dict
         if parent:
-            document_nesting_level = parent['section-meta']['nesting-level'] + 1
+            document_nesting_depth = parent['section-meta']['document-nesting-depth'] + 1
         else:
-            document_nesting_level = 0
+            document_nesting_depth = 0
 
         d = {
             'section-meta' : {
@@ -256,7 +256,7 @@ class GsheetHelper(object):
                 'document-index'        : current_document_index,
                 'section-name'          : worksheet_name,
                 'section-index'         : section_index,
-                'nesting-level'         : document_nesting_level,
+                'document-nesting-depth': document_nesting_depth,
                 'first-section'         : first_section,
                 'document-first-section': document_first_section,
             },

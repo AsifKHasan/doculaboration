@@ -52,7 +52,7 @@ class OdtSectionBase(object):
         self.document_first_section = self.section_meta['document-first-section']
         self.different_firstpage = self.section_meta['different-firstpage']
         self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
-        self.nesting_level = self.section_meta['nesting-level']
+        self.document_nesting_depth = self.section_meta['document-nesting-depth']
         self.page_layout_name = self.section_meta['page-layout']
 
         self.section_id = f"D{str(self.document_index).zfill(3)}--S{str(self.section_index).zfill(3)}"
@@ -99,24 +99,24 @@ class OdtSectionBase(object):
         self.footer_first = None
 
         if self._section_data['header-odd']:
-            self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+            self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
     
         if self._section_data['footer-odd']:
-            self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+            self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         if self._section_data['header-even']:
-            self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+            self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         if self._section_data['footer-even']:
-            self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+            self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         if self._section_data['header-first']:
-            self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
+            self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         if self._section_data['footer-first']:
-            self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
+            self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
-        self.section_contents = OdtContent(self._section_data.get('contents'), self.section_width, self.nesting_level)
+        self.section_contents = OdtContent(content_data=self._section_data.get('contents'), content_width=self.section_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
 
     ''' get section heading
@@ -130,7 +130,7 @@ class OdtSectionBase(object):
             if self.label != '':
                 heading_text = f"{self.label} {heading_text}".strip()
 
-            outline_level = self.level + self.nesting_level
+            outline_level = self.level + self.document_nesting_depth
             if outline_level == 0:
                 parent_style_name = 'Title'
             else:
@@ -414,10 +414,10 @@ class OdtContent(object):
 
     ''' constructor
     '''
-    def __init__(self, content_data, content_width, nesting_level):
+    def __init__(self, content_data, content_width, document_nesting_depth, nesting_level=0):
         self.content_data = content_data
         self.content_width = content_width
-        self.nesting_level = nesting_level
+        self.document_nesting_depth = document_nesting_depth
 
         self.title = None
         self.row_count = 0
@@ -471,7 +471,7 @@ class OdtContent(object):
                     row_data_list = data.get('rowData', [])
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
-                            new_row = Row(row_num=r, row_data=row_data, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, nesting_level=self.nesting_level)
+                            new_row = Row(row_num=r, row_data=row_data, section_width=self.content_width, column_widths=self.column_widths, row_height=self.row_metadata_list[r].inches, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
                             self.cell_matrix.append(new_row)
                             r = r + 1
 
@@ -486,7 +486,7 @@ class OdtContent(object):
         1. identify missing cells/contents for merged cells
         2. generate the proper order of tables and blocks
     '''
-    def process(self):
+    def process(self, nesting_level=0):
 
         # first we identify the missing cells or blank cells for merged spans
         for merge in self.merge_list:
@@ -545,7 +545,7 @@ class OdtContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        next_cell_in_row = Cell(row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
+                        next_cell_in_row = Cell(row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -591,7 +591,7 @@ class OdtContent(object):
 
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
-    def split(self):
+    def split(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # we have a concept of in-cell content and out-of-cell (free) content
@@ -640,12 +640,12 @@ class OdtContent(object):
     ''' generates the odt code
         container may be odt.text or a table-cell
     '''
-    def content_to_odt(self, odt, container):
+    def content_to_odt(self, odt, container, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_odt(odt=odt, container=container)
+            block.block_to_odt(odt=odt, container=container, nesting_level=nesting_level)
 
 
 
@@ -657,16 +657,15 @@ class OdtPageHeaderFooter(OdtContent):
         header_footer : header/footer
         odd_even      : first/odd/even(left)
     '''
-    def __init__(self, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
-        self.nesting_level = nesting_level
-        super().__init__(content_data, section_width, nesting_level=nesting_level)
+    def __init__(self, content_data, section_width, section_index, header_footer, odd_even, document_nesting_depth, nesting_level=0):
+        super().__init__(content_data, section_width, document_nesting_depth=document_nesting_depth, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
 
     ''' generates the odt code
     '''
-    def page_header_footer_to_odt(self, odt, master_page, page_layout):
+    def page_header_footer_to_odt(self, odt, master_page, page_layout, nesting_level=0):
         if self.content_data is None:
             return
 
@@ -676,7 +675,7 @@ class OdtPageHeaderFooter(OdtContent):
         if header_footer:
             # iterate through tables and blocks contents
             for block in self.content_list:
-                block.block_to_odt(odt=odt, container=header_footer)
+                block.block_to_odt(odt=odt, container=header_footer, nesting_level=nesting_level)
 
 
 
@@ -697,7 +696,7 @@ class OdtTable(OdtBlock):
 
     ''' constructor
     '''
-    def __init__(self, cell_matrix, start_row, end_row, column_widths):
+    def __init__(self, cell_matrix, start_row, end_row, column_widths, nesting_level=0):
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
         self.row_count = len(self.table_cell_matrix)
@@ -723,7 +722,7 @@ class OdtTable(OdtBlock):
 
     ''' generates the odt code
     '''
-    def block_to_odt(self, odt, container):
+    def block_to_odt(self, odt, container, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # create the table with styles
@@ -766,7 +765,7 @@ class OdtParagraph(OdtBlock):
 
     ''' constructor
     '''
-    def __init__(self, data_row, row_number):
+    def __init__(self, data_row, row_number, nesting_level=0):
         self.data_row = data_row
         self.row_number = row_number
 
@@ -777,14 +776,13 @@ class OdtParagraph(OdtBlock):
 
     """ generates the odt code
     """
-    def block_to_odt(self, odt, container):
+    def block_to_odt(self, odt, container, nesting_level=0):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             # We take the first cell, the cell will take the whole row width
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
-
-            cell_to_produce.cell_to_odt(odt=odt, container=container)
+            cell_to_produce.cell_to_odt(odt=odt, container=container, nesting_level=nesting_level)
 
 
 
@@ -798,8 +796,8 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, row_data, section_width, column_widths, row_height, nesting_level):
-        self.row_num, self.section_width, self.column_widths, self.row_height, self.nesting_level = row_num, section_width, column_widths, row_height, nesting_level
+    def __init__(self, row_num, row_data, section_width, column_widths, row_height, document_nesting_depth, nesting_level=0):
+        self.row_num, self.section_width, self.column_widths, self.row_height, self.document_nesting_depth = row_num, section_width, column_widths, row_height, document_nesting_depth
         self.row_id = f"{self.row_num+1}"
         self.row_name = f"row: [{self.row_id}]"
 
@@ -808,7 +806,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
+                self.cells.append(Cell(row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level))
                 c = c + 1
 
 
@@ -948,8 +946,8 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, row_num, col_num, value, column_widths, row_height, nesting_level):
-        self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
+    def __init__(self, row_num, col_num, value, column_widths, row_height, document_nesting_depth, nesting_level=0):
+        self.row_num, self.col_num, self.column_widths, self.document_nesting_depth  = row_num, col_num, column_widths, document_nesting_depth
         self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.cell_name = self.cell_id
         self.value = value
@@ -976,7 +974,7 @@ class Cell(object):
                     self.inline_images.append(InlineImage(ii_dict))
                 
             note_dict = self.value.get('notes', {})
-            self.note = CellNote(note_dict=note_dict)
+            self.note = CellNote(document_nesting_depth=self.document_nesting_depth, note_dict=note_dict, nesting_level=nesting_level)
 
             self.formatted_value = self.value.get('formattedValue', '')
 
@@ -1000,25 +998,25 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth)
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth)
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
+                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1037,7 +1035,7 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def cell_to_odt_table_cell(self, odt, table_name):
+    def cell_to_odt_table_cell(self, odt, table_name, nesting_level=0):
         self.table_name = table_name
         col_a1 = COLUMNS[self.col_num+1]
         table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
@@ -1065,25 +1063,25 @@ class Cell(object):
 
                         # consider only the first bg image
                         if inline_image.type == 'background':
-                            background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=self.nesting_level+1)
+                            background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=nesting_level+1)
 
 
             # and/or there might me inline images in notes
             for inline_image in self.inline_images:
                 # now if the background does not have any position, it is to be trated as a background image
                 if inline_image.type == 'background':
-                    background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=self.nesting_level+1)
+                    background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=nesting_level+1)
 
                 # the image is positioned, it is to be positioned as a non-bg image
                 elif inline_image.type == 'inline':
                     graphic_properties_attributes = inline_image.graphic_properties_attributes()
                     frame_attributes = inline_image.frame_attributes()
-                    self.image_frames.append(create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=self.nesting_level+1))
+                    self.image_frames.append(create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1))
 
                 else:
-                    warn(f"invalid inline-image type [{inline_image.type}]", nesting_level=self.nesting_level)
+                    warn(f"invalid inline-image type [{inline_image.type}]", nesting_level=nesting_level)
 
-            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=self.nesting_level+1)
+            table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=nesting_level+1)
 
             if table_cell:
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True)
@@ -1097,7 +1095,7 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def cell_to_odt(self, odt, container, is_table_cell=False):
+    def cell_to_odt(self, odt, container, is_table_cell=False, nesting_level=0):
         # trace(f"{self}")
         if self.note:
             paragraph_attributes_from_notes = self.note.paragraph_attributes()
@@ -1136,11 +1134,11 @@ class Cell(object):
                     if self.note.style is not None and self.note.style in ConfigService()._style_specs:
                         trace(f"applying custom style [{self.note.style}] to {self}")
                         style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"))
-                        apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.note.style], nesting_level=self.nesting_level+1)
+                        apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.note.style], nesting_level=nesting_level+1)
 
                 else:
                     pass
-                    # warn(f"No paragraph to add inline image(s) to", nesting_level=self.nesting_level)
+                    # warn(f"No paragraph to add inline image(s) to", nesting_level=nesting_level)
 
 
     ''' Copy format from the cell passed
@@ -1166,9 +1164,9 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, nesting_level=0, outline_level=0):
+    def __init__(self, effective_format, document_nesting_depth, outline_level=0):
         self.effective_format = effective_format
-        self.nesting_level = nesting_level
+        self.document_nesting_depth = document_nesting_depth
         self.outline_level = outline_level
 
 
@@ -1179,8 +1177,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True, nesting_level=0):
+        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1221,8 +1219,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1259,8 +1257,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0, keep_line_breaks=False):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, keep_line_breaks=False, nesting_level=0):
+        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
         self.keep_line_breaks = keep_line_breaks
@@ -1303,8 +1301,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1317,7 +1315,7 @@ class ImageValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1362,7 +1360,7 @@ class ImageValue(CellValue):
 
         graphic_properties_attributes = inline_image.graphic_properties_attributes()
         frame_attributes = inline_image.frame_attributes()
-        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=self.nesting_level+1)
+        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1)
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
         paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
@@ -1379,8 +1377,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1393,8 +1391,8 @@ class ContentValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark):
-        self.contents = OdtContent(self.value, container_width, self.nesting_level)
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+        self.contents = OdtContent(content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         self.contents.content_to_odt(odt=odt, container=container)
 
         return None
@@ -1917,9 +1915,7 @@ class CellNote(object):
 
     ''' constructor
     '''
-    def __init__(self, note_dict={}, nesting_level=0):
-        self.nesting_level = nesting_level
-
+    def __init__(self, document_nesting_depth, note_dict={}, nesting_level=0):
         self.outline_level = 0
         self.free_content = False
         self.content = note_dict.get('content', None)
@@ -1955,7 +1951,7 @@ class CellNote(object):
         if self.style is not None:
             outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
             if outline_level_object:
-                self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+                self.outline_level = outline_level_object['outline-level'] + document_nesting_depth
                 self.style = LEVEL_TO_HEADING[self.outline_level]
 
             # if style is any Title/Heading or Table or Figure, apply keep-with-next

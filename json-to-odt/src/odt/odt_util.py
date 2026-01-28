@@ -49,9 +49,9 @@ def section_list_to_odt(odt, section_list, nesting_level=0):
         section_prop = section_data['section-prop']
 
         if section_prop['label'] != '':
-            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=nesting_level)
         else:
-            info(f"writing : {section_prop['heading'].strip()}", nesting_level=section_meta['nesting-level'])
+            info(f"writing : {section_prop['heading'].strip()}", nesting_level=nesting_level)
 
 
         section_meta['first-section'] = first_section

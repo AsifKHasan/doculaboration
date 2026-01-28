@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''
 '''
+
 import time
 import json
 import argparse
@@ -28,7 +29,6 @@ class OdtFromJson(object):
 		if json_file:
 			config_service._json_list = [json_file]
 
-
 		# process jsons one by one
 		for json_file in config_service._json_list:
 			config_service._input_json_path = config_service._output_dir / f"{json_file}.json"
@@ -42,7 +42,7 @@ class OdtFromJson(object):
 
 			# pdf to be generated
 			if config_service._generate_pdf:
-				info(msg=f"generating pdf ..", nesting_level=nesting_level+1)
+				info(msg=f"generating pdf ..", nesting_level=nesting_level)
 				pdf_start_time = int(round(time.time() * 1000))
 				generate_pdf(odt_path=config_service._output_odt_path, output_dir=config_service._output_dir, nesting_level=nesting_level+1)
 				self.end_time = int(round(time.time() * 1000))

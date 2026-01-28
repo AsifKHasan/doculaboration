@@ -2,8 +2,9 @@
 
 import inspect
 
-from doc.doc_util import *
+from helper.config_service import ConfigService
 from helper.logger import *
+from doc.docx_util import *
 
 #   ----------------------------------------------------------------------------------------------------------------
 #   docx (not oo section, gsheet section) objects wrappers
@@ -15,13 +16,10 @@ class DocxSectionBase(object):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
+    def __init__(self, docx, section_data, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-
-
-        self._config = config
+        self._docx = docx
         self._section_data = section_data
-        self._doc = self._config['docx']
 
         self.section_meta = self._section_data['section-meta']
         self.section_prop = self._section_data['section-prop']
@@ -37,10 +35,10 @@ class DocxSectionBase(object):
         self.landscape = self.section_prop['landscape']
 
         self.page_spec_name = self.section_prop['page-spec']
-        self.page_spec = self._config['page-specs']['page-spec'][self.page_spec_name]
+        self.page_spec = ConfigService()._page_specs['page-spec'][self.page_spec_name]
 
         self.margin_spec_name = self.section_prop['margin-spec']
-        self.margin_spec = self._config['page-specs']['margin-spec'][self.margin_spec_name]
+        self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
 
         self.autocrop = self.section_prop['autocrop']
         self.page_bg = self.section_prop['page-bg']
@@ -57,7 +55,7 @@ class DocxSectionBase(object):
         self.document_first_section = self.section_meta['document-first-section']
         self.different_firstpage = self.section_meta['different-firstpage']
         self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
-        self.nesting_level = self.section_meta['nesting-level']
+        self.document_nesting_depth = self.section_meta['document-nesting-depth']
         self.page_layout_name = self.section_meta['page-layout']
 
         self.section_id = f"D{str(self.document_index).zfill(3)}--{self.document_name}__S{str(self.section_index).zfill(3)}--{self.section_name}"
@@ -76,17 +74,17 @@ class DocxSectionBase(object):
 
 
         # create or get the docx section
-        self.docx_section, new_section = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=self.background_image)
+        self.docx_section, new_section = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=self.background_image, nesting_level=nesting_level)
 
 
         # headers and footers
         if new_section:
-            self.header_first = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', nesting_level=self.nesting_level)
-            self.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
-            self.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
-            self.footer_first = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', nesting_level=self.nesting_level)
-            self.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
-            self.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+            self.header_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         else:
             self.header_first = None
@@ -97,12 +95,12 @@ class DocxSectionBase(object):
             self.footer_even  = None
 
 
-        self.section_contents = DocxContent(doc=self._doc, content_data=section_data.get('contents'), content_width=self.section_width, nesting_level=self.nesting_level)
+        self.section_contents = DocxContent(docx=self._docx, content_data=section_data.get('contents'), content_width=self.section_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
 
     ''' get section heading
     '''
-    def get_heading(self):
+    def get_heading(self, nesting_level=0):
         # identify what style the heading will be and its content
         if not self.hide_heading:
             heading_title = self.heading
@@ -110,7 +108,7 @@ class DocxSectionBase(object):
                 heading_title = f"{self.label} {heading_title}".strip()
 
             # headings are styles based on level
-            outline_level = self.level + self.nesting_level
+            outline_level = self.level + self.document_nesting_depth
 
             if outline_level == 0:
                 style_name = 'Title'
@@ -128,46 +126,46 @@ class DocxSectionBase(object):
 
     ''' Header/Footer processing
     '''
-    def process_header_footer(self):
+    def process_header_footer(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         if self.header_first:
-            self.header_first.content_to_doc(container=self.docx_section.first_page_header)
+            self.header_first.content_to_docx(container=self.docx_section.first_page_header)
 
         if self.header_odd:
-            self.header_odd.content_to_doc(container=self.docx_section.header)
+            self.header_odd.content_to_docx(container=self.docx_section.header)
 
         if self.header_even:
-            self.header_even.content_to_doc(container=self.docx_section.even_page_header)
+            self.header_even.content_to_docx(container=self.docx_section.even_page_header)
 
         if self.footer_first:
-            self.footer_first.content_to_doc(container=self.docx_section.first_page_footer)
+            self.footer_first.content_to_docx(container=self.docx_section.first_page_footer)
 
         if self.footer_odd:
-            self.footer_odd.content_to_doc(container=self.docx_section.footer)
+            self.footer_odd.content_to_docx(container=self.docx_section.footer)
 
         if self.footer_even:
-            self.footer_even.content_to_doc(container=self.docx_section.even_page_footer)
+            self.footer_even.content_to_docx(container=self.docx_section.even_page_footer)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
+    def section_to_docx(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # self.process_header_footer()
 
-        heading_text, outline_level, style_name = self.get_heading()
+        heading_text, _, style_name = self.get_heading()
         if heading_text:
-            paragraph = create_paragraph(doc=self._doc, container=self._doc, paragraph_attributes={'stylename': style_name}, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark, nesting_level=self.nesting_level+1)
+            paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark=self.bookmark, nesting_level=nesting_level+1)
 
             if self.heading_style:
-                if self.heading_style not in self._config['custom-styles']:
-                    warn(f"custom style [{self.heading_style}] not defined in style-specs")
+                if self.heading_style not in ConfigService()._custom_styles:
+                    warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
                 else:
-                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=self.nesting_level+1)
-                    apply_custom_style(doc=self._doc, style_spec=self._config['custom-styles'][self.heading_style], paragraph=paragraph, nesting_level=self.nesting_level+1)
+                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
+                    apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[self.heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
 
 
@@ -177,20 +175,20 @@ class DocxTableSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
+    def __init__(self, docx, section_data, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().__init__(section_data, config)
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
+    def section_to_docx(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        super().process_header_footer()
-        super().section_to_doc()
-        self.section_contents.content_to_doc(container=self._doc)
+        super().process_header_footer(nesting_level=nesting_level)
+        super().section_to_docx(nesting_level=nesting_level)
+        self.section_contents.content_to_docx(container=self._docx, nesting_level=nesting_level)
 
 
 
@@ -200,20 +198,20 @@ class DocxGsheetSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, docx, section_data, nesting_level=0):
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
-        super().process_header_footer()
-        super().section_to_doc()
+    def section_to_docx(self, nesting_level=0):
+        super().process_header_footer(nesting_level=nesting_level)
+        super().section_to_docx(nesting_level=nesting_level)
 
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
             # process the sections
-            section_list_to_doc(self._section_data['contents']['sections'], self._config)
+            section_list_to_docx(self._section_data['contents']['sections'], self._config)
 
 
 
@@ -223,16 +221,16 @@ class DocxToCSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, docx, section_data, nesting_level=0):
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
-        super().process_header_footer()
-        super().section_to_doc()
-        create_index(self._doc, index_type='toc')
+    def section_to_docx(self, nesting_level=0):
+        super().process_header_footer(nesting_level=nesting_level)
+        super().section_to_docx(nesting_level=nesting_level)
+        create_index(docx=self._docx, index_type='toc', nesting_level=nesting_level)
 
 
 
@@ -242,16 +240,16 @@ class DocxLoTSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, docx, section_data, nesting_level=0):
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
-        super().process_header_footer()
-        super().section_to_doc()
-        create_index(self._doc, index_type='lot')
+    def section_to_docx(self, nesting_level=0):
+        super().process_header_footer(nesting_level=nesting_level)
+        super().section_to_docx(nesting_level=nesting_level)
+        create_index(docx=self._docx, index_type='lot', nesting_level=nesting_level)
 
 
 
@@ -261,16 +259,16 @@ class DocxLoFSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, docx, section_data, nesting_level=0):
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
-        super().process_header_footer()
-        super().section_to_doc()
-        create_index(self._doc, index_type='lof')
+    def section_to_docx(self, nesting_level=0):
+        super().process_header_footer(nesting_level=nesting_level)
+        super().section_to_docx(nesting_level=nesting_level)
+        create_index(docx=self._docx, index_type='lof', nesting_level=nesting_level)
 
 
 
@@ -280,53 +278,53 @@ class DocxPdfSection(DocxSectionBase):
 
     ''' constructor
     '''
-    def __init__(self, section_data, config):
-        super().__init__(section_data, config)
+    def __init__(self, docx, section_data, nesting_level=0):
+        super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
 
     ''' Pdf Page specific Header/Footer processing
     '''
-    def process_pdf_page_header_footer(self, docx_section):
+    def process_pdf_page_header_footer(self, docx_section, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         if self._section_data['header-odd']:
-            docx_section.header_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   nesting_level=self.nesting_level)
+            docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         else:
             docx_section.header_odd = None
 
         if self._section_data['header-even']:
-            docx_section.header_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  nesting_level=self.nesting_level)
+            docx_section.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         else:
             docx_section.header_even = None
 
         if self._section_data['footer-odd']:
-            docx_section.footer_odd   = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   nesting_level=self.nesting_level)
+            docx_section.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         else:
             docx_section.footer_odd = None
 
         if self._section_data['footer-even']:
-            docx_section.footer_even  = DocxPageHeaderFooter(doc=self._doc, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  nesting_level=self.nesting_level)
+            docx_section.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         else:
             docx_section.footer_even = None
 
 
         if docx_section.header_odd:
-            docx_section.header_odd.content_to_doc(container=docx_section.header)
+            docx_section.header_odd.content_to_docx(container=docx_section.header)
 
         if docx_section.header_even:
-            docx_section.header_even.content_to_doc(container=docx_section.even_page_header)
+            docx_section.header_even.content_to_docx(container=docx_section.even_page_header)
 
         if docx_section.footer_odd:
-            docx_section.footer_odd.content_to_doc(container=docx_section.footer)
+            docx_section.footer_odd.content_to_docx(container=docx_section.footer)
 
         if docx_section.footer_even:
-            docx_section.footer_even.content_to_doc(container=docx_section.even_page_footer)
+            docx_section.footer_even.content_to_docx(container=docx_section.even_page_footer)
 
 
     ''' generates the docx code
     '''
-    def section_to_doc(self):
-        super().process_header_footer()
-        super().section_to_doc()
+    def section_to_docx(self, nesting_level=0):
+        super().process_header_footer(nesting_level=nesting_level+1)
+        super().section_to_docx(nesting_level=nesting_level+1)
 
         # the images go one after another
         text_attributes = {'fontsize': 2}
@@ -339,21 +337,21 @@ class DocxPdfSection(DocxSectionBase):
                     if self.page_bg == True:
                         # paragraph_attributes = {'breakbefore': 'page'}
                         paragraph_attributes = {}
-                        paragraph = self._doc.add_paragraph()
-                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+                        paragraph = self._docx.add_paragraph()
+                        apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes)
 
                         background_image_path = image['path']
-                        docx_section, _ = add_or_update_document_section(doc=self._doc, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=self.nesting_level)
+                        docx_section, _ = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=nesting_level+1)
                         # TODO: this new docx_section's header-footer to be handled. this new section, should have odd and eveen header footer defined, but not first
-                        self.process_pdf_page_header_footer(docx_section=docx_section)
+                        self.process_pdf_page_header_footer(docx_section=docx_section, nesting_level=nesting_level+1)
 
-                        # create_page_background(doc=self._doc, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=self.nesting_level+1)
+                        # create_page_background(docx=self._docx, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=nesting_level+1)
 
                     else:
                         paragraph_attributes = {}
-                        paragraph = self._doc.add_paragraph()
-                        apply_paragraph_attributes(paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=self.nesting_level+1)
-                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=self.nesting_level+1)
+                        paragraph = self._docx.add_paragraph()
+                        apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
+                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
@@ -362,11 +360,11 @@ class DocxPdfSection(DocxSectionBase):
 
                         # print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
                         # print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
-                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=self.nesting_level+1)
+                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=nesting_level+1)
                         # print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
                         # print()
                         
-                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches, nesting_level=self.nesting_level+1)
+                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches, nesting_level=nesting_level+1)
                         # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
 
 
@@ -377,12 +375,12 @@ class DocxContent(object):
 
     ''' constructor
     '''
-    def __init__(self, doc, content_data, content_width, nesting_level):
+    def __init__(self, docx, content_data, content_width, document_nesting_depth, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-        self._doc = doc
+        self._docx = docx
+        self.document_nesting_depth = document_nesting_depth
         self.content_data = content_data
         self.content_width = content_width
-        self.nesting_level = nesting_level
 
         self.title = None
         self.row_count = 0
@@ -437,13 +435,14 @@ class DocxContent(object):
                     if len(row_data_list) > 2:
                         for row_data in row_data_list[2:]:
                             new_row = Row(
-                                doc=self._doc, 
+                                docx=self._docx, 
                                 row_num=r,
                                 row_data=row_data,
                                 section_width=self.content_width,
                                 column_widths=self.column_widths,
                                 row_height=self.row_metadata_list[r].inches,
-                                nesting_level=self.nesting_level,
+                                document_nesting_depth=self.document_nesting_depth,
+                                nesting_level=nesting_level,
                             )
                             self.cell_matrix.append(new_row)
                             r = r + 1
@@ -455,11 +454,12 @@ class DocxContent(object):
         else:
             self.has_content = False
 
+
     ''' processes the cells to
         1. identify missing cells/contents for merged cells
         2. generate the proper order of tables and blocks
     '''
-    def process(self):
+    def process(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # first we identify the missing cells or blank cells for merged spans
@@ -519,7 +519,7 @@ class DocxContent(object):
 
                     if next_cell_in_row is None:
                         # the cell may not be existing at all, we have to create
-                        next_cell_in_row = Cell(doc=self._doc, row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, nesting_level=self.nesting_level)
+                        next_cell_in_row = Cell(docx=self._docx, row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
                         next_row_object.insert_cell(c, next_cell_in_row)
 
                     if next_cell_in_row.is_empty:
@@ -564,9 +564,10 @@ class DocxContent(object):
                     else:
                         warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
 
+
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
-    def split(self):
+    def split(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # we have a concept of in-cell content and out-of-cell (free) content
@@ -613,14 +614,14 @@ class DocxContent(object):
 
 
     ''' generates the docx code
-        container may be doc, header/footer or a Cell
+        container may be docx, header/footer or a Cell
     '''
-    def content_to_doc(self, container):
+    def content_to_docx(self, container, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_doc(container=container, container_width=self.content_width)
+            block.block_to_docx(container=container, container_width=self.content_width)
 
 
 
@@ -632,11 +633,10 @@ class DocxPageHeaderFooter(DocxContent):
         header_footer : header/footer
         odd_even      : first/odd/even(left)
     '''
-    def __init__(self, doc, content_data, section_width, section_index, header_footer, odd_even, nesting_level):
+    def __init__(self, docx, content_data, section_width, section_index, header_footer, odd_even, document_nesting_depth, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        self.nesting_level = nesting_level
-        super().__init__(doc=doc, content_data=content_data, content_width=section_width, nesting_level=nesting_level)
+        super().__init__(docx=docx, content_data=content_data, content_width=section_width, document_nesting_depth=document_nesting_depth, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
 
@@ -648,7 +648,7 @@ class DocxBlock(object):
 
     ''' constructor
     '''
-    def __init__(self):
+    def __init__(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         pass
 
@@ -660,7 +660,7 @@ class DocxTable(DocxBlock):
 
     ''' constructor
     '''
-    def __init__(self, cell_matrix, start_row, end_row, column_widths):
+    def __init__(self, cell_matrix, start_row, end_row, column_widths, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
@@ -676,6 +676,7 @@ class DocxTable(DocxBlock):
         else:
             self.header_row_count = 0
 
+
     ''' string representation
     '''
     def __repr__(self):
@@ -686,9 +687,10 @@ class DocxTable(DocxBlock):
 
         return '\n'.join(lines)
 
+
     ''' generates the docx code
     '''
-    def block_to_doc(self, container, container_width):
+    def block_to_docx(self, container, container_width, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         num_cols = len(self.column_widths)
@@ -748,20 +750,22 @@ class DocxParagraph(DocxBlock):
 
     ''' constructor
     '''
-    def __init__(self, data_row, row_number):
+    def __init__(self, data_row, row_number, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         self.data_row = data_row
         self.row_number = row_number
+
 
     ''' string representation
     '''
     def __repr__(self):
         return f"__para__"
 
+
     ''' generates the docx code
     '''
-    def block_to_doc(self, container, container_width):
+    def block_to_docx(self, container, container_width, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # generate the block, only the first cell of the data_row to be produced
@@ -770,7 +774,7 @@ class DocxParagraph(DocxBlock):
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
 
-            cell_to_produce.cell_to_doc(container=container)
+            cell_to_produce.cell_to_docx(container=container)
 
 
 #   ----------------------------------------------------------------------------------------------------------------
@@ -783,9 +787,9 @@ class Row(object):
 
     ''' constructor
     '''
-    def __init__(self, doc, row_num, row_data, section_width, column_widths, row_height, nesting_level):
-        self._doc = doc
-        self.row_num, self.section_width, self.column_widths, self.row_height, self.nesting_level = row_num, section_width, column_widths, row_height, nesting_level
+    def __init__(self, docx, row_num, row_data, section_width, column_widths, row_height, document_nesting_depth, nesting_level=0):
+        self._docx = docx
+        self.row_num, self.section_width, self.column_widths, self.row_height, self.document_nesting_depth = row_num, section_width, column_widths, row_height, document_nesting_depth
         self.row_name = f"row: [{self.row_num+1}]"
 
         self.cells = []
@@ -793,7 +797,7 @@ class Row(object):
         values = row_data.get('values', [])
         if len(values) > 1:
             for value in values[1:]:
-                self.cells.append(Cell(doc=self._doc, row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, nesting_level=self.nesting_level))
+                self.cells.append(Cell(docx=self._docx, row_num=self.row_num, col_num=c, value=value, column_widths=self.column_widths, row_height=self.row_height, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level))
                 c = c + 1
 
 
@@ -812,7 +816,7 @@ class Row(object):
         does something automatically even if this is not in the gsheet
         1. make single cell row with style defined out-of-cell and keep-with-next
     '''
-    def preprocess_row(self):
+    def preprocess_row(self, nesting_level=0):
         # if the row is a single cell row (only the first cell is empty) and the cell contains a style note, make it out-of-cell and make it keep-with-next
         if len(self.cells) > 0:
             first_cell = self.cells[0]
@@ -836,6 +840,7 @@ class Row(object):
     def is_empty(self):
         return (len(self.cells) == 0)
 
+
     ''' gets a specific cell by ordinal
     '''
     def get_cell(self, c):
@@ -843,6 +848,7 @@ class Row(object):
             return self.cells[c]
         else:
             return None
+
 
     ''' inserts a specific cell at a specific ordinal
     '''
@@ -858,6 +864,7 @@ class Row(object):
             self.cells[pos] = cell
         else:
             self.cells.append(cell)
+
 
     ''' it is true when the first cell has a free_content true value
         the first cell may be free_content when
@@ -877,6 +884,7 @@ class Row(object):
         else:
             return False
 
+
     ''' it is true only when the first cell has a repeat-rows note with value > 0
     '''
     def is_table_start(self):
@@ -892,9 +900,10 @@ class Row(object):
         else:
             return False
 
+
     ''' generates the docx code
     '''
-    def row_to_doc_table_row(self, table, table_row):
+    def row_to_doc_table_row(self, table, table_row, nesting_level=0):
         # trace(f"{self}")
         table_row.height = Inches(self.row_height)
 
@@ -914,9 +923,9 @@ class Cell(object):
 
     ''' constructor
     '''
-    def __init__(self, doc, row_num, col_num, value, column_widths, row_height, nesting_level):
-        self._doc = doc
-        self.row_num, self.col_num, self.column_widths, self.nesting_level  = row_num, col_num, column_widths, nesting_level
+    def __init__(self, docx, row_num, col_num, value, column_widths, row_height, document_nesting_depth, nesting_level=0):
+        self._docx = docx
+        self.row_num, self.col_num, self.column_widths, self.document_nesting_depth = row_num, col_num, column_widths, document_nesting_depth
         self.cell_id = f"{COLUMNS[self.col_num+1]}{self.row_num+1}"
         self.cell_name = self.cell_id
         self.value = value
@@ -945,7 +954,7 @@ class Cell(object):
                     self.inline_images.append(InlineImage(ii_dict))
 
             note_dict = self.value.get('notes', {})
-            self.note = CellNote(note_dict=note_dict)
+            self.note = CellNote(document_nesting_depth=self.document_nesting_depth, note_dict=note_dict, nesting_level=nesting_level)
 
             self.formatted_value = self.value.get('formattedValue', '')
 
@@ -970,25 +979,25 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(doc=self._doc, effective_format=self.effective_format, content_value=self.value['contents'])
+                self.cell_value = ContentValue(docx=self._docx, effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(doc=self._doc, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'])
+                    self.cell_value = ImageValue(docx=self._docx, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth)
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(doc=self._doc, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value)
+                        self.cell_value = TextRunValue(docx=self._docx, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth)
 
                     else:
                         if self.note.script and self.note.script == 'latex':
-                            self.cell_value = LatexValue(doc=self._doc, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = LatexValue(docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level)
 
                         else:
-                            self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                            self.cell_value = StringValue(docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level)
 
             else:
-                self.cell_value = StringValue(doc=self._doc, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, nesting_level=self.nesting_level, outline_level=self.note.outline_level)
+                self.cell_value = StringValue(docx=self._docx, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level)
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
@@ -998,7 +1007,6 @@ class Cell(object):
             # print(f"{self} is empty")
 
 
-
     ''' string representation
     '''
     def __repr__(self):
@@ -1006,18 +1014,20 @@ class Cell(object):
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
+
     ''' docx code for cell content
     '''
-    def cell_to_doc_table_cell(self, table, table_cell):
+    def cell_to_doc_table_cell(self, table, table_cell, nesting_level=0):
         # trace(f"{self}")
         self.table_cell = table_cell
         table_cell.width = Inches(self.cell_width)
         if self.effective_format:
-            self.cell_to_doc(container=table_cell)
+            self.cell_to_docx(container=table_cell)
+
 
     ''' docx code for cell content
     '''
-    def cell_to_doc(self, container):
+    def cell_to_docx(self, container, nesting_level=0):
         # trace(f"{self}")
 
         # for string and image it returns a paragraph, for embedded content a list
@@ -1027,13 +1037,13 @@ class Cell(object):
                 # if the cell has a background image, process it first
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
-                        create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=self.nesting_level+1)
+                        create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
                         # self.bg_image = inline_image
                         # self.bg_image.container_width = self.effective_cell_width
                         # self.bg_image.container_height = self.effective_cell_height
 
                     elif inline_image.type == 'inline':
-                        insert_cell_image(cell=container, image_path=inline_image.file_path, width=inline_image.image_width, position=inline_image.position, margin_pt=inline_image.margin_pt, nesting_level=self.nesting_level+1)
+                        insert_cell_image(cell=container, image_path=inline_image.file_path, width=inline_image.image_width, position=inline_image.position, margin_pt=inline_image.margin_pt, nesting_level=nesting_level+1)
 
                 if self.effective_format:
                     table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
@@ -1052,7 +1062,7 @@ class Cell(object):
                     paragraph_attributes = {}
                     footnote_list = {}
 
-                where = self.cell_value.value_to_doc(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=self.bg_image, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=self.bg_image, footnote_list=footnote_list, bookmark=self.note.bookmark)
 
                 # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
@@ -1062,7 +1072,7 @@ class Cell(object):
 
     ''' apply formatting for table cell
     '''
-    def decorate_cell(self):
+    def decorate_cell(self, nesting_level=0):
         # if self.cell_value:
         if self.note:
             force_halign = self.note.force_halign
@@ -1078,7 +1088,7 @@ class Cell(object):
         # the cell may have bacground image
         # for inline_image in self.inline_images:
         #     if inline_image.type == 'background':
-        #         create_cell_background(cell=self.table_cell, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=self.nesting_level+1)
+        #         create_cell_background(cell=self.table_cell, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
 
 
     ''' Copy format from the cell passed
@@ -1094,11 +1104,11 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, nesting_level=0, outline_level=0):
-        self._doc = doc
+    def __init__(self, docx, effective_format, document_nesting_depth, outline_level=0):
+        self._docx = docx
         self.effective_format = effective_format
-        self.nesting_level = nesting_level
         self.outline_level = outline_level
+        self.document_nesting_depth = document_nesting_depth
 
 
 
@@ -1108,8 +1118,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0, directives=True):
-        super().__init__(doc=doc, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, directives=True, nesting_level=0):
+        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
 
         if formatted_value:
             self.value = formatted_value
@@ -1131,8 +1141,8 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(doc=self._doc, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, nesting_level=self.nesting_level+1)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1143,8 +1153,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, string_value, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(doc=doc, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
         else:
@@ -1163,9 +1173,9 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}):
-        paragraph = create_paragraph(doc=self._doc, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, outline_level=self.outline_level, bookmark=bookmark, nesting_level=self.nesting_level+1)
-        create_latex(container=paragraph, latex_content=self.value)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, bookmark=bookmark, nesting_level=nesting_level+1)
+        create_latex(container=paragraph, latex_content=self.value, nesting_level=nesting_level+1)
 
         return paragraph
 
@@ -1177,8 +1187,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, text_format_runs, formatted_value, nesting_level=0, outline_level=0):
-        super().__init__(doc=doc, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, docx, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1192,7 +1202,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1200,7 +1210,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(doc=self._doc, container=container, run_list=run_value_list, bg_image=bg_image, footnote_list=footnote_list, bookmark=bookmark, nesting_level=self.nesting_level+1)
+        paragraph = create_paragraph(docx=self._docx, container=container, run_list=run_value_list, bg_image=bg_image, footnote_list=footnote_list, bookmark=bookmark, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1211,8 +1221,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, image_value, nesting_level=0, outline_level=0):
-        super().__init__(doc=doc, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, docx, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1225,7 +1235,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = DPI if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = DPI if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1245,7 +1255,7 @@ class ImageValue(CellValue):
         else:
             warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")
 
-        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches, bookmark=bookmark)
+        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches, bookmark=bookmark, nesting_level=nesting_level)
         return where
 
 
@@ -1256,8 +1266,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, doc, effective_format, content_value, nesting_level=0, outline_level=0):
-        super().__init__(doc=doc, effective_format=effective_format, nesting_level=nesting_level, outline_level=outline_level)
+    def __init__(self, docx, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1270,9 +1280,9 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_doc(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}):
-        self.contents = DocxContent(doc=self._doc, content_data=self.value, content_width=container_width, nesting_level=self.nesting_level)
-        self.contents.content_to_doc(container=container)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+        self.contents = DocxContent(docx=self._docx, content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+        self.contents.content_to_docx(container=container, nesting_level=nesting_level)
         return None
 
 
@@ -1704,9 +1714,7 @@ class CellNote(object):
 
     ''' constructor
     '''
-    def __init__(self, note_dict=None, nesting_level=0):
-        self.nesting_level = nesting_level
-
+    def __init__(self, document_nesting_depth, note_dict=None, nesting_level=0):
         self.outline_level = 0
         self.free_content = False
         self.content = note_dict.get('content', None)
@@ -1744,7 +1752,7 @@ class CellNote(object):
         if self.style is not None:
             outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
             if outline_level_object:
-                self.outline_level = outline_level_object['outline-level'] + self.nesting_level
+                self.outline_level = outline_level_object['outline-level'] + document_nesting_depth
                 self.style = LEVEL_TO_HEADING[self.outline_level]
 
             # if style is any Title/Heading or Table or Figure, apply keep-with-next
@@ -1896,60 +1904,60 @@ class MultiSpan(object):
 
 ''' Table processor
 '''
-def process_table(section_data, config):
-    section = DocxTableSection(section_data, config)
-    section.section_to_doc()
+def process_table(docx, section_data, nesting_level=0):
+    section = DocxTableSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' Gsheet processor
 '''
-def process_gsheet(section_data, config):
-    section = DocxGsheetSection(section_data, config)
-    section.section_to_doc()
+def process_gsheet(docx, section_data, nesting_level=0):
+    section = DocxGsheetSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' Table of Content processor
 '''
-def process_toc(section_data, config):
-    section = DocxToCSection(section_data, config)
-    section.section_to_doc()
+def process_toc(docx, section_data, nesting_level=0):
+    section = DocxToCSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' List of Figure processor
 '''
-def process_lof(section_data, config):
-    section = DocxLoFSection(section_data, config)
-    section.section_to_doc()
+def process_lof(docx, section_data, nesting_level=0):
+    section = DocxLoFSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' List of Table processor
 '''
-def process_lot(section_data, config):
-    section = DocxLoTSection(section_data, config)
-    section.section_to_doc()
+def process_lot(docx, section_data, nesting_level=0):
+    section = DocxLoTSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' pdf processor
 '''
-def process_pdf(section_data, config):
-    section = DocxPdfSection(section_data, config)
-    section.section_to_doc()
+def process_pdf(docx, section_data, nesting_level=0):
+    section = DocxPdfSection(docx=docx, section_data=section_data, nesting_level=nesting_level)
+    section.section_to_docx(nesting_level=nesting_level)
 
 
 
 ''' odt processor
 '''
-def process_odt(section_data, config):
+def process_odt(docx, section_data, nesting_level=0):
     warn(f"content type [odt] not supported")
 
 
 
 ''' docx processor
 '''
-def process_doc(section_data, config):
+def process_doc(docx, section_data, nesting_level=0):
     warn(f"content type [docx] not supported")

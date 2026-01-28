@@ -21,7 +21,6 @@ class JsonFromGsheet(object):
         config_service = ConfigService(config_file=config_file, nesting_level=0)
 
         # initialize GoogleServices
-        print(config_service._google_cred_json_path)
         google_services = GoogleServices(json_path=config_service._google_cred_json_path, nesting_level=0)
 
 

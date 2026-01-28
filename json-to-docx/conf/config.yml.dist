@@ -8,11 +8,12 @@ google-cred:              "./credential.json"
 
 # some stock files (images) that we do not want to download from outside
 data-dir:                 "../data"
+
 # all outputs and temporary downloads go here
 output-dir:               "../../out"
 
 # the docx template based on which the output docx is generated (should definitely be blank with some styles customized as preferred)
-docx-template:            "./template-classic.docx"
+docx-template:            "../conf/template-classic.docx"
 
 jsons:
   # the json(s) that will be processed to generate output(s). One json outputs one docx

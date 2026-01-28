@@ -28,17 +28,34 @@ class ConfigService:
         self._log_level = _config_dict.get("log-level", 0)
         logger.LOG_LEVEL = self._log_level
 
-        self._google_cred_json_path = _config_dict.get('google-cred', None)
-        self._gsheet_list = _config_dict.get('gsheets', [])
+        self._google_cred_json_path = Path(_config_dict.get('google-cred', None)).resolve()
+        self._json_list = _config_dict.get('jsons', [])
+        self._data_dir = Path(_config_dict.get('data-dir', '../data')).resolve()
         self._output_dir = Path(_config_dict.get('output-dir', '../../out')).resolve()
-        self._autocrop_pdf_pages = _config_dict.get('autocrop-pdf-pages', False)
 
         self._temp_dir = self._output_dir / 'tmp'
         self._temp_dir.mkdir(parents=True, exist_ok=True)
 
-        self._index_worksheet = _config_dict.get('index-worksheet', '-toc')
-        self._gsheet_read_wait_seconds = _config_dict.get('gsheet-read-wait-seconds', 60)
-        self._gsheet_read_try_count = _config_dict.get('gsheet-read-try-count', 3)
+        self._docx_template = Path(_config_dict.get('docx-template', None)).resolve()
+        self._generate_pdf = _config_dict.get('generate-pdf', True)
+
+        # page specs
+        page_spec_file = self._config_dir / 'page-specs.yml'
+        self._page_specs = yaml.safe_load(open(page_spec_file, 'r', encoding='utf-8'))
+
+        # font specs
+        # font_spec_file = self._config_dir / 'font-specs.yml'
+        # if Path.exists(font_spec_file):
+        #     self._font_specs = yaml.safe_load(open(font_spec_file, 'r', encoding='utf-8'))
+        # else:
+        #     warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register", nesting_level=nesting_level)
+
+        # style specs
+        style_spec_file = self._config_dir / 'style-specs.yml'
+        if Path.exists(page_spec_file):
+            self._style_specs = yaml.safe_load(open(style_spec_file, 'r', encoding='utf-8'))
+        else:
+            warn(f"No style-spec [{style_spec_file}]' found .. will not override any style", nesting_level=nesting_level)
 
         self._initialized = True
 

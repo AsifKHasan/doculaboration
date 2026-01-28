@@ -79,7 +79,6 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
     file_url = url.strip()
 
     id = file_url.replace('https://drive.google.com/', '')
-    # print(id)
 
     # see if it has something like 'id=' in it, then it will start after the pattern
     id = re.sub(r".*\?id=", "", id)
@@ -183,7 +182,6 @@ def get_drive_file(drive_service, drive_file_name, verbose=False, nesting_level=
             if page_token is None:
                 break
 
-        # print(files)
         if len(files) > 0:
             if verbose:
                 if len(files) > 1:
