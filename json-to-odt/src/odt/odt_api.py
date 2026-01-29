@@ -2051,7 +2051,7 @@ class InlineImage(object):
     ''' attributes dict for GraphicProperties
     '''
     def graphic_properties_attributes(self):
-        attributes = {'verticalpos': self.valign, 'horizontalpos': self.halign, 'wrap': self.wrap}
+        attributes = {'verticalpos': self.valign, 'horizontalpos': self.halign, 'wrap': self.wrap, 'runthrough': 'background'}
 
         return attributes
 
