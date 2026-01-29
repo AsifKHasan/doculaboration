@@ -86,7 +86,7 @@ def create_background_image_style(odt, picture_path, nesting_level=0):
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
     if href:
-        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center center', 'repeat': 'stretch', }
+        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center middle', 'repeat': 'stretch', }
 
         # background_image_style_attributes = {'href': href}
         background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)

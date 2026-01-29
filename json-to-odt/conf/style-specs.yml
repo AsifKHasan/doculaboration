@@ -55,39 +55,44 @@
   'paragraph-properties':
     'textalign':                    'center'
 
-    'margin.marginleft':            '0.01in'
-    'margin.margintop':             '0.01in'
-    'margin.marginright':           '0.01in'
-    'margin.marginbottom':          '0.01in'
+    'margin.marginleft':            '0.00in'
+    'margin.margintop':             '0.00in'
+    'margin.marginright':           '0.00in'
+    'margin.marginbottom':          '0.00in'
 
-    'padding.paddingleft':          '0.01in'
-    'padding.paddingtop':           '0.01in'
-    'padding.paddingright':         '0.01in'
-    'padding.paddingbottom':        '0.01in'
+    'padding.paddingleft':          '0.00in'
+    'padding.paddingtop':           '0.00in'
+    'padding.paddingright':         '0.00in'
+    'padding.paddingbottom':        '0.00in'
 
   'inline-image':
-    - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
+    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark.png'
+    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark-flat.png'
+    # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/lazur-conic-gradient__small.png'
+    # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'
+    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
+    - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
 
 'section-heading-1':
   'text-properties':
     'color':                        '#0c1130'
     'font.family.fontfamily':       'Droid Sans'
-    'font.size.fontsize':           '14pt'
+    'font.size.fontsize':           '12pt'
     'font.style.fontstyle':         'italic'
-    'font.weight.fontweight':       'bold'
+    'font.weight.fontweight':       'normal'
 
   'paragraph-properties':
     'textalign':                    'left'
 
-    'margin.marginleft':            '0.01in'
-    'margin.margintop':             '0.01in'
-    'margin.marginright':           '0.01in'
-    'margin.marginbottom':          '0.01in'
+    'margin.marginleft':            '0.05in'
+    'margin.margintop':             '0.05in'
+    'margin.marginright':           '0.05in'
+    'margin.marginbottom':          '0.05in'
 
-    'padding.paddingleft':          '0.01in'
-    'padding.paddingtop':           '0.01in'
-    'padding.paddingright':         '0.01in'
-    'padding.paddingbottom':        '0.01in'
+    'padding.paddingleft':          '0.05in'
+    'padding.paddingtop':           '0.05in'
+    'padding.paddingright':         '0.05in'
+    'padding.paddingbottom':        '0.05in'
 
   'inline-image':
-    - url:                          'https://spectrum-bd.biz/data/artifacts/cell-backgrounds/cell-bg-01.png'
+    - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'

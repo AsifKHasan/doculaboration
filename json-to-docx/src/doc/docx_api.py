@@ -211,7 +211,7 @@ class DocxGsheetSection(DocxSectionBase):
         # for embedded gsheets, 'contents' does not contain the actual content to render, rather we get a list of sections where each section contains the actual content
         if self._section_data['contents'] is not None and 'sections' in self._section_data['contents']:
             # process the sections
-            section_list_to_docx(self._section_data['contents']['sections'], self._config)
+            section_list_to_docx(docx=self._docx, section_list=self._section_data['contents']['sections'], nesting_level=nesting_level)
 
 
 
