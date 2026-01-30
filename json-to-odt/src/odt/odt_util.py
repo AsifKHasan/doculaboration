@@ -1056,7 +1056,7 @@ def random_string(length=12, nesting_level=0):
 ''' fit width/height into a given width/height maintaining aspect ratio
 '''
 def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
-	scale = min(
+	scale = max(
         fit_within_width / width_to_fit,
         fit_within_height / height_to_fit
     )
@@ -1064,6 +1064,7 @@ def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_t
 	return (
         width_to_fit * scale,
         height_to_fit * scale,
+        scale
     )
 
 
@@ -1470,8 +1471,8 @@ TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
 TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
 
 # gsheet image alignment to ODT image alignment map
-IMAGE_POSITION_VERTICAL = {'center': 'center', 'middle': 'center', 'top': 'top', 'bottom': 'bottom'}
 IMAGE_POSITION_HORIZONRAL = {'center': 'center', 'left': 'left', 'right': 'right'}
+IMAGE_POSITION_VERTICAL = {'center': 'center', 'middle': 'middle', 'top': 'top', 'bottom': 'bottom'}
 
 # gsheet wrap strategy to ODT iwrap strategy map
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}

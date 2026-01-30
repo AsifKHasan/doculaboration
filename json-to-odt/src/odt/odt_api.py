@@ -1316,38 +1316,49 @@ class ImageValue(CellValue):
         image_width_in_inches =  image_width_in_pixel / dpi_x
         image_height_in_inches = image_height_in_pixel / dpi_y
 
+        container_ratio = container_width/container_height
+        image_ratio = image_width_in_inches/image_height_in_inches
+
         fit_height_to_container = False
+        fit_width_to_container = False
         # mode 1 resizes the image to fit inside the cell, maintaining aspect ratio.
         # mode 2 stretches or compresses the image to fit inside the cell, ignoring aspect ratio.
         # mode 3 leaves the image at original size, which may cause cropping.
         # mode 4 allows the specification of a custom size
         if self.value['mode'] in [1, 2, 4]:
             # image is to be scaled within the cell width and height
-            fit_height_to_container = True
+            if container_ratio > image_ratio:
+                fit_height_to_container = True
+            else:
+                fit_width_to_container = True
 
         else:
             pass
 
         text_attributes['fontsize'] = 2
-        picture_path = self.value['path']
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, bookmark=bookmark, nesting_level=nesting_level+1)
 
         # we need to create an inline-image object
+        picture_path = self.value['path']
         ii_dict = {
             'file-path': picture_path,
             'image-width': image_width_in_inches,
             'image-height': image_height_in_inches,
             'type': 'inline',
-            'fit-container': fit_height_to_container,
+            'fit-height-to-container': fit_height_to_container,
+            'fit-width-to-container': fit_width_to_container,
+            'keep-aspect-ratio': True,
             'position': f"{IMAGE_POSITION_HORIZONRAL[self.effective_format.halign.halign]} {IMAGE_POSITION_VERTICAL[self.effective_format.valign.valign]}",
+            'wrap': 'run-through'
         }
 
         inline_image = InlineImage(ii_dict=ii_dict)
         graphic_properties_attributes = inline_image.graphic_properties_attributes(nesting_level=nesting_level+1)
         frame_attributes = inline_image.frame_attributes(container_width=container_width, container_height=container_height, nesting_level=nesting_level+1)
+        # frame_attributes = inline_image.frame_attributes(nesting_level=nesting_level+1)
         image_frame = create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1)
 
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
-        paragraph = create_paragraph(odt, style_name, bookmark=bookmark, nesting_level=nesting_level+1)
         paragraph.addElement(image_frame)
         container.addElement(paragraph)
 
@@ -2044,10 +2055,10 @@ class InlineImage(object):
     ''' attributes dict for DrawFrame
     '''
     def frame_attributes(self, container_width=None, container_height=None, preserve=None, nesting_level=0):
-        if container_width and container_height:
-            width_in_inches, height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height)
-        else:
-            width_in_inches, height_in_inches = self.image_width, self.image_height
+        width_in_inches, height_in_inches = self.image_width, self.image_height
+        if self.fit_height_to_container or self.fit_width_to_container:
+            if container_width and container_height:
+                width_in_inches, height_in_inches, scale = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height)
 
         attributes = {'anchortype': self.anchor_type, 'width': f"{width_in_inches}in", 'height': f"{height_in_inches}in"}
         if self.fit_height_to_container:
