@@ -37,7 +37,9 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
 
-        self.background_image = self.section_prop['background-image']
+        # TODO: background-image is not used as of now
+        # self.background_image = self.section_prop['background-image']
+
         self.bookmark = self.section_prop['bookmark']
 
         self.autocrop = self.section_prop['autocrop']
@@ -53,36 +55,26 @@ class OdtSectionBase(object):
         self.different_firstpage = self.section_meta['different-firstpage']
         self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
         self.document_nesting_depth = self.section_meta['document-nesting-depth']
-        self.page_layout_name = self.section_meta['page-layout']
+
+        # TODO: page-layout is not used as of now
+        # self.page_layout = self.section_meta['page-layout']
 
         self.section_id = f"D{str(self.document_index).zfill(3)}--S{str(self.section_index).zfill(3)}"
 
-
-        # master-page name
-        self.page_layout_name = f"pl-{self.section_id}"
-        self.page_layout = create_page_layout(odt=self._odt, page_layout_name=self.page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
-        self.page_layout_name = self.page_layout.getAttribute('name')
         self.master_page_name = f"mp-{self.section_id}"
-        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.master_page_name, page_layout_name=self.page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
+        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, nesting_level=nesting_level+1)
         self.master_page_name = self.master_page.getAttribute('name')
 
+        # handle if first-page is different
         if self.different_firstpage:
-            self.first_page_layout_name = f"pl-{self.section_id}-first"
-            self.first_page_layout = create_page_layout(odt=self._odt, page_layout_name=self.first_page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image)
-            self.first_page_layout_name = self.first_page_layout.getAttribute('name')
             self.first_master_page_name = f"mp-{self.section_id}-first"
-            self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_layout_name=self.first_page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=self.background_image, next_master_page_style=self.master_page_name)
+            self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, next_master_page_style=self.master_page_name, nesting_level=nesting_level+1)
             self.first_master_page_name = self.first_master_page.getAttribute('name')
         else:
-            self.first_page_layout_name = None
-            self.first_page_layout = None
             self.first_master_page_name = None
             self.first_master_page = None
 
-
-            # self.page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
-            # self.page_layout = get_page_layout(self._odt, self.page_layout_name)
-
+        # handle page orientation
         if self.landscape:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
@@ -90,7 +82,7 @@ class OdtSectionBase(object):
             self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
-        # headers and footers
+        # handle headers and footers
         self.header_odd   = None
         self.footer_odd   = None
         self.header_even  = None
@@ -151,28 +143,26 @@ class OdtSectionBase(object):
     def process_header_footer(self):
         if self.different_firstpage:
             master_page = self.first_master_page
-            page_layout = self.first_page_layout
 
             if self.header_first:
-                self.header_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+                self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
             if self.footer_first:
-                self.footer_first.page_header_footer_to_odt(self._odt, master_page, page_layout)
+                self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
         master_page = self.master_page
-        page_layout = self.page_layout
 
         if self.header_odd:
-            self.header_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
+            self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
         if self.footer_odd:
-            self.footer_odd.page_header_footer_to_odt(self._odt, master_page, page_layout)
+            self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
         if self.header_even:
-            self.header_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+            self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
         if self.footer_even:
-            self.footer_even.page_header_footer_to_odt(self._odt, master_page, page_layout)
+            self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page)
 
 
     ''' generates the odt code
@@ -214,6 +204,12 @@ class OdtSectionBase(object):
                 else:
                     trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
                     apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.heading_style], nesting_level=nesting_level+1)
+
+                    # handle background image
+                    if 'page-background' in ConfigService()._style_specs[self.heading_style]:
+                        for pb_dict in ConfigService()._style_specs[self.heading_style]['page-background']:
+                            pb_image = InlineImage(ii_dict=pb_dict)
+                            add_background_image_to_master_page(odt=self._odt, master_page=self.master_page, background_image_path=pb_image.file_path, nesting_level=nesting_level+1)
 
             else:
                 warn(f"style [{style_name}] not found", nesting_level=nesting_level)
@@ -356,16 +352,13 @@ class OdtPdfSection(OdtSectionBase):
                     # if the image should be treated as page bg
                     if self.page_bg:
                         master_page_name = f"{self.master_page_name}-page-{str(i).zfill(3)}"
-                        page_layout_name = f"{self.page_layout_name}-page-{str(i).zfill(3)}"
-                        self.page_layout = create_page_layout(odt=self._odt, page_layout_name=page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=image['path'])
-
-                        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_layout_name=page_layout_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, background_image_path=image['path'])
+                        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, nesting_level=nesting_level+1)
                         master_page_name = self.master_page.getAttribute('name')
-
-                        page_layout_name = self.master_page.attributes[(self.master_page.qname[0], 'page-layout-name')]
+                        # handle background image
+                        add_background_image_to_master_page(odt=self._odt, master_page=self.master_page, background_image_path=image['path'], nesting_level=nesting_level+1)
 
                         paragraph_style_name = f"{self.master_page_name}-P-{str(i).zfill(3)}"
-                        paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name)
+                        paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name, nesting_level=nesting_level+1)
                         if this_image_bookmark:
                             paragraph.addElement(text.Bookmark(name=this_image_bookmark))
                         
@@ -660,13 +653,11 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' generates the odt code
     '''
-    def page_header_footer_to_odt(self, odt, master_page, page_layout, nesting_level=0):
+    def page_header_footer_to_odt(self, odt, master_page, nesting_level=0):
         if self.content_data is None:
             return
 
-        mp_name = master_page.getAttribute('name')
-        pl_name = page_layout.getAttribute('name')
-        header_footer = create_header_footer(master_page=master_page, page_layout=page_layout, header_or_footer=self.header_footer, odd_or_even=self.odd_even)
+        header_footer = create_header_footer(odt=odt, master_page=master_page, header_or_footer=self.header_footer, odd_or_even=self.odd_even)
         if header_footer:
             # iterate through tables and blocks contents
             for block in self.content_list:
@@ -777,7 +768,7 @@ class OdtParagraph(OdtBlock):
             # We take the first cell, the cell will take the whole row width
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
-            cell_to_produce.cell_to_odt(odt=odt, container=container, nesting_level=nesting_level)
+            cell_to_produce.cell_to_odt(odt=odt, container=container, nesting_level=nesting_level+1)
 
 
 
@@ -1023,8 +1014,8 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
-        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
 
@@ -1135,8 +1126,8 @@ class Cell(object):
                         apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.note.style], nesting_level=nesting_level+1)
 
                 else:
+                    # warn(f"[{self}] No paragraph to add inline image(s) to", nesting_level=nesting_level)
                     pass
-                    # warn(f"No paragraph to add inline image(s) to", nesting_level=nesting_level)
 
 
     ''' Copy format from the cell passed
@@ -1318,8 +1309,8 @@ class ImageValue(CellValue):
             container = odt.text
 
         # even now the width may exceed actual cell width, we need to adjust for that
-        dpi_x = 72 if self.value['dpi'][0] == 0 else self.value['dpi'][0]
-        dpi_y = 72 if self.value['dpi'][1] == 0 else self.value['dpi'][1]
+        dpi_x = DPI if self.value['dpi'][0] == 0 else self.value['dpi'][0]
+        dpi_y = DPI if self.value['dpi'][1] == 0 else self.value['dpi'][1]
         image_width_in_pixel = self.value['size'][0]
         image_height_in_pixel = self.value['size'][1]
         image_width_in_inches =  image_width_in_pixel / dpi_x
@@ -1347,18 +1338,17 @@ class ImageValue(CellValue):
             'image-height': image_height_in_inches,
             'type': 'inline',
             'fit-container': fit_height_to_container,
-            'position': f"{IMAGE_POSITION[self.effective_format.halign.halign]} {IMAGE_POSITION[self.effective_format.valign.valign]}",
+            'position': f"{IMAGE_POSITION_HORIZONRAL[self.effective_format.halign.halign]} {IMAGE_POSITION_VERTICAL[self.effective_format.valign.valign]}",
         }
 
         inline_image = InlineImage(ii_dict=ii_dict)
+        graphic_properties_attributes = inline_image.graphic_properties_attributes(nesting_level=nesting_level+1)
+        frame_attributes = inline_image.frame_attributes(container_width=container_width, container_height=container_height, nesting_level=nesting_level+1)
+        image_frame = create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1)
 
-        graphic_properties_attributes = inline_image.graphic_properties_attributes()
-        frame_attributes = inline_image.frame_attributes(container_width=container_width, container_height=container_height)
-        draw_frame = create_image_frame(odt=odt, picture_path=picture_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1)
-
-        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
-        paragraph = create_paragraph(odt, style_name, bookmark=bookmark)
-        paragraph.addElement(draw_frame)
+        style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, bookmark=bookmark, nesting_level=nesting_level+1)
+        paragraph.addElement(image_frame)
         container.addElement(paragraph)
 
         return paragraph
@@ -1587,10 +1577,10 @@ class CellFormat(object):
 
         return {**attributes, **borders_attributes, **padding_attributes}
 
-    ''' image position as required by BackgroundImage
-    '''
-    def image_position(self):
-        return f"{IMAGE_POSITION[self.valign.valign]} {IMAGE_POSITION[self.halign.halign]}"
+    # ''' image position as required by BackgroundImage
+    # '''
+    # def image_position(self):
+    #     return f"{IMAGE_POSITION_VERTICAL[self.valign.valign]} {IMAGE_POSITION_HORIZONRAL[self.halign.halign]}"
 
 
 
@@ -2020,7 +2010,7 @@ class InlineImage(object):
 
     ''' constructor
     '''
-    def __init__(self, ii_dict={}):
+    def __init__(self, ii_dict={}, nesting_level=0):
         self.ii_dict = ii_dict
         self.file_path = ii_dict.get('file-path', None)
         self.file_type = ii_dict.get('file-type', None)
@@ -2030,7 +2020,7 @@ class InlineImage(object):
         self.fit_height_to_container = ii_dict.get('fit-height-to-container', False)
         self.fit_width_to_container = ii_dict.get('fit-width-to-container', False)
         self.keep_aspect_ratio = ii_dict.get('keep-aspect-ratio', True)
-        self.position = ii_dict.get('position', 'center middle')
+        self.position = ii_dict.get('position', 'center center')
         self.wrap = ii_dict.get('wrap', 'parallel')
 
         self.anchor_type = 'paragraph'
@@ -2045,15 +2035,15 @@ class InlineImage(object):
     
     ''' attributes dict for GraphicProperties
     '''
-    def graphic_properties_attributes(self):
-        attributes = {'verticalpos': self.valign, 'horizontalpos': self.halign, 'wrap': self.wrap, 'runthrough': 'background'}
+    def graphic_properties_attributes(self, nesting_level=0):
+        attributes = {'verticalpos': self.valign, 'horizontalpos': self.halign, 'verticalrel': self.anchor_type, 'wrap': self.wrap, 'runthrough': 'background', 'flowwithtext': True}
 
         return attributes
 
 
     ''' attributes dict for DrawFrame
     '''
-    def frame_attributes(self, container_width=None, container_height=None, preserve=None):
+    def frame_attributes(self, container_width=None, container_height=None, preserve=None, nesting_level=0):
         if container_width and container_height:
             width_in_inches, height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height)
         else:

@@ -95,6 +95,7 @@ def process_note(note_json, cell_data, row, val, tmp_dir, nesting_level=0):
         else:
             warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
 
+        # inline-image
         cell_data['inline-image'] = []
         for ii_dict in inline_image_list:
             if 'url' in ii_dict:

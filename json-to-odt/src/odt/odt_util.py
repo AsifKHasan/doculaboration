@@ -86,7 +86,7 @@ def create_background_image_style(odt, picture_path, nesting_level=0):
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
     if href:
-        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center middle', 'repeat': 'stretch', }
+        background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center center', 'repeat': 'stretch', }
 
         # background_image_style_attributes = {'href': href}
         background_image_style = style.BackgroundImage(attributes=background_image_style_attributes)
@@ -877,6 +877,43 @@ def get_page_layout(odt, page_layout_name, nesting_level=0):
     return None
 
 
+''' get or create PageLayoutProperties from a PageLayout
+'''
+def get_page_layout_properties(page_layout, nesting_level=0):
+    # get or create PageLayoutProperties
+    props_list = page_layout.getElementsByType(style.PageLayoutProperties)
+    if props_list:
+        page_layout_properties = props_list[0]
+
+    else:
+        page_layout_properties = style.PageLayoutProperties()
+        page_layout.appendChild(page_layout_properties)
+
+    return page_layout_properties
+
+
+''' add a background image to a master-page
+'''
+def add_background_image_to_master_page(odt, master_page, background_image_path, nesting_level=0):
+    page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
+    page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
+
+    background_image_style = create_background_image_style(odt, background_image_path)
+    if background_image_style:
+        # background_image specific page-layout-properties
+        page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
+
+        # get page_layout_properties
+        page_layout_properties = get_page_layout_properties(page_layout=page_layout, nesting_level=nesting_level)
+
+        # add background_image_style
+        page_layout_properties.appendChild(background_image_style)
+
+        # add new attributes
+        for attr_name, attr_value in page_layout_attrs.items():
+            page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
+
+
 ''' create (section-specific) page-layout
         fillimagewidth = '0cm'
         fillimageheight = '0cm'
@@ -885,48 +922,34 @@ def get_page_layout(odt, page_layout_name, nesting_level=0):
         fillimagerefpoint = 'center'
         tilerepeatoffset = '0% vertical'
 '''
-def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, background_image_path, nesting_level=0):
+def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, nesting_level=0):
     # get one, if not found create one
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name)
     if page_layout is None:
         page_layout = style.PageLayout(name=page_layout_name)
         odt.automaticstyles.addElement(page_layout)
 
+    # get page_layout_properties
+    page_layout_properties = get_page_layout_properties(page_layout=page_layout, nesting_level=nesting_level)
+
+    page_layout_attrs = {}
     if orientation == 'portrait':
-        pageheight = f"{page_spec['height']}in"
-        pagewidth = f"{page_spec['width']}in"
+        page_layout_attrs['pageheight'] = f"{page_spec['height']}in"
+        page_layout_attrs['pagewidth'] = f"{page_spec['width']}in"
     else:
-        pageheight = f"{page_spec['width']}in"
-        pagewidth = f"{page_spec['height']}in"
+        page_layout_attrs['pageheight'] = f"{page_spec['width']}in"
+        page_layout_attrs['pagewidth'] = f"{page_spec['height']}in"
 
-    margintop = f"{margin_spec['top']}in"
-    marginbottom = f"{margin_spec['bottom']}in"
-    marginleft = f"{margin_spec['left']}in"
-    marginright = f"{margin_spec['right']}in"
-    # margingutter = f"{margin_spec]['gutter']}in"
+    page_layout_attrs['margintop'] = f"{margin_spec['top']}in"
+    page_layout_attrs['marginbottom'] = f"{margin_spec['bottom']}in"
+    page_layout_attrs['marginleft'] = f"{margin_spec['left']}in"
+    page_layout_attrs['marginright'] = f"{margin_spec['right']}in"
+    page_layout_attrs['printorientation'] = orientation
+    # page_layout_attrs['margingutter'] = f"{margin_spec]['gutter']}in"
 
-    page_layout_properties = None
-    # background-image
-    if background_image_path != '':
-        background_image_style = create_background_image_style(odt, background_image_path)
-        if background_image_style:
-
-            # page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation, fillimagewidth=fillimagewidth, fillimageheight=fillimageheight, fillimagerefpointx=fillimagerefpointx, fillimagerefpointy=fillimagerefpointy, fillimagerefpoint=fillimagerefpoint, tilerepeatoffset=tilerepeatoffset)
-            page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight,
-                                    margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation
-                                    )
-            page_layout_properties.addElement(background_image_style)
-
-            # # background_image specific page-layout-properties
-            page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
-
-            for attr_name, attr_value in page_layout_attrs.items():
-                page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
-
-    if not page_layout_properties:
-        page_layout_properties = style.PageLayoutProperties(pagewidth=pagewidth, pageheight=pageheight, margintop=margintop, marginbottom=marginbottom, marginleft=marginleft, marginright=marginright, printorientation=orientation)
-
-    page_layout.addElement(page_layout_properties)
+    # set attributes
+    for attr_name, attr_value in page_layout_attrs.items():
+        page_layout_properties.setAttribute(attr_name, attr_value)
 
     return page_layout
 
@@ -934,14 +957,17 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, first_section, document_index, master_page_name, page_layout_name, page_spec, margin_spec, orientation, background_image_path, next_master_page_style=None, nesting_level=0):
-    # TODO: create one, first get/create the page-layout. If first section, update page-layout for *Standarad* master-page
+def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, next_master_page_style=None, nesting_level=0):
+    # if the very first section, it is already existing and named *Standarad* master-page. update page-layout for the existing *Standarad* master-page
     if first_section and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
         existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
-        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, background_image_path=background_image_path)
-        # existing_page_layout = get_page_layout(odt=odt, page_layout_name=existing_page_layout_name)
+        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
+    
+    # create page-layout and master-page
     else:
+        page_layout_name = f"pl-{master_page_name[3:]}"
+        page_layout = create_page_layout(odt=odt, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
         master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name, nextstylename=next_master_page_style)
         odt.masterstyles.addElement(master_page)
 
@@ -956,11 +982,16 @@ def create_master_page(odt, first_section, document_index, master_page_name, pag
         <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
     </style:footer-style>
 '''
-def create_header_footer(master_page, page_layout, header_or_footer, odd_or_even, nesting_level=0):
+def create_header_footer(odt, master_page, header_or_footer, odd_or_even, nesting_level=0):
+    # get the page_layout
+    page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
+    page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
+    if page_layout is None:
+        warn(f"page-layout [{page_layout_name}] not found", nesting_level=nesting_level)
+        return None
+
     header_footer = None
     header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
-    mp_name = master_page.getAttribute('name')
-    pl_name = page_layout.getAttribute('name')
     if header_or_footer == 'header':
         if odd_or_even == 'odd':
             header_footer = Header()
@@ -1082,18 +1113,19 @@ def get_style_by_name(odt, style_name, nesting_level=0):
 '''
 def apply_custom_style(style, custom_properties, nesting_level=0):
     for p_type, props in PTOPERTY_TYPES.items():
-        props_list_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])
-        if props_list_by_type is None or len(props_list_by_type) == 0:
-            klass = PTOPERTY_TYPES[p_type]
-            obj = klass(attributes=custom_properties[p_type])
-            style.addElement(obj)
-        else:
-            props_by_type = props_list_by_type[0]       
-            if p_type in custom_properties:
-                for attr, value in custom_properties[p_type].items():
-                    trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
-                    props_by_type.setAttribute(attr, value)
-
+        if p_type in PTOPERTY_TYPES:
+            props_list_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])
+            if props_list_by_type is None or len(props_list_by_type) == 0:
+                klass = PTOPERTY_TYPES[p_type]
+                if p_type in custom_properties:
+                    obj = klass(attributes=custom_properties[p_type])
+                    style.addElement(obj)
+            else:
+                props_by_type = props_list_by_type[0]
+                if p_type in custom_properties:
+                    for attr, value in custom_properties[p_type].items():
+                        trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
+                        props_by_type.setAttribute(attr, value)
 
 
 ''' update a style from a given spec
@@ -1155,12 +1187,39 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                 ii_image_dict['fill-width'] = ii_dict.get('fill-width', True)
 
                 # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
-                ii_image_dict['position'] = ii_dict.get('position', 'center middle')
+                ii_image_dict['position'] = ii_dict.get('position', 'center center')
 
                 # wrap none/parallel
                 ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
 
                 custom_styles[style_key]['inline-image'].append(ii_image_dict)
+                # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+
+    # check for *page-background* and process
+    if 'page-background' in style_spec:
+        page_background_image_list = []
+        # this may be a dict for one single image or a list for multiple images
+        if isinstance(style_spec['page-background'], dict):
+            page_background_image_list.append(style_spec['page-background'])
+
+        elif isinstance(style_spec['page-background'], list):
+            for pb_dict in style_spec.get('page-background', []):
+                page_background_image_list.append(pb_dict)
+        
+        else:
+            warn(f"page-background is neither a dict nor a list", nesting_level=nesting_level)
+
+        custom_styles[style_key]['page-background'] = []
+        for pb_dict in page_background_image_list:
+            if 'url' in pb_dict:
+                url = pb_dict.get('url')
+                
+                # download image
+                debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+                pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+                custom_styles[style_key]['page-background'].append(pb_image_dict)
                 # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
 
 
@@ -1179,7 +1238,6 @@ def parse_style_properties(style_spec, nesting_level=0):
             custom_properties[p_type] = new_props
 
     return custom_properties
-
 
 
 ''' download an image from a web or drive url and return a dict
@@ -1206,7 +1264,6 @@ def download_image(drive_service, url, title, tmp_dir, nesting_level=0):
         data['image-height'] = float(height / dpi_y)
 
     return data
-
 
 
 ''' download a file from a drive url and return a dict
@@ -1270,7 +1327,6 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
         return None
 
 
-
 ''' download a file from a web url and return a dict
     {'file-name': file-name, 'file-type': file-type, 'file-path': local_path)}
 '''
@@ -1306,7 +1362,6 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
     except:
         error(f"could not download : [{file_url}]", nesting_level=nesting_level)
         return None
-
 
 
 ''' get image metadata using Pillow
@@ -1345,7 +1400,6 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
         trace(f"Downloaded {int(status.progress() * 100)}%", nesting_level=nesting_level)
 
     return done
-
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1407,7 +1461,8 @@ TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
 TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
 
 # gsheet image alignment to ODT image alignment map
-IMAGE_POSITION = {'center': 'center', 'middle': 'center', 'left': 'left', 'right': 'right', 'top': 'top', 'bottom': 'bottom'}
+IMAGE_POSITION_VERTICAL = {'center': 'center', 'middle': 'center', 'top': 'top', 'bottom': 'bottom'}
+IMAGE_POSITION_HORIZONRAL = {'center': 'center', 'left': 'left', 'right': 'right'}
 
 # gsheet wrap strategy to ODT iwrap strategy map
 WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
