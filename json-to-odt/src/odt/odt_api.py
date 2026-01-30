@@ -1064,7 +1064,7 @@ class Cell(object):
                 # the image is positioned, it is to be positioned as a non-bg image
                 elif inline_image.type == 'inline':
                     graphic_properties_attributes = inline_image.graphic_properties_attributes()
-                    frame_attributes = inline_image.frame_attributes()
+                    frame_attributes = inline_image.frame_attributes(container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
                     self.image_frames.append(create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1))
 
                 else:
@@ -1843,12 +1843,12 @@ class Padding(object):
             # self.left = int(padding_dict.get('left', 0))
             self.top = 1
             self.right = 2
-            self.bottom = 0
+            self.bottom = 1
             self.left = 2
         else:
             self.top = 1
             self.right = 2
-            self.bottom = 0
+            self.bottom = 1
             self.left = 2
 
 

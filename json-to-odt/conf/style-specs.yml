@@ -13,7 +13,7 @@
 # coverpage
 'coverpage':
   'page-background':
-    - url:                          'https://spectrum-bd.biz/data/artifacts/page-backgrounds/a4-page-bg-01.jpg'
+    - 'url':                        'https://spectrum-bd.biz/data/artifacts/page-backgrounds/a4-page-bg-01.jpg'
 
 # page separator 02
 'separator-02':
@@ -71,15 +71,15 @@
     'padding.paddingbottom':        '0.00in'
 
   'inline-image':
-    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark.png'
-    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark-flat.png'
-    # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/lazur-conic-gradient__small.png'
-    # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'
-    # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
-    - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
-      type:                         'inline'
-      fit-height-to-container:      true
-      wrap:                         'run-through'
+    # - 'url':                        'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark.png'
+    # - 'url':                        'https://spectrum-bd.biz/data/artifacts/icons/bookmark/streamline-color--bookmark-flat.png'
+    # - 'url':                        'https://spectrum-bd.biz/data/artifacts/gradients/lazur-conic-gradient__small.png'
+    # - 'url':                        'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'
+    # - 'url':                        'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
+    - 'url':                        'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
+      'type':                       'inline'
+      'fit-height-to-container':    true
+      'wrap':                       'run-through'
 
 'section-heading-1':
   'text-properties':
@@ -103,4 +103,4 @@
     'padding.paddingbottom':        '0.05in'
 
   'inline-image':
-    - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'
+    - 'url':                         'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'

@@ -1180,14 +1180,20 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                 # type background/inline
                 ii_image_dict['type'] = ii_dict.get('type', 'background')
 
+                # fit-height-to-container true/false,
+                ii_image_dict['fit-height-to-container'] = ii_dict.get('fit-height-to-container', False)
+
+                # fit-width-to-container true/false,
+                ii_image_dict['fit-width-to-container'] = ii_dict.get('fit-width-to-container', False)
+
+                # fit-height-to-container true/false,
+                ii_image_dict['keep-aspect-ratio'] = ii_dict.get('keep-aspect-ratio', True)
+
                 # extend-container-height true/false,
                 ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
 
-                # fill-width true/false,
-                ii_image_dict['fill-width'] = ii_dict.get('fill-width', True)
-
                 # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
-                ii_image_dict['position'] = ii_dict.get('position', 'center center')
+                ii_image_dict['position'] = ii_dict.get('position', 'center middle')
 
                 # wrap none/parallel
                 ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
@@ -1218,6 +1224,9 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                 # download image
                 debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
                 pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+                # type background/inline
+                pb_image_dict['type'] = 'background'
 
                 custom_styles[style_key]['page-background'].append(pb_image_dict)
                 # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
