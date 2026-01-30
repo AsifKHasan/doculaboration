@@ -71,7 +71,10 @@
     # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/lazur-conic-gradient__small.png'
     # - url:                          'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'
     # - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/flat-color-icons--film.png'
-    - url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
+    url:                          'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
+    type:                         'inline'
+    fit-height-to-container:      true
+    wrap:                         'run-through'
 
 'section-heading-1':
   'text-properties':

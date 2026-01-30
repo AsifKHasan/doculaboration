@@ -101,17 +101,23 @@ def process_note(note_json, cell_data, row, val, tmp_dir, nesting_level=0):
                 url = ii_dict.get('url')
                 
                 # download image
-                debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+                debug(f"[{row}]: downloading inline image {url}", nesting_level=nesting_level+1)
                 ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=tmp_dir, nesting_level=nesting_level+1)
 
                 # type background/inline
                 ii_image_dict['type'] = ii_dict.get('type', 'background')
 
+                # fit-height-to-container true/false,
+                ii_image_dict['fit-height-to-container'] = ii_dict.get('fit-height-to-container', False)
+
+                # fit-width-to-container true/false,
+                ii_image_dict['fit-width-to-container'] = ii_dict.get('fit-width-to-container', False)
+
+                # fit-height-to-container true/false,
+                ii_image_dict['keep-aspect-ratio'] = ii_dict.get('keep-aspect-ratio', True)
+
                 # extend-container-height true/false,
                 ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
-
-                # fill-width true/false,
-                ii_image_dict['fill-width'] = ii_dict.get('fill-width', True)
 
                 # position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
                 ii_image_dict['position'] = ii_dict.get('position', 'center middle')

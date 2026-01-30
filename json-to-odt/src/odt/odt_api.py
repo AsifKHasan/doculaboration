@@ -375,17 +375,13 @@ class OdtPdfSection(OdtSectionBase):
 
                     # if the image should be inserted in page body area
                     else:
-                        fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
-                        image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=self.section_width, fit_within_height=fit_within_height, width_to_fit=image['width'], height_to_fit=image['height'])
-
                         # we need to create an inline-image object
                         ii_dict = {
                             'file-path': image['path'],
-                            'image-width': image_width_in_inches,
-                            'image-height': image_height_in_inches,
+                            'image-width': image['width'],
+                            'image-height': image['height'],
                             'type': 'inline',
-                            'extend-container-height': False,
-                            'fill-width': False,
+                            'fit-height-to-container': True,
                             # there is a quirk here valign is not middle, it is center
                             'position': 'center center',
                         }
@@ -393,8 +389,7 @@ class OdtPdfSection(OdtSectionBase):
                         inline_image = InlineImage(ii_dict=ii_dict)
 
                         graphic_properties_attributes = inline_image.graphic_properties_attributes()
-                        # frame_attributes = inline_image.frame_attributes(preserve='height')
-                        frame_attributes = inline_image.frame_attributes(preserve='height')
+                        frame_attributes = inline_image.frame_attributes(container_width=self.section_width, container_height=self.section_height - PDF_PAGE_HEIGHT_OFFSET)
                         draw_frame = create_image_frame(odt=self._odt, picture_path=image['path'], frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes)
 
                         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
@@ -1064,7 +1059,10 @@ class Cell(object):
                         # consider only the first bg image
                         if inline_image.type == 'background':
                             background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, nesting_level=nesting_level+1)
+                            break
 
+                        else:
+                            self.inline_images.append(inline_image)
 
             # and/or there might me inline images in notes
             for inline_image in self.inline_images:
@@ -1327,17 +1325,14 @@ class ImageValue(CellValue):
         image_width_in_inches =  image_width_in_pixel / dpi_x
         image_height_in_inches = image_height_in_pixel / dpi_y
 
-        if self.value['mode'] in [1, 2, 3, 4]:
+        fit_height_to_container = False
+        # mode 1 resizes the image to fit inside the cell, maintaining aspect ratio.
+        # mode 2 stretches or compresses the image to fit inside the cell, ignoring aspect ratio.
+        # mode 3 leaves the image at original size, which may cause cropping.
+        # mode 4 allows the specification of a custom size
+        if self.value['mode'] in [1, 2, 4]:
             # image is to be scaled within the cell width and height
-            if image_width_in_inches > container_width:
-                adjust_ratio = (container_width / image_width_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
-
-            if image_height_in_inches > container_height:
-                adjust_ratio = (container_height / image_height_in_inches)
-                image_width_in_inches = image_width_in_inches * adjust_ratio
-                image_height_in_inches = image_height_in_inches * adjust_ratio
+            fit_height_to_container = True
 
         else:
             pass
@@ -1351,15 +1346,14 @@ class ImageValue(CellValue):
             'image-width': image_width_in_inches,
             'image-height': image_height_in_inches,
             'type': 'inline',
-            'extend-container-height': False,
-            'fill-width': False,
+            'fit-container': fit_height_to_container,
             'position': f"{IMAGE_POSITION[self.effective_format.halign.halign]} {IMAGE_POSITION[self.effective_format.valign.valign]}",
         }
 
         inline_image = InlineImage(ii_dict=ii_dict)
 
         graphic_properties_attributes = inline_image.graphic_properties_attributes()
-        frame_attributes = inline_image.frame_attributes()
+        frame_attributes = inline_image.frame_attributes(container_width=container_width, container_height=container_height)
         draw_frame = create_image_frame(odt=odt, picture_path=picture_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1)
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes)
@@ -2033,14 +2027,15 @@ class InlineImage(object):
         self.image_width = ii_dict.get('image-width', None)
         self.image_height = ii_dict.get('image-height', None)
         self.type = ii_dict.get('type', 'inline')
-        self.extend_container_height = ii_dict.get('extend-container-height', False)
-        self.fill_width = ii_dict.get('fill-width', True)
+        self.fit_height_to_container = ii_dict.get('fit-height-to-container', False)
+        self.fit_width_to_container = ii_dict.get('fit-width-to-container', False)
+        self.keep_aspect_ratio = ii_dict.get('keep-aspect-ratio', True)
         self.position = ii_dict.get('position', 'center middle')
         self.wrap = ii_dict.get('wrap', 'parallel')
 
         self.anchor_type = 'paragraph'
 
-        self.halign, self.valign = 'center', 'middle'
+        self.halign, self.valign = 'center', 'center'
         positions = self.position.split(' ')
         if len(positions) == 2:
             self.halign, self.valign = positions[0], positions[1]
@@ -2058,10 +2053,29 @@ class InlineImage(object):
 
     ''' attributes dict for DrawFrame
     '''
-    def frame_attributes(self, preserve=None):
-        attributes = {'anchortype': self.anchor_type, 'width': f"{self.image_width}in", 'height': f"{self.image_height}in"}
+    def frame_attributes(self, container_width=None, container_height=None, preserve=None):
+        if container_width and container_height:
+            width_in_inches, height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height)
+        else:
+            width_in_inches, height_in_inches = self.image_width, self.image_height
+
+        attributes = {'anchortype': self.anchor_type, 'width': f"{width_in_inches}in", 'height': f"{height_in_inches}in"}
+        if self.fit_height_to_container:
+            if self.keep_aspect_ratio:
+                attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale'}}
+            else:
+                attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
+
+
+        if self.fit_width_to_container:
+            if self.keep_aspect_ratio:
+                attributes = {**attributes, **{'relwidth': '100%', 'relheight': 'scale'}}
+            else:
+                attributes = {**attributes, **{'relwidth': '100%', 'relheight': 'scale-min'}}
+
         if preserve == 'height':
             attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
+
         elif preserve == 'width':
             attributes = {**attributes, **{'relheight': 'scale-min', 'relwidth': '100%'}}
 

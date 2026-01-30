@@ -455,7 +455,7 @@ def download_image(drive_service, url, title, tmp_dir, nesting_level=0):
         return None
 
     # if image, calculate dimensions
-    if data['file-type'] in IMAGE_MIME_TYPES:
+    if data and data['file-type'] in IMAGE_MIME_TYPES:
         file_path = data['file-path']
         width, height, dpi_x, dpi_y = image_meta_pillow(file_path, nesting_level=nesting_level)
         data['image-width'] = float(width / dpi_x)
