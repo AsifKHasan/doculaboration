@@ -2223,4 +2223,4 @@ DOCX_ATTR_MAP_HINT = {
 	'bottom':           str_to_border,
 }
 
-STYLE_SPECS = {}
+# STYLE_SPECS = {}

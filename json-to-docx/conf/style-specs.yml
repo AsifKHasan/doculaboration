@@ -17,44 +17,91 @@
 
 # page separator 02
 'separator-02':
-  'ParagraphStyle':
-    'font':                        
-      'name':               'Droid Sans'
-      'size':               '14pt'
-      'color':              '#0c1130'
-      'bold':               true
-      'italic':             true
-      'underline':
-      'strike':
-      'double_strike':
-      'highlight_color':
-      'all_caps':
-      'small_caps':
-      'subscript':
-      'superscript':
-      'complex_script':
-      'cs_bold':
-      'cs_italic':
-      'emboss':
-      'imprint':
-      'outline':
-      'shadow':
+  'text-properties':
+    'color':                        '#0c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '14pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'bold'
 
-    'paragraph-format':
-      'alignment':          CENTER
+  'paragraph-properties':
+    'textalign':                    'center'
+    'backgroundcolor':              '#D8D8D8'
 
-      # margin
-      'left_indent':        '1.0in'
-      'right_indent':       '1.0in'
-      'space_before':       '1.0in'
-      'space_after':        '1.0in'
+    # border - (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
+    'border.borderlinewidth':       
+    'border.borderbottom':          
+    'border.borderlinewidthbottom': 
+    'border.borderleft':            '1pt double #222222 0.25in'
+    'border.borderlinewidthleft':   '0.5pt 2.0pt 0.5pt'
+    'border.borderright':           
+    'border.borderlinewidthright':  
+    'border.bordertop':             
+    'border.borderlinewidthtop':    
 
-  # shading
-  'backgroundcolor':      '#D8D8D8'
+    # margin
+    'margin.marginleft':            '1.0in'
+    'margin.margintop':             '1.0in'
+    'margin.marginright':           '1.0in'
+    'margin.marginbottom':          '1.0in'
 
-  # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
-  'borders':
-    'start':                '1pt double #222222 0.25in'
-    'top':                  '0pt none #222222 0.25in'
-    'end':                  '0pt none #222222 0.25in'
-    'bottom':               '0pt none #222222 0.25in'
+    # padding
+    'padding.paddingleft':          '0.25in'
+    'padding.paddingtop':           '0.25in'
+    'padding.paddingright':         '0.25in'
+    'padding.paddingbottom':        '0.25in'
+
+'section-section-1':
+  'text-properties':
+    'color':                        '#0c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '14pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'bold'
+
+  'paragraph-properties':
+    'textalign':                    'center'
+
+    # margin
+    'margin.marginleft':            '0.00in'
+    'margin.margintop':             '0.00in'
+    'margin.marginright':           '0.00in'
+    'margin.marginbottom':          '0.00in'
+
+    # padding
+    'padding.paddingleft':          '0.00in'
+    'padding.paddingtop':           '0.00in'
+    'padding.paddingright':         '0.00in'
+    'padding.paddingbottom':        '0.00in'
+
+  'inline-image':
+    - 'url':                        'https://spectrum-bd.biz/data/artifacts/icons/symbol/streamline-color--jump-object.png'
+      'type':                       'inline'
+      'fit-height-to-container':    true
+      'wrap':                       'run-through'
+
+'section-heading-1':
+  'text-properties':
+    'color':                        '#0c1130'
+    'font.family.fontfamily':       'Droid Sans'
+    'font.size.fontsize':           '12pt'
+    'font.style.fontstyle':         'italic'
+    'font.weight.fontweight':       'normal'
+
+  'paragraph-properties':
+    'textalign':                    'left'
+
+    # margin
+    'margin.marginleft':            '0.05in'
+    'margin.margintop':             '0.05in'
+    'margin.marginright':           '0.05in'
+    'margin.marginbottom':          '0.05in'
+
+    # padding
+    'padding.paddingleft':          '0.05in'
+    'padding.paddingtop':           '0.05in'
+    'padding.paddingright':         '0.05in'
+    'padding.paddingbottom':        '0.05in'
+
+  'inline-image':
+    - 'url':                         'https://spectrum-bd.biz/data/artifacts/gradients/ryanlerch-light-metal-gradient__medium.png'

@@ -17,7 +17,7 @@ gsheet-read-try-count:      5
 output-dir:               "../../out"
 
 # the google service account credential for accessing the gsheet(s) (this file must never be in the repo)
-google-cred:              "./credential.json"
+google-cred:              "../conf/credential.json"
 
 gsheets:
   # the gsheet(s) that will processed to generate output(s). One gsheet outputs one json
