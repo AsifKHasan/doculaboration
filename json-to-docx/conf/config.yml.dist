@@ -4,7 +4,7 @@
 log-level:                  1
 
 # the google service account credential for accessing the gsheet(s) (this file must never be in the repo)
-google-cred:              "./credential.json"
+google-cred:              "../conf/credential.json"
 
 # some stock files (images) that we do not want to download from outside
 data-dir:                 "../data"

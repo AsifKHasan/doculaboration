@@ -10,6 +10,11 @@
 'Heading 3':
   'name':                           'Heading 3'
 
+# coverpage
+'coverpage':
+  'page-background':
+    - 'url':                        'https://spectrum-bd.biz/data/artifacts/page-backgrounds/a4-page-bg-01.jpg'
+
 # page separator 02
 'separator-02':
   'ParagraphStyle':
