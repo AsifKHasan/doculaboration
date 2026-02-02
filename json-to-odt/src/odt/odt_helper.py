@@ -34,6 +34,9 @@ class OdtHelper(object):
         trace(f"processing custom styles from conf/style-specs.yml")
         for k, v in ConfigService()._style_specs.items():
             update_style(odt=self._odt, style_key=k, style_spec=v, custom_styles=ConfigService()._style_specs, nesting_level=0)
+        
+        # print(ConfigService()._style_specs)
+
 
         # process the sections
         section_list_to_odt(odt=self._odt, section_list=section_list)

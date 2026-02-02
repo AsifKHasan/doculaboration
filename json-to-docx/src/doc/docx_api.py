@@ -25,12 +25,12 @@ class DocxSectionBase(object):
         self.section_prop = self._section_data['section-prop']
 
         self.label = self.section_prop['label']
-        self.heading = self.section_prop['heading']
-        self.heading_style = self.section_prop['heading-style']
         self.level = self.section_prop['level']
         self.section_break = self.section_prop['section-break']
         self.page_break = self.section_prop['page-break']
         self.hide_heading = self.section_prop['hide-heading']
+        self.heading = self.section_prop['heading']
+        self.heading_style = self.section_prop['heading-style']
 
         self.landscape = self.section_prop['landscape']
 
@@ -40,11 +40,13 @@ class DocxSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
 
-        self.autocrop = self.section_prop['autocrop']
-        self.page_bg = self.section_prop['page-bg']
+        # TODO: background-image is not used as of now
+        # self.background_image = self.section_prop['background-image']
 
         self.bookmark = self.section_prop['bookmark']
-        self.background_image = self.section_prop['background-image']
+
+        self.autocrop = self.section_prop['autocrop']
+        self.page_bg = self.section_prop['page-bg']
 
         self.document_index = self.section_meta['document-index']
         self.document_name = self.section_meta['document-name']
@@ -60,7 +62,6 @@ class DocxSectionBase(object):
 
         self.section_id = f"D{str(self.document_index).zfill(3)}--{self.document_name}__S{str(self.section_index).zfill(3)}--{self.section_name}"
 
-
         if self.landscape:
             self.page_width = float(self.page_spec['height'])
             self.page_height = float(self.page_spec['width'])
@@ -72,12 +73,10 @@ class DocxSectionBase(object):
             self.section_width = self.page_width - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = self.page_height - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
 
-
         # create or get the docx section
-        self.docx_section, new_section = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, background_image_path=self.background_image, nesting_level=nesting_level)
+        self.docx_section, new_section = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=self.different_firstpage, section_break=self.section_break, page_break=self.page_break, first_section=self.first_section, different_odd_even_pages=self.different_odd_even_pages, nesting_level=nesting_level)
 
-
-        # headers and footers
+        # handle headers and footers
         if new_section:
             self.header_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
             self.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
@@ -93,7 +92,6 @@ class DocxSectionBase(object):
             self.footer_first = None
             self.footer_odd   = None
             self.footer_even  = None
-
 
         self.section_contents = DocxContent(docx=self._docx, content_data=section_data.get('contents'), content_width=self.section_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
@@ -153,19 +151,25 @@ class DocxSectionBase(object):
     def section_to_docx(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
-        # self.process_header_footer()
-
         heading_text, _, style_name = self.get_heading()
+        paragraph = None
         if heading_text:
             paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark=self.bookmark, nesting_level=nesting_level+1)
 
-            if self.heading_style:
-                if self.heading_style not in ConfigService()._custom_styles:
-                    warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
+        if self.heading_style:
+            if self.heading_style not in ConfigService()._custom_styles:
+                warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
-                else:
+            else:
+                if paragraph:
                     trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
                     apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[self.heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
+
+                # TODO: handle background image
+                if 'page-background' in ConfigService()._style_specs[self.heading_style]:
+                    for pb_dict in ConfigService()._style_specs[self.heading_style]['page-background']:
+                        pb_image = InlineImage(ii_dict=pb_dict)
+                        add_background_image_to_header(docx_section=self.docx_section, image_path=pb_image.file_path, width=self.docx_section.page_width.inches, height=self.docx_section.page_height.inches, nesting_level=nesting_level+1)
 
 
 
@@ -340,12 +344,12 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph = self._docx.add_paragraph()
                         apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes)
 
-                        background_image_path = image['path']
-                        docx_section, _ = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, background_image_path=image['path'], link_to_previous=False, nesting_level=nesting_level+1)
-                        # TODO: this new docx_section's header-footer to be handled. this new section, should have odd and eveen header footer defined, but not first
+                        # this new docx_section's header-footer to be handled. this new section, should have odd and even header footer defined, but not first
+                        docx_section, _ = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, link_to_previous=False, nesting_level=nesting_level+1)
                         self.process_pdf_page_header_footer(docx_section=docx_section, nesting_level=nesting_level+1)
 
-                        # create_page_background(docx=self._docx, header=None, background_image_path=background_image_path, page_width_inches=self.page_width, page_height_inches=self.page_height, nesting_level=nesting_level+1)
+                        # the image should go as a background
+                        add_background_image_to_header(docx_section=docx_section, image_path=image['path'], width=docx_section.page_width.inches, height=docx_section.page_height.inches, nesting_level=nesting_level+1)
 
                     else:
                         paragraph_attributes = {}
@@ -358,14 +362,9 @@ class DocxPdfSection(DocxSectionBase):
                         fit_within_height = self.section_height
                         fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
 
-                        # print(f"image  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
-                        # print(f"target size [{fit_within_width}x{fit_within_height}] aspect ratio [{fit_within_height/fit_within_width}]")
                         image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=nesting_level+1)
-                        # print(f"final  size [{image_width_in_inches}x{image_height_in_inches}] aspect ratio [{image_height_in_inches/image_width_in_inches}]")
-                        # print()
                         
                         insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches, nesting_level=nesting_level+1)
-                        # insert_image(container=paragraph, picture_path=image['path'], height=image_height_in_inches)
 
 
 
@@ -1004,7 +1003,6 @@ class Cell(object):
             self.cell_value = None
             self.formatted_value = ''
             self.is_empty = True
-            # print(f"{self} is empty")
 
 
     ''' string representation
@@ -1082,13 +1080,7 @@ class Cell(object):
             angle = 0
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
-        # print(f"{self} : {table_cell_attributes}")
         format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
-
-        # the cell may have bacground image
-        # for inline_image in self.inline_images:
-        #     if inline_image.type == 'background':
-        #         create_cell_background(cell=self.table_cell, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
 
 
     ''' Copy format from the cell passed
@@ -1248,9 +1240,7 @@ class ImageValue(CellValue):
         picture_path = self.value['path']
 
         if self.value['mode'] in [1, 2, 3, 4]:
-            # trace(f"trying to fit image [{image_width_in_inches}x{image_height_in_inches}] inside container [{container_width}x{container_height}]")
             image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
-            # trace(f"image fitted as     [{image_width_in_inches}x{image_height_in_inches}] inside container [{container_width}x{container_height}]")
 
         else:
             warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")
@@ -1737,7 +1727,6 @@ class CellNote(object):
         # content
         # if self.content is not None and self.content in ['free', 'out-of-cell']:
         if self.content in ['free', 'out-of-cell']:
-            # print(f"free content")
             self.free_content = True
 
         # script
