@@ -352,7 +352,27 @@ def set_repeat_table_header(row, nesting_level=0):
 ''' format container (paragraph or cell)
 	border, bgcolor, padding, valign, halign
 '''
-def format_container(container, attributes, it_is_a_table_cell, nesting_level=0):
+def format_container(container, attributes, custom_style_name=None, it_is_a_table_cell=True, nesting_level=0):
+	custom_style = ConfigService()._style_specs.get(custom_style_name, None)
+	if custom_style:
+		if 'padding' in custom_style:
+			attributes['padding'] = custom_style['padding']
+
+		if 'borders' in custom_style:
+			attributes['borders'] = custom_style['borders']
+
+		if 'backgroundcolor' in custom_style:
+			attributes['backgroundcolor'] = custom_style['backgroundcolor']
+
+		if 'verticalalign' in custom_style:
+			attributes['verticalalign'] = custom_style['verticalalign']
+
+		if 'textalign' in custom_style:
+			attributes['textalign'] = custom_style['textalign']
+
+		if 'angle' in custom_style:
+			attributes['angle'] = custom_style['angle']
+
 	# borders
 	if it_is_a_table_cell:
 		if 'padding' in attributes:
@@ -428,7 +448,6 @@ def set_cell_border(cell: table._Cell, borders, nesting_level=0):
 '''
 def set_paragraph_border(element, borders, nesting_level=0):
 	pPr = element.get_or_add_pPr()
-
 
 	# check for tag existnace, if none found, then create one
 	# pBorders = OxmlElement('w:pBorders')
@@ -722,7 +741,8 @@ def	apply_paragraph_attributes(docx, paragraph, paragraph_attributes, nesting_le
 			if style is not None:
 				paragraph.style = style_name
 			else:
-				warn(f"style {style_name} not found in standard styles", nesting_level=nesting_level)
+				# trace(f"style {style_name} is not a standard style", nesting_level=nesting_level)
+				pass
 
 		pf = paragraph.paragraph_format
 
@@ -1924,23 +1944,30 @@ def process_custom_style(docx, style_spec, nesting_level=0):
 
 ''' parse style properties from yml to docx
 '''
-def parse_style_properties(style_spec, nesting_level=0):
+def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 	if style_spec:
 		for key, value in style_spec.items():
 			if isinstance(value, dict):
 				# If it's another dict, go deeper
-				parse_style_properties(value, nesting_level=nesting_level)
+				parse_style_properties(value, parent_key=key, nesting_level=nesting_level)
 
 			else:	
 				if value and value != '':
+					new_value = value
 					if key in DOCX_ATTR_MAP_HINT:
 						# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr(key, value, nesting_level=nesting_level)
+						new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level)
 						# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
-						if new_value:
-							value = new_value
 
-						style_spec[key] = value
+					elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
+						# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
+						new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level)
+						# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
+
+					if new_value:
+						value = new_value
+
+					style_spec[key] = value
 
 				else:
 					# style_spec.pop(key, None)
@@ -2288,24 +2315,26 @@ def is_valid_hex(str, digits, nesting_level=0):
 
 ''' map attribute key/value to a modified ke/value
 '''
-def map_docx_attr(attr_key, attr_value, nesting_level=0):
+def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
 	if attr_key in DOCX_ATTR_MAP_HINT:
 		obj = DOCX_ATTR_MAP_HINT[attr_key]
+		mapper = obj['lambda']
 
 		# if the mapper is a dict
-		if isinstance(obj, dict):
+		if isinstance(mapper, dict):
 			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
-			if attr_value in obj:
-				return obj[attr_value]
+			if attr_value in mapper:
+				return mapper[attr_value]
+			
 			else:
-				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(obj.keys())}", nesting_level=nesting_level)
+				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
 
 		# of the mapper is a function
-		if isinstance(obj, types.FunctionType):
-			# trace(f"[{attr_key}] mapper is a function [{obj}]", nesting_level=nesting_level)
-			return obj(attr_value, what=attr_key, nesting_level=nesting_level)
+		if isinstance(mapper, types.FunctionType):
+			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
+			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
 		
-	return attr_key, attr_value
+	return attr_value
 			
 
 
@@ -2348,12 +2377,11 @@ LEVEL_TO_HEADING = [
 ]
 
 
-TEXT_VALIGN_MAP = {
+CELL_VALIGN_MAP = {
 	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
 	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
 	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
 }
-
 
 TEXT_HALIGN_MAP = {
 	'LEFT': WD_PARAGRAPH_ALIGNMENT.LEFT,
@@ -2446,22 +2474,25 @@ STYLE_PROPERTY_MAP = {
 }
 
 DOCX_ATTR_MAP_HINT = {
-	'color':			rgb_from_hex,
-	'highlight_color':	rgb_from_hex,
-	# 'backgroundcolor':	rgb_from_hex,
-	'alignment': 		TEXT_HALIGN_MAP,
-	'size': 			str_to_size,
-	'left_indent':      str_to_size,
-	'right_indent':     str_to_size,
-	'space_before':     str_to_size,
-	'space_after':    	str_to_size,
-	'start':            str_to_border,
-	'top':              str_to_border,
-	'end':              str_to_border,
-	'bottom':           str_to_border,
+	'color':				{'lambda': rgb_from_hex},
+	'highlight_color':		{'lambda': rgb_from_hex},
+	# 'backgroundcolor':	{'lambda': rgb_from_hex},
+	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
+	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
+	'size': 				{'lambda': str_to_size},
+	'left_indent':      	{'lambda': str_to_size},
+	'right_indent':     	{'lambda': str_to_size},
+	'space_before':     	{'lambda': str_to_size},
+	'space_after':    		{'lambda': str_to_size},
+	('borders', 'start'):   {'lambda': str_to_border},
+	('borders', 'top'):     {'lambda': str_to_border},
+	('borders', 'end'):     {'lambda': str_to_border},
+	('borders', 'bottom'):  {'lambda': str_to_border},
+	('padding', 'start'):   {'lambda': str_to_size},
+	('padding', 'top'):     {'lambda': str_to_size},
+	('padding', 'end'):     {'lambda': str_to_size},
+	('padding', 'bottom'):  {'lambda': str_to_size},
 }
-
-# STYLE_SPECS = {}
 
 SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
 ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']

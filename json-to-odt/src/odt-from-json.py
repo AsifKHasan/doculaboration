@@ -38,19 +38,19 @@ class OdtFromJson(object):
 
 			# odt-helper
 			odt_helper = OdtHelper()
-			odt_helper.generate_and_save(section_list=self._data['sections'], nesting_level=nesting_level+1)
+			odt_helper.generate_and_save(section_list=self._data['sections'], nesting_level=nesting_level)
 
 			# pdf to be generated
 			if config_service._generate_pdf:
 				info(msg=f"generating pdf ..", nesting_level=nesting_level)
 				pdf_start_time = int(round(time.time() * 1000))
-				generate_pdf(odt_path=config_service._output_odt_path, output_dir=config_service._output_dir, nesting_level=nesting_level+1)
+				generate_pdf(odt_path=config_service._output_odt_path, output_dir=config_service._output_dir, nesting_level=nesting_level)
 				self.end_time = int(round(time.time() * 1000))
-				info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds", nesting_level=nesting_level)
+				info(msg=f"generated  pdf .. {(self.end_time - pdf_start_time)/1000} seconds", nesting_level=nesting_level)
 
             # tear down
 			self.end_time = int(round(time.time() * 1000))
-			debug(msg=f"script took {(self.end_time - self.start_time)/1000} seconds")
+			debug(msg=f"script time {(self.end_time - self.start_time)/1000} seconds")
 
 
 if __name__ == '__main__':

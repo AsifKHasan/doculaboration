@@ -1,0 +1,60 @@
+# Heading 1
+'Heading 1':
+  'name':                           'Heading 1'
+
+# Heading 2
+'Heading 2':
+  'name':                           'Heading 2'
+
+# Heading 3
+'Heading 3':
+  'name':                           'Heading 3'
+
+# coverpage
+'coverpage':
+  'page-background':
+    - 'url':                        'https://spectrum-bd.biz/data/artifacts/page-backgrounds/a4-page-bg-01.jpg'
+
+# page separator 02
+'separator-02':
+  'ParagraphStyle':
+    'font':                        
+      'name':               'Droid Sans'
+      'size':               '14pt'
+      'color':              '#0c1130'
+      'bold':               true
+      'italic':             true
+      'underline':
+      'strike':
+      'double_strike':
+      'highlight_color':
+      'all_caps':
+      'small_caps':
+      'subscript':
+      'superscript':
+      'complex_script':
+      'cs_bold':
+      'cs_italic':
+      'emboss':
+      'imprint':
+      'outline':
+      'shadow':
+
+    'paragraph-format':
+      'alignment':          CENTER
+
+      # margin
+      'left_indent':        '1.0in'
+      'right_indent':       '1.0in'
+      'space_before':       '1.0in'
+      'space_after':        '1.0in'
+
+  # shading
+  'backgroundcolor':      '#D8D8D8'
+
+  # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
+  'borders':
+    'start':                '1pt double #222222 0.25in'
+    'top':                  '0pt none #222222 0.25in'
+    'end':                  '0pt none #222222 0.25in'
+    'bottom':               '0pt none #222222 0.25in'

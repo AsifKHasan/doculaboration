@@ -1089,7 +1089,7 @@ def strip_math_mode_delimeters(latex_content, nesting_level=0):
 '''
 def register_font(odt, font_name, font_spec, nesting_level=0):
     font_family = font_spec
-    trace(f"registering font [{font_name}] family [{font_spec}]", nesting_level=nesting_level+1)
+    trace(f"registering font [{font_name}] family [{font_spec}]", nesting_level=nesting_level)
     the_font = FontFace(name=font_name, fontfamily=font_family)
     odt.fontfacedecls.addElement(the_font)
 
@@ -1125,7 +1125,7 @@ def apply_custom_style(style, custom_properties, nesting_level=0):
                 props_by_type = props_list_by_type[0]
                 if p_type in custom_properties:
                     for attr, value in custom_properties[p_type].items():
-                        trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
+                        # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
                         props_by_type.setAttribute(attr, value)
 
 
@@ -1146,12 +1146,12 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
             return
 
         # style exists, update with spec
-        trace(f"overriding style [{style_name}]", nesting_level=nesting_level+1)
+        trace(f"overriding style [{style_name}]", nesting_level=nesting_level)
         for p_type, props in PTOPERTY_TYPES.items():
             props_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])[0]
             if p_type in custom_properties:
                 for attr, value in custom_properties[p_type].items():
-                    trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+2)
+                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
                     props_by_type.setAttribute(attr, value)
 
 
@@ -1200,7 +1200,7 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                 ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
 
                 custom_styles[style_key]['inline-image'].append(ii_image_dict)
-                # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+                # trace(f"downloaded  inline image {url}", nesting_level=nesting_level)
 
 
     # check for *page-background* and process

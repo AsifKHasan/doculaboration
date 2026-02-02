@@ -165,7 +165,7 @@ class DocxSectionBase(object):
                     trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
                     apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[self.heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
-                # TODO: handle background image
+                # handle background image
                 if 'page-background' in ConfigService()._style_specs[self.heading_style]:
                     for pb_dict in ConfigService()._style_specs[self.heading_style]['page-background']:
                         pb_image = InlineImage(ii_dict=pb_dict)
@@ -342,7 +342,7 @@ class DocxPdfSection(DocxSectionBase):
                         # paragraph_attributes = {'breakbefore': 'page'}
                         paragraph_attributes = {}
                         paragraph = self._docx.add_paragraph()
-                        apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes)
+                        apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
 
                         # this new docx_section's header-footer to be handled. this new section, should have odd and even header footer defined, but not first
                         docx_section, _ = add_or_update_document_section(docx=self._docx, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, different_firstpage=False, section_break=True, page_break=False, first_section=False, different_odd_even_pages=self.different_odd_even_pages, link_to_previous=False, nesting_level=nesting_level+1)
@@ -355,7 +355,7 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph_attributes = {}
                         paragraph = self._docx.add_paragraph()
                         apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
-                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=nesting_level+1)
+                        format_container(container=paragraph, attributes=text_format_attributes, custom_style_name=None, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
@@ -1064,7 +1064,7 @@ class Cell(object):
 
                 # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
-                    format_container(container=where, attributes=table_cell_attributes, it_is_a_table_cell=False)
+                    format_container(container=where, attributes=table_cell_attributes, custom_style_name=self.note.style, it_is_a_table_cell=False, nesting_level=nesting_level+1)
                     # pass
 
 
@@ -1080,7 +1080,7 @@ class Cell(object):
             angle = 0
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
-        format_container(container=self.table_cell, attributes=table_cell_attributes, it_is_a_table_cell=True)
+        format_container(container=self.table_cell, attributes=table_cell_attributes, custom_style_name=self.note.style, it_is_a_table_cell=True, nesting_level=nesting_level+1)
 
 
     ''' Copy format from the cell passed
@@ -1824,9 +1824,9 @@ class VerticalAlignment(object):
     '''
     def __init__(self, valign=None):
         if valign:
-            self.valign = TEXT_VALIGN_MAP.get(valign)
+            self.valign = CELL_VALIGN_MAP.get(valign)
         else:
-            self.valign = TEXT_VALIGN_MAP.get('TOP')
+            self.valign = CELL_VALIGN_MAP.get('TOP')
 
 
 
