@@ -496,7 +496,7 @@ def set_paragraph_bgcolor(element, color, nesting_level=0):
 	element.get_or_add_pPr().append(shading)
 
 
-''' set table-cell borders
+''' set table-cell padding - space between border and text
 '''
 def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	tc = cell._tc
@@ -1956,12 +1956,12 @@ def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 					new_value = value
 					if key in DOCX_ATTR_MAP_HINT:
 						# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level)
+						new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level+1)
 						# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
 
 					elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
 						# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level)
+						new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level+1)
 						# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
 
 					if new_value:
@@ -2049,7 +2049,7 @@ def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 
 					style_spec['page-background'].append(pb_image_dict)
 					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
-		
+
 
 ''' download an image from a web or drive url and return a dict
     {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}

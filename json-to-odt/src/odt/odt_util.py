@@ -5,12 +5,13 @@
 
 import io
 import re
-import platform
-import subprocess
+import types
 import random
 import string
-import importlib
+import platform
 import requests
+import importlib
+import subprocess
 
 from pathlib import Path
 from PIL import Image
@@ -62,6 +63,7 @@ def section_list_to_odt(odt, section_list, nesting_level=0):
         module = importlib.import_module("odt.odt_api")
         func = getattr(module, f"process_{section_prop['content-type']}")
         func(odt=odt, section_data=section_data, nesting_level=nesting_level)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -145,28 +147,27 @@ def create_image_frame(odt, picture_path, graphic_properties_attributes, frame_a
     return draw_frame
 
 
-''' create a text_a
+''' add a background image to a master-page
 '''
-def create_text_a(anchor, target, nesting_level=0):
-    
-    # if the anchor is not an url, it is a bookmark
-    if not target.startswith('http'):
-        target_text = f"#{target.strip()}"
-        if anchor:
-            anchor_text = anchor
-        else:
-            # TODO: it should actually be the text associated with the target bookmark
-            anchor_text = target_text
-    else:
-        target_text = target.strip()
-        if anchor:
-            anchor_text = anchor
-        else:
-            anchor_text = target_text
+def add_background_image_to_master_page(odt, master_page, background_image_path, nesting_level=0):
+    page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
+    page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
 
-    link = text.A(text=anchor_text, type="simple", href=target_text)
+    background_image_style = create_background_image_style(odt, background_image_path)
+    if background_image_style:
+        # background_image specific page-layout-properties
+        page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
 
-    return link
+        # get page_layout_properties
+        page_layout_properties = get_page_layout_properties(page_layout=page_layout, nesting_level=nesting_level)
+
+        # add background_image_style
+        page_layout_properties.appendChild(background_image_style)
+
+        # add new attributes
+        for attr_name, attr_value in page_layout_attrs.items():
+            page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -274,6 +275,7 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
     table_cell = table.CoveredTableCell(attributes=table_cell_attributes)
 
     return table_cell
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -484,6 +486,34 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
     return paragraph
 
+
+''' create a text_a
+'''
+def create_text_a(anchor, target, nesting_level=0):
+    
+    # if the anchor is not an url, it is a bookmark
+    if not target.startswith('http'):
+        target_text = f"#{target.strip()}"
+        if anchor:
+            anchor_text = anchor
+        else:
+            # TODO: it should actually be the text associated with the target bookmark
+            anchor_text = target_text
+    else:
+        target_text = target.strip()
+        if anchor:
+            anchor_text = anchor
+        else:
+            anchor_text = target_text
+
+    link = text.A(text=anchor_text, type="simple", href=target_text)
+
+    return link
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# footnotes, bookmarks, links, latex, mathml related
 
 ''' process footnotes inside text
 '''
@@ -713,205 +743,26 @@ def mathml_odf_(parent, nesting_level=0):
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# indexes and pdf generation
+# master-page and page-layout related
 
-''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
+''' create (section-specific) master-page
+    page layouts are saved with a name mp-section-no
 '''
-def update_indexes(odt, odt_path, nesting_level=0):
-    document_url = Path(odt_path).as_uri()
-
-    macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    subprocess.call(command_line, shell=True)
-
-    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
-    subprocess.call(command_line, shell=True)
-
-
-''' given an odt file generates pdf in the given directory
-'''
-def generate_pdf(odt_path, output_dir, nesting_level=0):
-    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{output_dir}" "{odt_path}"'
-    subprocess.call(command_line, shell=True)
-
-    #  now there should be a pdf file, we need to rename it
-    pdf_path_to_rename = odt_path.with_suffix('.pdf')
-    rename_to = odt_path.with_name(odt_path.name + ".pdf")
-    Path(pdf_path_to_rename).replace(rename_to)
-
-
-''' create table-of-contents
-  <text:table-of-content-entry-template text:outline-level="1" text:style-name="Contents_20_1">
-    <text:index-entry-link-start text:style-name="Index_20_Link"/>
-    <text:index-entry-chapter/>
-    <text:index-entry-text/>
-    <text:index-entry-tab-stop style:type="right" style:leader-char="."/>
-    <text:index-entry-page-number/>
-    <text:index-entry-link-end/>
-  </text:table-of-content-entry-template>
-'''
-def create_toc(nesting_level=0):
-    name = 'Table of Content'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=10)
-    toc_title_template = text.IndexTitleTemplate()
-    toc_source.addElement(toc_title_template)
-
-    for i in range(1, 11):
-        toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=i, stylename=f"Contents_20_{i}")
-
-        index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-        index_entry_chapter = text.IndexEntryChapter()
-        index_entry_text = text.IndexEntryText()
-        index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-        index_entry_page_number = text.IndexEntryPageNumber()
-        index_entry_link_end = text.IndexEntryLinkEnd()
-
-        toc_entry_template.addElement(index_entry_link_start)
-        toc_entry_template.addElement(index_entry_chapter)
-        toc_entry_template.addElement(index_entry_text)
-        toc_entry_template.addElement(index_entry_tab_stop)
-        toc_entry_template.addElement(index_entry_page_number)
-        toc_entry_template.addElement(index_entry_link_end)
-
-        toc_source.addElement(toc_entry_template)
-
-    toc.addElement(toc_source)
-
-    return toc
-
-
-''' create illustration-index
-'''
-def create_lof(nesting_level=0):
-    name = 'List of Figures'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
-
-    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = text.IndexEntryChapter()
-    index_entry_text = text.IndexEntryText()
-    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = text.IndexEntryPageNumber()
-    index_entry_link_end = text.IndexEntryLinkEnd()
-
-    toc_entry_template.addElement(index_entry_link_start)
-    toc_entry_template.addElement(index_entry_chapter)
-    toc_entry_template.addElement(index_entry_text)
-    toc_entry_template.addElement(index_entry_tab_stop)
-    toc_entry_template.addElement(index_entry_page_number)
-    toc_entry_template.addElement(index_entry_link_end)
-
-    toc_title_template = text.IndexTitleTemplate()
-    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = text.IndexSourceStyle(stylename='Figure')
-    toc_index_source_styles.addElement(toc_index_source_style)
-
-    toc_source.addElement(toc_entry_template)
-    toc_source.addElement(toc_title_template)
-    toc_source.addElement(toc_index_source_styles)
-    toc.addElement(toc_source)
-
-    return toc
-
-
-''' create Table-index
-'''
-def create_lot(nesting_level=0):
-    name = 'List of Tables'
-    toc = text.TableOfContent(name=name)
-    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
-    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
-
-    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
-    index_entry_chapter = text.IndexEntryChapter()
-    index_entry_text = text.IndexEntryText()
-    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
-    index_entry_page_number = text.IndexEntryPageNumber()
-    index_entry_link_end = text.IndexEntryLinkEnd()
-
-    toc_entry_template.addElement(index_entry_link_start)
-    toc_entry_template.addElement(index_entry_chapter)
-    toc_entry_template.addElement(index_entry_text)
-    toc_entry_template.addElement(index_entry_tab_stop)
-    toc_entry_template.addElement(index_entry_page_number)
-    toc_entry_template.addElement(index_entry_link_end)
-
-    toc_title_template = text.IndexTitleTemplate()
-    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
-    toc_index_source_style = text.IndexSourceStyle(stylename='Table')
-    toc_index_source_styles.addElement(toc_index_source_style)
-
-    toc_source.addElement(toc_entry_template)
-    toc_source.addElement(toc_title_template)
-    toc_source.addElement(toc_index_source_styles)
-    toc.addElement(toc_source)
-
-    return toc
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# master-page and page-layout
-
-''' get master-page by name
-'''
-def get_master_page(odt, master_page_name, nesting_level=0):
-    for master_page in odt.masterstyles.getElementsByType(style.MasterPage):
-        if master_page.getAttribute('name') == master_page_name:
-            return master_page
-
-    warn(f"master-page {master_page_name} NOT found")
-    return None
-
-
-''' get page-layout by name
-'''
-def get_page_layout(odt, page_layout_name, nesting_level=0):
-    for page_layout in odt.automaticstyles.getElementsByType(style.PageLayout):
-        if page_layout.getAttribute('name') == page_layout_name:
-            return page_layout
-
-    # warn(f"page-layout {page_layout_name} NOT found")
-    return None
-
-
-''' get or create PageLayoutProperties from a PageLayout
-'''
-def get_page_layout_properties(page_layout, nesting_level=0):
-    # get or create PageLayoutProperties
-    props_list = page_layout.getElementsByType(style.PageLayoutProperties)
-    if props_list:
-        page_layout_properties = props_list[0]
-
+def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, next_master_page_style=None, nesting_level=0):
+    # if the very first section, it is already existing and named *Standarad* master-page. update page-layout for the existing *Standarad* master-page
+    if first_section and document_index == 0:
+        master_page = get_master_page(odt=odt, master_page_name='Standard')
+        existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
+        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
+    
+    # create page-layout and master-page
     else:
-        page_layout_properties = style.PageLayoutProperties()
-        page_layout.appendChild(page_layout_properties)
+        page_layout_name = f"pl-{master_page_name[3:]}"
+        page_layout = create_page_layout(odt=odt, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
+        master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name, nextstylename=next_master_page_style)
+        odt.masterstyles.addElement(master_page)
 
-    return page_layout_properties
-
-
-''' add a background image to a master-page
-'''
-def add_background_image_to_master_page(odt, master_page, background_image_path, nesting_level=0):
-    page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
-    page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
-
-    background_image_style = create_background_image_style(odt, background_image_path)
-    if background_image_style:
-        # background_image specific page-layout-properties
-        page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
-
-        # get page_layout_properties
-        page_layout_properties = get_page_layout_properties(page_layout=page_layout, nesting_level=nesting_level)
-
-        # add background_image_style
-        page_layout_properties.appendChild(background_image_style)
-
-        # add new attributes
-        for attr_name, attr_value in page_layout_attrs.items():
-            page_layout_properties.setAttrNS(DRAWNS, attr_name, attr_value)
+    return master_page
 
 
 ''' create (section-specific) page-layout
@@ -952,26 +803,6 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
         page_layout_properties.setAttribute(attr_name, attr_value)
 
     return page_layout
-
-
-''' create (section-specific) master-page
-    page layouts are saved with a name mp-section-no
-'''
-def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, next_master_page_style=None, nesting_level=0):
-    # if the very first section, it is already existing and named *Standarad* master-page. update page-layout for the existing *Standarad* master-page
-    if first_section and document_index == 0:
-        master_page = get_master_page(odt=odt, master_page_name='Standard')
-        existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
-        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
-    
-    # create page-layout and master-page
-    else:
-        page_layout_name = f"pl-{master_page_name[3:]}"
-        page_layout = create_page_layout(odt=odt, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
-        master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name, nextstylename=next_master_page_style)
-        odt.masterstyles.addElement(master_page)
-
-    return master_page
 
 
 ''' create header/footer
@@ -1025,65 +856,46 @@ def create_header_footer(odt, master_page, header_or_footer, odd_or_even, nestin
     return header_footer
 
 
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# various utility functions
-
-''' process line-breaks
+''' get master-page by name
 '''
-def process_line_breaks(text, keep_line_breaks, nesting_level=0):
-    if keep_line_breaks:
-        new_text = text.replace('\n', '<text:line-break/>')
-        return new_text
+def get_master_page(odt, master_page_name, nesting_level=0):
+    for master_page in odt.masterstyles.getElementsByType(style.MasterPage):
+        if master_page.getAttribute('name') == master_page_name:
+            return master_page
+
+    warn(f"master-page {master_page_name} NOT found")
+    return None
+
+
+''' get page-layout by name
+'''
+def get_page_layout(odt, page_layout_name, nesting_level=0):
+    for page_layout in odt.automaticstyles.getElementsByType(style.PageLayout):
+        if page_layout.getAttribute('name') == page_layout_name:
+            return page_layout
+
+    # warn(f"page-layout {page_layout_name} NOT found")
+    return None
+
+
+''' get or create PageLayoutProperties from a PageLayout
+'''
+def get_page_layout_properties(page_layout, nesting_level=0):
+    # get or create PageLayoutProperties
+    props_list = page_layout.getElementsByType(style.PageLayoutProperties)
+    if props_list:
+        page_layout_properties = props_list[0]
 
     else:
-        return text.replace('\n', ' ')
+        page_layout_properties = style.PageLayoutProperties()
+        page_layout.appendChild(page_layout_properties)
 
+    return page_layout_properties
 
-''' given pixel size, calculate the row height in inches
-    a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
-'''
-def row_height_in_inches(pixel_size, nesting_level=0):
-    return float((pixel_size) / 96)
-
-
-''' get a random string
-'''
-def random_string(length=12, nesting_level=0):
-    letters = string.ascii_uppercase
-    return ''.join(random.choice(letters) for i in range(length))
-
-
-''' fit width/height into a given width/height maintaining aspect ratio
-'''
-def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
-	scale = max(
-        fit_within_width / width_to_fit,
-        fit_within_height / height_to_fit
-    )
-
-	return (
-        width_to_fit * scale,
-        height_to_fit * scale,
-        scale
-    )
-
-
-''' strip LaTeX math mode delimeter ($)
-'''
-def strip_math_mode_delimeters(latex_content, nesting_level=0):
-    # strip SPACES
-    stripped = latex_content.strip()
-
-    # strip $
-    stripped = stripped.strip('$')
-
-    # TODO: strip \( and \)
-
-    return stripped
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# ODT specific utility functions
+# ODT style specific utility functions
 
 ''' registers a font in the document
 '''
@@ -1243,12 +1055,164 @@ def parse_style_properties(style_spec, nesting_level=0):
             for key, value in props_dict.items():
                 if value and value != '':
                     new_key = key.split('.')[-1]
+
+                    # the value may need some processing
+                    if new_key in ODT_ATTR_MAP_HINT:
+                        # trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
+                        value = map_odt_attr(new_key, value, nesting_level=nesting_level+1)
+                        # trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
+
                     new_props[new_key] = value
 
             custom_properties[p_type] = new_props
 
     return custom_properties
 
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# indexes and pdf generation
+
+''' update indexes through a macro macro:///Standard.Module1.open_document(document_url) which must be in OpenOffice macro library
+'''
+def update_indexes(odt, odt_path, nesting_level=0):
+    document_url = Path(odt_path).as_uri()
+
+    macro = f'"macro:///Standard.Module1.force_update("{document_url}")"'
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    subprocess.call(command_line, shell=True)
+
+    macro = f'"macro:///Standard.Module1.open_document("{document_url}")"'
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --invisible {macro}'
+    subprocess.call(command_line, shell=True)
+
+
+''' given an odt file generates pdf in the given directory
+'''
+def generate_pdf(odt_path, output_dir, nesting_level=0):
+    command_line = f'"{LIBREOFFICE_EXECUTABLE}" --headless --convert-to pdf:writer_pdf_Export --outdir "{output_dir}" "{odt_path}"'
+    subprocess.call(command_line, shell=True)
+
+    #  now there should be a pdf file, we need to rename it
+    pdf_path_to_rename = odt_path.with_suffix('.pdf')
+    rename_to = odt_path.with_name(odt_path.name + ".pdf")
+    Path(pdf_path_to_rename).replace(rename_to)
+
+
+''' create table-of-contents
+  <text:table-of-content-entry-template text:outline-level="1" text:style-name="Contents_20_1">
+    <text:index-entry-link-start text:style-name="Index_20_Link"/>
+    <text:index-entry-chapter/>
+    <text:index-entry-text/>
+    <text:index-entry-tab-stop style:type="right" style:leader-char="."/>
+    <text:index-entry-page-number/>
+    <text:index-entry-link-end/>
+  </text:table-of-content-entry-template>
+'''
+def create_toc(nesting_level=0):
+    name = 'Table of Content'
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=10)
+    toc_title_template = text.IndexTitleTemplate()
+    toc_source.addElement(toc_title_template)
+
+    for i in range(1, 11):
+        toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=i, stylename=f"Contents_20_{i}")
+
+        index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+        index_entry_chapter = text.IndexEntryChapter()
+        index_entry_text = text.IndexEntryText()
+        index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+        index_entry_page_number = text.IndexEntryPageNumber()
+        index_entry_link_end = text.IndexEntryLinkEnd()
+
+        toc_entry_template.addElement(index_entry_link_start)
+        toc_entry_template.addElement(index_entry_chapter)
+        toc_entry_template.addElement(index_entry_text)
+        toc_entry_template.addElement(index_entry_tab_stop)
+        toc_entry_template.addElement(index_entry_page_number)
+        toc_entry_template.addElement(index_entry_link_end)
+
+        toc_source.addElement(toc_entry_template)
+
+    toc.addElement(toc_source)
+
+    return toc
+
+
+''' create illustration-index
+'''
+def create_lof(nesting_level=0):
+    name = 'List of Figures'
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Figure')
+
+    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = text.IndexEntryChapter()
+    index_entry_text = text.IndexEntryText()
+    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = text.IndexEntryPageNumber()
+    index_entry_link_end = text.IndexEntryLinkEnd()
+
+    toc_entry_template.addElement(index_entry_link_start)
+    toc_entry_template.addElement(index_entry_chapter)
+    toc_entry_template.addElement(index_entry_text)
+    toc_entry_template.addElement(index_entry_tab_stop)
+    toc_entry_template.addElement(index_entry_page_number)
+    toc_entry_template.addElement(index_entry_link_end)
+
+    toc_title_template = text.IndexTitleTemplate()
+    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = text.IndexSourceStyle(stylename='Figure')
+    toc_index_source_styles.addElement(toc_index_source_style)
+
+    toc_source.addElement(toc_entry_template)
+    toc_source.addElement(toc_title_template)
+    toc_source.addElement(toc_index_source_styles)
+    toc.addElement(toc_source)
+
+    return toc
+
+
+''' create Table-index
+'''
+def create_lot(nesting_level=0):
+    name = 'List of Tables'
+    toc = text.TableOfContent(name=name)
+    toc_source = text.TableOfContentSource(outlinelevel=1, useoutlinelevel=False, useindexmarks=False, useindexsourcestyles=True)
+    toc_entry_template = text.TableOfContentEntryTemplate(outlinelevel=1, stylename='Table')
+
+    index_entry_link_start = text.IndexEntryLinkStart(stylename='Index_20_Link')
+    index_entry_chapter = text.IndexEntryChapter()
+    index_entry_text = text.IndexEntryText()
+    index_entry_tab_stop = text.IndexEntryTabStop(type='right', leaderchar='.')
+    index_entry_page_number = text.IndexEntryPageNumber()
+    index_entry_link_end = text.IndexEntryLinkEnd()
+
+    toc_entry_template.addElement(index_entry_link_start)
+    toc_entry_template.addElement(index_entry_chapter)
+    toc_entry_template.addElement(index_entry_text)
+    toc_entry_template.addElement(index_entry_tab_stop)
+    toc_entry_template.addElement(index_entry_page_number)
+    toc_entry_template.addElement(index_entry_link_end)
+
+    toc_title_template = text.IndexTitleTemplate()
+    toc_index_source_styles = text.IndexSourceStyles(outlinelevel=1)
+    toc_index_source_style = text.IndexSourceStyle(stylename='Table')
+    toc_index_source_styles.addElement(toc_index_source_style)
+
+    toc_source.addElement(toc_entry_template)
+    toc_source.addElement(toc_title_template)
+    toc_source.addElement(toc_index_source_styles)
+    toc.addElement(toc_source)
+
+    return toc
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# web and drive specific utility functions
 
 ''' download an image from a web or drive url and return a dict
     {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}
@@ -1410,6 +1374,101 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
         trace(f"Downloaded {int(status.progress() * 100)}%", nesting_level=nesting_level)
 
     return done
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# various utility functions
+
+''' map attribute key/value to a modified ke/value
+'''
+def map_odt_attr(attr_key, attr_value, nesting_level=0):
+	if attr_key in ODT_ATTR_MAP_HINT:
+		obj = ODT_ATTR_MAP_HINT[attr_key]
+		mapper = obj['lambda']
+
+		# if the mapper is a dict
+		if isinstance(mapper, dict):
+			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
+			if attr_value in mapper:
+				return mapper[attr_value]
+			
+			else:
+				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
+
+		# of the mapper is a function
+		if isinstance(mapper, types.FunctionType):
+			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
+			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
+		
+	return attr_value
+
+
+''' sanitize border
+    border may contain more than three strings, while css needs only three strings size, style, color
+'''
+def sanitize_border(border_str, what, nesting_level=0):
+    splits = border_str.split(' ')
+    if len(splits) < 3:
+        warn(f"[{what}] attribute value [{border_str}] should have at least three strings", nesting_level=nesting_level)
+        return border_str
+    
+    return ' '.join(splits[:3])
+
+
+''' process line-breaks
+'''
+def process_line_breaks(text, keep_line_breaks, nesting_level=0):
+    if keep_line_breaks:
+        new_text = text.replace('\n', '<text:line-break/>')
+        return new_text
+
+    else:
+        return text.replace('\n', ' ')
+
+
+''' given pixel size, calculate the row height in inches
+    a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
+'''
+def row_height_in_inches(pixel_size, nesting_level=0):
+    return float((pixel_size) / 96)
+
+
+''' get a random string
+'''
+def random_string(length=12, nesting_level=0):
+    letters = string.ascii_uppercase
+    return ''.join(random.choice(letters) for i in range(length))
+
+
+''' fit width/height into a given width/height maintaining aspect ratio
+'''
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
+	scale = max(
+        fit_within_width / width_to_fit,
+        fit_within_height / height_to_fit
+    )
+
+	return (
+        width_to_fit * scale,
+        height_to_fit * scale,
+        scale
+    )
+
+
+''' strip LaTeX math mode delimeter ($)
+'''
+def strip_math_mode_delimeters(latex_content, nesting_level=0):
+    # strip SPACES
+    stripped = latex_content.strip()
+
+    # strip $
+    stripped = stripped.strip('$')
+
+    # TODO: strip \( and \)
+
+    return stripped
+
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1688,4 +1747,11 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
     '.jpg': 'image/jpeg', 
     '.gif': 'image/gif', 
     '.webp': 'image/webp' 
+}
+
+ODT_ATTR_MAP_HINT = {
+	'borderleft':      	{'lambda': sanitize_border},
+	'bordertop':     	{'lambda': sanitize_border},
+	'borderright':     	{'lambda': sanitize_border},
+	'borderbottom':    	{'lambda': sanitize_border},
 }

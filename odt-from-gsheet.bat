@@ -7,7 +7,7 @@ set DOCUMENT=%1
 
 :: json-from-gsheet
 pushd .\gsheet-to-json\src
-python json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
+@REM python json-from-gsheet.py --config "../conf/config.yml" --gsheet "%DOCUMENT%"
 
 if errorlevel 1 (
   popd
