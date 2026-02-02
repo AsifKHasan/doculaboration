@@ -1474,7 +1474,11 @@ def strip_math_mode_delimeters(latex_content, nesting_level=0):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-PTOPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
+# default DPI
+DPI = 72
+
+# height offset for full page image extracted from pdf
+PDF_PAGE_HEIGHT_OFFSET = 0.0
 
 # seperation (in inches) between two ODT table columns
 COLSEP = (0/72)
@@ -1485,13 +1489,15 @@ ROWSEP = (0/72)
 # FACTOR by which to divide gsheet border width to get a reasonable ODT border width
 ODT_BORDER_WIDTH_FACTOR = 4
 
-# gsheet border style to ODT border style map
-GSHEET_ODT_BORDER_MAPPING = {
-    'DOTTED': 'dotted',
-    'DASHED': 'dash',
-    'SOLID': 'solid'
-}
+# 0-based gsheet column number to column letter map
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# gsheet to odt constants and type mapping
 
 # ODT style name to outline level map
 HEADING_TO_LEVEL = {
@@ -1522,6 +1528,15 @@ LEVEL_TO_HEADING = [
     'Heading_20_10',
 ]
 
+# gsheet border style to ODT border style map
+GSHEET_ODT_BORDER_MAPPING = {
+    'DOTTED': 'dotted',
+    'DASHED': 'dash',
+    'SOLID': 'solid'
+}
+
+# gsheet wrap strategy to ODT iwrap strategy map
+WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
 # gsheet text vertical alignment to ODT text vertical alignment map
 TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
@@ -1529,19 +1544,52 @@ TEXT_VALIGN_MAP = {'TOP': 'top', 'MIDDLE': 'middle', 'BOTTOM': 'bottom'}
 # gsheet text horizontal alignment to ODT text horizontal alignment map
 TEXT_HALIGN_MAP = {'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFY': 'justify'}
 
-# gsheet image alignment to ODT image alignment map
+# gsheet image alignment to ODT image horizontal alignment map
 IMAGE_POSITION_HORIZONRAL = {'center': 'center', 'left': 'left', 'right': 'right'}
+
+# gsheet image alignment to ODT image vertical alignment map
 IMAGE_POSITION_VERTICAL = {'center': 'center', 'middle': 'middle', 'top': 'top', 'bottom': 'bottom'}
 
-# gsheet wrap strategy to ODT iwrap strategy map
-WRAP_STRATEGY_MAP = {'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'}
 
-# 0-based gsheet column number to column letter map
-COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
-            'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
-PDF_PAGE_HEIGHT_OFFSET = 0.0
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# allowed file and mimetype related
+
+SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
+
+ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+MIME_TYPE_TO_FILE_EXT_MAP = {
+    'application/pdf': '.pdf', 
+    'image/png': '.png', 
+    'image/jpeg': '.jpg', 
+    'image/gif': '.gif', 
+    'image/webp': '.webp'
+}
+
+FILE_EXT_TO_MIME_TYPE_MAP = {
+    '.pdf': 'application/pdf', 
+    '.png': 'image/png', 
+    '.jpg': 'image/jpeg', 
+    '.gif': 'image/gif', 
+    '.webp': 'image/webp' 
+}
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# custom style map specific
+
+PTOPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
+
+ODT_ATTR_MAP_HINT = {
+	'borderleft':      	{'lambda': sanitize_border},
+	'bordertop':     	{'lambda': sanitize_border},
+	'borderright':     	{'lambda': sanitize_border},
+	'borderbottom':    	{'lambda': sanitize_border},
+}
 
 STYLE_PROPERTY_MAP = {
     "text-properties": 
@@ -1728,30 +1776,4 @@ STYLE_PROPERTY_MAP = {
         "writingmode",
         "writingmodeautomatic",
     ],
-}
-
-DPI = 72
-SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
-ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
-IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-MIME_TYPE_TO_FILE_EXT_MAP = {
-    'application/pdf': '.pdf', 
-    'image/png': '.png', 
-    'image/jpeg': '.jpg', 
-    'image/gif': '.gif', 
-    'image/webp': '.webp'
-}
-FILE_EXT_TO_MIME_TYPE_MAP = {
-    '.pdf': 'application/pdf', 
-    '.png': 'image/png', 
-    '.jpg': 'image/jpeg', 
-    '.gif': 'image/gif', 
-    '.webp': 'image/webp' 
-}
-
-ODT_ATTR_MAP_HINT = {
-	'borderleft':      	{'lambda': sanitize_border},
-	'bordertop':     	{'lambda': sanitize_border},
-	'borderright':     	{'lambda': sanitize_border},
-	'borderbottom':    	{'lambda': sanitize_border},
 }

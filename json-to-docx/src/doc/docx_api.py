@@ -291,37 +291,37 @@ class DocxPdfSection(DocxSectionBase):
     def process_pdf_page_header_footer(self, docx_section, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         if self._section_data['header-odd']:
-            docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.header_odd = None
 
         if self._section_data['header-even']:
-            docx_section.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            docx_section.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.header_even = None
 
         if self._section_data['footer-odd']:
-            docx_section.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            docx_section.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.footer_odd = None
 
         if self._section_data['footer-even']:
-            docx_section.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            docx_section.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.footer_even = None
 
 
         if docx_section.header_odd:
-            docx_section.header_odd.content_to_docx(container=docx_section.header)
+            docx_section.header_odd.content_to_docx(container=docx_section.header, nesting_level=nesting_level+1)
 
         if docx_section.header_even:
-            docx_section.header_even.content_to_docx(container=docx_section.even_page_header)
+            docx_section.header_even.content_to_docx(container=docx_section.even_page_header, nesting_level=nesting_level+1)
 
         if docx_section.footer_odd:
-            docx_section.footer_odd.content_to_docx(container=docx_section.footer)
+            docx_section.footer_odd.content_to_docx(container=docx_section.footer, nesting_level=nesting_level+1)
 
         if docx_section.footer_even:
-            docx_section.footer_even.content_to_docx(container=docx_section.even_page_footer)
+            docx_section.footer_even.content_to_docx(container=docx_section.even_page_footer, nesting_level=nesting_level+1)
 
 
     ''' generates the docx code
@@ -1036,9 +1036,6 @@ class Cell(object):
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
                         create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
-                        # self.bg_image = inline_image
-                        # self.bg_image.container_width = self.effective_cell_width
-                        # self.bg_image.container_height = self.effective_cell_height
 
                     elif inline_image.type == 'inline':
                         insert_cell_image(cell=container, image_path=inline_image.file_path, width=inline_image.image_width, position=inline_image.position, margin_pt=inline_image.margin_pt, nesting_level=nesting_level+1)
@@ -1085,7 +1082,7 @@ class Cell(object):
 
     ''' Copy format from the cell passed
     '''
-    def copy_format_from(self, from_cell):
+    def copy_format_from(self, from_cell, nesting_level=0):
         self.effective_format = from_cell.effective_format
 
 
@@ -1796,21 +1793,21 @@ class InlineImage(object):
         self.image_width = ii_dict.get('image-width', None)
         self.image_height = ii_dict.get('image-height', None)
         self.type = ii_dict.get('type', 'inline')
-        self.extend_container_height = ii_dict.get('extend-container-height', False)
-        self.fill_width = ii_dict.get('fill-width', True)
+        self.fit_height_to_container = ii_dict.get('fit-height-to-container', False)
+        self.fit_width_to_container = ii_dict.get('fit-width-to-container', False)
+        self.keep_aspect_ratio = ii_dict.get('keep-aspect-ratio', True)
         self.position = ii_dict.get('position', 'center middle')
         self.wrap = ii_dict.get('wrap', 'parallel')
+
+        self.anchor_type = 'paragraph'
+        # TODO: eliminate hardcode
         self.margin_pt = 2
-
-        self.container_width = None
-        self.container_height = None
-
-        # self.anchor_type = 'paragraph'
 
         self.halign, self.valign = 'center', 'middle'
         positions = self.position.split(' ')
         if len(positions) == 2:
             self.halign, self.valign = positions[0], positions[1]
+
         elif len(positions) == 1:
             self.halign = positions[0]
 

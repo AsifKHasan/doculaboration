@@ -47,6 +47,9 @@ from helper.config_service import ConfigService
 from helper.logger import *
 
 
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# document and section related
+
 ''' process a list of section_data and generate docx code
 '''
 def section_list_to_docx(docx, section_list, nesting_level=0):
@@ -65,8 +68,354 @@ def section_list_to_docx(docx, section_list, nesting_level=0):
 		func(docx=docx, section_data=section_data, nesting_level=nesting_level+1)
 
 
+''' add or update a document section
+'''
+def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, link_to_previous=False, nesting_level=0):
+	#  if it is a section break, we isnert a new section
+	if section_break:
+		new_section = True
+		docx_section = docx.add_section(WD_SECTION.NEW_PAGE)
+
+	else:
+		# we are continuing the last section
+		if first_section:
+			new_section = True
+		else:
+			new_section = False
+
+		docx_section = docx.sections[-1]
+
+		#  we may have a page break
+		if page_break:
+			docx.add_page_break()
+
+
+	docx_section.first_page_header.is_linked_to_previous = link_to_previous
+	docx_section.header.is_linked_to_previous = link_to_previous
+	docx_section.even_page_header.is_linked_to_previous = link_to_previous
+
+	docx_section.first_page_footer.is_linked_to_previous = link_to_previous
+	docx_section.footer.is_linked_to_previous = link_to_previous
+	docx_section.even_page_footer.is_linked_to_previous = link_to_previous
+
+	if orientation == 'landscape':
+		docx_section.orient = WD_ORIENT.LANDSCAPE
+		docx_section.page_width = Inches(page_spec['height'])
+		docx_section.page_height = Inches(page_spec['width'])
+	else:
+		docx_section.orient = WD_ORIENT.PORTRAIT
+		docx_section.page_width = Inches(page_spec['width'])
+		docx_section.page_height = Inches(page_spec['height'])
+
+	docx_section.left_margin = Inches(margin_spec['left'])
+	docx_section.right_margin = Inches(margin_spec['right'])
+	docx_section.top_margin = Inches(margin_spec['top'])
+	docx_section.bottom_margin = Inches(margin_spec['bottom'])
+
+	docx_section.gutter = Inches(margin_spec['gutter'])
+
+	docx_section.header_distance = Inches(margin_spec['distance']['header'])
+	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
+
+	docx_section.different_first_page_header_footer = different_firstpage
+	docx.settings.odd_and_even_pages_header_footer = different_odd_even_pages
+
+	# get the actual width
+	# actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
+
+	return docx_section, new_section
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# various utility functions
+
+''' format container (paragraph or cell)
+	border, bgcolor, padding, valign, halign
+'''
+def format_container(container, attributes, custom_style_name=None, it_is_a_table_cell=True, nesting_level=0):
+	custom_style = ConfigService()._style_specs.get(custom_style_name, None)
+	if custom_style:
+		if 'padding' in custom_style:
+			attributes['padding'] = custom_style['padding']
+
+		if 'borders' in custom_style:
+			attributes['borders'] = custom_style['borders']
+
+		if 'backgroundcolor' in custom_style:
+			attributes['backgroundcolor'] = custom_style['backgroundcolor']
+
+		if 'verticalalign' in custom_style:
+			attributes['verticalalign'] = custom_style['verticalalign']
+
+		if 'textalign' in custom_style:
+			attributes['textalign'] = custom_style['textalign']
+
+		if 'angle' in custom_style:
+			attributes['angle'] = custom_style['angle']
+
+	# borders
+	if it_is_a_table_cell:
+		if 'padding' in attributes:
+			set_cell_padding(container, padding=attributes['padding'])
+
+		if 'borders' in attributes:
+			set_cell_border(container, borders=attributes['borders'])
+
+		if 'backgroundcolor' in attributes:
+			set_cell_bgcolor(container, color=attributes['backgroundcolor'])
+
+		if 'verticalalign' in attributes:
+			container.vertical_alignment = attributes['verticalalign']
+
+		if 'textalign' in attributes:
+			container.paragraphs[0].alignment = attributes['textalign']
+
+		# text rotation, only for table._cell
+		if 'angle' in attributes:
+			rotate_text(cell=container, direction=attributes['angle'])
+
+	else:
+		if 'borders' in attributes:
+			set_paragraph_border(element=container._p, borders=attributes['borders'])
+
+		if 'backgroundcolor' in attributes:
+			set_paragraph_bgcolor(element=container._element, color=attributes['backgroundcolor'])
+
+		if 'textalign' in attributes:
+			container.alignment = attributes['textalign']
+
+
+''' whether the container is a document or not
+'''
+def is_document(container, nesting_level=0):
+	# if container is n instance of table-cell
+	if type(container) is document.Document:
+		return True
+	else:
+		return False
+
+
+''' whether the container is a table-cell or not
+'''
+def is_table_cell(container, nesting_level=0):
+	# if container is n instance of table-cell
+	if type(container) is table._Cell:
+		return True
+	else:
+		return False
+
+
+''' whether the container is a paragraph or not
+'''
+def is_paragraph(container, nesting_level=0):
+	# if container is n instance of table-cell
+	if isinstance(container, Paragraph):
+		return True
+	else:
+		return False
+
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
+
+''' create page background
+	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+		<wp:simplePos x="0" y="0" />
+		<wp:positionH relativeFrom="page">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionH>
+		<wp:positionV relativeFrom="page">
+			<wp:posOffset>0</wp:posOffset>
+		</wp:positionV>
+		<wp:extent cx="7562000" cy="10689336" />
+		<wp:effectExtent l="0" t="0" r="0" b="0" />
+		<wp:wrapNone />
+		<wp:docPr id="1" name="Picture 1" />
+		<wp:cNvGraphicFramePr>
+			<a:graphicFrameLocks
+				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+		</wp:cNvGraphicFramePr>
+		<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+			<a:graphicData
+				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+				<pic:pic
+					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:nvPicPr>
+						<pic:cNvPr id="0" name="toll-booth.jpg" />
+						<pic:cNvPicPr />
+					</pic:nvPicPr>
+					<pic:blipFill>
+						<a:blip r:embed="rId8">
+							<a:extLst>
+								<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+									<a14:useLocalDpi
+										xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+										val="0" />
+								</a:ext>
+							</a:extLst>
+						</a:blip>
+						<a:stretch>
+							<a:fillRect />
+						</a:stretch>
+					</pic:blipFill>
+					<pic:spPr>
+						<a:xfrm>
+							<a:off x="0" y="0" />
+							<a:ext cx="7562000" cy="10692000" />
+						</a:xfrm>
+						<a:prstGeom prst="rect">
+							<a:avLst />
+						</a:prstGeom>
+					</pic:spPr>
+				</pic:pic>
+			</a:graphicData>
+		</a:graphic>
+		<wp14:sizeRelH relativeFrom="margin">
+			<wp14:pctWidth>0</wp14:pctWidth>
+		</wp14:sizeRelH>
+		<wp14:sizeRelV relativeFrom="margin">
+			<wp14:pctHeight>0</wp14:pctHeight>
+		</wp14:sizeRelV>
+	</wp:anchor>
+'''
+def create_page_background(docx, header, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
+	drawing_xml = '''
+	<w:drawing>
+		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+			<wp:simplePos x="0" y="0" />
+			<wp:positionH relativeFrom="page">
+				<wp:posOffset>0</wp:posOffset>
+			</wp:positionH>
+			<wp:positionV relativeFrom="page">
+				<wp:posOffset>0</wp:posOffset>
+			</wp:positionV>
+			<wp:extent cx="{cx}" cy="{cy}" />
+			<wp:effectExtent l="0" t="0" r="0" b="0" />
+			<wp:wrapNone />
+			<wp:docPr id="{doc_id}" name="{doc_name}" />
+			<wp:cNvGraphicFramePr>
+				<a:graphicFrameLocks
+					xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
+			</wp:cNvGraphicFramePr>
+			<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+				<a:graphicData
+					uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:pic
+						xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+						<pic:nvPicPr>
+							<pic:cNvPr id="{image_id}" name="{image_name}" />
+							<pic:cNvPicPr />
+						</pic:nvPicPr>
+						<pic:blipFill>
+							<a:blip r:embed="{rid}">
+							</a:blip>
+							<a:stretch>
+								<a:fillRect />
+							</a:stretch>
+						</pic:blipFill>
+						<pic:spPr>
+							<a:xfrm>
+								<a:off x="0" y="0" />
+								<a:ext cx="{cx}" cy="{cy}" />
+							</a:xfrm>
+							<a:prstGeom prst="rect">
+								<a:avLst />
+							</a:prstGeom>
+						</pic:spPr>
+					</pic:pic>
+				</a:graphicData>
+			</a:graphic>
+			<wp14:sizeRelH relativeFrom="margin">
+				<wp14:pctWidth>0</wp14:pctWidth>
+			</wp14:sizeRelH>
+			<wp14:sizeRelV relativeFrom="margin">
+				<wp14:pctHeight>0</wp14:pctHeight>
+			</wp14:sizeRelV>
+		</wp:anchor>
+	</w:drawing>
+	'''
+
+	# get the current/last paragraph
+	first_para = header.paragraphs[0]
+	first_run = first_para.add_run()
+
+	# add a new paragraph paragraph
+	new_para = docx.add_paragraph()
+
+	# create a run
+	new_run = new_para.add_run()
+
+	# put the image
+	shape = new_run.add_picture(image_path_or_stream=background_image_path, height=Inches(page_height_inches))
+	# current_drawing_element = new_run._r.xpath('//w:drawing')[0]
+
+	try:
+		# tweak the generated inline image
+		parser = etree.XMLParser(recover=True)
+
+		cx = str(emu(page_width_inches))
+		cy = str(emu(page_height_inches))
+
+
+		docPr = new_run._r.xpath('.//wp:docPr')[0]
+		doc_id = docPr.get('id')
+		doc_name = docPr.get('name')
+
+		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
+		image_id = cNvPr.get('id')
+		image_name = cNvPr.get('name')
+		trace(f"bg image [{image_name}]", nesting_level=nesting_level)
+
+		blip = new_run._r.xpath('.//a:blip')[0]
+
+		rid = None
+		try:
+			rid = blip.xpath('./@r:embed')[0]
+			# trace(f"rid [{rid}]")
+		except:
+			warn(f"rid not found under blip")
+		
+		if rid is None:
+			try:
+				# Assuming blip_element is your element object
+				# namespaces = {'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
+
+				# Access via the attrib dictionary
+				# Note: You must use the {URI} format as the key
+				# attr_key = f"{{{namespaces['r']}}}embed"
+				attr_key = f"r:embed"
+				rid = blip.attrib.get(attr_key)
+				trace(f"rid [{rid}]")
+
+			except Exception as e:
+				warn(f"r:embed not found under blip")
+				raise e
+
+		new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
+		# put the new drawing into first-run
+		first_run._r.append(new_drawing_element)
+
+	except Exception as e:
+		error(traceback.format_exc())
+
+	# remove the new-para
+	delete_paragraph(new_para)
+
+
+''' Inserts an image into the header, stretches it to page size, and makes it floating behind text.
+'''
+def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
+    # Put it in its own paragraph at start
+	for header in [docx_section.header, docx_section.even_page_header]:
+		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+		run = p.add_run()
+		inline = run.add_picture(image_path, width=width, height=height)
+		inline_to_anchored_behind(inline, width=width, height=height)
+		unlock_picture_aspect_ratio(inline)
+		force_picture_transform(inline, width_in=width, height_in=height)
+
 
 ''' insert image into a container
 '''
@@ -112,17 +461,17 @@ def insert_cell_image(cell, image_path, width, position='center bottom', margin_
     relative_v = 'paragraph'
 
     # Optional offsets (in EMU)
-    offX = _pt_to_emu(offsets_pt[0])
-    offY = _pt_to_emu(offsets_pt[1])
+    offX = pt_to_emu(offsets_pt[0])
+    offY = pt_to_emu(offsets_pt[1])
 
     # If margin is a single number, apply to all sides. 
     if isinstance(margin_pt, int):
-        m = {'t': _pt_to_emu(margin_pt), 'b': _pt_to_emu(margin_pt), 'l': _pt_to_emu(margin_pt), 'r': _pt_to_emu(margin_pt)}
+        m = {'t': pt_to_emu(margin_pt), 'b': pt_to_emu(margin_pt), 'l': pt_to_emu(margin_pt), 'r': pt_to_emu(margin_pt)}
 
     # If it's a dict, use specific values.
     else:
-        m = {'t': _pt_to_emu(margin_pt.get('t', 0)), 'b': _pt_to_emu(margin_pt.get('b', 0)), 
-             'l': _pt_to_emu(margin_pt.get('l', 0)), 'r': _pt_to_emu(margin_pt.get('r', 0))}
+        m = {'t': pt_to_emu(margin_pt.get('t', 0)), 'b': pt_to_emu(margin_pt.get('b', 0)), 
+             'l': pt_to_emu(margin_pt.get('l', 0)), 'r': pt_to_emu(margin_pt.get('r', 0))}
 
     mapping = {
         'left top':      {'h': 'left',   'v': 'top'},
@@ -218,8 +567,8 @@ def create_cell_background(cell, image_path, width, height, nesting_level=0):
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
 
-	cx = str(_emu(width))
-	cy = str(_emu(height))
+	cx = str(emu(width))
+	cy = str(emu(height))
 
 	anchor_xml = f"""
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
@@ -255,7 +604,7 @@ def create_cell_background(cell, image_path, width, height, nesting_level=0):
 	# move this run to the 0th index of the paragraph
 	move_run_to_start(paragraph, run)
 
-	_zero_paragraph_spacing(paragraph)
+	zero_paragraph_spacing(paragraph)
 
 
 ''' insert an image as cell background
@@ -267,50 +616,32 @@ def create_cell_background_new(cell, image_path, width, height, nesting_level=0)
 
     # 2. Create a stacking table (1x1)
     stack_table = cell.add_table(rows=1, cols=1)
-    _remove_table_borders(stack_table)
+    remove_table_borders(stack_table)
     stack_cell = stack_table.cell(0, 0)
-    _remove_cell_margins(stack_cell)
+    remove_cell_margins(stack_cell)
 
     # 3. Background layer (image)
     bg_table = stack_cell.add_table(rows=1, cols=1)
-    _remove_table_borders(bg_table)
+    remove_table_borders(bg_table)
     bg_cell = bg_table.cell(0, 0)
-    _remove_cell_margins(bg_cell)
+    remove_cell_margins(bg_cell)
 
     p_img = bg_cell.paragraphs[0]
     run = p_img.add_run()
     run.add_picture(image_path, width=width, height=height)
-    _zero_paragraph_spacing(p_img)
+    zero_paragraph_spacing(p_img)
 
     # 4. Overlay layer (text)
     fg_table = stack_cell.add_table(rows=1, cols=1)
-    _remove_table_borders(fg_table)
+    remove_table_borders(fg_table)
     fg_cell = fg_table.cell(0, 0)
-    _remove_cell_margins(fg_cell)
+    remove_cell_margins(fg_cell)
 
     p_txt = fg_cell.paragraphs[0]
-    _zero_paragraph_spacing(p_txt)
+    zero_paragraph_spacing(p_txt)
 
     return fg_cell
 
-
-''' inside a paragraph move a run from anywhere to start as the 0th run
-'''
-def move_run_to_start(paragraph, run_obj):
-	p_element = paragraph._p
-	r_element = run_obj._element
-    
-	p_element.remove(r_element)
-    
-    # Check if properties exist; if so, put run after them. 
-	pPr = p_element.pPr
-	if pPr is not None:
-		pPr.addnext(r_element)
-
-    # If not, put run at the very top.
-	else:
-		p_element.insert(0, r_element)
-		
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -338,6 +669,34 @@ def create_table(container, num_rows, num_cols, container_width=None, nesting_le
 	return tbl
 
 
+''' polish a table
+'''
+def polish_table(table, nesting_level=0):
+	for r in table.rows:
+		# no preferred width for the last column
+		c = r._tr.tc_lst[-1]
+		#for c in r._tr.tc_lst:
+		tcW = c.tcPr.tcW
+		tcW.type = 'auto'
+		tcW.w = 0
+
+
+''' remove table borders
+'''
+def remove_table_borders(table, nesting_level=0):
+    tbl = table._element
+    tblPr = tbl.tblPr or OxmlElement("w:tblPr")
+
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(ns.qn("w:val"), "nil")
+        borders.append(el)
+
+    tblPr.append(borders)
+    tbl.append(tblPr)
+
+
 ''' set repeat table row on every new page
 '''
 def set_repeat_table_header(row, nesting_level=0):
@@ -347,62 +706,6 @@ def set_repeat_table_header(row, nesting_level=0):
 	tblHeader.set(qn('w:val'), "true")
 	trPr.append(tblHeader)
 	return row
-
-
-''' format container (paragraph or cell)
-	border, bgcolor, padding, valign, halign
-'''
-def format_container(container, attributes, custom_style_name=None, it_is_a_table_cell=True, nesting_level=0):
-	custom_style = ConfigService()._style_specs.get(custom_style_name, None)
-	if custom_style:
-		if 'padding' in custom_style:
-			attributes['padding'] = custom_style['padding']
-
-		if 'borders' in custom_style:
-			attributes['borders'] = custom_style['borders']
-
-		if 'backgroundcolor' in custom_style:
-			attributes['backgroundcolor'] = custom_style['backgroundcolor']
-
-		if 'verticalalign' in custom_style:
-			attributes['verticalalign'] = custom_style['verticalalign']
-
-		if 'textalign' in custom_style:
-			attributes['textalign'] = custom_style['textalign']
-
-		if 'angle' in custom_style:
-			attributes['angle'] = custom_style['angle']
-
-	# borders
-	if it_is_a_table_cell:
-		if 'padding' in attributes:
-			set_cell_padding(container, padding=attributes['padding'])
-
-		if 'borders' in attributes:
-			set_cell_border(container, borders=attributes['borders'])
-
-		if 'backgroundcolor' in attributes:
-			set_cell_bgcolor(container, color=attributes['backgroundcolor'])
-
-		if 'verticalalign' in attributes:
-			container.vertical_alignment = attributes['verticalalign']
-
-		if 'textalign' in attributes:
-			container.paragraphs[0].alignment = attributes['textalign']
-
-		# text rotation, only for table._cell
-		if 'angle' in attributes:
-			rotate_text(cell=container, direction=attributes['angle'])
-
-	else:
-		if 'borders' in attributes:
-			set_paragraph_border(element=container._p, borders=attributes['borders'])
-
-		if 'backgroundcolor' in attributes:
-			set_paragraph_bgcolor(element=container._element, color=attributes['backgroundcolor'])
-
-		if 'textalign' in attributes:
-			container.alignment = attributes['textalign']
 
 
 ''' set table-cell borders
@@ -435,65 +738,12 @@ def set_cell_border(cell: table._Cell, borders, nesting_level=0):
 					element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 
-''' set paragraph borders
-	{
-		"top":		{"sz": , "val": , "color": , "space": , "shadow": },
-		"start":	{},
-		"bottom":	{},
-		"end": 		{},
-	}
-	size is in 1/8 pt units
-	val is any of dotted/dashed/single/thick/triple/double/none
-	space is space/padding between text and border in pt
-'''
-def set_paragraph_border(element, borders, nesting_level=0):
-	pPr = element.get_or_add_pPr()
-
-	# check for tag existnace, if none found, then create one
-	# pBorders = OxmlElement('w:pBorders')
-	pBorders = pPr.first_child_found_in("w:pBorders")
-	if pBorders is None:
-		pBorders = OxmlElement('w:pBorders')
-
-	# list over all available tags
-	for edge in ('top', 'start', 'bottom', 'end'):
-		edge_data = borders.get(edge)
-		if edge_data:
-			edge_str = edge
-			if edge_str == 'start': edge_str = 'left'
-			if edge_str == 'end': edge_str = 'right'
-
-			border = OxmlElement(f'w:{edge_str}')
-			border.set(qn('w:val'), str(edge_data['val']))     # single, double, dashed, dotted
-			border.set(qn('w:sz'), str(edge_data['sz']))          # border width (1/8 pt units)
-			border.set(qn('w:space'), str(edge_data['space']))        # space between text and border
-			border.set(qn('w:color'), str(edge_data['color']))   # hex color
-			pBorders.append(border)
-
-	pPr.append(pBorders)
-
-
 ''' set table-cell bgcolor
 '''
 def set_cell_bgcolor(cell: table._Cell, color, nesting_level=0):
 	xml = r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color)
 	shading_elm_1 = parse_xml(xml)
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
-
-
-''' set paragraph bgcolor
-'''
-def set_paragraph_bgcolor(element, color, nesting_level=0):
-	shading = OxmlElement('w:shd')
-
-	# required
-	shading.set(qn('w:val'), 'clear')
-	# text color
-	shading.set(qn('w:color'), 'auto')
-	# background color (hex, no #)	
-	shading.set(qn('w:fill'), color.lstrip('#'))
-
-	element.get_or_add_pPr().append(shading)
 
 
 ''' set table-cell padding - space between border and text
@@ -513,25 +763,9 @@ def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	tcPr.append(tcMar)
 
 
-''' remove table borders
-'''
-def _remove_table_borders(table):
-    tbl = table._element
-    tblPr = tbl.tblPr or OxmlElement("w:tblPr")
-
-    borders = OxmlElement("w:tblBorders")
-    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-        el = OxmlElement(f"w:{edge}")
-        el.set(ns.qn("w:val"), "nil")
-        borders.append(el)
-
-    tblPr.append(borders)
-    tbl.append(tblPr)
-
-
 ''' remove cell margins
 '''
-def _remove_cell_margins(cell):
+def remove_cell_margins(cell, nesting_level=0):
     tcPr = cell._element.tcPr or OxmlElement("w:tcPr")
 
     tcMar = OxmlElement("w:tcMar")
@@ -545,9 +779,39 @@ def _remove_cell_margins(cell):
     cell._element.append(tcPr)
 
 
+''' rotate text
+'''
+def rotate_text(cell: table._Cell, direction: str, nesting_level=0):
+	# direction: tbRl -- top to bottom, btLr -- bottom to top
+	assert direction in ("tbRl", "btLr")
+	tc = cell._tc
+	tcPr = tc.get_or_add_tcPr()
+	textDirection = OxmlElement('w:textDirection')
+	textDirection.set(qn('w:val'), direction)  # btLr tbRl
+	tcPr.append(textDirection)
+
+
+''' copy cell border from one cell to another
+'''
+def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell, nesting_level=0):
+	from_tc = from_cell._tc
+	from_tcPr = from_tc.get_or_add_tcPr()
+
+	to_tc = to_cell._tc
+	to_tcPr = to_tc.get_or_add_tcPr()
+
+	from_tcBorders = from_tcPr.first_child_found_in("w:tcBorders")
+	to_tcBorders = to_tcPr.first_child_found_in("w:tcBorders")
+	if from_tcBorders is not None:
+		if to_tcBorders is None:
+			to_tcBorders = deepcopy(from_tcBorders)
+			to_tc.get_or_add_tcPr().append(to_tcBorders)
+
+
+
 ''' assert if a cell is not a covered cell
 '''
-def _assert_not_merge_continuation(cell):
+def assert_not_merge_continuation(cell, nesting_level=0):
     tcPr = cell._element.tcPr
     if tcPr is None:
         return
@@ -559,123 +823,8 @@ def _assert_not_merge_continuation(cell):
         )
 
 
-''' remove all spacing around a paragraph
-'''
-def _zero_paragraph_spacing(p):
-    pf = p.paragraph_format
-    pf.space_before = 0
-    pf.space_after = 0
-
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and texts
-
-''' This is needed if we are using the builtin style
-'''
-def get_or_create_hyperlink_style(d, nesting_level=0):
-	"""If this document had no hyperlinks so far, the builtin
-	   Hyperlink style will likely be missing and we need to add it.
-	   There's no predefined value, different Word versions
-	   define it differently.
-	   This version is how Word 2019 defines it in the
-	   default theme, excluding a theme reference.
-	"""
-	if "Hyperlink" not in d.styles:
-		if "Default Character Font" not in d.styles:
-			ds = d.styles.add_style("Default Character Font", WD_STYLE_TYPE.CHARACTER, True)
-			ds.element.set(qn('w:default'), "1")
-			ds.priority = 1
-			ds.hidden = True
-			ds.unhide_when_used = True
-			del ds
-		hs = d.styles.add_style("Hyperlink", WD_STYLE_TYPE.CHARACTER, True)
-		hs.base_style = d.styles["Default Character Font"]
-		hs.unhide_when_used = True
-		hs.font.color.rgb = RGBColor(0x05, 0x63, 0xC1)
-		hs.font.underline = True
-		del hs
-
-	return "Hyperlink"
-
-
-''' add the hyperlink to a run
-'''
-def add_hyperlink(paragraph, text, url, nesting_level=0):
-	# This gets access to the document.xml.rels file and gets a new relation id value
-	part = paragraph.part
-	r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
-
-	# Create the w:hyperlink tag and add needed values
-	hyperlink = OxmlElement('w:hyperlink')
-	hyperlink.set(qn('r:id'), r_id, )
-
-	# Create a new run object (a wrapper over a 'w:r' element)
-	new_run = paragraph.add_run(OxmlElement('w:r'))
-	new_run.text = text
-
-	# Set the run's style to the builtin hyperlink style, defining it if necessary
-	new_run.style = get_or_create_hyperlink_style(part.document)
-	# Alternatively, set the run's formatting explicitly
-	# new_run.font.color.rgb = docx.shared.RGBColor(0, 0, 255)
-	# new_run.font.underline = True
-
-	# Join all the xml elements together
-	hyperlink.append(new_run._element)
-	paragraph._p.append(hyperlink)
-
-	return hyperlink
-
-
-''' create a hyperlink
-'''
-def create_hyperlink(attach_to, anchor, target, nesting_level=0):
-	# if the anchor is not an url, it is a bookmark
-	if not target.startswith('http'):
-		target_text = target.strip()
-		if anchor:
-			anchor_text = anchor
-		else:
-			# TODO: it should actually be the text associated with the target bookmark
-			anchor_text = target_text
-	else:
-		target_text = target.strip()
-		if anchor:
-			anchor_text = anchor
-		else:
-			anchor_text = target_text
-
-	if not target.startswith('http'):
-		# create hyperlink node
-		hyperlink = OxmlElement('w:hyperlink')
-
-		# set attribute for link to bookmark
-		hyperlink.set(qn('w:anchor'), target_text,)
-		hyperlink.set(qn('w:tooltip'), target_text,)
-
-		# change the font color, and add underline
-		rPr = OxmlElement('w:rPr')
-		c = OxmlElement('w:color')
-		c.set(qn('w:val'), '2A6099')
-		rPr.append(c)
-		u = OxmlElement('w:u')
-		u.set(qn('w:val'), 'single')
-		rPr.append(u)
-
-		new_run = OxmlElement('w:r')
-		new_run.append(rPr)
-		new_run.text = anchor_text
-		hyperlink.append(new_run)
-		attach_to._p.append(hyperlink)
-
-		# r = attach_to.add_run(anchor_text)
-		# r._r.append(hyperlink)
-		# r.font.name = "Calibri"
-		# r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
-		# r.font.underline = True
-
-	else:
-		add_hyperlink(paragraph=attach_to, text=anchor_text, url=target_text)
-
 
 ''' write a paragraph in a given style
 '''
@@ -728,6 +877,59 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	return paragraph
 
 
+''' set paragraph borders
+	{
+		"top":		{"sz": , "val": , "color": , "space": , "shadow": },
+		"start":	{},
+		"bottom":	{},
+		"end": 		{},
+	}
+	size is in 1/8 pt units
+	val is any of dotted/dashed/single/thick/triple/double/none
+	space is space/padding between text and border in pt
+'''
+def set_paragraph_border(element, borders, nesting_level=0):
+	pPr = element.get_or_add_pPr()
+
+	# check for tag existnace, if none found, then create one
+	# pBorders = OxmlElement('w:pBorders')
+	pBorders = pPr.first_child_found_in("w:pBorders")
+	if pBorders is None:
+		pBorders = OxmlElement('w:pBorders')
+
+	# list over all available tags
+	for edge in ('top', 'start', 'bottom', 'end'):
+		edge_data = borders.get(edge)
+		if edge_data:
+			edge_str = edge
+			if edge_str == 'start': edge_str = 'left'
+			if edge_str == 'end': edge_str = 'right'
+
+			border = OxmlElement(f'w:{edge_str}')
+			border.set(qn('w:val'), str(edge_data['val']))     # single, double, dashed, dotted
+			border.set(qn('w:sz'), str(edge_data['sz']))          # border width (1/8 pt units)
+			border.set(qn('w:space'), str(edge_data['space']))        # space between text and border
+			border.set(qn('w:color'), str(edge_data['color']))   # hex color
+			pBorders.append(border)
+
+	pPr.append(pBorders)
+
+
+''' set paragraph bgcolor
+'''
+def set_paragraph_bgcolor(element, color, nesting_level=0):
+	shading = OxmlElement('w:shd')
+
+	# required
+	shading.set(qn('w:val'), 'clear')
+	# text color
+	shading.set(qn('w:color'), 'auto')
+	# background color (hex, no #)	
+	shading.set(qn('w:fill'), color.lstrip('#'))
+
+	element.get_or_add_pPr().append(shading)
+
+
 ''' apply paragraph attributes to a paragraph
 '''
 def	apply_paragraph_attributes(docx, paragraph, paragraph_attributes, nesting_level=0):
@@ -770,6 +972,67 @@ def delete_paragraph(paragraph, nesting_level=0):
 	p.getparent().remove(p)
 	# p._p = p._element = None
 
+
+''' tex/character style for text run
+'''
+def set_text_style(run, text_attributes, nesting_level=0):
+	if text_attributes:
+		if 'fontweight' in text_attributes:
+			run.bold = True
+		else:
+			run.bold = False
+
+		if 'fontstyle' in text_attributes:
+			run.italic = True
+		else:
+			run.italic = False
+
+		if 'textlinethroughstyle' in text_attributes:
+			run.strike = True
+		else:
+			run.strike = False
+
+		if 'textunderlinestyle' in text_attributes:
+			run.underline = True
+		else:
+			run.underline = False
+
+		run.font.name = text_attributes['fontname']
+		run.font.size = Pt(text_attributes['fontsize'])
+
+		fgcolor = text_attributes.get('color')
+		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
+
+
+''' inside a paragraph move a run from anywhere to start as the 0th run
+'''
+def move_run_to_start(paragraph, run_obj, nesting_level=0):
+	p_element = paragraph._p
+	r_element = run_obj._element
+    
+	p_element.remove(r_element)
+    
+    # Check if properties exist; if so, put run after them. 
+	pPr = p_element.pPr
+	if pPr is not None:
+		pPr.addnext(r_element)
+
+    # If not, put run at the very top.
+	else:
+		p_element.insert(0, r_element)
+		
+
+''' remove all spacing around a paragraph
+'''
+def zero_paragraph_spacing(paragraph, nesting_level=0):
+    pf = paragraph.paragraph_format
+    pf.space_before = 0
+    pf.space_after = 0
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# footnotes, bookmarks, links, latex, mathml related
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
@@ -1044,37 +1307,6 @@ def create_latex(container, latex_content, nesting_level=0):
 		container._element.append(new_dom.getroot())
 
 
-''' tex/character style for text run
-'''
-def set_text_style(run, text_attributes, nesting_level=0):
-	if text_attributes:
-		if 'fontweight' in text_attributes:
-			run.bold = True
-		else:
-			run.bold = False
-
-		if 'fontstyle' in text_attributes:
-			run.italic = True
-		else:
-			run.italic = False
-
-		if 'textlinethroughstyle' in text_attributes:
-			run.strike = True
-		else:
-			run.strike = False
-
-		if 'textunderlinestyle' in text_attributes:
-			run.underline = True
-		else:
-			run.underline = False
-
-		run.font.name = text_attributes['fontname']
-		run.font.size = Pt(text_attributes['fontsize'])
-
-		fgcolor = text_attributes.get('color')
-		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
-
-
 ''' create a bookmark
 '''
 def add_bookmark(paragraph, bookmark_name, bookmark_text='', nesting_level=0):
@@ -1155,690 +1387,116 @@ def add_link(paragraph, link_to, text, tool_tip=None, nesting_level=0):
 	r.font.underline = True
 
 
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# indexes and pdf generation
-
-''' update docx indexes by opening and closing the docx, rest is done by macros
+''' This is needed if we are using the builtin style
 '''
-def update_indexes(docx_path, nesting_level=0):
+def get_or_create_hyperlink_style(d, nesting_level=0):
+	"""If this document had no hyperlinks so far, the builtin
+	   Hyperlink style will likely be missing and we need to add it.
+	   There's no predefined value, different Word versions
+	   define it differently.
+	   This version is how Word 2019 defines it in the
+	   default theme, excluding a theme reference.
+	"""
+	if "Hyperlink" not in d.styles:
+		if "Default Character Font" not in d.styles:
+			ds = d.styles.add_style("Default Character Font", WD_STYLE_TYPE.CHARACTER, True)
+			ds.element.set(qn('w:default'), "1")
+			ds.priority = 1
+			ds.hidden = True
+			ds.unhide_when_used = True
+			del ds
+		hs = d.styles.add_style("Hyperlink", WD_STYLE_TYPE.CHARACTER, True)
+		hs.base_style = d.styles["Default Character Font"]
+		hs.unhide_when_used = True
+		hs.font.color.rgb = RGBColor(0x05, 0x63, 0xC1)
+		hs.font.underline = True
+		del hs
 
-	try:
-		word = client.DispatchEx("Word.Application")
-	except Exception as e:
-		raise e
-
-	try:
-		docx = word.Documents.Open(docx_path)
-		docx.Close()
-	except Exception as e:
-		raise e
-	finally:
-		word.Quit()
+	return "Hyperlink"
 
 
-''' set docx updateFields property true
+''' add the hyperlink to a run
 '''
-def set_updatefields_true(docx_path, nesting_level=0):
-	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-	docx = Document(docx_path)
-	# add child to docx.settings element
-	element_updatefields = lxml.etree.SubElement(
-		docx.settings.element, f"{namespace}updateFields"
-	)
-	element_updatefields.set(f"{namespace}val", "true")
-	docx.save(docx_path)
+def add_hyperlink(paragraph, text, url, nesting_level=0):
+	# This gets access to the document.xml.rels file and gets a new relation id value
+	part = paragraph.part
+	r_id = part.relate_to(url, RT.HYPERLINK, is_external=True)
+
+	# Create the w:hyperlink tag and add needed values
+	hyperlink = OxmlElement('w:hyperlink')
+	hyperlink.set(qn('r:id'), r_id, )
+
+	# Create a new run object (a wrapper over a 'w:r' element)
+	new_run = paragraph.add_run(OxmlElement('w:r'))
+	new_run.text = text
+
+	# Set the run's style to the builtin hyperlink style, defining it if necessary
+	new_run.style = get_or_create_hyperlink_style(part.document)
+	# Alternatively, set the run's formatting explicitly
+	# new_run.font.color.rgb = docx.shared.RGBColor(0, 0, 255)
+	# new_run.font.underline = True
+
+	# Join all the xml elements together
+	hyperlink.append(new_run._element)
+	paragraph._p.append(hyperlink)
+
+	return hyperlink
 
 
-''' given an docx file generates pdf in the given directory
+''' create a hyperlink
 '''
-def generate_pdf(infile, outdir, nesting_level=0):
-	# Constants for Word Export
-	wdExportFormatPDF = 17
-	wdExportOptimizeForPrint = 0
-	wdExportAllDocument = 0
-	wdExportCreateHeadingBookmarks = 1  # This enables the bookmarks
-
-	pdf_path = infile + '.pdf'
-	try:
-		word = client.DispatchEx("Word.Application")
-	except Exception as e:
-		raise e
-
-	try:
-		docx = word.Documents.Open(infile)
-		try:
-			docx.ExportAsFixedFormat(pdf_path, 
-				ExportFormat=wdExportFormatPDF,
-				OpenAfterExport=False,
-				OptimizeFor=wdExportOptimizeForPrint,
-				Range=wdExportAllDocument,
-				Item=0, # wdExportDocumentContent
-				IncludeDocProps=True,
-				KeepIRM=True,
-				CreateBookmarks=wdExportCreateHeadingBookmarks # KEY PARAMETER
-        )				
-
-		except Exception as e:
-			raise e
-
-		finally:
-			docx.Close()
-
-	except Exception as e:
-		raise e
-
-	finally:
-		word.Quit()
-
-
-''' create table-of-contents
-'''
-def create_index(docx, index_type, nesting_level=0):
-	paragraph = docx.add_paragraph()
-	run = paragraph.add_run()
-
-	# create a new element with attributes
-	fldChar = OxmlElement('w:fldChar')
-	fldChar.set(qn('w:fldCharType'), 'begin')
-
-	instrText = OxmlElement('w:instrText')
-	instrText.set(qn('xml:space'), 'preserve')
-
-	if index_type == 'toc':
-		instrText.text = 'TOC \\o "1-6" \\h \\z \\u'
-	elif index_type == 'lof':
-		instrText.text = 'TOC \\h \\z \\t "Figure" \\c'
-	elif index_type == 'lot':
-		instrText.text = 'TOC \\h \\z \\t "Table" \\c'
-
-	fldChar2 = OxmlElement('w:fldChar')
-	fldChar2.set(qn('w:fldCharType'), 'separate')
-	fldChar3 = OxmlElement('w:t')
-	fldChar3.text = "Right-click to update Index."
-	fldChar2.append(fldChar3)
-
-	fldChar4 = OxmlElement('w:fldChar')
-	fldChar4.set(qn('w:fldCharType'), 'end')
-
-	r_element = run._r
-	r_element.append(fldChar)
-	r_element.append(instrText)
-	r_element.append(fldChar2)
-	r_element.append(fldChar4)
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# document-section, page-layout, header-footer
-
-''' add or update a document section
-'''
-def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, link_to_previous=False, nesting_level=0):
-	#  if it is a section break, we isnert a new section
-	if section_break:
-		new_section = True
-		docx_section = docx.add_section(WD_SECTION.NEW_PAGE)
-
-	else:
-		# we are continuing the last section
-		if first_section:
-			new_section = True
+def create_hyperlink(attach_to, anchor, target, nesting_level=0):
+	# if the anchor is not an url, it is a bookmark
+	if not target.startswith('http'):
+		target_text = target.strip()
+		if anchor:
+			anchor_text = anchor
 		else:
-			new_section = False
-
-		docx_section = docx.sections[-1]
-
-		#  we may have a page break
-		if page_break:
-			docx.add_page_break()
-
-
-	docx_section.first_page_header.is_linked_to_previous = link_to_previous
-	docx_section.header.is_linked_to_previous = link_to_previous
-	docx_section.even_page_header.is_linked_to_previous = link_to_previous
-
-	docx_section.first_page_footer.is_linked_to_previous = link_to_previous
-	docx_section.footer.is_linked_to_previous = link_to_previous
-	docx_section.even_page_footer.is_linked_to_previous = link_to_previous
-
-	if orientation == 'landscape':
-		docx_section.orient = WD_ORIENT.LANDSCAPE
-		docx_section.page_width = Inches(page_spec['height'])
-		docx_section.page_height = Inches(page_spec['width'])
+			# TODO: it should actually be the text associated with the target bookmark
+			anchor_text = target_text
 	else:
-		docx_section.orient = WD_ORIENT.PORTRAIT
-		docx_section.page_width = Inches(page_spec['width'])
-		docx_section.page_height = Inches(page_spec['height'])
+		target_text = target.strip()
+		if anchor:
+			anchor_text = anchor
+		else:
+			anchor_text = target_text
 
-	docx_section.left_margin = Inches(margin_spec['left'])
-	docx_section.right_margin = Inches(margin_spec['right'])
-	docx_section.top_margin = Inches(margin_spec['top'])
-	docx_section.bottom_margin = Inches(margin_spec['bottom'])
+	if not target.startswith('http'):
+		# create hyperlink node
+		hyperlink = OxmlElement('w:hyperlink')
 
-	docx_section.gutter = Inches(margin_spec['gutter'])
+		# set attribute for link to bookmark
+		hyperlink.set(qn('w:anchor'), target_text,)
+		hyperlink.set(qn('w:tooltip'), target_text,)
 
-	docx_section.header_distance = Inches(margin_spec['distance']['header'])
-	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
+		# change the font color, and add underline
+		rPr = OxmlElement('w:rPr')
+		c = OxmlElement('w:color')
+		c.set(qn('w:val'), '2A6099')
+		rPr.append(c)
+		u = OxmlElement('w:u')
+		u.set(qn('w:val'), 'single')
+		rPr.append(u)
 
-	docx_section.different_first_page_header_footer = different_firstpage
-	docx.settings.odd_and_even_pages_header_footer = different_odd_even_pages
+		new_run = OxmlElement('w:r')
+		new_run.append(rPr)
+		new_run.text = anchor_text
+		hyperlink.append(new_run)
+		attach_to._p.append(hyperlink)
 
-	# get the actual width
-	# actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
+		# r = attach_to.add_run(anchor_text)
+		# r._r.append(hyperlink)
+		# r.font.name = "Calibri"
+		# r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
+		# r.font.underline = True
 
-	return docx_section, new_section
-
-
-''' create page background
-	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
-		<wp:simplePos x="0" y="0" />
-		<wp:positionH relativeFrom="page">
-			<wp:posOffset>0</wp:posOffset>
-		</wp:positionH>
-		<wp:positionV relativeFrom="page">
-			<wp:posOffset>0</wp:posOffset>
-		</wp:positionV>
-		<wp:extent cx="7562000" cy="10689336" />
-		<wp:effectExtent l="0" t="0" r="0" b="0" />
-		<wp:wrapNone />
-		<wp:docPr id="1" name="Picture 1" />
-		<wp:cNvGraphicFramePr>
-			<a:graphicFrameLocks
-				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
-		</wp:cNvGraphicFramePr>
-		<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-			<a:graphicData
-				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-				<pic:pic
-					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-					<pic:nvPicPr>
-						<pic:cNvPr id="0" name="toll-booth.jpg" />
-						<pic:cNvPicPr />
-					</pic:nvPicPr>
-					<pic:blipFill>
-						<a:blip r:embed="rId8">
-							<a:extLst>
-								<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-									<a14:useLocalDpi
-										xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
-										val="0" />
-								</a:ext>
-							</a:extLst>
-						</a:blip>
-						<a:stretch>
-							<a:fillRect />
-						</a:stretch>
-					</pic:blipFill>
-					<pic:spPr>
-						<a:xfrm>
-							<a:off x="0" y="0" />
-							<a:ext cx="7562000" cy="10692000" />
-						</a:xfrm>
-						<a:prstGeom prst="rect">
-							<a:avLst />
-						</a:prstGeom>
-					</pic:spPr>
-				</pic:pic>
-			</a:graphicData>
-		</a:graphic>
-		<wp14:sizeRelH relativeFrom="margin">
-			<wp14:pctWidth>0</wp14:pctWidth>
-		</wp14:sizeRelH>
-		<wp14:sizeRelV relativeFrom="margin">
-			<wp14:pctHeight>0</wp14:pctHeight>
-		</wp14:sizeRelV>
-	</wp:anchor>
-'''
-def create_page_background(docx, header, background_image_path, page_width_inches, page_height_inches, nesting_level=0):
-	drawing_xml = '''
-	<w:drawing>
-		<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
-			<wp:simplePos x="0" y="0" />
-			<wp:positionH relativeFrom="page">
-				<wp:posOffset>0</wp:posOffset>
-			</wp:positionH>
-			<wp:positionV relativeFrom="page">
-				<wp:posOffset>0</wp:posOffset>
-			</wp:positionV>
-			<wp:extent cx="{cx}" cy="{cy}" />
-			<wp:effectExtent l="0" t="0" r="0" b="0" />
-			<wp:wrapNone />
-			<wp:docPr id="{doc_id}" name="{doc_name}" />
-			<wp:cNvGraphicFramePr>
-				<a:graphicFrameLocks
-					xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" />
-			</wp:cNvGraphicFramePr>
-			<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-				<a:graphicData
-					uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-					<pic:pic
-						xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-						<pic:nvPicPr>
-							<pic:cNvPr id="{image_id}" name="{image_name}" />
-							<pic:cNvPicPr />
-						</pic:nvPicPr>
-						<pic:blipFill>
-							<a:blip r:embed="{rid}">
-							</a:blip>
-							<a:stretch>
-								<a:fillRect />
-							</a:stretch>
-						</pic:blipFill>
-						<pic:spPr>
-							<a:xfrm>
-								<a:off x="0" y="0" />
-								<a:ext cx="{cx}" cy="{cy}" />
-							</a:xfrm>
-							<a:prstGeom prst="rect">
-								<a:avLst />
-							</a:prstGeom>
-						</pic:spPr>
-					</pic:pic>
-				</a:graphicData>
-			</a:graphic>
-			<wp14:sizeRelH relativeFrom="margin">
-				<wp14:pctWidth>0</wp14:pctWidth>
-			</wp14:sizeRelH>
-			<wp14:sizeRelV relativeFrom="margin">
-				<wp14:pctHeight>0</wp14:pctHeight>
-			</wp14:sizeRelV>
-		</wp:anchor>
-	</w:drawing>
-	'''
-
-	# get the current/last paragraph
-	first_para = header.paragraphs[0]
-	first_run = first_para.add_run()
-
-	# add a new paragraph paragraph
-	new_para = docx.add_paragraph()
-
-	# create a run
-	new_run = new_para.add_run()
-
-	# put the image
-	shape = new_run.add_picture(image_path_or_stream=background_image_path, height=Inches(page_height_inches))
-	# current_drawing_element = new_run._r.xpath('//w:drawing')[0]
-
-	try:
-		# tweak the generated inline image
-		parser = etree.XMLParser(recover=True)
-
-		cx = str(_emu(page_width_inches))
-		cy = str(_emu(page_height_inches))
-
-
-		docPr = new_run._r.xpath('.//wp:docPr')[0]
-		doc_id = docPr.get('id')
-		doc_name = docPr.get('name')
-
-		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
-		image_id = cNvPr.get('id')
-		image_name = cNvPr.get('name')
-		trace(f"bg image [{image_name}]", nesting_level=nesting_level)
-
-		blip = new_run._r.xpath('.//a:blip')[0]
-
-		rid = None
-		try:
-			rid = blip.xpath('./@r:embed')[0]
-			# trace(f"rid [{rid}]")
-		except:
-			warn(f"rid not found under blip")
-		
-		if rid is None:
-			try:
-				# Assuming blip_element is your element object
-				# namespaces = {'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
-
-				# Access via the attrib dictionary
-				# Note: You must use the {URI} format as the key
-				# attr_key = f"{{{namespaces['r']}}}embed"
-				attr_key = f"r:embed"
-				rid = blip.attrib.get(attr_key)
-				trace(f"rid [{rid}]")
-
-			except Exception as e:
-				warn(f"r:embed not found under blip")
-				raise e
-
-		new_drawing_element = etree.XML(drawing_xml.format(cx=cx, cy=cy, doc_id=doc_id, doc_name=doc_name, image_id=image_id, image_name=image_name, rid=rid), parser)
-		# put the new drawing into first-run
-		first_run._r.append(new_drawing_element)
-
-	except Exception as e:
-		error(traceback.format_exc())
-
-	# remove the new-para
-	delete_paragraph(new_para)
-
-
-''' Inserts an image into the header, stretches it to page size, and makes it floating behind text.
-'''
-def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
-    # Put it in its own paragraph at start
-	for header in [docx_section.header, docx_section.even_page_header]:
-		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
-		run = p.add_run()
-		inline = run.add_picture(image_path, width=width, height=height)
-		inline_to_anchored_behind(inline, width=width, height=height)
-		unlock_picture_aspect_ratio(inline)
-		force_picture_transform(inline, width_in=width, height_in=height)
-
-
-''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
-	positioned at page origin and behind text.
-'''
-def inline_to_anchored_behind(inline, width, height, nesting_level=0):
-    inline_elm = inline._inline  # the <wp:inline> element
-
-    # Rename <wp:inline> -> <wp:anchor>
-    inline_elm.tag = qn("wp:anchor")
-
-    # Anchor attributes (Word is picky about these)
-    inline_elm.set("simplePos", "0")
-    inline_elm.set("relativeHeight", "0")
-    inline_elm.set("behindDoc", "1")
-    inline_elm.set("locked", "0")
-    inline_elm.set("layoutInCell", "1")
-    inline_elm.set("allowOverlap", "1")
-    inline_elm.set("distT", "0")
-    inline_elm.set("distB", "0")
-    inline_elm.set("distL", "0")
-    inline_elm.set("distR", "0")
-
-    # Build required children: simplePos, positionH, positionV
-    simplePos = OxmlElement("wp:simplePos")
-    simplePos.set("x", "0")
-    simplePos.set("y", "0")
-
-    positionH = OxmlElement("wp:positionH")
-    positionH.set("relativeFrom", "page")
-    posOffsetH = OxmlElement("wp:posOffset")
-    posOffsetH.text = "0"
-    positionH.append(posOffsetH)
-
-    positionV = OxmlElement("wp:positionV")
-    positionV.set("relativeFrom", "page")
-    posOffsetV = OxmlElement("wp:posOffset")
-    posOffsetV.text = "0"
-    positionV.append(posOffsetV)
-
-    # Insert at the beginning, BEFORE wp:extent
-    # (inline originally starts with wp:extent)
-    inline_elm.insert(0, simplePos)
-    inline_elm.insert(1, positionH)
-    inline_elm.insert(2, positionV)
-
-    # Ensure wrapNone exists right after effectExtent
-    wrapNone = OxmlElement("wp:wrapNone")
-
-    # Find effectExtent if present; if not, create one after extent
-    extent = inline_elm.find(qn("wp:extent"))
-    effectExtent = inline_elm.find(qn("wp:effectExtent"))
-
-    if effectExtent is None:
-        effectExtent = OxmlElement("wp:effectExtent")
-        effectExtent.set("l", "0")
-        effectExtent.set("t", "0")
-        effectExtent.set("r", "0")
-        effectExtent.set("b", "0")
-        # place it after extent
-        if extent is not None:
-            idx = list(inline_elm).index(extent)
-            inline_elm.insert(idx + 1, effectExtent)
-        else:
-            inline_elm.insert(3, effectExtent)
-
-    # Insert wrapNone immediately after effectExtent if not already there
-    children = list(inline_elm)
-    eff_idx = children.index(effectExtent)
-    if not any(c.tag == qn("wp:wrapNone") for c in children):
-        inline_elm.insert(eff_idx + 1, wrapNone)
-
-    # IMPORTANT: set extent to full page (if you want exact A4 stretch)
-    # (python-docx may have already set it based on add_picture width/height,
-    # but this forces correctness)
-    if extent is not None:
-        extent.set("cx", str(_emu(width)))
-        extent.set("cy", str(_emu(height)))
-
-
-''' Removes/sets noChangeAspect on a:picLocks so the picture can stretch freely.
-	Works for both <wp:inline> and <wp:anchor> (same underlying structure).
-'''
-def unlock_picture_aspect_ratio(inline_or_anchor, nesting_level=0):
-    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
-    # Find a:pic in the drawing
-    pic = drawing.find(".//" + qn("pic:pic"))
-    if pic is None:
-        return
-
-    # Non-visual picture properties: pic:nvPicPr
-    nvPicPr = pic.find(qn("pic:nvPicPr"))
-    if nvPicPr is None:
-        return
-
-    cNvPicPr = nvPicPr.find(qn("pic:cNvPicPr"))
-    if cNvPicPr is None:
-        return
-
-    picLocks = cNvPicPr.find(qn("a:picLocks"))
-    if picLocks is None:
-        picLocks = OxmlElement("a:picLocks")
-        cNvPicPr.append(picLocks)
-
-    # noChangeAspect="0" means NOT locked. If it's "1" it's locked.
-    picLocks.set("noChangeAspect", "0")
-
-
-''' Forces the internal DrawingML transform to match width/height,
-	resets scaling to 100%, and removes cropping.
-
-	This helps when Word 'snaps back' to aspect ratio behavior or applies
-	internal scaling/cropping that fights wp:extent sizing.
-'''
-def force_picture_transform(inline_or_anchor, width_in: float, height_in: float, nesting_level=0):
-    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
-
-    # Find picture element
-    pic = drawing.find(".//" + qn("pic:pic"))
-    if pic is None:
-        return
-
-    # Remove cropping if present: pic:blipFill/a:srcRect
-    blipFill = pic.find(qn("pic:blipFill"))
-    if blipFill is not None:
-        srcRect = blipFill.find(qn("a:srcRect"))
-        if srcRect is not None:
-            blipFill.remove(srcRect)
-
-    # Ensure shape properties exist: pic:spPr
-    spPr = pic.find(qn("pic:spPr"))
-    if spPr is None:
-        spPr = OxmlElement("pic:spPr")
-        pic.append(spPr)
-
-    # Ensure transform exists: a:xfrm
-    xfrm = spPr.find(qn("a:xfrm"))
-    if xfrm is None:
-        xfrm = OxmlElement("a:xfrm")
-        # Best placed near start of spPr
-        spPr.insert(0, xfrm)
-
-    # Ensure offset exists: a:off (top-left of the shape)
-    off = xfrm.find(qn("a:off"))
-    if off is None:
-        off = OxmlElement("a:off")
-        xfrm.insert(0, off)
-    off.set("x", "0")
-    off.set("y", "0")
-
-    # Ensure extent exists: a:ext (size of the shape)
-    ext = xfrm.find(qn("a:ext"))
-    if ext is None:
-        ext = OxmlElement("a:ext")
-        xfrm.append(ext)
-
-    ext.set("cx", str(_emu(width_in)))
-    ext.set("cy", str(_emu(height_in)))
-
-    # Reset any scale attributes (rare, but some docs have them)
-    # Some producers add chExt / chOff etc. We won’t add those; we just ensure ext is correct.
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# various utility functions
-
-''' inches to emu
-'''
-def _emu(inches: float) -> int:
-    return int(inches * EMU_PER_INCH)
-
-
-''' pt to emu
-'''
-def _pt_to_emu(pt):
-    return int(pt * EMU_PER_PT)
-
-
-''' whether the container is a table-cell or not
-'''
-def is_table_cell(container, nesting_level=0):
-	# if container is n instance of table-cell
-	if type(container) is table._Cell:
-		return True
 	else:
-		return False
-
-
-''' whether the container is a document or not
-'''
-def is_document(container, nesting_level=0):
-	# if container is n instance of table-cell
-	if type(container) is document.Document:
-		return True
-	else:
-		return False
-
-
-''' whether the container is a paragraph or not
-'''
-def is_paragraph(container, nesting_level=0):
-	# if container is n instance of table-cell
-	if isinstance(container, Paragraph):
-		return True
-	else:
-		return False
-
-
-''' given pixel size, calculate the row height in inches
-	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
-'''
-def row_height_in_inches(pixel_size, nesting_level=0):
-	return float((pixel_size) / 96)
-
-
-''' get a random string
-'''
-def random_string(length=12, nesting_level=0):
-	letters = string.ascii_uppercase
-	return ''.join(random.choice(letters) for i in range(length))
-
-
-''' fit width/height into a given width/height maintaining aspect ratio
-'''
-def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
-	scale = min(
-        fit_within_width / width_to_fit,
-        fit_within_height / height_to_fit
-    )
-
-	return (
-        width_to_fit * scale,
-        height_to_fit * scale,
-    )
-
-
-''' strip delimeters for math mode
-'''
-def strip_math_mode_delimeters(latex_content, nesting_level=0):
-	# strip SPACES
-	stripped = latex_content.strip()
-
-	# strip $
-	stripped = stripped.strip('$')
-
-	# TODO: strip \( and \)
-
-	return stripped
-
-
-''' rotate text
-'''
-def rotate_text(cell: table._Cell, direction: str, nesting_level=0):
-	# direction: tbRl -- top to bottom, btLr -- bottom to top
-	assert direction in ("tbRl", "btLr")
-	tc = cell._tc
-	tcPr = tc.get_or_add_tcPr()
-	textDirection = OxmlElement('w:textDirection')
-	textDirection.set(qn('w:val'), direction)  # btLr tbRl
-	tcPr.append(textDirection)
-
-
-''' copy cell border from one cell to another
-'''
-def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell, nesting_level=0):
-	from_tc = from_cell._tc
-	from_tcPr = from_tc.get_or_add_tcPr()
-
-	to_tc = to_cell._tc
-	to_tcPr = to_tc.get_or_add_tcPr()
-
-	from_tcBorders = from_tcPr.first_child_found_in("w:tcBorders")
-	to_tcBorders = to_tcPr.first_child_found_in("w:tcBorders")
-	if from_tcBorders is not None:
-		if to_tcBorders is None:
-			to_tcBorders = deepcopy(from_tcBorders)
-			to_tc.get_or_add_tcPr().append(to_tcBorders)
-
-
-''' merge another docx into this document
-'''
-def merge_document(placeholder, docx_path, nesting_level=0):
-	# the document is in the same folder as the template, get the path
-	# docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
-	sub_doc = Document(docx_path)
-
-	par_parent = placeholder._p.getparent()
-	index = par_parent.index(placeholder._p) + 1
-	for element in sub_doc.part.element:
-		element.remove_all('w:sectPr')
-		par_parent.insert(index, element)
-		index = index + 1
-
-
-''' polish a table
-'''
-def polish_table(table, nesting_level=0):
-	for r in table.rows:
-		# no preferred width for the last column
-		c = r._tr.tc_lst[-1]
-		#for c in r._tr.tc_lst:
-		tcW = c.tcPr.tcW
-		tcW.type = 'auto'
-		tcW.w = 0
-
-
-''' pretty print element xml
-'''
-def print_xml(element, nesting_level=0):
-	# Convert your element to a string first (using ET or lxml)
-	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
+		add_hyperlink(paragraph=attach_to, text=anchor_text, url=target_text)
 
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# DOCX specific utility functions
+# DOCX style specific utility functions
 
 ''' return the style if exists
 '''
@@ -2051,6 +1709,138 @@ def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
 
 
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# indexes and pdf generation
+
+''' update docx indexes by opening and closing the docx, rest is done by macros
+'''
+def update_indexes(docx_path, nesting_level=0):
+
+	try:
+		word = client.DispatchEx("Word.Application")
+	except Exception as e:
+		raise e
+
+	try:
+		docx = word.Documents.Open(docx_path)
+		docx.Close()
+	except Exception as e:
+		raise e
+	finally:
+		word.Quit()
+
+
+''' set docx updateFields property true
+'''
+def set_updatefields_true(docx_path, nesting_level=0):
+	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+	docx = Document(docx_path)
+	# add child to docx.settings element
+	element_updatefields = lxml.etree.SubElement(
+		docx.settings.element, f"{namespace}updateFields"
+	)
+	element_updatefields.set(f"{namespace}val", "true")
+	docx.save(docx_path)
+
+
+''' given an docx file generates pdf in the given directory
+'''
+def generate_pdf(infile, outdir, nesting_level=0):
+	# Constants for Word Export
+	wdExportFormatPDF = 17
+	wdExportOptimizeForPrint = 0
+	wdExportAllDocument = 0
+	wdExportCreateHeadingBookmarks = 1  # This enables the bookmarks
+
+	pdf_path = infile + '.pdf'
+	try:
+		word = client.DispatchEx("Word.Application")
+	except Exception as e:
+		raise e
+
+	try:
+		docx = word.Documents.Open(infile)
+		try:
+			docx.ExportAsFixedFormat(pdf_path, 
+				ExportFormat=wdExportFormatPDF,
+				OpenAfterExport=False,
+				OptimizeFor=wdExportOptimizeForPrint,
+				Range=wdExportAllDocument,
+				Item=0, # wdExportDocumentContent
+				IncludeDocProps=True,
+				KeepIRM=True,
+				CreateBookmarks=wdExportCreateHeadingBookmarks # KEY PARAMETER
+        )				
+
+		except Exception as e:
+			raise e
+
+		finally:
+			docx.Close()
+
+	except Exception as e:
+		raise e
+
+	finally:
+		word.Quit()
+
+
+''' create table-of-contents
+'''
+def create_index(docx, index_type, nesting_level=0):
+	paragraph = docx.add_paragraph()
+	run = paragraph.add_run()
+
+	# create a new element with attributes
+	fldChar = OxmlElement('w:fldChar')
+	fldChar.set(qn('w:fldCharType'), 'begin')
+
+	instrText = OxmlElement('w:instrText')
+	instrText.set(qn('xml:space'), 'preserve')
+
+	if index_type == 'toc':
+		instrText.text = 'TOC \\o "1-6" \\h \\z \\u'
+	elif index_type == 'lof':
+		instrText.text = 'TOC \\h \\z \\t "Figure" \\c'
+	elif index_type == 'lot':
+		instrText.text = 'TOC \\h \\z \\t "Table" \\c'
+
+	fldChar2 = OxmlElement('w:fldChar')
+	fldChar2.set(qn('w:fldCharType'), 'separate')
+	fldChar3 = OxmlElement('w:t')
+	fldChar3.text = "Right-click to update Index."
+	fldChar2.append(fldChar3)
+
+	fldChar4 = OxmlElement('w:fldChar')
+	fldChar4.set(qn('w:fldCharType'), 'end')
+
+	r_element = run._r
+	r_element.append(fldChar)
+	r_element.append(instrText)
+	r_element.append(fldChar2)
+	r_element.append(fldChar4)
+
+
+''' merge another docx into this document
+'''
+def merge_document(placeholder, docx_path, nesting_level=0):
+	# the document is in the same folder as the template, get the path
+	# docx_path = os.path.abspath('{0}/{1}'.format('../conf', docx_name))
+	sub_doc = Document(docx_path)
+
+	par_parent = placeholder._p.getparent()
+	index = par_parent.index(placeholder._p) + 1
+	for element in sub_doc.part.element:
+		element.remove_all('w:sectPr')
+		par_parent.insert(index, element)
+		index = index + 1
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# web and drive specific utility functions
+
 ''' download an image from a web or drive url and return a dict
     {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}
 '''
@@ -2217,6 +2007,221 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
+''' inches to emu
+'''
+def emu(inches: float, nesting_level=0) -> int:
+    return int(inches * EMU_PER_INCH)
+
+
+''' pt to emu
+'''
+def pt_to_emu(pt, nesting_level=0):
+    return int(pt * EMU_PER_PT)
+
+
+''' given pixel size, calculate the row height in inches
+	a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
+'''
+def row_height_in_inches(pixel_size, nesting_level=0):
+	return float((pixel_size) / 96)
+
+
+''' get a random string
+'''
+def random_string(length=12, nesting_level=0):
+	letters = string.ascii_uppercase
+	return ''.join(random.choice(letters) for i in range(length))
+
+
+''' fit width/height into a given width/height maintaining aspect ratio
+'''
+def fit_width_height(fit_within_width, fit_within_height, width_to_fit, height_to_fit, nesting_level=0):
+	scale = min(
+        fit_within_width / width_to_fit,
+        fit_within_height / height_to_fit
+    )
+
+	return (
+        width_to_fit * scale,
+        height_to_fit * scale,
+    )
+
+
+''' strip delimeters for math mode
+'''
+def strip_math_mode_delimeters(latex_content, nesting_level=0):
+	# strip SPACES
+	stripped = latex_content.strip()
+
+	# strip $
+	stripped = stripped.strip('$')
+
+	# TODO: strip \( and \)
+
+	return stripped
+
+
+''' Convert an inline picture (<wp:inline>) to a floating anchored picture (<wp:anchor>)
+	positioned at page origin and behind text.
+'''
+def inline_to_anchored_behind(inline, width, height, nesting_level=0):
+    inline_elm = inline._inline  # the <wp:inline> element
+
+    # Rename <wp:inline> -> <wp:anchor>
+    inline_elm.tag = qn("wp:anchor")
+
+    # Anchor attributes (Word is picky about these)
+    inline_elm.set("simplePos", "0")
+    inline_elm.set("relativeHeight", "0")
+    inline_elm.set("behindDoc", "1")
+    inline_elm.set("locked", "0")
+    inline_elm.set("layoutInCell", "1")
+    inline_elm.set("allowOverlap", "1")
+    inline_elm.set("distT", "0")
+    inline_elm.set("distB", "0")
+    inline_elm.set("distL", "0")
+    inline_elm.set("distR", "0")
+
+    # Build required children: simplePos, positionH, positionV
+    simplePos = OxmlElement("wp:simplePos")
+    simplePos.set("x", "0")
+    simplePos.set("y", "0")
+
+    positionH = OxmlElement("wp:positionH")
+    positionH.set("relativeFrom", "page")
+    posOffsetH = OxmlElement("wp:posOffset")
+    posOffsetH.text = "0"
+    positionH.append(posOffsetH)
+
+    positionV = OxmlElement("wp:positionV")
+    positionV.set("relativeFrom", "page")
+    posOffsetV = OxmlElement("wp:posOffset")
+    posOffsetV.text = "0"
+    positionV.append(posOffsetV)
+
+    # Insert at the beginning, BEFORE wp:extent
+    # (inline originally starts with wp:extent)
+    inline_elm.insert(0, simplePos)
+    inline_elm.insert(1, positionH)
+    inline_elm.insert(2, positionV)
+
+    # Ensure wrapNone exists right after effectExtent
+    wrapNone = OxmlElement("wp:wrapNone")
+
+    # Find effectExtent if present; if not, create one after extent
+    extent = inline_elm.find(qn("wp:extent"))
+    effectExtent = inline_elm.find(qn("wp:effectExtent"))
+
+    if effectExtent is None:
+        effectExtent = OxmlElement("wp:effectExtent")
+        effectExtent.set("l", "0")
+        effectExtent.set("t", "0")
+        effectExtent.set("r", "0")
+        effectExtent.set("b", "0")
+        # place it after extent
+        if extent is not None:
+            idx = list(inline_elm).index(extent)
+            inline_elm.insert(idx + 1, effectExtent)
+        else:
+            inline_elm.insert(3, effectExtent)
+
+    # Insert wrapNone immediately after effectExtent if not already there
+    children = list(inline_elm)
+    eff_idx = children.index(effectExtent)
+    if not any(c.tag == qn("wp:wrapNone") for c in children):
+        inline_elm.insert(eff_idx + 1, wrapNone)
+
+    # IMPORTANT: set extent to full page (if you want exact A4 stretch)
+    # (python-docx may have already set it based on add_picture width/height,
+    # but this forces correctness)
+    if extent is not None:
+        extent.set("cx", str(emu(width)))
+        extent.set("cy", str(emu(height)))
+
+
+''' Removes/sets noChangeAspect on a:picLocks so the picture can stretch freely.
+	Works for both <wp:inline> and <wp:anchor> (same underlying structure).
+'''
+def unlock_picture_aspect_ratio(inline_or_anchor, nesting_level=0):
+    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
+    # Find a:pic in the drawing
+    pic = drawing.find(".//" + qn("pic:pic"))
+    if pic is None:
+        return
+
+    # Non-visual picture properties: pic:nvPicPr
+    nvPicPr = pic.find(qn("pic:nvPicPr"))
+    if nvPicPr is None:
+        return
+
+    cNvPicPr = nvPicPr.find(qn("pic:cNvPicPr"))
+    if cNvPicPr is None:
+        return
+
+    picLocks = cNvPicPr.find(qn("a:picLocks"))
+    if picLocks is None:
+        picLocks = OxmlElement("a:picLocks")
+        cNvPicPr.append(picLocks)
+
+    # noChangeAspect="0" means NOT locked. If it's "1" it's locked.
+    picLocks.set("noChangeAspect", "0")
+
+
+''' Forces the internal DrawingML transform to match width/height,
+	resets scaling to 100%, and removes cropping.
+
+	This helps when Word 'snaps back' to aspect ratio behavior or applies
+	internal scaling/cropping that fights wp:extent sizing.
+'''
+def force_picture_transform(inline_or_anchor, width_in: float, height_in: float, nesting_level=0):
+    drawing = inline_or_anchor._inline.getparent()  # <w:drawing>
+
+    # Find picture element
+    pic = drawing.find(".//" + qn("pic:pic"))
+    if pic is None:
+        return
+
+    # Remove cropping if present: pic:blipFill/a:srcRect
+    blipFill = pic.find(qn("pic:blipFill"))
+    if blipFill is not None:
+        srcRect = blipFill.find(qn("a:srcRect"))
+        if srcRect is not None:
+            blipFill.remove(srcRect)
+
+    # Ensure shape properties exist: pic:spPr
+    spPr = pic.find(qn("pic:spPr"))
+    if spPr is None:
+        spPr = OxmlElement("pic:spPr")
+        pic.append(spPr)
+
+    # Ensure transform exists: a:xfrm
+    xfrm = spPr.find(qn("a:xfrm"))
+    if xfrm is None:
+        xfrm = OxmlElement("a:xfrm")
+        # Best placed near start of spPr
+        spPr.insert(0, xfrm)
+
+    # Ensure offset exists: a:off (top-left of the shape)
+    off = xfrm.find(qn("a:off"))
+    if off is None:
+        off = OxmlElement("a:off")
+        xfrm.insert(0, off)
+    off.set("x", "0")
+    off.set("y", "0")
+
+    # Ensure extent exists: a:ext (size of the shape)
+    ext = xfrm.find(qn("a:ext"))
+    if ext is None:
+        ext = OxmlElement("a:ext")
+        xfrm.append(ext)
+
+    ext.set("cx", str(emu(width_in)))
+    ext.set("cy", str(emu(height_in)))
+
+    # Reset any scale attributes (rare, but some docs have them)
+    # Some producers add chExt / chOff etc. We won’t add those; we just ensure ext is correct.
+
+
 ''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
 '''
 def str_to_size(str, what, nesting_level=0):
@@ -2313,6 +2318,13 @@ def is_valid_hex(str, digits, nesting_level=0):
 	return bool(re.fullmatch(pattern, str))
 
 
+''' pretty print element xml
+'''
+def print_xml(element, nesting_level=0):
+	# Convert your element to a string first (using ET or lxml)
+	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
+
+
 ''' map attribute key/value to a modified ke/value
 '''
 def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
@@ -2341,12 +2353,30 @@ def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-EMU_PER_INCH = 914500
-EMU_PER_PT = 12700
-
 mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
 # mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
 
+# emu per inch
+EMU_PER_INCH = 914500
+
+# emu per pt
+EMU_PER_PT = 12700
+
+# default DPI
+DPI = 72
+
+# height offset for full page image extracted from pdf
+PDF_PAGE_HEIGHT_OFFSET = 0.5
+
+# 0-based gsheet column number to column letter map
+COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
+			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# gsheet to odt constants and type mapping
 
 HEADING_TO_LEVEL = {
 	'Heading 1': {'outline-level': 1},
@@ -2360,7 +2390,6 @@ HEADING_TO_LEVEL = {
 	'Heading 9': {'outline-level': 9},
 	'Heading 10': {'outline-level': 10},
 }
-
 
 LEVEL_TO_HEADING = [
 	'Title',
@@ -2376,7 +2405,6 @@ LEVEL_TO_HEADING = [
 	'Heading 10',
 ]
 
-
 CELL_VALIGN_MAP = {
 	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
 	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
@@ -2390,16 +2418,9 @@ TEXT_HALIGN_MAP = {
 	'JUSTIFY': WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 }
 
-
 WRAP_STRATEGY_MAP = {
 	'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'
 }
-
-
-COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
-			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
-
 
 GSHEET_OXML_BORDER_MAPPING = {
 	'DOTTED': 'dotted',
@@ -2412,11 +2433,57 @@ GSHEET_OXML_BORDER_MAPPING = {
 }
 
 
-PDF_PAGE_HEIGHT_OFFSET = 0.5
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# allowed file and mimetype related
+
+SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
+
+ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+MIME_TYPE_TO_FILE_EXT_MAP = {
+    'application/pdf': '.pdf', 
+    'image/png': '.png', 
+    'image/jpeg': '.jpg', 
+    'image/gif': '.gif', 
+    'image/webp': '.webp'
+}
+
+FILE_EXT_TO_MIME_TYPE_MAP = {
+    '.pdf': 'application/pdf', 
+    '.png': 'image/png', 
+    '.jpg': 'image/jpeg', 
+    '.gif': 'image/gif', 
+    '.webp': 'image/webp' 
+}
 
 
-DPI = 72
 
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# custom style map specific
+
+DOCX_ATTR_MAP_HINT = {
+	'color':				{'lambda': rgb_from_hex},
+	'highlight_color':		{'lambda': rgb_from_hex},
+	# 'backgroundcolor':	{'lambda': rgb_from_hex},
+	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
+	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
+	'size': 				{'lambda': str_to_size},
+	'left_indent':      	{'lambda': str_to_size},
+	'right_indent':     	{'lambda': str_to_size},
+	'space_before':     	{'lambda': str_to_size},
+	'space_after':    		{'lambda': str_to_size},
+	('borders', 'start'):   {'lambda': str_to_border},
+	('borders', 'top'):     {'lambda': str_to_border},
+	('borders', 'end'):     {'lambda': str_to_border},
+	('borders', 'bottom'):  {'lambda': str_to_border},
+	('padding', 'start'):   {'lambda': str_to_size},
+	('padding', 'top'):     {'lambda': str_to_size},
+	('padding', 'end'):     {'lambda': str_to_size},
+	('padding', 'bottom'):  {'lambda': str_to_size},
+}
 
 STYLE_PROPERTY_MAP = {
 	"ParagraphStyle": 
@@ -2471,43 +2538,4 @@ STYLE_PROPERTY_MAP = {
 			"widow_control",
 		],
 	},
-}
-
-DOCX_ATTR_MAP_HINT = {
-	'color':				{'lambda': rgb_from_hex},
-	'highlight_color':		{'lambda': rgb_from_hex},
-	# 'backgroundcolor':	{'lambda': rgb_from_hex},
-	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
-	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
-	'size': 				{'lambda': str_to_size},
-	'left_indent':      	{'lambda': str_to_size},
-	'right_indent':     	{'lambda': str_to_size},
-	'space_before':     	{'lambda': str_to_size},
-	'space_after':    		{'lambda': str_to_size},
-	('borders', 'start'):   {'lambda': str_to_border},
-	('borders', 'top'):     {'lambda': str_to_border},
-	('borders', 'end'):     {'lambda': str_to_border},
-	('borders', 'bottom'):  {'lambda': str_to_border},
-	('padding', 'start'):   {'lambda': str_to_size},
-	('padding', 'top'):     {'lambda': str_to_size},
-	('padding', 'end'):     {'lambda': str_to_size},
-	('padding', 'bottom'):  {'lambda': str_to_size},
-}
-
-SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
-ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
-IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-MIME_TYPE_TO_FILE_EXT_MAP = {
-    'application/pdf': '.pdf', 
-    'image/png': '.png', 
-    'image/jpeg': '.jpg', 
-    'image/gif': '.gif', 
-    'image/webp': '.webp'
-}
-FILE_EXT_TO_MIME_TYPE_MAP = {
-    '.pdf': 'application/pdf', 
-    '.png': 'image/png', 
-    '.jpg': 'image/jpeg', 
-    '.gif': 'image/gif', 
-    '.webp': 'image/webp' 
 }
