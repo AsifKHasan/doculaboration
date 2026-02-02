@@ -16,9 +16,7 @@ import traceback
 from copy import deepcopy
 from pathlib import Path
 from PIL import Image
-
 from lxml import etree
-
 
 from docx import Document, section, document, table
 from docx.oxml import OxmlElement, parse_xml, ns
@@ -36,15 +34,15 @@ from docx.text.paragraph import Paragraph
 
 import latex2mathml.converter
 
-if sys.platform in ['win32', 'darwin']:
-	import win32com.client as client
-
 from googleapiclient import errors
 from googleapiclient.http import MediaIoBaseDownload
 
 from ggle.google_services import GoogleServices
 from helper.config_service import ConfigService
 from helper.logger import *
+
+if sys.platform in ['win32', 'darwin']:
+	import win32com.client as client
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -2353,8 +2351,8 @@ def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
-mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
-# mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
+# mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
+mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
 
 # emu per inch
 EMU_PER_INCH = 914500

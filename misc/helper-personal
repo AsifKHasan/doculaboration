@@ -32,24 +32,3 @@ search
 (\[LINK{A\..+?\..+?}{A\..+?} \(p\.PAGE{A\..+?\..+?}\)\])(\[LINK{A\..+?\..+?}{A\..+?} \(p\.PAGE{A\..+?\..+?}\)\])
 replace
 $1
-
-
-I am uploading a pdf file where all your answers are documented with attachments and references to the attachments. 
-
-1. The sections R.04 to R.23 (page 8-65) documents the answers to BKB's claims section by section
-2. The sections A.01 to A.71 (page 67-546) are all the attachments that are referenced in the earlier sections
-3. Text in sections R.04 to R.23 contains references to attachments in the form [A.NN p.(PPP)] where NN is the attachment number and PPP is the page number of the document where the text refer to
-
-I would like to go through the sections R.04 to R.23 and check whether the references are correct and corresponds to the text referring the attachment and page number. If you find a reference which needs correction please report
-
-
-
-
-
-Earlier you wrote the following (enclosed between two separator lines) in relation to BKB's claim #6
-
-------------------------------------------------------------------------------------------------------
-
-------------------------------------------------------------------------------------------------------
-				
-The number inside the square brackets [] are references to attachments. I need the actual number of the documents you referred and the actual page numbers of that document you were referring to.
