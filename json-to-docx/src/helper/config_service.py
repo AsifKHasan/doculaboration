@@ -7,7 +7,6 @@ from pathlib import Path
 
 from helper.logger import *
 from helper import logger
-from doc.docx_util import *
 
 class ConfigService:
     _instance = None
@@ -109,16 +108,27 @@ class ConfigService:
             # shading
             'backgroundcolor':            None,
 
+            # vertical alignment
+            'verticalalign':              None,
+
             # border (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
             'borders': {
-                'start':                  None,
-                'top':                    None,
-                'end':                    None,
-                'bottom':                 None,
+                'start':           None,
+                'top':             None,
+                'end':             None,
+                'bottom':          None,
             },
 
-            'page-background': style_specs_original.get('page-background', None),
-            'inline-image': style_specs_original.get('inline-image', None),
+            # padding
+            'padding': {
+                'start':          None,
+                'top':            None,
+                'end':            None,
+                'bottom':         None,
+            },
+
+            'page-background': style_specs_original.get('page-background', []),
+            'inline-image': style_specs_original.get('inline-image', []),
         }
 
         # re-code 'text-properties'
@@ -140,6 +150,7 @@ class ConfigService:
         if 'paragraph-properties' in style_specs_original:
             paragraph_properties = style_specs_original['paragraph-properties']
             style_specs['ParagraphStyle']['paragraph-format']['alignment'] = paragraph_properties.get('textalign', None).upper()
+            style_specs['verticalalign'] = paragraph_properties.get('verticalalign', None).upper()
             style_specs['backgroundcolor'] = paragraph_properties.get('backgroundcolor', None)
 
             # border
@@ -155,6 +166,10 @@ class ConfigService:
             style_specs['ParagraphStyle']['paragraph-format']['space_after'] = paragraph_properties.get('margin.marginbottom', None)
 
             # padding
+            style_specs['padding']['start'] = paragraph_properties.get('padding.paddingleft', None)
+            style_specs['padding']['top'] = paragraph_properties.get('padding.paddingtop', None)
+            style_specs['padding']['end'] = paragraph_properties.get('padding.paddingright', None)
+            style_specs['padding']['bottom'] = paragraph_properties.get('padding.paddingbottom', None)
 
 
         return style_specs

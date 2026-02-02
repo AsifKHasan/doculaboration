@@ -6,14 +6,16 @@ various utilities for formatting a docx
 import re
 import sys
 import lxml
-import random
-import string
 import types
+import string
 import random
+import requests
 import importlib
 import traceback
 
 from copy import deepcopy
+from pathlib import Path
+from PIL import Image
 
 from lxml import etree
 
@@ -32,12 +34,16 @@ from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
 from docx.text.paragraph import Paragraph
 
-
 import latex2mathml.converter
 
 if sys.platform in ['win32', 'darwin']:
 	import win32com.client as client
 
+from googleapiclient import errors
+from googleapiclient.http import MediaIoBaseDownload
+
+from ggle.google_services import GoogleServices
+from helper.config_service import ConfigService
 from helper.logger import *
 
 
@@ -78,7 +84,6 @@ def insert_image(container, picture_path, width=None, height=None, bookmark={}, 
 		return container
 	
 	else:
-		# print(f"container is a [{container}]")
 		if is_document(container):
 			paragraph = container.add_paragraph()
 		elif is_paragraph(container):
@@ -347,7 +352,27 @@ def set_repeat_table_header(row, nesting_level=0):
 ''' format container (paragraph or cell)
 	border, bgcolor, padding, valign, halign
 '''
-def format_container(container, attributes, it_is_a_table_cell, nesting_level=0):
+def format_container(container, attributes, custom_style_name=None, it_is_a_table_cell=True, nesting_level=0):
+	custom_style = ConfigService()._style_specs.get(custom_style_name, None)
+	if custom_style:
+		if 'padding' in custom_style:
+			attributes['padding'] = custom_style['padding']
+
+		if 'borders' in custom_style:
+			attributes['borders'] = custom_style['borders']
+
+		if 'backgroundcolor' in custom_style:
+			attributes['backgroundcolor'] = custom_style['backgroundcolor']
+
+		if 'verticalalign' in custom_style:
+			attributes['verticalalign'] = custom_style['verticalalign']
+
+		if 'textalign' in custom_style:
+			attributes['textalign'] = custom_style['textalign']
+
+		if 'angle' in custom_style:
+			attributes['angle'] = custom_style['angle']
+
 	# borders
 	if it_is_a_table_cell:
 		if 'padding' in attributes:
@@ -424,7 +449,6 @@ def set_cell_border(cell: table._Cell, borders, nesting_level=0):
 def set_paragraph_border(element, borders, nesting_level=0):
 	pPr = element.get_or_add_pPr()
 
-
 	# check for tag existnace, if none found, then create one
 	# pBorders = OxmlElement('w:pBorders')
 	pBorders = pPr.first_child_found_in("w:pBorders")
@@ -453,7 +477,6 @@ def set_paragraph_border(element, borders, nesting_level=0):
 '''
 def set_cell_bgcolor(cell: table._Cell, color, nesting_level=0):
 	xml = r'<w:shd {} w:fill="{}"/>'.format(nsdecls('w'), color)
-	# print(xml)
 	shading_elm_1 = parse_xml(xml)
 	cell._tc.get_or_add_tcPr().append(shading_elm_1)
 
@@ -718,7 +741,8 @@ def	apply_paragraph_attributes(docx, paragraph, paragraph_attributes, nesting_le
 			if style is not None:
 				paragraph.style = style_name
 			else:
-				warn(f"style {style_name} not found in standard styles", nesting_level=nesting_level)
+				# trace(f"style {style_name} is not a standard style", nesting_level=nesting_level)
+				pass
 
 		pf = paragraph.paragraph_format
 
@@ -1248,7 +1272,7 @@ def create_index(docx, index_type, nesting_level=0):
 
 ''' add or update a document section
 '''
-def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, background_image_path, link_to_previous=False, nesting_level=0):
+def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, link_to_previous=False, nesting_level=0):
 	#  if it is a section break, we isnert a new section
 	if section_break:
 		new_section = True
@@ -1300,10 +1324,6 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 
 	# get the actual width
 	# actual_width = docx_section.page_width.inches - docx_section.left_margin.inches - docx_section.right_margin.inches - docx_section.gutter.inches
-
-	# TODO: background-image
-	if background_image_path != '':
-		add_background_image_to_header(docx_section=docx_section, image_path=background_image_path, width=docx_section.page_width.inches, height=docx_section.page_height.inches)
 
 	return docx_section, new_section
 
@@ -1814,7 +1834,6 @@ def polish_table(table, nesting_level=0):
 def print_xml(element, nesting_level=0):
 	# Convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
-	# print(xml_str)
 
 
 
@@ -1925,27 +1944,273 @@ def process_custom_style(docx, style_spec, nesting_level=0):
 
 ''' parse style properties from yml to docx
 '''
-def parse_style_properties(style_spec, nesting_level=0):
+def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 	if style_spec:
 		for key, value in style_spec.items():
 			if isinstance(value, dict):
 				# If it's another dict, go deeper
-				parse_style_properties(value, nesting_level=nesting_level)
+				parse_style_properties(value, parent_key=key, nesting_level=nesting_level)
 
 			else:	
 				if value and value != '':
+					new_value = value
 					if key in DOCX_ATTR_MAP_HINT:
 						# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr(key, value, nesting_level=nesting_level)
+						new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level)
 						# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
-						if new_value:
-							value = new_value
 
-						style_spec[key] = value
+					elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
+						# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
+						new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level)
+						# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
+
+					if new_value:
+						value = new_value
+
+					style_spec[key] = value
 
 				else:
 					# style_spec.pop(key, None)
 					pass
+
+		# check for *inline-image* and process
+		if 'inline-image' in style_spec:
+			inline_image_list = []
+			# this may be a dict for one single image or a list for multiple images
+			if isinstance(style_spec['inline-image'], dict):
+				inline_image_list.append(style_spec['inline-image'])
+
+			elif isinstance(style_spec['inline-image'], list):
+				for ii_dict in style_spec.get('inline-image', []):
+					inline_image_list.append(ii_dict)
+			
+			else:
+				warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
+
+			style_spec['inline-image'] = []
+			for ii_dict in inline_image_list:
+				if 'url' in ii_dict:
+					url = ii_dict.get('url')
+					
+					# download image
+					debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+					ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+					# type background/inline
+					ii_image_dict['type'] = ii_dict.get('type', 'background')
+
+					# fit-height-to-container true/false,
+					ii_image_dict['fit-height-to-container'] = ii_dict.get('fit-height-to-container', False)
+
+					# fit-width-to-container true/false,
+					ii_image_dict['fit-width-to-container'] = ii_dict.get('fit-width-to-container', False)
+
+					# fit-height-to-container true/false,
+					ii_image_dict['keep-aspect-ratio'] = ii_dict.get('keep-aspect-ratio', True)
+
+					# extend-container-height true/false,
+					ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
+
+					# position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
+					ii_image_dict['position'] = ii_dict.get('position', 'center middle')
+
+					# wrap none/parallel
+					ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
+
+					style_spec['inline-image'].append(ii_image_dict)
+					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+
+		# check for *page-background* and process
+		if 'page-background' in style_spec:
+			page_background_image_list = []
+			# this may be a dict for one single image or a list for multiple images
+			if isinstance(style_spec['page-background'], dict):
+				page_background_image_list.append(style_spec['page-background'])
+
+			elif isinstance(style_spec['page-background'], list):
+				for pb_dict in style_spec.get('page-background', []):
+					page_background_image_list.append(pb_dict)
+			
+			else:
+				warn(f"page-background is neither a dict nor a list", nesting_level=nesting_level)
+
+			style_spec['page-background'] = []
+			for pb_dict in page_background_image_list:
+				if 'url' in pb_dict:
+					url = pb_dict.get('url')
+					
+					# download image
+					debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+					pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+					# type background/inline
+					pb_image_dict['type'] = 'background'
+
+					style_spec['page-background'].append(pb_image_dict)
+					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+		
+
+''' download an image from a web or drive url and return a dict
+    {'file-path': file-path, 'file-type': file-type, 'image-height': height, 'image-width': width}
+'''
+def download_image(drive_service, url, title, tmp_dir, nesting_level=0):
+    data = None
+    if url.startswith('https://drive.google.com/'):
+        data = download_file_from_drive(drive_service=drive_service, url=url, title=title, tmp_dir=tmp_dir, nesting_level=nesting_level)
+
+    elif url.startswith('http'):
+        # the file url is a normal web url
+        data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
+
+    else:
+        warn(f"the url [{url}] is not a drive or web url", nesting_level=nesting_level)
+        return None
+
+    # if image, calculate dimensions
+    if data['file-type'] in IMAGE_MIME_TYPES:
+        file_path = data['file-path']
+        width, height, dpi_x, dpi_y = image_meta_pillow(file_path, nesting_level=nesting_level)
+        data['image-width'] = float(width / dpi_x)
+        data['image-height'] = float(height / dpi_y)
+
+    return data
+
+
+''' download a file from a drive url and return a dict
+    {'file-name': file-name, 'file-type': file-type, 'file-path': local_path)}
+    drive file id may have many forms like
+    "https://drive.google.com/open?id=1rVmH-dHciYgPwJC0EFpHIXaZ_H1j5LDu"
+    "https://drive.google.com/file/d/10bjxB_yjXgtaGZWJLVCQ28a7G_PPBLk-"
+'''
+def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0):
+    file_url = url.strip()
+
+    id = file_url.replace('https://drive.google.com/', '')
+
+    # see if it has something like 'id=' in it, then it will start after the pattern
+    id = re.sub(r".*\?id=", "", id)
+
+    # see if it has something like '/d/' in it, then it will start after the pattern
+    id = re.sub(r".*/d/", "", id)
+
+    # then it will be till end or till before the first '/'
+    id = id.split('/')[0]
+
+    # get file metadata
+    file = drive_file_metadata(drive_service=drive_service, file_id=id, nesting_level=nesting_level+1)
+    if not file:
+        error(f"drive file [{id}] could not be accessed", nesting_level=nesting_level)
+        return None
+    
+    if title:
+        file_name = title
+    else:
+        file_name = file['name']
+    
+    file_type = file['mimeType']
+    if not file_type in ALLOWED_MIME_TYPES:
+        warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_FILE_FORMATS)}], it is [{file_type}]", nesting_level=nesting_level)
+        return None
+    
+    # determine file extension
+    expected_extension = MIME_TYPE_TO_FILE_EXT_MAP.get(file_type, None)
+    if expected_extension and not file_name.endswith(expected_extension):
+        file_name = file_name + expected_extension
+
+    local_path = f"{tmp_dir}/{file_name}"
+    local_path = Path(local_path).resolve()
+
+    # if the file is already in the local_path, we do not download it
+    if Path(local_path).exists():
+        trace(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+
+    # finally download the file
+    trace(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
+    try:
+        download_media_from_dive(drive_service=drive_service, file_id=id, local_path=local_path, nesting_level=nesting_level+1)
+        trace(f"drive file downloaded at: [{local_path}]", nesting_level=nesting_level)
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+
+    except:
+        error(f"could not download : [{file_url}]", nesting_level=nesting_level)
+        return None
+
+
+''' download a file from a web url and return a dict
+    {'file-name': file-name, 'file-type': file-type, 'file-path': local_path)}
+'''
+def download_file_from_web(url, tmp_dir, nesting_level=0):
+    file_url = url.strip()
+    file_parts = file_url.split('.')
+    if len(file_parts) > 1:
+        file_ext = '.' + file_parts[-1]
+
+    if not file_ext in SUPPORTED_FILE_FORMATS:
+        error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_FILE_FORMATS)}] file", nesting_level=nesting_level)
+        return None
+
+    file_name = file_url.split('/')[-1].strip()
+    file_type = FILE_EXT_TO_MIME_TYPE_MAP.get(file_ext, None)
+
+    # download pdf in url into localpath
+    try:
+        local_path = f"{tmp_dir}/{file_name}"
+        local_path = Path(local_path).resolve()
+        # if the pdf is already in the local_path, we do not download it
+        if Path(local_path).exists():
+            trace(f"file existing   [{file_url}]", nesting_level=nesting_level)
+            # pass
+        else:
+            file_data = requests.get(file_url).content
+            with open(local_path, 'wb') as handler:
+                handler.write(file_data)
+
+            trace(f"file downloaded [{file_url}]", nesting_level=nesting_level)
+
+        return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
+    except:
+        error(f"could not download : [{file_url}]", nesting_level=nesting_level)
+        return None
+
+
+''' get image metadata using Pillow
+'''
+def image_meta_pillow(im_path, nesting_level=0):
+    im = Image.open(im_path)
+    width, height = im.size
+
+    if 'dpi' in im.info:
+        dpi_x, dpi_y = im.info['dpi']
+    else:
+        dpi_x, dpi_y = DPI, DPI
+
+    return width, height, dpi_x, dpi_y
+
+
+''' get drive file metadata dict given a file id
+
+'''
+def drive_file_metadata(drive_service, file_id, nesting_level=0):
+    file = drive_service.files().get(fileId=file_id,fields="id,name,mimeType").execute()
+    return file
+
+
+''' download media from drive given the id to a local path
+'''
+def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0):
+    request = drive_service.files().get_media(fileId=file_id,)
+
+    fh = io.FileIO(local_path, "wb")
+    downloader = MediaIoBaseDownload(fh, request)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+        trace(f"Downloaded {int(status.progress() * 100)}%", nesting_level=nesting_level)
+
+    return done
 
 
 
@@ -2050,24 +2315,26 @@ def is_valid_hex(str, digits, nesting_level=0):
 
 ''' map attribute key/value to a modified ke/value
 '''
-def map_docx_attr(attr_key, attr_value, nesting_level=0):
+def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
 	if attr_key in DOCX_ATTR_MAP_HINT:
 		obj = DOCX_ATTR_MAP_HINT[attr_key]
+		mapper = obj['lambda']
 
 		# if the mapper is a dict
-		if isinstance(obj, dict):
+		if isinstance(mapper, dict):
 			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
-			if attr_value in obj:
-				return obj[attr_value]
+			if attr_value in mapper:
+				return mapper[attr_value]
+			
 			else:
-				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(obj.keys())}", nesting_level=nesting_level)
+				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
 
 		# of the mapper is a function
-		if isinstance(obj, types.FunctionType):
-			# trace(f"[{attr_key}] mapper is a function [{obj}]", nesting_level=nesting_level)
-			return obj(attr_value, what=attr_key, nesting_level=nesting_level)
+		if isinstance(mapper, types.FunctionType):
+			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
+			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
 		
-	return attr_key, attr_value
+	return attr_value
 			
 
 
@@ -2110,12 +2377,11 @@ LEVEL_TO_HEADING = [
 ]
 
 
-TEXT_VALIGN_MAP = {
+CELL_VALIGN_MAP = {
 	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
 	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
 	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
 }
-
 
 TEXT_HALIGN_MAP = {
 	'LEFT': WD_PARAGRAPH_ALIGNMENT.LEFT,
@@ -2208,19 +2474,40 @@ STYLE_PROPERTY_MAP = {
 }
 
 DOCX_ATTR_MAP_HINT = {
-	'color':			rgb_from_hex,
-	'highlight_color':	rgb_from_hex,
-	# 'backgroundcolor':	rgb_from_hex,
-	'alignment': 		TEXT_HALIGN_MAP,
-	'size': 			str_to_size,
-	'left_indent':      str_to_size,
-	'right_indent':     str_to_size,
-	'space_before':     str_to_size,
-	'space_after':    	str_to_size,
-	'start':            str_to_border,
-	'top':              str_to_border,
-	'end':              str_to_border,
-	'bottom':           str_to_border,
+	'color':				{'lambda': rgb_from_hex},
+	'highlight_color':		{'lambda': rgb_from_hex},
+	# 'backgroundcolor':	{'lambda': rgb_from_hex},
+	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
+	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
+	'size': 				{'lambda': str_to_size},
+	'left_indent':      	{'lambda': str_to_size},
+	'right_indent':     	{'lambda': str_to_size},
+	'space_before':     	{'lambda': str_to_size},
+	'space_after':    		{'lambda': str_to_size},
+	('borders', 'start'):   {'lambda': str_to_border},
+	('borders', 'top'):     {'lambda': str_to_border},
+	('borders', 'end'):     {'lambda': str_to_border},
+	('borders', 'bottom'):  {'lambda': str_to_border},
+	('padding', 'start'):   {'lambda': str_to_size},
+	('padding', 'top'):     {'lambda': str_to_size},
+	('padding', 'end'):     {'lambda': str_to_size},
+	('padding', 'bottom'):  {'lambda': str_to_size},
 }
 
-# STYLE_SPECS = {}
+SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
+ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
+IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+MIME_TYPE_TO_FILE_EXT_MAP = {
+    'application/pdf': '.pdf', 
+    'image/png': '.png', 
+    'image/jpeg': '.jpg', 
+    'image/gif': '.gif', 
+    'image/webp': '.webp'
+}
+FILE_EXT_TO_MIME_TYPE_MAP = {
+    '.pdf': 'application/pdf', 
+    '.png': 'image/png', 
+    '.jpg': 'image/jpeg', 
+    '.gif': 'image/gif', 
+    '.webp': 'image/webp' 
+}

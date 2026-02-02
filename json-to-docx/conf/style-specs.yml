@@ -10,12 +10,12 @@
 'Heading 3':
   'name':                           'Heading 3'
 
-# coverpage
+# example style that creates a page background
 'coverpage':
   'page-background':
     - 'url':                        'https://spectrum-bd.biz/data/artifacts/page-backgrounds/a4-page-bg-01.jpg'
 
-# page separator 02
+# example style for a cell - acts like a page separator to be applied on a heading level 2
 'separator-02':
   'text-properties':
     'color':                        '#0c1130'
@@ -27,6 +27,7 @@
   'paragraph-properties':
     'textalign':                    'center'
     'backgroundcolor':              '#D8D8D8'
+    'verticalalign':                'middle'
 
     # border - (sz val color space [shadow]]), val in dotted/dashed/single/thick/triple/double/none
     'border.borderlinewidth':       
@@ -51,6 +52,7 @@
     'padding.paddingright':         '0.25in'
     'padding.paddingbottom':        '0.25in'
 
+# example style for a cell - style a section number
 'section-section-1':
   'text-properties':
     'color':                        '#0c1130'
@@ -61,6 +63,7 @@
 
   'paragraph-properties':
     'textalign':                    'center'
+    'verticalalign':                'middle'
 
     # margin
     'margin.marginleft':            '0.00in'
@@ -80,6 +83,7 @@
       'fit-height-to-container':    true
       'wrap':                       'run-through'
 
+# example style for a cell - style a section heading
 'section-heading-1':
   'text-properties':
     'color':                        '#0c1130'
@@ -90,6 +94,7 @@
 
   'paragraph-properties':
     'textalign':                    'left'
+    'verticalalign':                'middle'
 
     # margin
     'margin.marginleft':            '0.05in'
