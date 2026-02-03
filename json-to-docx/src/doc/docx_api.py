@@ -363,8 +363,22 @@ class DocxPdfSection(DocxSectionBase):
                         fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
 
                         image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=nesting_level+1)
-                        
-                        insert_image(container=paragraph, picture_path=image['path'], width=image_width_in_inches, height=image_height_in_inches, nesting_level=nesting_level+1)
+
+                        ii_dict = {
+                            'file-path': image['path'],
+                            'image-width': image_width_in_inches,
+                            'image-height': image_height_in_inches,
+                            'type': 'inline',
+                            'fit-height-to-container': False,
+                            'fit-width-to-container': False,
+                            'keep-aspect-ratio': True,
+                            'position': f"{TEXT_HALIGN_MAP[self.effective_format.halign.halign]} {CELL_VALIGN_MAP[self.effective_format.valign.valign]}",
+                            'wrap': 'run-through'
+                        }
+
+                        inline_image = InlineImage(ii_dict=ii_dict, nesting_level=nesting_level+1)
+
+                        insert_image(container=paragraph, inline_image=inline_image, nesting_level=nesting_level+1)
 
 
 
@@ -1038,7 +1052,7 @@ class Cell(object):
                         create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
-                        insert_cell_image(cell=container, image_path=inline_image.file_path, width=inline_image.image_width, position=inline_image.position, margin_pt=inline_image.margin_pt, nesting_level=nesting_level+1)
+                        insert_cell_image(cell=container, inline_image=inline_image, nesting_level=nesting_level+1)
 
                 if self.effective_format:
                     table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
@@ -1236,13 +1250,39 @@ class ImageValue(CellValue):
         text_attributes['fontsize'] = 0
         picture_path = self.value['path']
 
-        if self.value['mode'] in [1, 2, 3, 4]:
-            image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches)
+        container_ratio = container_width/container_height
+        image_ratio = image_width_in_inches/image_height_in_inches
+
+        fit_height_to_container = False
+        fit_width_to_container = False
+        # mode 1 resizes the image to fit inside the cell, maintaining aspect ratio.
+        # mode 2 stretches or compresses the image to fit inside the cell, ignoring aspect ratio.
+        # mode 3 leaves the image at original size, which may cause cropping.
+        # mode 4 allows the specification of a custom size
+        if self.value['mode'] in [1, 2, 4]:
+            # image is to be scaled within the cell width and height
+            if container_ratio > image_ratio:
+                fit_height_to_container = True
+            else:
+                fit_width_to_container = True
 
         else:
             warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")
 
-        where = insert_image(container=container, picture_path=picture_path, width=image_width_in_inches, height=image_height_in_inches, bookmark=bookmark, nesting_level=nesting_level)
+        ii_dict = {
+            'file-path': picture_path,
+            'image-width': image_width_in_inches,
+            'image-height': image_height_in_inches,
+            'type': 'inline',
+            'fit-height-to-container': fit_height_to_container,
+            'fit-width-to-container': fit_width_to_container,
+            'keep-aspect-ratio': True,
+            'position': f"{TEXT_HALIGN_MAP[self.effective_format.halign.halign]} {CELL_VALIGN_MAP[self.effective_format.valign.valign]}",
+            'wrap': 'run-through'
+        }
+
+        inline_image = InlineImage(ii_dict=ii_dict, nesting_level=nesting_level+1)
+        where = insert_image(container=container, inline_image=inline_image, bookmark=bookmark, nesting_level=nesting_level)
         return where
 
 

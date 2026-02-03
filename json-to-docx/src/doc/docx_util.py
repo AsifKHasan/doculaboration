@@ -218,6 +218,143 @@ def is_paragraph(container, nesting_level=0):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # pictures, background image
 
+''' insert image into a container
+'''
+def insert_image(container, inline_image, bookmark={}, nesting_level=0):
+	if is_table_cell(container):
+		run = container.paragraphs[0].add_run()
+
+		# bookmark
+		if bookmark:
+			for k, v in bookmark.items():
+				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
+
+		run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
+
+		return container
+	
+	else:
+		if is_document(container):
+			paragraph = container.add_paragraph()
+
+		elif is_paragraph(container):
+			paragraph = container
+
+		# bookmark
+		if bookmark:
+			for k, v in bookmark.items():
+				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
+
+		run = paragraph.add_run()
+		if inline_image.image_width and inline_image.image_height:
+			run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
+		elif inline_image.image_width is None:
+			run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height))
+		elif inline_image.image_height is None:
+			run.add_picture(inline_image.file_path, width=Inches(inline_image.image_width))
+
+		return paragraph
+
+
+''' insert anchored image in a cell with margins
+'''
+def insert_cell_image(cell, inline_image, nesting_level=0):
+    relative_h = 'column'
+    relative_v = 'paragraph'
+
+    # Optional offsets (in EMU)
+    offX = pt_to_emu(inline_image.offsets_pt[0])
+    offY = pt_to_emu(inline_image.offsets_pt[1])
+
+    # If margin is a single number, apply to all sides. 
+    if isinstance(inline_image.margin_pt, int):
+        m = {'t': pt_to_emu(inline_image.margin_pt), 'b': pt_to_emu(inline_image.margin_pt), 'l': pt_to_emu(inline_image.margin_pt), 'r': pt_to_emu(inline_image.margin_pt)}
+
+    # If it's a dict, use specific values.
+    else:
+        m = {'t': pt_to_emu(inline_image.margin_pt.get('t', 0)), 'b': pt_to_emu(inline_image.margin_pt.get('b', 0)), 
+             'l': pt_to_emu(inline_image.margin_pt.get('l', 0)), 'r': pt_to_emu(inline_image.margin_pt.get('r', 0))}
+
+    mapping = {
+        'left top':      {'h': 'left',   'v': 'top'},
+        'center top':    {'h': 'center', 'v': 'top'},
+        'right top':     {'h': 'right',  'v': 'top'},
+        'left middle':   {'h': 'left',   'v': 'center'},
+        'center middle': {'h': 'center', 'v': 'center'},
+        'right middle':  {'h': 'right',  'v': 'center'},
+        'left bottom':   {'h': 'left',   'v': 'bottom'},
+        'center bottom': {'h': 'center', 'v': 'bottom'},
+        'right bottom':  {'h': 'right',  'v': 'bottom'},
+    }
+    
+    aligns = mapping.get(inline_image.position, mapping['center middle'])
+    paragraph = cell.paragraphs[0]
+    run = paragraph.add_run()
+    shape = run.add_picture(inline_image.file_path, width=Inches(inline_image.image_width))
+    inline = shape._inline
+    rId = inline.graphic.graphicData.pic.blipFill.blip.embed
+    cx, cy = inline.extent.cx, inline.extent.cy
+    pic_id = random.randint(1000, 10000)
+    name = f"Picture-{pic_id}"
+
+    # Logic: distT, distB, distL, distR control the "text wrap buffer"
+    anchor_xml = f'''
+	<wp:anchor distT="{m['t']}" distB="{m['b']}" distL="{m['l']}" distR="{m['r']}"
+            simplePos="0" relativeHeight="251658240" behindDoc="0"
+            locked="0" layoutInCell="1" allowOverlap="1"
+            {nsdecls('wp', 'a', 'pic', 'r')}>
+		<wp:simplePos x="0" y="0" />
+        <wp:positionH relativeFrom="{relative_h}">
+            <wp:align>{aligns['h']}</wp:align>
+        </wp:positionH>
+        <wp:positionV relativeFrom="{relative_v}">
+            <wp:align>{aligns['v']}</wp:align>
+        </wp:positionV>
+        <wp:extent cx="{cx}" cy="{cy}"/>
+        <wp:effectExtent l="0" t="0" r="0" b="0"/>
+		<wp:wrapSquare wrapText="bothSides" />
+		<wp:docPr id="{pic_id}" name="{name}" />
+		<wp:cNvGraphicFramePr>
+			<a:graphicFrameLocks
+				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+				noChangeAspect="1" />
+		</wp:cNvGraphicFramePr>
+		<a:graphic
+			xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+			<a:graphicData
+				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+				<pic:pic
+					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+					<pic:nvPicPr>
+						<pic:cNvPr id="{pic_id}" name="{name}" />
+						<pic:cNvPicPr />
+					</pic:nvPicPr>
+					<pic:blipFill>
+						<a:blip r:embed="{rId}">
+						</a:blip>
+						<a:stretch>
+							<a:fillRect />
+						</a:stretch>
+					</pic:blipFill>
+					<pic:spPr>
+						<a:xfrm>
+							<a:off x="0" y="0" />
+							<a:ext cx="{cx}" cy="{cy}" />
+						</a:xfrm>
+						<a:prstGeom prst="rect">
+							<a:avLst />
+						</a:prstGeom>
+					</pic:spPr>
+				</pic:pic>
+			</a:graphicData>
+		</a:graphic>
+	</wp:anchor>
+    '''
+
+    anchor = parse_xml(anchor_xml)
+    inline.getparent().replace(inline, anchor)
+
+
 ''' create page background
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
 		<wp:simplePos x="0" y="0" />
@@ -413,142 +550,6 @@ def add_background_image_to_header(docx_section, image_path, width, height, nest
 		inline_to_anchored_behind(inline, width=width, height=height)
 		unlock_picture_aspect_ratio(inline)
 		force_picture_transform(inline, width_in=width, height_in=height)
-
-
-''' insert image into a container
-'''
-def insert_image(container, picture_path, width=None, height=None, bookmark={}, nesting_level=0):
-	if is_table_cell(container):
-		run = container.paragraphs[0].add_run()
-
-		# bookmark
-		if bookmark:
-			for k, v in bookmark.items():
-				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
-
-		run.add_picture(picture_path, height=Inches(height), width=Inches(width))
-
-		return container
-	
-	else:
-		if is_document(container):
-			paragraph = container.add_paragraph()
-		elif is_paragraph(container):
-			paragraph = container
-
-		# bookmark
-		if bookmark:
-			for k, v in bookmark.items():
-				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
-
-		run = paragraph.add_run()
-		if width and height:
-			run.add_picture(picture_path, height=Inches(height), width=Inches(width))
-		elif width is None:
-			run.add_picture(picture_path, height=Inches(height))
-		elif height is None:
-			run.add_picture(picture_path, width=Inches(width))
-
-		return paragraph
-
-
-''' insert anchored image in a cell with margins
-'''
-def insert_cell_image(cell, image_path, width, position='center bottom', margin_pt=2, offsets_pt=(2, 2), nesting_level=0):
-    relative_h = 'column'
-    relative_v = 'paragraph'
-
-    # Optional offsets (in EMU)
-    offX = pt_to_emu(offsets_pt[0])
-    offY = pt_to_emu(offsets_pt[1])
-
-    # If margin is a single number, apply to all sides. 
-    if isinstance(margin_pt, int):
-        m = {'t': pt_to_emu(margin_pt), 'b': pt_to_emu(margin_pt), 'l': pt_to_emu(margin_pt), 'r': pt_to_emu(margin_pt)}
-
-    # If it's a dict, use specific values.
-    else:
-        m = {'t': pt_to_emu(margin_pt.get('t', 0)), 'b': pt_to_emu(margin_pt.get('b', 0)), 
-             'l': pt_to_emu(margin_pt.get('l', 0)), 'r': pt_to_emu(margin_pt.get('r', 0))}
-
-    mapping = {
-        'left top':      {'h': 'left',   'v': 'top'},
-        'center top':    {'h': 'center', 'v': 'top'},
-        'right top':     {'h': 'right',  'v': 'top'},
-        'left middle':   {'h': 'left',   'v': 'center'},
-        'center middle': {'h': 'center', 'v': 'center'},
-        'right middle':  {'h': 'right',  'v': 'center'},
-        'left bottom':   {'h': 'left',   'v': 'bottom'},
-        'center bottom': {'h': 'center', 'v': 'bottom'},
-        'right bottom':  {'h': 'right',  'v': 'bottom'},
-    }
-    
-    aligns = mapping.get(position, mapping['center middle'])
-    paragraph = cell.paragraphs[0]
-    run = paragraph.add_run()
-    shape = run.add_picture(image_path, width=Inches(width))
-    inline = shape._inline
-    rId = inline.graphic.graphicData.pic.blipFill.blip.embed
-    cx, cy = inline.extent.cx, inline.extent.cy
-    pic_id = random.randint(1000, 10000)
-    name = f"Picture-{pic_id}"
-
-    # Logic: distT, distB, distL, distR control the "text wrap buffer"
-    anchor_xml = f'''
-	<wp:anchor distT="{m['t']}" distB="{m['b']}" distL="{m['l']}" distR="{m['r']}"
-            simplePos="0" relativeHeight="251658240" behindDoc="0"
-            locked="0" layoutInCell="1" allowOverlap="1"
-            {nsdecls('wp', 'a', 'pic', 'r')}>
-		<wp:simplePos x="0" y="0" />
-        <wp:positionH relativeFrom="{relative_h}">
-            <wp:align>{aligns['h']}</wp:align>
-        </wp:positionH>
-        <wp:positionV relativeFrom="{relative_v}">
-            <wp:align>{aligns['v']}</wp:align>
-        </wp:positionV>
-        <wp:extent cx="{cx}" cy="{cy}"/>
-        <wp:effectExtent l="0" t="0" r="0" b="0"/>
-		<wp:wrapSquare wrapText="bothSides" />
-		<wp:docPr id="{pic_id}" name="{name}" />
-		<wp:cNvGraphicFramePr>
-			<a:graphicFrameLocks
-				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-				noChangeAspect="1" />
-		</wp:cNvGraphicFramePr>
-		<a:graphic
-			xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-			<a:graphicData
-				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-				<pic:pic
-					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-					<pic:nvPicPr>
-						<pic:cNvPr id="{pic_id}" name="{name}" />
-						<pic:cNvPicPr />
-					</pic:nvPicPr>
-					<pic:blipFill>
-						<a:blip r:embed="{rId}">
-						</a:blip>
-						<a:stretch>
-							<a:fillRect />
-						</a:stretch>
-					</pic:blipFill>
-					<pic:spPr>
-						<a:xfrm>
-							<a:off x="0" y="0" />
-							<a:ext cx="{cx}" cy="{cy}" />
-						</a:xfrm>
-						<a:prstGeom prst="rect">
-							<a:avLst />
-						</a:prstGeom>
-					</pic:spPr>
-				</pic:pic>
-			</a:graphicData>
-		</a:graphic>
-	</wp:anchor>
-    '''
-
-    anchor = parse_xml(anchor_xml)
-    inline.getparent().replace(inline, anchor)
 
 
 ''' insert an image as cell background
@@ -804,7 +805,6 @@ def copy_cell_border(from_cell: table._Cell, to_cell: table._Cell, nesting_level
 		if to_tcBorders is None:
 			to_tcBorders = deepcopy(from_tcBorders)
 			to_tc.get_or_add_tcPr().append(to_tcBorders)
-
 
 
 ''' assert if a cell is not a covered cell
