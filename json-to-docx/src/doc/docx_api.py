@@ -1052,7 +1052,7 @@ class Cell(object):
                         create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
-                        insert_cell_image(cell=container, inline_image=inline_image, nesting_level=nesting_level+1)
+                        insert_cell_image(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                 if self.effective_format:
                     table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
@@ -1282,7 +1282,7 @@ class ImageValue(CellValue):
         }
 
         inline_image = InlineImage(ii_dict=ii_dict, nesting_level=nesting_level+1)
-        where = insert_image(container=container, inline_image=inline_image, bookmark=bookmark, nesting_level=nesting_level)
+        where = insert_image(container=container, inline_image=inline_image, container_width=container_width, container_height=container_height, bookmark=bookmark, nesting_level=nesting_level)
         return where
 
 
@@ -1851,7 +1851,29 @@ class InlineImage(object):
         elif len(positions) == 1:
             self.halign = positions[0]
 
-    
+
+    ''' adjusted image width and height
+    '''
+    def adjusted_dimension(self, container_width, container_height, nesting_level=0):
+        # TODO: handle when aspect ratio is not to be maintained
+        if self.fit_width_to_container:
+            adjusted_width, adjusted_height = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height, nesting_level=nesting_level)
+            if self.keep_aspect_ratio:
+                return adjusted_width, adjusted_height
+            else:
+                return adjusted_width, self.image_height
+
+            
+        if self.fit_height_to_container:
+            adjusted_width, adjusted_height = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height, nesting_level=nesting_level)
+            if self.keep_aspect_ratio:
+                return adjusted_width, adjusted_height
+            else:
+                return self.image_width, adjusted_height
+
+        return self.image_width, self.image_height
+            
+
 
 ''' gsheet vertical alignment object wrapper
 '''

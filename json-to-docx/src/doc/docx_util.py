@@ -220,7 +220,7 @@ def is_paragraph(container, nesting_level=0):
 
 ''' insert image into a container
 '''
-def insert_image(container, inline_image, bookmark={}, nesting_level=0):
+def insert_image(container, inline_image, container_width, container_height, bookmark={}, nesting_level=0):
 	if is_table_cell(container):
 		run = container.paragraphs[0].add_run()
 
@@ -229,7 +229,8 @@ def insert_image(container, inline_image, bookmark={}, nesting_level=0):
 			for k, v in bookmark.items():
 				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
 
-		run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
+		insert_cell_image(cell=container, inline_image=inline_image, container_width=container_width, container_height=container_height, nesting_level=nesting_level+1)
+		# run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
 
 		return container
 	
@@ -258,9 +259,11 @@ def insert_image(container, inline_image, bookmark={}, nesting_level=0):
 
 ''' insert anchored image in a cell with margins
 '''
-def insert_cell_image(cell, inline_image, nesting_level=0):
+def insert_cell_image(cell, inline_image, container_width, container_height, nesting_level=0):
     relative_h = 'column'
     relative_v = 'paragraph'
+
+    adjusted_image_width, adjusted_image_height = inline_image.adjusted_dimension(container_width=container_width, container_height=container_height, nesting_level=nesting_level)
 
     # Optional offsets (in EMU)
     # offX = pt_to_emu(inline_image.offsets_pt[0])
@@ -290,7 +293,7 @@ def insert_cell_image(cell, inline_image, nesting_level=0):
     aligns = mapping.get(inline_image.position, mapping['center middle'])
     paragraph = cell.paragraphs[0]
     run = paragraph.add_run()
-    shape = run.add_picture(inline_image.file_path, width=Inches(inline_image.image_width))
+    shape = run.add_picture(inline_image.file_path, width=Inches(adjusted_image_width), height=Inches(adjusted_image_height))
     inline = shape._inline
     rId = inline.graphic.graphicData.pic.blipFill.blip.embed
     cx, cy = inline.extent.cx, inline.extent.cy
