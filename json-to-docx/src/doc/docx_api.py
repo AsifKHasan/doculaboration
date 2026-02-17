@@ -372,7 +372,7 @@ class DocxPdfSection(DocxSectionBase):
                             'fit-height-to-container': False,
                             'fit-width-to-container': False,
                             'keep-aspect-ratio': True,
-                            'position': f"{TEXT_HALIGN_MAP[self.effective_format.halign.halign]} {CELL_VALIGN_MAP[self.effective_format.valign.valign]}",
+                            'position': f"center center",
                             'wrap': 'run-through'
                         }
 
@@ -1277,7 +1277,7 @@ class ImageValue(CellValue):
             'fit-height-to-container': fit_height_to_container,
             'fit-width-to-container': fit_width_to_container,
             'keep-aspect-ratio': True,
-            'position': f"{TEXT_HALIGN_MAP[self.effective_format.halign.halign]} {CELL_VALIGN_MAP[self.effective_format.valign.valign]}",
+            'position': f"{self.effective_format.halign.halign} {self.effective_format.valign.valign}",
             'wrap': 'run-through'
         }
 
@@ -1826,7 +1826,7 @@ class InlineImage(object):
 
     ''' constructor
     '''
-    def __init__(self, ii_dict={}):
+    def __init__(self, ii_dict={}, nesting_level=0):
         self.ii_dict = ii_dict
         self.file_path = ii_dict.get('file-path', None)
         self.file_type = ii_dict.get('file-type', None)

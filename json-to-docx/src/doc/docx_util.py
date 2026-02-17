@@ -263,8 +263,8 @@ def insert_cell_image(cell, inline_image, nesting_level=0):
     relative_v = 'paragraph'
 
     # Optional offsets (in EMU)
-    offX = pt_to_emu(inline_image.offsets_pt[0])
-    offY = pt_to_emu(inline_image.offsets_pt[1])
+    # offX = pt_to_emu(inline_image.offsets_pt[0])
+    # offY = pt_to_emu(inline_image.offsets_pt[1])
 
     # If margin is a single number, apply to all sides. 
     if isinstance(inline_image.margin_pt, int):
