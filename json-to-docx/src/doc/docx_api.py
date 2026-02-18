@@ -359,8 +359,7 @@ class DocxPdfSection(DocxSectionBase):
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
-                        fit_within_height = self.section_height
-                        fit_within_height = fit_within_height - PDF_PAGE_HEIGHT_OFFSET
+                        fit_within_height = self.section_height - PDF_PAGE_HEIGHT_OFFSET
 
                         image_width_in_inches, image_height_in_inches = fit_width_height(fit_within_width=fit_within_width, fit_within_height=fit_within_height, width_to_fit=image_width_in_inches, height_to_fit=image_height_in_inches, nesting_level=nesting_level+1)
 
@@ -378,7 +377,7 @@ class DocxPdfSection(DocxSectionBase):
 
                         inline_image = InlineImage(ii_dict=ii_dict, nesting_level=nesting_level+1)
 
-                        insert_image(container=paragraph, inline_image=inline_image, nesting_level=nesting_level+1)
+                        insert_image(container=paragraph, inline_image=inline_image, container_width=fit_within_width, container_height=fit_within_height, nesting_level=nesting_level+1)
 
 
 
