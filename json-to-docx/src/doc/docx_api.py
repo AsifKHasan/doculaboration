@@ -961,7 +961,7 @@ class Cell(object):
         if self.value:
             if 'inline-image' in self.value:
                 for ii_dict in self.value.get('inline-image', []):
-                    self.inline_images.append(InlineImage(ii_dict))
+                    self.inline_images.append(InlineImage(ii_dict, nesting_level=nesting_level+1))
 
             note_dict = self.value.get('notes', {})
             self.note = CellNote(document_nesting_depth=self.document_nesting_depth, note_dict=note_dict, nesting_level=nesting_level)
@@ -1031,6 +1031,21 @@ class Cell(object):
         # trace(f"{self}")
         self.table_cell = table_cell
         table_cell.width = Inches(self.cell_width)
+
+        # the cell may have a custom style with a bg image 
+        if self.note.style is not None and self.note.style in ConfigService()._style_specs:
+            # this custom style may have an inline-image, if so apply it
+            if 'inline-image' in ConfigService()._style_specs[self.note.style]:
+                for ii_dict in ConfigService()._style_specs[self.note.style]['inline-image']:
+                    inline_image = InlineImage(ii_dict, nesting_level=nesting_level+1)
+
+                    # consider only the first bg image
+                    if inline_image.type == 'background':
+                        self.inline_images.append(inline_image)
+
+                    else:
+                        self.inline_images.append(inline_image)
+
         if self.effective_format:
             self.cell_to_docx(container=table_cell)
 
@@ -1048,7 +1063,7 @@ class Cell(object):
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
                         # warn(f"[{self}] create_cell_background [{inline_image.file_path}]")
-                        create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
+                        create_cell_background(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
                         # warn(f"[{self}] insert_cell_image [{inline_image.file_path}]")

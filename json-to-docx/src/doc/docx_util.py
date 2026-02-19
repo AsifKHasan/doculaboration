@@ -558,20 +558,20 @@ def add_background_image_to_header(docx_section, image_path, width, height, nest
 
 ''' insert an image as cell background
 '''
-def create_cell_background(cell, image_path, width, height, nesting_level=0):
+def create_cell_background(cell, inline_image, container_width, container_height, nesting_level=0):
 	
 	# 1. Add a run to the paagraph
 	paragraph = cell.paragraphs[0]
 	run = paragraph.add_run()
 
 	# 2. Add the picture (initially inline)
-	picture = run.add_picture(image_path, width=Inches(width), height=Inches(height))
+	picture = run.add_picture(inline_image.file_path, width=Inches(container_width), height=Inches(container_height))
 
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
 
-	cx = str(emu(width))
-	cy = str(emu(height))
+	cx = str(emu(container_width))
+	cy = str(emu(container_height))
 
 	anchor_xml = f"""
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
@@ -606,7 +606,6 @@ def create_cell_background(cell, image_path, width, height, nesting_level=0):
 
 	# move this run to the 0th index of the paragraph
 	move_run_to_start(paragraph, run)
-
 	zero_paragraph_spacing(paragraph)
 
 
