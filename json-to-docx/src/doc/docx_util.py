@@ -839,11 +839,6 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
-		# if bg_image is not None:
-		# 	warn(f"create_paragraph bg-image is [{bg_image.file_path}]")
-		# 	fg_cell = create_cell_background(cell=container, image_path=bg_image.file_path, width=bg_image.container_width, height=bg_image.container_height, nesting_level=nesting_level+1)
-		# 	paragraph = fg_cell.paragraphs[0]
-		# 	# pass
 
 	elif is_document(container):
 		# if the conrainer is a Document
