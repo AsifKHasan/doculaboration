@@ -355,7 +355,7 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph_attributes = {}
                         paragraph = self._docx.add_paragraph()
                         apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
-                        format_container(container=paragraph, attributes=text_format_attributes, custom_style_name=None, it_is_a_table_cell=False, nesting_level=nesting_level+1)
+                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
