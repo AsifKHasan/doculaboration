@@ -830,7 +830,7 @@ def assert_not_merge_continuation(cell, nesting_level=0):
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, bg_image=None, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
+def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
