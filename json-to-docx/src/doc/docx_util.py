@@ -235,6 +235,7 @@ def insert_image(container, inline_image, container_width, container_height, boo
 		return container
 	
 	else:
+		# warn(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
 		if is_document(container):
 			paragraph = container.add_paragraph()
 
@@ -249,9 +250,9 @@ def insert_image(container, inline_image, container_width, container_height, boo
 		run = paragraph.add_run()
 		if inline_image.image_width and inline_image.image_height:
 			run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
-		elif inline_image.image_width is None:
+		elif inline_image.image_height and inline_image.image_width is None:
 			run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height))
-		elif inline_image.image_height is None:
+		elif inline_image.image_width and inline_image.image_height is None:
 			run.add_picture(inline_image.file_path, width=Inches(inline_image.image_width))
 
 		return paragraph
@@ -838,10 +839,11 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph
 		paragraph = container.paragraphs[0]
-		if bg_image is not None:
-			fg_cell = create_cell_background(cell=container, image_path=bg_image.file_path, width=bg_image.container_width, height=bg_image.container_height, nesting_level=nesting_level+1)
-			paragraph = fg_cell.paragraphs[0]
-			# pass
+		# if bg_image is not None:
+		# 	warn(f"create_paragraph bg-image is [{bg_image.file_path}]")
+		# 	fg_cell = create_cell_background(cell=container, image_path=bg_image.file_path, width=bg_image.container_width, height=bg_image.container_height, nesting_level=nesting_level+1)
+		# 	paragraph = fg_cell.paragraphs[0]
+		# 	# pass
 
 	elif is_document(container):
 		# if the conrainer is a Document

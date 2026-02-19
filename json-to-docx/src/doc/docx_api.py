@@ -958,8 +958,6 @@ class Cell(object):
         self.inline_images = []
         self.image_frames = []
 
-        self.bg_image = None
-
         if self.value:
             if 'inline-image' in self.value:
                 for ii_dict in self.value.get('inline-image', []):
@@ -1021,7 +1019,8 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        s = f"{self.cell_name}"
+        # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
 
@@ -1048,9 +1047,11 @@ class Cell(object):
                 # if the cell has a background image, process it first
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
+                        # warn(f"[{self}] create_cell_background [{inline_image.file_path}]")
                         create_cell_background(cell=container, image_path=inline_image.file_path, width=self.effective_cell_width, height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
+                        # warn(f"[{self}] insert_cell_image [{inline_image.file_path}]")
                         insert_cell_image(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
 
                 if self.effective_format:
@@ -1070,7 +1071,7 @@ class Cell(object):
                     paragraph_attributes = {}
                     footnote_list = {}
 
-                where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=self.bg_image, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
 
                 # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
@@ -1143,8 +1144,8 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
-        paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, nesting_level=nesting_level+1)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1175,8 +1176,8 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
-        paragraph = create_paragraph(docx=self._docx, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bg_image=bg_image, bookmark=bookmark, nesting_level=nesting_level+1)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bookmark=bookmark, nesting_level=nesting_level+1)
         create_latex(container=paragraph, latex_content=self.value, nesting_level=nesting_level+1)
 
         return paragraph
@@ -1204,7 +1205,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1212,7 +1213,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(docx=self._docx, container=container, run_list=run_value_list, bg_image=bg_image, footnote_list=footnote_list, bookmark=bookmark, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(docx=self._docx, container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1237,7 +1238,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = DPI if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = DPI if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1276,7 +1277,7 @@ class ImageValue(CellValue):
             'fit-height-to-container': fit_height_to_container,
             'fit-width-to-container': fit_width_to_container,
             'keep-aspect-ratio': True,
-            'position': f"{self.effective_format.halign.halign} {self.effective_format.valign.valign}",
+            'position': f"{self.effective_format.halign.text.lower()} {self.effective_format.valign.text.lower()}",
             'wrap': 'run-through'
         }
 
@@ -1306,7 +1307,7 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, bg_image=None, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
         self.contents = DocxContent(docx=self._docx, content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         self.contents.content_to_docx(container=container, nesting_level=nesting_level)
         return None
@@ -1881,6 +1882,7 @@ class VerticalAlignment(object):
     ''' constructor
     '''
     def __init__(self, valign=None):
+        self.text = valign
         if valign:
             self.valign = CELL_VALIGN_MAP.get(valign)
         else:
@@ -1896,6 +1898,7 @@ class HorizontalAlignment(object):
     '''
     def __init__(self, halign=None):
         # TODO: it is overriding text style
+        self.text = halign
         if halign is None or halign in ['LEFT', 'JUSTIFY', 'CENTER', 'RIGHT']:
             self.halign = TEXT_HALIGN_MAP.get(halign)
         else:
