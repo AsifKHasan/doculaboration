@@ -301,10 +301,16 @@ def insert_cell_image(cell, inline_image, container_width, container_height, nes
     pic_id = random.randint(1000, 10000)
     name = f"Picture-{pic_id}"
 
+    behind_doc = 0
+    wrap_xml = '<wp:wrapSquare wrapText="bothSides" />'
+    if inline_image.wrap == 'run-through':
+        wrap_xml = '<wp:wrapNone/>'
+        behind_doc = 1
+
     # Logic: distT, distB, distL, distR control the "text wrap buffer"
     anchor_xml = f'''
 	<wp:anchor distT="{m['t']}" distB="{m['b']}" distL="{m['l']}" distR="{m['r']}"
-            simplePos="0" relativeHeight="251658240" behindDoc="0"
+            simplePos="0" relativeHeight="0" behindDoc="{behind_doc}"
             locked="0" layoutInCell="1" allowOverlap="1"
             {nsdecls('wp', 'a', 'pic', 'r')}>
 		<wp:simplePos x="0" y="0" />
@@ -315,47 +321,14 @@ def insert_cell_image(cell, inline_image, container_width, container_height, nes
             <wp:align>{aligns['v']}</wp:align>
         </wp:positionV>
         <wp:extent cx="{cx}" cy="{cy}"/>
-        <wp:effectExtent l="0" t="0" r="0" b="0"/>
-		<wp:wrapSquare wrapText="bothSides" />
+		<wp:effectExtent l="0" t="0" r="0" b="0"/>
+        {wrap_xml}
 		<wp:docPr id="{pic_id}" name="{name}" />
-		<wp:cNvGraphicFramePr>
-			<a:graphicFrameLocks
-				xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-				noChangeAspect="1" />
-		</wp:cNvGraphicFramePr>
-		<a:graphic
-			xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-			<a:graphicData
-				uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-				<pic:pic
-					xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-					<pic:nvPicPr>
-						<pic:cNvPr id="{pic_id}" name="{name}" />
-						<pic:cNvPicPr />
-					</pic:nvPicPr>
-					<pic:blipFill>
-						<a:blip r:embed="{rId}">
-						</a:blip>
-						<a:stretch>
-							<a:fillRect />
-						</a:stretch>
-					</pic:blipFill>
-					<pic:spPr>
-						<a:xfrm>
-							<a:off x="0" y="0" />
-							<a:ext cx="{cx}" cy="{cy}" />
-						</a:xfrm>
-						<a:prstGeom prst="rect">
-							<a:avLst />
-						</a:prstGeom>
-					</pic:spPr>
-				</pic:pic>
-			</a:graphicData>
-		</a:graphic>
+        <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
 	</wp:anchor>
     '''
-
     anchor = parse_xml(anchor_xml)
+    anchor.append(inline.graphic)
     inline.getparent().replace(inline, anchor)
 
 
