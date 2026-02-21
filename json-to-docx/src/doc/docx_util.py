@@ -467,8 +467,8 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 		# tweak the generated inline image
 		parser = etree.XMLParser(recover=True)
 
-		cx = str(emu(page_width_inches))
-		cy = str(emu(page_height_inches))
+		cx = str(inches_to_emu(page_width_inches))
+		cy = str(inches_to_emu(page_height_inches))
 
 
 		docPr = new_run._r.xpath('.//wp:docPr')[0]
@@ -543,8 +543,8 @@ def create_cell_background(cell, inline_image, container_width, container_height
 	# 3. Get the XML element and change it from 'inline' to 'anchor'
 	inline = picture._inline
 
-	cx = str(emu(container_width))
-	cy = str(emu(container_height))
+	cx = str(inches_to_emu(container_width))
+	cy = str(inches_to_emu(container_height))
 
 	anchor_xml = f"""
 	<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" 
@@ -795,6 +795,24 @@ def assert_not_merge_continuation(cell, nesting_level=0):
             "Cannot insert content into a merged-cell continuation. "
             "Use the merge-restart cell only."
         )
+
+
+''' estimate the height by calculating the number of lines the text will occupy
+'''
+def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line_spacing=1.0, nesting_level=0):
+    # Average character width is roughly 0.5 * font_size
+    avg_char_width = font_size_pt * 0.5
+    chars_per_line = column_width_pts / avg_char_width
+    
+    # Estimate line count (handling explicit newlines + wrapping)
+    lines = 0
+    for segment in text.split('\n'):
+        lines += max(1, len(segment) / chars_per_line)
+    
+    # Convert points to EMUs or Inches
+    total_height_pt = lines * font_size_pt * line_spacing
+    return pt_to_inches(total_height_pt)
+
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1979,7 +1997,7 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
 
 ''' inches to emu
 '''
-def emu(inches: float, nesting_level=0) -> int:
+def inches_to_emu(inches: float, nesting_level=0) -> int:
     return int(inches * EMU_PER_INCH)
 
 
@@ -1987,6 +2005,18 @@ def emu(inches: float, nesting_level=0) -> int:
 '''
 def pt_to_emu(pt, nesting_level=0):
     return int(pt * EMU_PER_PT)
+
+
+''' pt to inches
+'''
+def pt_to_inches(pt, nesting_level=0):
+    return float(pt / INCHES_PER_PT)
+
+
+'''  inches to pt
+'''
+def inches_to_pt(inches, nesting_level=0):
+    return int(inches * INCHES_PER_PT)
 
 
 ''' given pixel size, calculate the row height in inches
@@ -2105,8 +2135,8 @@ def inline_to_anchored_behind(inline, width, height, nesting_level=0):
     # (python-docx may have already set it based on add_picture width/height,
     # but this forces correctness)
     if extent is not None:
-        extent.set("cx", str(emu(width)))
-        extent.set("cy", str(emu(height)))
+        extent.set("cx", str(inches_to_emu(width)))
+        extent.set("cy", str(inches_to_emu(height)))
 
 
 ''' Removes/sets noChangeAspect on a:picLocks so the picture can stretch freely.
@@ -2185,8 +2215,8 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float,
         ext = OxmlElement("a:ext")
         xfrm.append(ext)
 
-    ext.set("cx", str(emu(width_in)))
-    ext.set("cy", str(emu(height_in)))
+    ext.set("cx", str(inches_to_emu(width_in)))
+    ext.set("cy", str(inches_to_emu(height_in)))
 
     # Reset any scale attributes (rare, but some docs have them)
     # Some producers add chExt / chOff etc. We won’t add those; we just ensure ext is correct.
@@ -2331,6 +2361,9 @@ EMU_PER_INCH = 914500
 
 # emu per pt
 EMU_PER_PT = 12700
+
+# emu per pt
+INCHES_PER_PT = 72
 
 # default DPI
 DPI = 72

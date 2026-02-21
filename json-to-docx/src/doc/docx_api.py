@@ -40,9 +40,6 @@ class DocxSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
 
-        # TODO: background-image is not used as of now
-        # self.background_image = self.section_prop['background-image']
-
         self.bookmark = self.section_prop['bookmark']
 
         self.autocrop = self.section_prop['autocrop']
@@ -475,6 +472,7 @@ class DocxContent(object):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # first we identify the missing cells or blank cells for merged spans
+        # warn(f"processing merges", nesting_level=nesting_level+1)
         for merge in self.merge_list:
             first_row = merge.start_row
             first_col = merge.start_col
@@ -688,7 +686,22 @@ class DocxTable(DocxBlock):
         else:
             self.header_row_count = 0
 
+        self.calculate_row_heights(nesting_level=nesting_level+1)
 
+
+    ''' calculate row heights - consider text content and merges
+    '''
+    def calculate_row_heights(self, nesting_level=0):
+        # TODO: calculate row heights - consider text content and merges
+        trace(f"table starts ...", nesting_level=nesting_level)
+        for row in self.table_cell_matrix:
+            trace(f"row {row}", nesting_level=nesting_level+1)
+            for cell in row.cells:
+                estimated_cell_height_in_inches = estimate_cell_height_in_inches(text=cell.formatted_value, column_width_pts=inches_to_pt(cell.effective_cell_width), nesting_level=nesting_level+1)
+                trace(f"cell {cell} : cell-width : [{cell.effective_cell_width}], estimated-height [{estimated_cell_height_in_inches}]in", nesting_level=nesting_level+2)
+
+
+    
     ''' string representation
     '''
     def __repr__(self):
@@ -816,24 +829,19 @@ class Row(object):
     ''' string representation
     '''
     def __repr__(self):
-        lines = []
-        lines.append(f".. row [{self.row_name}]")
-        for cell in self.cells:
-            lines.append(str(cell))
-
-        return '\n'.join(lines)
+        return f"{self.row_num + 1}"
 
 
     ''' preprocess row
         does something automatically even if this is not in the gsheet
-        1. make single cell row with style defined out-of-cell and keep-with-next
+        1. make single cell row with style defined *free* and keep-with-next
     '''
     def preprocess_row(self, nesting_level=0):
         # if the row is a single cell row (only the first cell is empty) and the cell contains a style note, make it out-of-cell and make it keep-with-next
         if len(self.cells) > 0:
             first_cell = self.cells[0]
             if not first_cell.is_empty and first_cell.note.style is not None:
-                # if the other cells all are empty, we mark it out-of-cell and keep-with-next
+                # if the other cells all are empty, we mark *free* and keep-with-next
                 non_empty_cell_found = False
                 for cell in self.cells[1:]:
                     if cell.is_empty == False:
@@ -922,7 +930,7 @@ class Row(object):
         # iterate over the cells
         for cell_index in range(0, len(self.cells)):
             cell = self.cells[cell_index]
-            if cell:
+            if cell is not None:
                 cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
             else:
                 warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{self.row_num}], cell [{cell_index}] is None, that should not be")
@@ -1855,8 +1863,6 @@ class InlineImage(object):
         self.wrap = ii_dict.get('wrap', 'parallel')
 
         self.anchor_type = 'paragraph'
-        # TODO: eliminate hardcode
-        self.margin_pt = 2
 
         self.halign, self.valign = 'center', 'middle'
         positions = self.position.split(' ')
@@ -1870,7 +1876,6 @@ class InlineImage(object):
     ''' adjusted image width and height
     '''
     def adjusted_dimension(self, container_width, container_height, nesting_level=0):
-        # TODO: handle when aspect ratio is not to be maintained
         if self.fit_width_to_container:
             adjusted_width, adjusted_height = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height, nesting_level=nesting_level)
             if self.keep_aspect_ratio:
@@ -1878,7 +1883,6 @@ class InlineImage(object):
             else:
                 return adjusted_width, self.image_height
 
-            
         if self.fit_height_to_container:
             adjusted_width, adjusted_height = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height, nesting_level=nesting_level)
             if self.keep_aspect_ratio:
