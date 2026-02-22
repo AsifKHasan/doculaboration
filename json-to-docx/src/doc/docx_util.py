@@ -798,8 +798,9 @@ def assert_not_merge_continuation(cell, nesting_level=0):
 
 
 ''' estimate the height by calculating the number of lines the text will occupy
+	TODO: this should consider text-runs, font size, margin, line spacing everything
 '''
-def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line_spacing=1.0, nesting_level=0):
+def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line_spacing=1.2, nesting_level=0):
     # Average character width is roughly 0.5 * font_size
     avg_char_width = font_size_pt * 0.5
     chars_per_line = column_width_pts / avg_char_width
@@ -809,8 +810,10 @@ def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line
     for segment in text.split('\n'):
         lines += max(1, len(segment) / chars_per_line)
     
-    # Convert points to EMUs or Inches
-    total_height_pt = lines * font_size_pt * line_spacing
+	# margins to be added
+    total_height_pt = lines * font_size_pt * line_spacing + CELL_MARGIN_FOR_IMAGE_IN_PT * 2
+
+    # convert points to EMUs or Inches
     return pt_to_inches(total_height_pt)
 
 
@@ -2367,6 +2370,9 @@ INCHES_PER_PT = 72
 
 # default DPI
 DPI = 72
+
+# default cell margin for image inside a cell
+CELL_MARGIN_FOR_IMAGE_IN_PT = 2
 
 # height offset for full page image extracted from pdf
 PDF_PAGE_HEIGHT_OFFSET = 0.5

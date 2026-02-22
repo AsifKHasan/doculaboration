@@ -392,19 +392,11 @@ class DocxContent(object):
         self.content_width = content_width
 
         self.title = None
-        self.row_count = 0
-        self.column_count = 0
-
-        self.start_row = 0
-        self.start_column = 0
-
-        self.cell_matrix = []
-        self.row_metadata_list = []
-        self.column_metadata_list = []
-        self.merge_list = []
+        self.row_count, self.column_count = 0, 0
+        self.start_row, self.start_column = 0, 0
 
         # we need a list to hold the tables and block for the cells
-        self.content_list = []
+        self.cell_matrix, self.content_list, self.row_metadata_list, self.column_metadata_list, self.merge_list,  = [], [], [], [], []
 
         # content_data must have 'properties' and 'data'
         if content_data and 'properties' in content_data and 'data' in content_data:
@@ -693,24 +685,30 @@ class DocxTable(DocxBlock):
     '''
     def calculate_row_heights(self, nesting_level=0):
         # TODO: calculate row heights - consider text content and merges
-        trace(f"table starts ...", nesting_level=nesting_level)
+        # trace(f"table starts ...", nesting_level=nesting_level)
         for row in self.table_cell_matrix:
-            trace(f"row {row}", nesting_level=nesting_level+1)
+            this_row_max_estimated_height = 0
+            # trace(f"row {row}", nesting_level=nesting_level+1)
             for cell in row.cells:
                 estimated_cell_height_in_inches = estimate_cell_height_in_inches(text=cell.formatted_value, column_width_pts=inches_to_pt(cell.effective_cell_width), nesting_level=nesting_level+1)
-                trace(f"cell {cell} : cell-width : [{cell.effective_cell_width}], estimated-height [{estimated_cell_height_in_inches}]in", nesting_level=nesting_level+2)
+                # trace(f"cell {cell} : cell-width : [{round(cell.effective_cell_width, 2)}], estimated-height [{round(estimated_cell_height_in_inches, 2)}]in", nesting_level=nesting_level+2)
+                if cell.estimated_cell_height_in_inches is None:
+                    cell.estimated_cell_height_in_inches = estimated_cell_height_in_inches
 
+                else:
+                    cell.estimated_cell_height_in_inches = max(estimated_cell_height_in_inches, cell.estimated_cell_height_in_inches)
 
-    
-    ''' string representation
-    '''
-    def __repr__(self):
-        lines = []
-        lines.append(f"[{self.col_count}x{self.row_count}] table")
+                this_row_max_estimated_height = max(this_row_max_estimated_height, cell.estimated_cell_height_in_inches)
+
+            # set max estimated height for this row
+            row.estimated_row_height_in_inches = this_row_max_estimated_height
+
+        # now we iterate over rows and get the max estimated height for the cells in the row which is the estimated height of the row
         for row in self.table_cell_matrix:
-            lines.append(str(row))
+            for cell in row.cells:
+                cell.estimated_cell_height_in_inches = row.estimated_row_height_in_inches
 
-        return '\n'.join(lines)
+        # now we again iterate over all cells and if it is the first cell of a merge we add up estimated heights for all the merge cells to get the estimated height of the first cell 
 
 
     ''' generates the docx code
@@ -766,6 +764,17 @@ class DocxTable(DocxBlock):
                     else:
                         # warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be")
                         pass
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        lines = []
+        lines.append(f"[{self.col_count}x{self.row_count}] table")
+        for row in self.table_cell_matrix:
+            lines.append(str(row))
+
+        return '\n'.join(lines)
 
 
 
@@ -826,10 +835,19 @@ class Row(object):
                 c = c + 1
 
 
-    ''' string representation
+    ''' generates the docx code
     '''
-    def __repr__(self):
-        return f"{self.row_num + 1}"
+    def row_to_doc_table_row(self, table, table_row, nesting_level=0):
+        # trace(f"{self}")
+        table_row.height = Inches(self.row_height)
+
+        # iterate over the cells
+        for cell_index in range(0, len(self.cells)):
+            cell = self.cells[cell_index]
+            if cell is not None:
+                cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
+            else:
+                warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{self.row_num}], cell [{cell_index}] is None, that should not be")
 
 
     ''' preprocess row
@@ -855,24 +873,9 @@ class Row(object):
                     first_cell.note.keep_with_next = True
 
 
-    ''' is the row empty (no cells at all)
-    '''
-    def is_empty(self):
-        return (len(self.cells) == 0)
-
-
-    ''' gets a specific cell by ordinal
-    '''
-    def get_cell(self, c):
-        if c >= 0 and c < len(self.cells):
-            return self.cells[c]
-        else:
-            return None
-
-
     ''' inserts a specific cell at a specific ordinal
     '''
-    def insert_cell(self, pos, cell):
+    def insert_cell(self, pos, cell, nesting_level=0):
         # if pos is greater than the last index
         if pos > len(self.cells):
             # insert None objects in between
@@ -886,12 +889,27 @@ class Row(object):
             self.cells.append(cell)
 
 
+    ''' gets a specific cell by ordinal
+    '''
+    def get_cell(self, c, nesting_level=0):
+        if c >= 0 and c < len(self.cells):
+            return self.cells[c]
+        else:
+            return None
+
+
+    ''' is the row empty (no cells at all)
+    '''
+    def is_empty(self, nesting_level=0):
+        return (len(self.cells) == 0)
+
+
     ''' it is true when the first cell has a free_content true value
         the first cell may be free_content when
         1. it contains a note {'content': 'out-of-cell'}
         2. it contains a note {'style': '...'} and it is the only non-empty cell in the row
     '''
-    def is_free_content(self):
+    def is_free_content(self, nesting_level=0):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
@@ -907,7 +925,7 @@ class Row(object):
 
     ''' it is true only when the first cell has a repeat-rows note with value > 0
     '''
-    def is_table_start(self):
+    def is_table_start(self, nesting_level=0):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
             if self.cells[0]:
@@ -921,19 +939,10 @@ class Row(object):
             return False
 
 
-    ''' generates the docx code
+    ''' string representation
     '''
-    def row_to_doc_table_row(self, table, table_row, nesting_level=0):
-        # trace(f"{self}")
-        table_row.height = Inches(self.row_height)
-
-        # iterate over the cells
-        for cell_index in range(0, len(self.cells)):
-            cell = self.cells[cell_index]
-            if cell is not None:
-                cell.cell_to_doc_table_cell(table=table, table_cell=table_row.cells[cell_index])
-            else:
-                warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{self.row_num}], cell [{cell_index}] is None, that should not be")
+    def __repr__(self):
+        return f"{self.row_num + 1}"
 
 
 
@@ -952,6 +961,9 @@ class Cell(object):
         self.text_format_runs = []
         self.cell_width = self.column_widths[self.col_num]
         self.cell_height = row_height
+
+        # this we use for inline and background images that should cover the whole cell
+        self.estimated_cell_height_in_inches = None
 
         self.merge_spec = CellMergeSpec()
         self.note = None
@@ -1071,11 +1083,13 @@ class Cell(object):
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
                         # warn(f"[{self}] create_cell_background [{inline_image.file_path}]")
-                        create_cell_background(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
+                        container_height = self.cell_height_to_use_for_image_placement(nesting_level=nesting_level+1)
+                        create_cell_background(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=container_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
                         # warn(f"[{self}] insert_cell_image [{inline_image.file_path}]")
-                        insert_cell_image(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=self.effective_cell_height, nesting_level=nesting_level+1)
+                        container_height = self.cell_height_to_use_for_image_placement(nesting_level=nesting_level+1)
+                        insert_cell_image(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=container_height, nesting_level=nesting_level+1)
 
                 if self.effective_format:
                     table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=self.note.force_halign, angle=self.note.angle)
@@ -1121,6 +1135,15 @@ class Cell(object):
     '''
     def copy_format_from(self, from_cell, nesting_level=0):
         self.effective_format = from_cell.effective_format
+
+
+    ''' cell height to use for image placement
+    '''
+    def cell_height_to_use_for_image_placement(self, nesting_level=0):
+        if self.estimated_cell_height_in_inches is not None:
+            return self.estimated_cell_height_in_inches
+        else:
+            return self.effective_cell_height
 
 
 
@@ -1863,6 +1886,7 @@ class InlineImage(object):
         self.wrap = ii_dict.get('wrap', 'parallel')
 
         self.anchor_type = 'paragraph'
+        self.margin_pt = CELL_MARGIN_FOR_IMAGE_IN_PT
 
         self.halign, self.valign = 'center', 'middle'
         positions = self.position.split(' ')
