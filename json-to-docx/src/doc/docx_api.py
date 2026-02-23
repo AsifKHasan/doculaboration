@@ -1108,7 +1108,8 @@ class Cell(object):
                     paragraph_attributes = {}
                     footnote_list = {}
 
-                where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark)
+                contains_inline_image = self.contains_inline_image(nesting_level=nesting_level+1)
+                where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
 
                 # do not aaply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
@@ -1140,10 +1141,16 @@ class Cell(object):
     ''' cell height to use for image placement
     '''
     def cell_height_to_use_for_image_placement(self, nesting_level=0):
-        if self.estimated_cell_height_in_inches is not None:
-            return self.estimated_cell_height_in_inches
+        if self.contains_inline_image(nesting_level=nesting_level+1) and self.estimated_cell_height_in_inches is not None:
+            return max(self.estimated_cell_height_in_inches, self.effective_cell_height)
         else:
             return self.effective_cell_height
+
+
+    ''' whether this cell contains inline images or not
+    '''
+    def contains_inline_image(self, nesting_level=0):
+        return (len(self.inline_images) > 0)
 
 
 
@@ -1190,8 +1197,8 @@ class StringValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
-        paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, nesting_level=nesting_level+1)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, contains_inline_image=False, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=bookmark, directives=self.directives, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1222,8 +1229,8 @@ class LatexValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
-        paragraph = create_paragraph(docx=self._docx, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bookmark=bookmark, nesting_level=nesting_level+1)
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, contains_inline_image=False, nesting_level=0):
+        paragraph = create_paragraph(docx=self._docx, container=container, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, bookmark=bookmark, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
         create_latex(container=paragraph, latex_content=self.value, nesting_level=nesting_level+1)
 
         return paragraph
@@ -1251,7 +1258,7 @@ class TextRunValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, contains_inline_image=False, nesting_level=0):
         run_value_list = []
         processed_idx = len(self.formatted_value)
         for text_format_run in reversed(self.text_format_runs):
@@ -1259,7 +1266,7 @@ class TextRunValue(CellValue):
             run_value_list.insert(0, text_format_run.text_attributes(text))
             processed_idx = text_format_run.start_index
 
-        paragraph = create_paragraph(docx=self._docx, container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(docx=self._docx, container=container, run_list=run_value_list, footnote_list=footnote_list, bookmark=bookmark, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
         return paragraph
 
 
@@ -1284,7 +1291,7 @@ class ImageValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, contains_inline_image=False, nesting_level=0):
         # even now the width may exceed actual cell width, we need to adjust for that
         dpi_x = DPI if self.value['dpi'][0] == 0 else self.value['dpi'][0]
         dpi_y = DPI if self.value['dpi'][1] == 0 else self.value['dpi'][1]
@@ -1353,7 +1360,7 @@ class ContentValue(CellValue):
 
     ''' generates the docx code
     '''
-    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, nesting_level=0):
+    def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark={}, contains_inline_image=False, nesting_level=0):
         self.contents = DocxContent(docx=self._docx, content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
         self.contents.content_to_docx(container=container, nesting_level=nesting_level)
         return None

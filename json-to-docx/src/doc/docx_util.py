@@ -222,8 +222,6 @@ def is_paragraph(container, nesting_level=0):
 '''
 def insert_image(container, inline_image, container_width, container_height, bookmark={}, nesting_level=0):
 	if is_table_cell(container):
-		run = container.paragraphs[0].add_run()
-
 		# bookmark
 		if bookmark:
 			for k, v in bookmark.items():
@@ -293,7 +291,10 @@ def insert_cell_image(cell, inline_image, container_width, container_height, nes
     
     aligns = mapping.get(inline_image.position, mapping['center middle'])
     paragraph = cell.paragraphs[0]
+    paragraph.clear()
     run = paragraph.add_run()
+    run.font.size = Pt(2)
+
     shape = run.add_picture(inline_image.file_path, width=Inches(adjusted_image_width), height=Inches(adjusted_image_height))
     inline = shape._inline
     rId = inline.graphic.graphicData.pic.blipFill.blip.embed
@@ -535,7 +536,9 @@ def create_cell_background(cell, inline_image, container_width, container_height
 	
 	# 1. Add a run to the paagraph
 	paragraph = cell.paragraphs[0]
+	paragraph.clear()
 	run = paragraph.add_run()
+	run.font.size = Pt(2)
 
 	# 2. Add the picture (initially inline)
 	picture = run.add_picture(inline_image.file_path, width=Inches(container_width), height=Inches(container_height))
@@ -823,15 +826,18 @@ def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, directives=True, nesting_level=0):
+def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, directives=True, contains_inline_image=False, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
 		paragraph = container.add_paragraph()
 
 	elif is_table_cell(container):
-		# if the conrainer is a Cell, the Cell already has an empty paragraph
-		paragraph = container.paragraphs[0]
+		# if the conrainer is a Cell, the Cell already has an empty paragraph or a paragraph with an inline image
+		if contains_inline_image:
+			paragraph = container.add_paragraph()
+		else:
+			paragraph = container.paragraphs[0]
 
 	elif is_document(container):
 		# if the conrainer is a Document
@@ -2372,7 +2378,7 @@ INCHES_PER_PT = 72
 DPI = 72
 
 # default cell margin for image inside a cell
-CELL_MARGIN_FOR_IMAGE_IN_PT = 2
+CELL_MARGIN_FOR_IMAGE_IN_PT = 0
 
 # height offset for full page image extracted from pdf
 PDF_PAGE_HEIGHT_OFFSET = 0.5
