@@ -1013,14 +1013,6 @@ class Cell(object):
             self.is_empty = True
 
 
-    ''' string representation
-    '''
-    def __repr__(self):
-        s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
-        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
-        return s
-
-
     ''' odt code for cell content
     '''
     def cell_to_odt_table_cell(self, odt, table_name, nesting_level=0):
@@ -1146,6 +1138,15 @@ class Cell(object):
 
         else:
             return False
+
+
+    ''' string representation
+    '''
+    def __repr__(self):
+        s = f"{self.cell_name}"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
+        # s = f"{self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
+        return s
 
 
 

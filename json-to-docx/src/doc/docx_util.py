@@ -233,7 +233,7 @@ def insert_image(container, inline_image, container_width, container_height, boo
 		return container
 	
 	else:
-		# warn(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
+		trace(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
 		if is_document(container):
 			paragraph = container.add_paragraph()
 
@@ -293,7 +293,9 @@ def insert_cell_image(cell, inline_image, container_width, container_height, nes
     paragraph = cell.paragraphs[0]
     paragraph.clear()
     run = paragraph.add_run()
-    run.font.size = Pt(2)
+    # run.font.size = Pt(2)
+    # run.text = ' '
+    # zero_paragraph_spacing(paragraph=paragraph, nesting_level=nesting_level)
 
     shape = run.add_picture(inline_image.file_path, width=Inches(adjusted_image_width), height=Inches(adjusted_image_height))
     inline = shape._inline
@@ -538,7 +540,9 @@ def create_cell_background(cell, inline_image, container_width, container_height
 	paragraph = cell.paragraphs[0]
 	paragraph.clear()
 	run = paragraph.add_run()
-	run.font.size = Pt(2)
+	# run.font.size = Pt(2)
+	# run.text = ' '
+	# zero_paragraph_spacing(paragraph=paragraph, nesting_level=nesting_level)
 
 	# 2. Add the picture (initially inline)
 	picture = run.add_picture(inline_image.file_path, width=Inches(container_width), height=Inches(container_height))
@@ -582,7 +586,7 @@ def create_cell_background(cell, inline_image, container_width, container_height
 
 	# move this run to the 0th index of the paragraph
 	move_run_to_start(paragraph, run)
-	zero_paragraph_spacing(paragraph)
+	# zero_paragraph_spacing(paragraph)
 
 
 ''' insert an image as cell background
@@ -834,7 +838,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 	elif is_table_cell(container):
 		# if the conrainer is a Cell, the Cell already has an empty paragraph or a paragraph with an inline image
-		if contains_inline_image:
+		# if contains_inline_image:
+		if False:
 			paragraph = container.add_paragraph()
 		else:
 			paragraph = container.paragraphs[0]
@@ -1730,14 +1735,25 @@ def update_indexes(docx_path, nesting_level=0):
 
 ''' set docx updateFields property true
 '''
-def set_updatefields_true(docx_path, nesting_level=0):
+def set_updatefields_true_old(docx_path, nesting_level=0):
 	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 	docx = Document(docx_path)
 	# add child to docx.settings element
-	element_updatefields = lxml.etree.SubElement(
-		docx.settings.element, f"{namespace}updateFields"
-	)
+	element_updatefields = lxml.etree.SubElement(docx.settings.element, f"{namespace}updateFields")
 	element_updatefields.set(f"{namespace}val", "true")
+	docx.save(docx_path)
+
+
+''' set docx updateFields property true
+'''
+def set_updatefields_true(docx_path, nesting_level=0):
+	docx = Document(docx_path)
+	element = docx.settings.element.find(qn('w:updateFields'))
+	if element is None:
+		element = OxmlElement('w:updateFields')
+		element.set(qn('w:val'), 'true')
+		docx.settings.element.append(element)
+
 	docx.save(docx_path)
 
 

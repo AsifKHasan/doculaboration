@@ -612,7 +612,7 @@ MASTER_TOC_COLUMNS = {
   "footer-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
   "override-header" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
   "override-footer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
-  "background-image" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
   "responsible" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
   "reviewer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
   "status" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},

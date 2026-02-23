@@ -285,7 +285,6 @@ class GsheetHelper(object):
                 'hide-heading'          : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='hide-heading', look_up_value='Yes', nesting_level=nesting_level+1),
                 'override-header'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='override-header', look_up_value='Yes', nesting_level=nesting_level+1),
                 'override-footer'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='override-footer', look_up_value='Yes', nesting_level=nesting_level+1),
-                'background-image'      : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='background-image', nesting_level=nesting_level+1),
 
                 'responsible'           : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='responsible', nesting_level=nesting_level+1),
                 'reviewer'              : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='reviewer', nesting_level=nesting_level+1),
@@ -454,12 +453,12 @@ class GsheetHelper(object):
         section_meta['different-odd-even-pages'] = different_header_odd_even_pages or different_footer_odd_even_pages
 
         # process 'background-image'
-        if section_prop['background-image'] != '':
-            bg_dict = download_image(drive_service=GoogleServices().drive_api, url=section_prop['background-image'], title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level)
-            if bg_dict:
-                section_prop['background-image'] = bg_dict['file-path']
-            else:
-                section_prop['background-image'] = ''
+        # if section_prop['background-image'] != '':
+        #     bg_dict = download_image(drive_service=GoogleServices().drive_api, url=section_prop['background-image'], title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level)
+        #     if bg_dict:
+        #         section_prop['background-image'] = bg_dict['file-path']
+        #     else:
+        #         section_prop['background-image'] = ''
 
         # import and use the specific processor
         if section_prop['link'] == '' or section_prop['link'] is None:
