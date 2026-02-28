@@ -1431,7 +1431,7 @@ def process_line_breaks(text, keep_line_breaks, nesting_level=0):
     a reasonable approximation is what gsheet says 21 pixels, renders well as 12 pixel (assuming our normal text is 10-11 in size)
 '''
 def row_height_in_inches(pixel_size, nesting_level=0):
-    return float((pixel_size) / 96)
+    return float((pixel_size) / PIXEL_PER_INCH_FOR_ROW_HEIGHT)
 
 
 ''' get a random string
@@ -1494,7 +1494,11 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
             'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
             'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
+# pixel per inch for row height calculation
+PIXEL_PER_INCH_FOR_ROW_HEIGHT = 96
 
+# row height in pixel when set to automatic (Fit to Data)
+ROW_HEIGHT_WHEN_FIT_TO_DATA = 21
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # gsheet to odt constants and type mapping

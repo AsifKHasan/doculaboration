@@ -788,6 +788,10 @@ class Row(object):
         self.row_num, self.section_width, self.column_widths, self.row_height, self.document_nesting_depth = row_num, section_width, column_widths, row_height, document_nesting_depth
         self.row_id = f"{self.row_num+1}"
         self.row_name = f"row: [{self.row_id}]"
+        self.fixed_row_height = False
+
+        if self.row_height < (ROW_HEIGHT_WHEN_FIT_TO_DATA/PIXEL_PER_INCH_FOR_ROW_HEIGHT):
+            self.fixed_row_height = True
 
         self.cells = []
         c = 0
@@ -906,7 +910,11 @@ class Row(object):
         # create table-row
         table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
         row_height = f"{self.row_height}in"
-        table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
+        if self.fixed_row_height:
+            table_row_properties_attributes = {'keeptogether': True, 'rowheight': row_height, 'useoptimalrowheight': False}
+        else:
+            table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
+
         table_row = create_table_row(odt, table_row_style_attributes, table_row_properties_attributes, nesting_level=nesting_level+1)
 
         # iterate over the cells
