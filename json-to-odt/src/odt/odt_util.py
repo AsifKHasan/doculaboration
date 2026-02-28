@@ -1531,7 +1531,7 @@ LEVEL_TO_HEADING = [
 # gsheet border style to ODT border style map
 GSHEET_ODT_BORDER_MAPPING = {
     'DOTTED': 'dotted',
-    'DASHED': 'dash',
+    'DASHED': 'dashed',
     'SOLID': 'solid'
 }
 

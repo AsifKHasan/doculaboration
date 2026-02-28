@@ -1067,6 +1067,7 @@ class Cell(object):
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=nesting_level+1)
 
             if table_cell:
+                # trace(f"[{self}] : {table_cell_properties_attributes}", nesting_level=nesting_level)
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True, nesting_level=nesting_level+1)
 
         else:
@@ -1694,7 +1695,7 @@ class Border(object):
             self.color = RgbColor(border_dict.get('color'))
 
             # TODO: handle double
-            self.style = GSHEET_ODT_BORDER_MAPPING.get(self.style, 'solid')
+            self.style = GSHEET_ODT_BORDER_MAPPING.get(border_dict.get('style'), 'solid')
 
 
     ''' string representation
