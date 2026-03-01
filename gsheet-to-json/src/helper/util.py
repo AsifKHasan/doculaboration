@@ -8,6 +8,9 @@ from pathlib import Path
 
 import requests
 import urllib3
+import pandas as pd
+import numpy as np
+from collections import defaultdict
 
 from googleapiclient import errors
 from googleapiclient.http import MediaIoBaseDownload
@@ -27,6 +30,15 @@ def get_gsheet_data(sheets_service, spreadsheet_id, ranges=[], include_grid_data
     response = request.execute()
 
     return response
+
+
+''' get values from a worksheet range
+'''
+def get_range_values(sheets_service, spreadsheet_id, range, nesting_level=0):
+    request = sheets_service.values().get(spreadsheetId=spreadsheet_id, range=range)
+    response = request.execute()
+
+    return response.get('values', [])
 
 
 ''' check whether a worksheet exists in a gsheet
@@ -544,6 +556,75 @@ def translate_dict_to_value(data_list, dict_obj, first_key, look_up_key='column'
     else:
         # trace(f"[{first_key:<20}]: value '{value}' NOT matched with expected '{look_up_value}' ... returning [{on_failure}]", nesting_level=nesting_level)
         return on_failure
+
+
+
+# -------------------------------------------------------------------------------------------------------
+# various specification utilities - pages, margins, fonts, styles 
+# -------------------------------------------------------------------------------------------------------
+
+''' create a recursive dictionary
+'''
+def recursive_dict():
+    return defaultdict(recursive_dict)
+
+
+
+'''
+    values: list of lists from service.spreadsheets().values().get()
+    Rows 2-5 (indices 1-4) are headers. Row 6 (index 5) is data.
+'''
+def process_gsheet_hierarchy(values, nesting_level=0):
+    # 1. Extract and Clean Headers
+    # We take the 4 header rows and transpose them to fill "merged" gaps
+    header_rows = values[1:5]
+    header_df = pd.DataFrame(header_rows).transpose()
+    
+    # Replace empty strings with NaN and forward-fill (this handles the merges)
+    header_df = header_df.replace('', np.nan).ffill(axis=0)
+    
+    # Create a list of tuples representing the full path for each column
+    # e.g., [('Finance', 'Tax', 'VAT', '2024'), ...]
+    col_paths = list(header_df.itertuples(index=False, name=None))
+
+    # 2. Process Data Rows
+    data_rows = values[5:]
+    final_output = []
+
+    for row in data_rows:
+        # We use a recursive defaultdict so we don't have to initialize levels
+        nested_row = recursive_dict()
+        
+        for col_idx, cell_value in enumerate(row):
+            if col_idx >= len(col_paths): break
+            if not str(cell_value).strip(): continue # Skip empty data cells
+            
+            path = col_paths[col_idx]
+            # Clean path of any remaining NaNs (if a column doesn't have all 4 levels)
+            clean_path = [str(step) for step in path if pd.notna(step)]
+            
+            # Traverse the dictionary to the leaf node
+            current_level = nested_row
+            for step in clean_path[:-1]:
+                current_level = current_level[step]
+            
+            # Assign the value to the last key in the path
+            current_level[clean_path[-1]] = cell_value
+            
+        # Convert defaultdict back to a regular dict for a clean print/return
+        final_output.append(json_format(nested_row, nesting_level=nesting_level))
+        
+    return final_output
+
+
+
+''' Helper to convert defaultdict to standard dict recursively
+'''
+def json_format(df, nesting_level=0):
+    if isinstance(df, defaultdict):
+        return {k: json_format(v) for k, v in df.items()}
+    
+    return d
 
 
 

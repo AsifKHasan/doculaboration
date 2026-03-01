@@ -51,12 +51,14 @@ class GsheetHelper(object):
                 if gsheet_url:
                     gsheet_id = gsheet_id_from_url(url=gsheet_url, nesting_level=nesting_level)
                     debug(f"opening gsheet id = {gsheet_id}", nesting_level=nesting_level)
+                    # TODO: get rid of pygsheet
                     gsheet = self.google_services.pygsheet.open_by_url(gsheet_url)
                     debug(f"opened  gsheet id = {gsheet_id}", nesting_level=nesting_level)
                 else:
                     query = f'name = "{gsheet_title}"'
                     
                     debug(f"opening gsheet : [{gsheet_title}]", nesting_level=nesting_level)
+                    # TODO: get rid of pygsheet
                     gsheets = self.google_services.pygsheet.open_all(query=query)
                     for gsheet in gsheets:
                         # Call the API to get permissions
@@ -82,11 +84,23 @@ class GsheetHelper(object):
 
                 # optimization - read the full gsheet
                 debug(f"reading gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
-
                 response = get_gsheet_data(sheets_service=self.google_services.sheets_api, spreadsheet_id=gsheet.id, nesting_level=nesting_level+1)
 
                 # make a dictionary key'ed by worksheet_name
                 response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
+
+
+                # TODO: parse and procees the specs - pages, margins, fonts, style
+                for ws_name in ['zz-page-specs', 'zz-page-specs', 'zz-page-specs', 'zz-page-specs']:
+                    trace(f"checking existence of [{ws_name}]", nesting_level=nesting_level+1)
+                    if ws_name in response:
+                        trace(f"worksheet [{ws_name}] found", nesting_level=nesting_level+1)
+
+                    else:
+                        warn(f"worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
+
+
+
                 self.gsheet_data[gsheet_title] = response
 
                 debug(f"read    gsheet : [{gsheet_title}] [{gsheet_id}]", nesting_level=nesting_level)
