@@ -4,6 +4,7 @@
 
 import io
 import re
+import yaml
 from pathlib import Path
 
 import requests
@@ -35,8 +36,9 @@ def get_gsheet_data(sheets_service, spreadsheet_id, ranges=[], include_grid_data
 ''' get values from a worksheet range
 '''
 def get_range_values(sheets_service, spreadsheet_id, range, nesting_level=0):
-    request = sheets_service.values().get(spreadsheetId=spreadsheet_id, range=range)
+    request = sheets_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=range)
     response = request.execute()
+    # print(response)
 
     return response.get('values', [])
 
@@ -490,7 +492,6 @@ def gsheet_id_from_url(url, nesting_level=0):
     return splits[0]
 
 
-
 ''' from a HYPERLINK formula get the drive url and link name
 '''
 def get_gsheet_link(value, nesting_level=0):
@@ -508,7 +509,6 @@ def get_gsheet_link(value, nesting_level=0):
     return link_name, link_target
 
 
-
 ''' from a HYPERLINK formula get the worksheet id
 '''
 def get_worksheet_link(value, nesting_level=0):
@@ -521,7 +521,6 @@ def get_worksheet_link(value, nesting_level=0):
         link_name = m.group('ws_title')
 
     return link_name
-
 
 
 ''' from a dict lookup a key, return one value if a cetain value is in the key, else return another value
@@ -558,73 +557,131 @@ def translate_dict_to_value(data_list, dict_obj, first_key, look_up_key='column'
         return on_failure
 
 
+''' if a string is passed like Yes or True, return boolean true
+'''
+def yes_to_bool(val):
+    return str(val).strip().lower() in ['yes', 'true']
+
+
+''' print dictionary as yml
+'''
+def print_yml(data):
+    yaml_output = yaml.dump(
+        data, 
+        default_flow_style=False, 
+        sort_keys=False, 
+        indent=2, 
+        allow_unicode=True
+    )
+
+    print(yaml_output)
+
+
 
 # -------------------------------------------------------------------------------------------------------
 # various specification utilities - pages, margins, fonts, styles 
 # -------------------------------------------------------------------------------------------------------
 
-''' create a recursive dictionary
+''' if a value is a number, convert to number if possible
 '''
-def recursive_dict():
-    return defaultdict(recursive_dict)
+def try_numeric(value):
+    if value is None or str(value).strip() == "" or str(value).lower() == 'nan':
+        return None
+    try:
+        f_val = float(value)
+        return int(f_val) if f_val.is_integer() else f_val
+    except:
+        return str(value).strip()
 
 
-
+''' create a hierchical dict from 2D array where first few rows are headers and rest are data
 '''
-    values: list of lists from service.spreadsheets().values().get()
-    Rows 2-5 (indices 1-4) are headers. Row 6 (index 5) is data.
-'''
-def process_gsheet_hierarchy(values, nesting_level=0):
-    # 1. Extract and Clean Headers
-    # We take the 4 header rows and transpose them to fill "merged" gaps
-    header_rows = values[1:5]
-    header_df = pd.DataFrame(header_rows).transpose()
+def data_to_hierarchical_dict(data, header_row_start, header_row_end, key_column_name='key', nesting_level=0):
+    # 1. Slice Header Block
+    start_idx = header_row_start - 1
+    end_idx = header_row_end
+    header_slice = data[start_idx:end_idx]
     
-    # Replace empty strings with NaN and forward-fill (this handles the merges)
-    header_df = header_df.replace('', np.nan).ffill(axis=0)
+    # Create DataFrame and clean whitespace
+    header_df = pd.DataFrame(header_slice).transpose()
+    header_df = header_df.map(lambda x: str(x).strip() if pd.notna(x) and str(x).strip() != '' else np.nan)
+
+    # Create the filled version for merged parents
+    header_ffilled = header_df.ffill(axis=0)
     
-    # Create a list of tuples representing the full path for each column
-    # e.g., [('Finance', 'Tax', 'VAT', '2024'), ...]
-    col_paths = list(header_df.itertuples(index=False, name=None))
-
-    # 2. Process Data Rows
-    data_rows = values[5:]
-    final_output = []
-
-    for row in data_rows:
-        # We use a recursive defaultdict so we don't have to initialize levels
-        nested_row = recursive_dict()
+    # 2. Refined Path Generation (The Fix)
+    col_paths = []
+    for i in range(len(header_df)):
+        original_col = header_df.iloc[i].tolist()
+        filled_col = header_ffilled.iloc[i].tolist()
         
+        # Find the index of the last NON-EMPTY cell in the original data
+        # If Row 2 is 'url' and 3,4,5 are empty, last_valid_idx will be 1 (0-based)
+        last_valid_idx = -1
+        for idx, val in enumerate(original_col):
+            if pd.notna(val):
+                last_valid_idx = idx
+        
+        if last_valid_idx >= 0:
+            # Take the filled names only up to the last original cell found
+            col_paths.append(filled_col[:last_valid_idx + 1])
+        else:
+            col_paths.append([])
+
+    # 3. Process Data Rows
+    raw_data = data[end_idx:]
+    result_dict = {}
+
+    # Find the 'key' column index
+    try:
+        # Match 'key' against the last element of each path
+        key_idx = [p[-1] if p else "" for p in col_paths].index(key_column_name)
+    except ValueError:
+        return f"Error: Key column '{key_column_name}' not found."
+
+    for row in raw_data:
+        # Ensure row length matches paths
+        row = list(row) + [None] * (len(col_paths) - len(row))
+        
+        row_id = str(row[key_idx]).strip()
+        if not row_id or row_id == 'None' or row_id == 'nan':
+            continue
+
+        row_obj = {}
         for col_idx, cell_value in enumerate(row):
-            if col_idx >= len(col_paths): break
-            if not str(cell_value).strip(): continue # Skip empty data cells
+            val = try_numeric(cell_value)
+            
+            # Skip key column, nulls, or columns with no headers
+            if col_idx == key_idx or val is None or not col_paths[col_idx]:
+                continue
             
             path = col_paths[col_idx]
-            # Clean path of any remaining NaNs (if a column doesn't have all 4 levels)
-            clean_path = [str(step) for step in path if pd.notna(step)]
+
+            # --- GENERIC TRANSFORMATION LOGIC ---
+            if SPEC_KEY_TRANSFORMATIONS:
+                path_tuple = tuple(path)
+                if path_tuple in SPEC_KEY_TRANSFORMATIONS:
+                    val = SPEC_KEY_TRANSFORMATIONS[path_tuple](val)
+
             
-            # Traverse the dictionary to the leaf node
-            current_level = nested_row
-            for step in clean_path[:-1]:
-                current_level = current_level[step]
-            
-            # Assign the value to the last key in the path
-            current_level[clean_path[-1]] = cell_value
-            
-        # Convert defaultdict back to a regular dict for a clean print/return
-        final_output.append(json_format(nested_row, nesting_level=nesting_level))
+            # Build Nesting
+            current_level = row_obj
+            for i, step in enumerate(path):
+                if i == len(path) - 1:
+                    current_level[step] = val
+                else:
+                    if step not in current_level:
+                        current_level[step] = {}
+                    
+                    # If we hit a leaf that was supposed to be a branch (collision)
+                    if not isinstance(current_level[step], dict):
+                        break
+                    
+                    current_level = current_level[step]
         
-    return final_output
+        result_dict[row_id] = row_obj
 
-
-
-''' Helper to convert defaultdict to standard dict recursively
-'''
-def json_format(df, nesting_level=0):
-    if isinstance(df, defaultdict):
-        return {k: json_format(v) for k, v in df.items()}
-    
-    return d
+    return result_dict
 
 
 
@@ -633,10 +690,17 @@ def json_format(df, nesting_level=0):
 # -------------------------------------------------------------------------------------------------------
 
 SPEC_DICT = {
-    'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D'}, 
-    'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H'}, 
-    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B'}, 
-    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AO'}
+    'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D',  'print': False, 'spec-name': 'page-spec'}, 
+    'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H',  'print': False, 'spec-name': 'margin-spec'}, 
+    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B',  'print': False, 'spec-name': 'font-spec'}, 
+    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AO', 'print': False, 'spec-name': 'style-spec'}
+}
+
+SPEC_KEY_TRANSFORMATIONS = {
+    ('inline-image', 'fit-height-to-container'): yes_to_bool,
+    ('inline-image', 'fit-width-to-container'): yes_to_bool,
+    ('inline-image', 'keep-aspect-ratio'): yes_to_bool,
+    ('inline-image', 'extend-container-height'): yes_to_bool,
 }
 
 SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']

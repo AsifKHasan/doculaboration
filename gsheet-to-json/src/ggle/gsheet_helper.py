@@ -90,9 +90,10 @@ class GsheetHelper(object):
                 response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
 
 
-                # TODO: parse and procees the specs - pages, margins, fonts, style
+                # parse and procees the specs - pages, margins, fonts, style
+                specs_data = {'specs': {}}
                 for ws_name, spec_def in SPEC_DICT.items():
-                    trace(f"checking if [{ws_name}] exists", nesting_level=nesting_level+1)
+                    trace(f"check for [{ws_name}] worksheet", nesting_level=nesting_level+1)
                     mandatory = spec_def.get('mandatory', False)
                     if ws_name in response:
                         trace(f"worksheet [{ws_name}] found", nesting_level=nesting_level+1)
@@ -100,22 +101,28 @@ class GsheetHelper(object):
                         header_row_end = spec_def.get('header-row-end', 1)
                         start_col = spec_def.get('start-col', 'A')
                         end_col = spec_def.get('end-col', 'Z')
-                        range = f"'{ws_name}'!{start_col}1:{end_col}"
+                        print_it = spec_def.get('print', False)
+                        spec_name = spec_def.get('spec-name')
+                        range_spec = f"'{ws_name}'!{start_col}1:{end_col}"
+                        # print(range_spec)
 
                         # get values from the worksheet 
-                        values = get_range_values(sheets_service=self.google_services.sheets_api, spreadsheet_id=gsheet.id, range=range, nesting_level=nesting_level+1)
+                        values = get_range_values(sheets_service=self.google_services.sheets_api, spreadsheet_id=gsheet.id, range=range_spec, nesting_level=nesting_level+1)
 
                         # parse the spec from the data
-                        spec_data = process_gsheet_hierarchy(values, nesting_level=nesting_level+1)
+                        spec_data = data_to_hierarchical_dict(data=values, header_row_start=header_row_start, header_row_end=header_row_end, key_column_name='key', nesting_level=nesting_level+1)
+                        if print_it:
+                            print_yml(spec_data)
 
+                        # attach the data to the output json under 'specs' key and corresponding spec-name
+                        if spec_data:
+                            specs_data['specs'][spec_name] = spec_data
 
                     else:
                         if mandatory:
-                            warn(f"manadatory worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
+                            warn(f"mandatory worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
                         else:
                             trace(f"optional worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
-
-
 
                 self.gsheet_data[gsheet_title] = response
 
@@ -135,7 +142,8 @@ class GsheetHelper(object):
         self.current_document_index = self.current_document_index + 1
         data = self.process_gsheet(gsheet=gsheet, parent=parent, current_document_index=self.current_document_index, nesting_level=nesting_level+1)
 
-        return data
+        return {**specs_data, **data}
+
 
     ''' process gsheet from the toc
         worksheet_cache: nested dictionary of gsheet->worksheet as two different sheets may have worksheets of same name, so keying by only worksheet name is not feasible
@@ -149,7 +157,7 @@ class GsheetHelper(object):
 
 
         # locate the index worksheet, it is a list, we take the first available from the list
-        # TODO: for now it can also be a single worksheet for backword compatibility
+        # it can also be a single worksheet for backword compatibility
         index_ws = None
         if isinstance(ConfigService()._index_worksheet, list):
             for ws_title in ConfigService()._index_worksheet:
@@ -199,7 +207,7 @@ class GsheetHelper(object):
 
             header_column_index = header_column_index + 1
 
-        # check if we have any must column missing
+        # check if we have any mandatory column missing
         failed = False
         for toc_column_key, toc_column_value in TOC_COLUMNS.items():
             if 'column' in toc_column_value:
@@ -207,7 +215,7 @@ class GsheetHelper(object):
 
             else:
                 if toc_column_value['availability'] == 'must':
-                    error(f"header [{toc_column_key:<20}], which is must, not found in any column. Exiting ...")
+                    error(f"header [{toc_column_key:<20}], which is mandatory, not found in any column. Exiting ...")
                     failed = True
 
                 elif toc_column_value['availability'] == 'preferred':
@@ -247,7 +255,7 @@ class GsheetHelper(object):
     ''' process a toc section
     '''
     def process_section(self, gsheet, toc, current_document_index, section_index, parent, TOC_COLUMNS, nesting_level):
-        # TODO: some columns may have formula, parse those
+        # some columns may have formula, parse those
         # link column (link) may be a formula, parse it
         if toc[TOC_COLUMNS['content-type'].get('column')] in ['gsheet', 'pdf']:
             link_name, link_target = get_gsheet_link(toc[TOC_COLUMNS['link'].get('column')], nesting_level=nesting_level)
