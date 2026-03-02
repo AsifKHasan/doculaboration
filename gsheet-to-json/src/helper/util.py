@@ -632,6 +632,13 @@ def json_format(df, nesting_level=0):
 # data and globals 
 # -------------------------------------------------------------------------------------------------------
 
+SPEC_DICT = {
+    'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D'}, 
+    'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H'}, 
+    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B'}, 
+    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AO'}
+}
+
 SUPPORTED_FILE_FORMATS = ['.pdf', '.png', '.jpg', '.gif', '.webp']
 IMAGE_FORMATS = ['.png', '.jpg', '.gif', '.webp']
 

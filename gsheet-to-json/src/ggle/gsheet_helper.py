@@ -91,13 +91,29 @@ class GsheetHelper(object):
 
 
                 # TODO: parse and procees the specs - pages, margins, fonts, style
-                for ws_name in ['zz-page-specs', 'zz-page-specs', 'zz-page-specs', 'zz-page-specs']:
-                    trace(f"checking existence of [{ws_name}]", nesting_level=nesting_level+1)
+                for ws_name, spec_def in SPEC_DICT.items():
+                    trace(f"checking if [{ws_name}] exists", nesting_level=nesting_level+1)
+                    mandatory = spec_def.get('mandatory', False)
                     if ws_name in response:
                         trace(f"worksheet [{ws_name}] found", nesting_level=nesting_level+1)
+                        header_row_start = spec_def.get('header-row-start', 1)
+                        header_row_end = spec_def.get('header-row-end', 1)
+                        start_col = spec_def.get('start-col', 'A')
+                        end_col = spec_def.get('end-col', 'Z')
+                        range = f"'{ws_name}'!{start_col}1:{end_col}"
+
+                        # get values from the worksheet 
+                        values = get_range_values(sheets_service=self.google_services.sheets_api, spreadsheet_id=gsheet.id, range=range, nesting_level=nesting_level+1)
+
+                        # parse the spec from the data
+                        spec_data = process_gsheet_hierarchy(values, nesting_level=nesting_level+1)
+
 
                     else:
-                        warn(f"worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
+                        if mandatory:
+                            warn(f"manadatory worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
+                        else:
+                            trace(f"optional worksheet [{ws_name}] missing", nesting_level=nesting_level+1)
 
 
 
