@@ -897,6 +897,18 @@ def get_page_layout_properties(page_layout, nesting_level=0):
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ODT style specific utility functions
 
+''' get a style class given its name
+'''
+def get_style_from_name(class_name, nesting_level=0):
+    cls = getattr(style, class_name, None)
+    if cls is None:
+        error(f"Error: {class_name} is not a valid class in odf.style", nesting_level=nesting_level)
+        return None
+
+    return cls()
+    return 
+
+
 ''' registers a font in the document
 '''
 def register_font(odt, font_name, font_spec, nesting_level=0):
@@ -925,20 +937,33 @@ def get_style_by_name(odt, style_name, nesting_level=0):
 ''' apply a custom style to something
 '''
 def apply_custom_style(style, custom_properties, nesting_level=0):
-    for p_type, props in PTOPERTY_TYPES.items():
-        if p_type in PTOPERTY_TYPES:
-            props_list_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])
-            if props_list_by_type is None or len(props_list_by_type) == 0:
-                klass = PTOPERTY_TYPES[p_type]
-                if p_type in custom_properties:
-                    obj = klass(attributes=custom_properties[p_type])
-                    style.addElement(obj)
-            else:
-                props_by_type = props_list_by_type[0]
-                if p_type in custom_properties:
-                    for attr, value in custom_properties[p_type].items():
-                        # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+    for p_type, style_type in PROPERTY_TYPES.items():
+        style_instance = style_type()
+        # allowed_attrs = style_instance.allowed_attributes()
+        props_list_by_type = style.getElementsByType(style_type)
+        if props_list_by_type is None or len(props_list_by_type) == 0:
+            if p_type in custom_properties:
+                for attr, value in custom_properties[p_type].items():
+                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                    try:
                         props_by_type.setAttribute(attr, value)
+                        trace(f"{attr} set", nesting_level=nesting_level)
+                    except:
+                        warn(f"{attr} not allowed", nesting_level=nesting_level)
+                        pass
+
+                style.addElement(style_instance)
+        else:
+            props_by_type = props_list_by_type[0]
+            if p_type in custom_properties:
+                for attr, value in custom_properties[p_type].items():
+                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                    try:
+                        props_by_type.setAttribute(attr, value)
+                        trace(f"{attr} set", nesting_level=nesting_level)
+                    except:
+                        warn(f"{attr} not allowed", nesting_level=nesting_level)
+                        pass
 
 
 ''' update a style from a given spec
@@ -952,6 +977,8 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
         trace(f"custom style [{style_key}] added to style cache", nesting_level=nesting_level)
     
     else:
+        # HACK: odt styles typically has no SPACE in their names, SPACES are replaced by _20_
+        style_name = style_name.replace(' ', '_20_')
         style = get_style_by_name(odt=odt, style_name=style_name)
         if style is None:
             error(f"style [{style_name}] not found .. ", nesting_level=nesting_level)
@@ -959,13 +986,32 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
 
         # style exists, update with spec
         trace(f"overriding style [{style_name}]", nesting_level=nesting_level)
-        for p_type, props in PTOPERTY_TYPES.items():
-            props_by_type = style.getElementsByType(PTOPERTY_TYPES[p_type])[0]
-            if p_type in custom_properties:
-                for attr, value in custom_properties[p_type].items():
-                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level+1)
-                    props_by_type.setAttribute(attr, value)
+        for p_type, style_type in PROPERTY_TYPES.items():
+            style_instance = style_type()
+            props_list_by_type = style.getElementsByType(style_type)
+            if props_list_by_type is None or len(props_list_by_type) == 0:
+                if p_type in custom_properties:
+                    for attr, value in custom_properties[p_type].items():
+                        trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                        try:
+                            props_by_type.setAttribute(attr, value)
+                            trace(f"{attr} set", nesting_level=nesting_level)
+                        except:
+                            warn(f"{attr} not allowed", nesting_level=nesting_level)
+                            pass
 
+                    style.addElement(style_instance)
+            else:
+                props_by_type = props_list_by_type[0]
+                if p_type in custom_properties:
+                    for attr, value in custom_properties[p_type].items():
+                        trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                        try:
+                            props_by_type.setAttribute(attr, value)
+                            trace(f"{attr} set", nesting_level=nesting_level)
+                        except:
+                            warn(f"{attr} not allowed", nesting_level=nesting_level)
+                            pass
 
     # check for *inline-image* and process
     if 'inline-image' in style_spec:
@@ -1586,7 +1632,7 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # custom style map specific
 
-PTOPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
+PROPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
 
 ODT_ATTR_MAP_HINT = {
 	'borderleft':      	{'lambda': sanitize_border},

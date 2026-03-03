@@ -37,7 +37,7 @@ class OdtFromJson(object):
 				self._data = json.load(f)
 
 			# odt-helper
-			odt_helper = OdtHelper()
+			odt_helper = OdtHelper(spec_list=self._data['specs'], nesting_level=nesting_level)
 			odt_helper.generate_and_save(section_list=self._data['sections'], nesting_level=nesting_level)
 
 			# pdf to be generated

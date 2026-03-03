@@ -32,13 +32,10 @@ class OdtSectionBase(object):
         self.landscape = self.section_prop['landscape']
 
         self.page_spec_name = self.section_prop['page-spec']
-        self.page_spec = ConfigService()._page_specs['page-spec'][self.page_spec_name]
+        self.page_spec = ConfigService()._page_specs[self.page_spec_name]
 
         self.margin_spec_name = self.section_prop['margin-spec']
-        self.margin_spec = ConfigService()._page_specs['margin-spec'][self.margin_spec_name]
-
-        # TODO: background-image is not used as of now
-        # self.background_image = self.section_prop['background-image']
+        self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
         self.bookmark = self.section_prop['bookmark']
 

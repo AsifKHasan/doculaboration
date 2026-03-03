@@ -15,8 +15,14 @@ class OdtHelper(object):
 
     ''' constructor
     '''
-    def __init__(self):
+    def __init__(self, spec_list, nesting_level=0):
         self._odt = opendocument.load(ConfigService()._odt_template)
+
+        # specs to config
+        ConfigService()._page_specs = spec_list.get('page-spec', {})
+        ConfigService()._margin_specs = spec_list.get('margin-spec', {})
+        ConfigService()._font_specs = spec_list.get('font-spec', {})
+        ConfigService()._style_specs = spec_list.get('style-spec', {})
 
 
     ''' generate and save the odt
