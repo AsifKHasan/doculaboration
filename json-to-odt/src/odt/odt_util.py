@@ -938,31 +938,39 @@ def get_style_by_name(odt, style_name, nesting_level=0):
 '''
 def apply_custom_style(style, custom_properties, nesting_level=0):
     for p_type, style_type in PROPERTY_TYPES.items():
-        style_instance = style_type()
         # allowed_attrs = style_instance.allowed_attributes()
         props_list_by_type = style.getElementsByType(style_type)
         if props_list_by_type is None or len(props_list_by_type) == 0:
             if p_type in custom_properties:
+                style_instance = style_type()
                 for attr, value in custom_properties[p_type].items():
-                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                    # if the value is a dict itself, ignore it
+                    if isinstance(value, dict):
+                        # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
+                        continue
+
                     try:
-                        props_by_type.setAttribute(attr, value)
-                        trace(f"{attr} set", nesting_level=nesting_level)
+                        style_instance.setAttribute(attr, value)
+                        # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
                     except:
-                        warn(f"{attr} not allowed", nesting_level=nesting_level)
+                        warn(f"{attr} not allowed {type(style_instance)}", nesting_level=nesting_level)
                         pass
 
                 style.addElement(style_instance)
         else:
-            props_by_type = props_list_by_type[0]
+            style_instance = props_list_by_type[0]
             if p_type in custom_properties:
                 for attr, value in custom_properties[p_type].items():
-                    # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
+                    # if the value is a dict itself, ignore it
+                    if isinstance(value, dict):
+                        # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
+                        continue
+
                     try:
-                        props_by_type.setAttribute(attr, value)
-                        trace(f"{attr} set", nesting_level=nesting_level)
+                        style_instance.setAttribute(attr, value)
+                        # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
                     except:
-                        warn(f"{attr} not allowed", nesting_level=nesting_level)
+                        warn(f"{attr} not allowed {type(style_instance)}", nesting_level=nesting_level)
                         pass
 
 
@@ -987,30 +995,40 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
         # style exists, update with spec
         trace(f"overriding style [{style_name}]", nesting_level=nesting_level)
         for p_type, style_type in PROPERTY_TYPES.items():
-            style_instance = style_type()
             props_list_by_type = style.getElementsByType(style_type)
             if props_list_by_type is None or len(props_list_by_type) == 0:
                 if p_type in custom_properties:
+                    style_instance = style_type()
                     for attr, value in custom_properties[p_type].items():
+                        # if the value is a dict itself, ignore it
+                        if isinstance(value, dict):
+                            # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
+                            continue
+
                         trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
                         try:
-                            props_by_type.setAttribute(attr, value)
-                            trace(f"{attr} set", nesting_level=nesting_level)
+                            style_instance.setAttribute(attr, value)
+                            # trace(f"{attr} set for {type(style_instance)}", nesting_level=nesting_level)
                         except:
-                            warn(f"{attr} not allowed", nesting_level=nesting_level)
+                            warn(f"{attr} not allowed for {type(style_instance)}", nesting_level=nesting_level)
                             pass
 
                     style.addElement(style_instance)
             else:
-                props_by_type = props_list_by_type[0]
+                style_instance = props_list_by_type[0]
                 if p_type in custom_properties:
                     for attr, value in custom_properties[p_type].items():
+                        # if the value is a dict itself, ignore it
+                        if isinstance(value, dict):
+                            # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
+                            continue
+
                         trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
                         try:
-                            props_by_type.setAttribute(attr, value)
-                            trace(f"{attr} set", nesting_level=nesting_level)
+                            style_instance.setAttribute(attr, value)
+                            # trace(f"{attr} set for {type(style_instance)}", nesting_level=nesting_level)
                         except:
-                            warn(f"{attr} not allowed", nesting_level=nesting_level)
+                            warn(f"{attr} not allowed for {type(style_instance)}", nesting_level=nesting_level)
                             pass
 
     # check for *inline-image* and process
@@ -1089,6 +1107,66 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
 
                 custom_styles[style_key]['page-background'].append(pb_image_dict)
                 # trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+
+''' data: The original nested dictionary.
+    mapping_schema: {
+        (child_full_path): (parent_full_path, "new_key_name")
+    }
+'''
+def transform_nested_dict(data, mapping_schema, nesting_level=0):
+    moved_values = {} # Stores values to be injected: { parent_path: {new_key: value} }
+    paths_to_delete = set(mapping_schema.keys())
+
+    # --- PASS 1: Collection ---
+    def collect_moves(obj, current_path):
+        if not isinstance(obj, dict):
+            return
+        
+        for key, value in obj.items():
+            path = current_path + (key,)
+            if path in mapping_schema:
+                target_parent_path, new_key_name = mapping_schema[path]
+                if target_parent_path not in moved_values:
+                    moved_values[target_parent_path] = {}
+                # Store the value (and recurse into it in case it's a dict)
+                moved_values[target_parent_path][new_key_name] = value
+            
+            if isinstance(value, dict):
+                collect_moves(value, path)
+
+    collect_moves(data, ())
+
+    # --- PASS 2: Reconstruction & Injection ---
+    def rebuild(obj, current_path):
+        if not isinstance(obj, dict):
+            return obj
+
+        new_obj = {}
+        
+        # 1. Add existing keys (unless they were marked for deletion/moving)
+        for key, value in obj.items():
+            path = current_path + (key,)
+            if path in paths_to_delete:
+                continue
+            
+            if isinstance(value, dict):
+                processed_dict = rebuild(value, path)
+                # Only keep the dictionary if it's not empty after moves
+                if processed_dict:
+                    new_obj[key] = processed_dict
+            else:
+                new_obj[key] = value
+
+        # 2. Inject moved keys belonging to this parent
+        if current_path in moved_values:
+            for new_key, val in moved_values[current_path].items():
+                # Recurse into the moved value in case it's a nested dict itself
+                new_obj[new_key] = rebuild(val, current_path + (new_key,))
+
+        return new_obj
+
+    return rebuild(data, ())
 
 
 ''' parse style properties from yml to odt
@@ -1632,14 +1710,52 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # custom style map specific
 
+# style spec roots and their corresponsing odf types
 PROPERTY_TYPES = {'text-properties': TextProperties, 'paragraph-properties': ParagraphProperties}
 
+
+# functiona to apply on various style attribute values
 ODT_ATTR_MAP_HINT = {
 	'borderleft':      	{'lambda': sanitize_border},
 	'bordertop':     	{'lambda': sanitize_border},
 	'borderright':     	{'lambda': sanitize_border},
 	'borderbottom':    	{'lambda': sanitize_border},
 }
+
+
+# style paths to move up and what they become
+# Format: (Parent, Child, SubChild): "NewName"
+STYLE_TRANSFORMATION_MAP = {
+    ("text-properties", "font", "family")           : (("text-properties",), "fontfamily"),
+    ("text-properties", "font", "size")             : (("text-properties",), "fontsize"),
+    ("text-properties", "font", "style")            : (("text-properties",), "fontstyle"),
+    ("text-properties", "font", "weight")           : (("text-properties",), "fontweight"),
+
+    ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin"),
+    ("paragraph-properties", "margin", "bottom")    : (("paragraph-properties",), "marginbottom"),
+    ("paragraph-properties", "margin", "left")      : (("paragraph-properties",), "marginleft"),
+    ("paragraph-properties", "margin", "top")       : (("paragraph-properties",), "margintop"),
+    ("paragraph-properties", "margin", "right")     : (("paragraph-properties",), "marginright"),
+
+    ("paragraph-properties", "padding", "all")      : (("paragraph-properties",), "padding"),
+    ("paragraph-properties", "padding", "bottom")   : (("paragraph-properties",), "paddingbottom"),
+    ("paragraph-properties", "padding", "left")     : (("paragraph-properties",), "paddingleft"),
+    ("paragraph-properties", "padding", "top")      : (("paragraph-properties",), "paddingtop"),
+    ("paragraph-properties", "padding", "right")    : (("paragraph-properties",), "paddingright"),
+
+    ("paragraph-properties", "border", "style", "all")      : (("paragraph-properties",), "border"),
+    ("paragraph-properties", "border", "style", "bottom")   : (("paragraph-properties",), "borderbottom"),
+    ("paragraph-properties", "border", "style", "left")     : (("paragraph-properties",), "borderleft"),
+    ("paragraph-properties", "border", "style", "top")      : (("paragraph-properties",), "bordertop"),
+    ("paragraph-properties", "border", "style", "right")    : (("paragraph-properties",), "borderright"),
+
+    ("paragraph-properties", "border", "linewidth", "all")      : (("paragraph-properties",), "borderlinewidth"),
+    ("paragraph-properties", "border", "linewidth", "bottom")   : (("paragraph-properties",), "borderlinewidthbottom"),
+    ("paragraph-properties", "border", "linewidth", "left")     : (("paragraph-properties",), "borderlinewidthleft"),
+    ("paragraph-properties", "border", "linewidth", "top")      : (("paragraph-properties",), "borderlinewidthtop"),
+    ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright"),
+}
+
 
 STYLE_PROPERTY_MAP = {
     "text-properties": 

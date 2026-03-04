@@ -4,7 +4,7 @@
 '''
 
 import time
-
+import yaml
 from odf import opendocument
 
 from helper.config_service import ConfigService
@@ -22,7 +22,11 @@ class OdtHelper(object):
         ConfigService()._page_specs = spec_list.get('page-spec', {})
         ConfigService()._margin_specs = spec_list.get('margin-spec', {})
         ConfigService()._font_specs = spec_list.get('font-spec', {})
-        ConfigService()._style_specs = spec_list.get('style-spec', {})
+        ConfigService()._style_specs = {}
+        for style_key, style_spec in spec_list.get('style-spec', {}).items():
+            transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
+            ConfigService()._style_specs[style_key] = transfomed_style_spec
+        
 
 
     ''' generate and save the odt
