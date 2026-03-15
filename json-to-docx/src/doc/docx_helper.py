@@ -6,6 +6,7 @@
 import time
 import yaml
 import datetime
+import pprint
 
 from docx import Document
 
@@ -28,6 +29,12 @@ class DocxHelper(object):
         for style_key, style_spec in spec_list.get('style-spec', {}).items():
             transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
             ConfigService()._style_specs[style_key] = transfomed_style_spec
+
+        for k, v in ConfigService()._style_specs.items():
+            print(k)
+            print('----------')
+            print(yaml.dump(v, sort_keys=False))
+            print()
 
 
     ''' generate and save the docx

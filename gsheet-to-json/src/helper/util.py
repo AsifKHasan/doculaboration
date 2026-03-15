@@ -563,6 +563,12 @@ def yes_to_bool(val):
     return str(val).strip().lower() in ['yes', 'true']
 
 
+''' if a string is passed like No or False, return boolean true
+'''
+def no_to_bool(val):
+    return not str(val).strip().lower() in ['no', 'false']
+
+
 ''' print dictionary as yml
 '''
 def print_yml(data):
@@ -693,10 +699,11 @@ SPEC_DICT = {
     'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D',  'print': False, 'spec-name': 'page-spec'}, 
     'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H',  'print': False, 'spec-name': 'margin-spec'}, 
     'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B',  'print': False, 'spec-name': 'font-spec'}, 
-    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AO', 'print': False, 'spec-name': 'style-spec'}
+    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AP', 'print': False, 'spec-name': 'style-spec'}
 }
 
 SPEC_KEY_TRANSFORMATIONS = {
+    ('active',): no_to_bool,
     ('inline-image', 'fit-height-to-container'): yes_to_bool,
     ('inline-image', 'fit-width-to-container'): yes_to_bool,
     ('inline-image', 'keep-aspect-ratio'): yes_to_bool,

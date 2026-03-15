@@ -523,6 +523,7 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 '''
 def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
+	print(image_path)
 	for header in [docx_section.header, docx_section.even_page_header]:
 		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
 		run = p.add_run()
@@ -1498,221 +1499,6 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# DOCX style specific utility functions
-
-''' return the style if exists
-'''
-def get_style_by_name(docx, style_name, nesting_level=0):
-	for style in docx.styles:
-		# style.name is the UI name (e.g., 'Normal', 'Heading 1')
-		# style.element.styleId is the XML ID (e.g., 'Normal', 'Heading1')
-		if style_name in (style.name, style.element.styleId):
-			return style
-    
-	return None
-
-
-''' apply a custom style to a Style/paragraph
-'''
-def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nesting_level=0):
-	# the following elemnts are to be updated
-	font, pf = None, None
-	border_around = None
-
-	# if style_name
-	if style_name:
-		style = get_style_by_name(docx=docx, style_name=style_name)
-		if style is None:
-			error(f"style [{style_name}] not found .. ")
-			return
-
-		# style exists, update with spec
-		font = style.font
-		pf = style.paragraph_format
-		element = style._element
-
-
-	elif paragraph is not None:
-		font = paragraph.runs[0].font
-		pf = paragraph.paragraph_format
-		element = paragraph._p
-
-
-	# now apply
-	# ParagraphStyle
-	if 'ParagraphStyle' in style_spec:
-		if 'font' in style_spec['ParagraphStyle']:
-			# ParagraphStyle - font
-			attr_dict = style_spec['ParagraphStyle']['font']
-
-			if font:
-				for attr, value in attr_dict.items():
-					# color needs special treatment
-					if attr == "color":
-						# value should be RGBColor or None
-						font.color.rgb = value
-						continue
-
-					if hasattr(font, attr):
-						setattr(font, attr, value)
-
-
-			# ParagraphStyle - paragraph_format
-			if 'paragraph-format' in style_spec['ParagraphStyle']:
-				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
-				
-				if pf:
-					for attr, value in attr_dict.items():
-						if hasattr(pf, attr):
-							setattr(pf, attr, value)
-
-	# borders
-	if 'borders' in style_spec:
-		if element is not None:
-			set_paragraph_border(element=element, borders=style_spec['borders'])
-
-	# backgroundcolor
-	if 'backgroundcolor' in style_spec:
-		if element is not None:
-			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
-
-
-''' process custom styles
-'''
-def process_custom_style(docx, style_spec, nesting_level=0):
-	custom_styles = {}
-	if style_spec:
-		trace(f"processing custom styles from conf/style-spec.yml", nesting_level=nesting_level)
-		parse_style_properties(style_spec, nesting_level=nesting_level+1)
-
-		# iterate and apply or store
-		for key, value in style_spec.items():
-			if value:
-				style_name = value.get('name', None)
-				if style_name:
-					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
-					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
-					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
-
-				else:
-					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
-					custom_styles[key] = value
-					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
-	
-	return custom_styles
-
-
-''' parse style properties from yml to docx
-'''
-def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
-	if style_spec:
-		for key, value in style_spec.items():
-			if isinstance(value, dict):
-				# If it's another dict, go deeper
-				parse_style_properties(value, parent_key=key, nesting_level=nesting_level)
-
-			else:	
-				if value and value != '':
-					new_value = value
-					if key in DOCX_ATTR_MAP_HINT:
-						# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level+1)
-						# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
-
-					elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
-						# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
-						new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level+1)
-						# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
-
-					if new_value:
-						value = new_value
-
-					style_spec[key] = value
-
-				else:
-					# style_spec.pop(key, None)
-					pass
-
-		# check for *inline-image* and process
-		if 'inline-image' in style_spec:
-			inline_image_list = []
-			# this may be a dict for one single image or a list for multiple images
-			if isinstance(style_spec['inline-image'], dict):
-				inline_image_list.append(style_spec['inline-image'])
-
-			elif isinstance(style_spec['inline-image'], list):
-				for ii_dict in style_spec.get('inline-image', []):
-					inline_image_list.append(ii_dict)
-			
-			else:
-				warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
-
-			style_spec['inline-image'] = []
-			for ii_dict in inline_image_list:
-				if 'url' in ii_dict:
-					url = ii_dict.get('url')
-					
-					# download image
-					debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
-					ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
-
-					# type background/inline
-					ii_image_dict['type'] = ii_dict.get('type', 'background')
-
-					# fit-height-to-container true/false,
-					ii_image_dict['fit-height-to-container'] = ii_dict.get('fit-height-to-container', False)
-
-					# fit-width-to-container true/false,
-					ii_image_dict['fit-width-to-container'] = ii_dict.get('fit-width-to-container', False)
-
-					# fit-height-to-container true/false,
-					ii_image_dict['keep-aspect-ratio'] = ii_dict.get('keep-aspect-ratio', True)
-
-					# extend-container-height true/false,
-					ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
-
-					# position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
-					ii_image_dict['position'] = ii_dict.get('position', 'center middle')
-
-					# wrap none/parallel
-					ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
-
-					style_spec['inline-image'].append(ii_image_dict)
-					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
-
-
-		# check for *page-background* and process
-		if 'page-background' in style_spec:
-			page_background_image_list = []
-			# this may be a dict for one single image or a list for multiple images
-			if isinstance(style_spec['page-background'], dict):
-				page_background_image_list.append(style_spec['page-background'])
-
-			elif isinstance(style_spec['page-background'], list):
-				for pb_dict in style_spec.get('page-background', []):
-					page_background_image_list.append(pb_dict)
-			
-			else:
-				warn(f"page-background is neither a dict nor a list", nesting_level=nesting_level)
-
-			style_spec['page-background'] = []
-			for pb_dict in page_background_image_list:
-				if 'url' in pb_dict:
-					url = pb_dict.get('url')
-					
-					# download image
-					debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
-					pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
-
-					# type background/inline
-					pb_image_dict['type'] = 'background'
-
-					style_spec['page-background'].append(pb_image_dict)
-					# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
-
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # indexes and pdf generation
 
 ''' update docx indexes by opening and closing the docx, rest is done by macros
@@ -2020,64 +1806,301 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # DOCX style specific utility functions
 
+''' return the style if exists
+'''
+def get_style_by_name(docx, style_name, nesting_level=0):
+	for style in docx.styles:
+		# style.name is the UI name (e.g., 'Normal', 'Heading 1')
+		# style.element.styleId is the XML ID (e.g., 'Normal', 'Heading1')
+		if style_name in (style.name, style.element.styleId):
+			return style
+    
+	return None
+
+
+''' apply a custom style to a Style/paragraph
+'''
+def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nesting_level=0):
+	# the following elemnts are to be updated
+	# TODO: check carefully
+	font, pf = None, None
+	border_around = None
+
+	# if style_name
+	if style_name:
+		style = get_style_by_name(docx=docx, style_name=style_name)
+		if style is None:
+			error(f"style [{style_name}] not found .. ")
+			return
+
+		# style exists, update with spec
+		font = style.font
+		pf = style.paragraph_format
+		element = style._element
+
+
+	elif paragraph is not None:
+		font = paragraph.runs[0].font
+		pf = paragraph.paragraph_format
+		element = paragraph._p
+
+
+	# now apply
+	# ParagraphStyle
+	if 'ParagraphStyle' in style_spec:
+		if 'font' in style_spec['ParagraphStyle']:
+			# ParagraphStyle - font
+			attr_dict = style_spec['ParagraphStyle']['font']
+
+			if font:
+				for attr, value in attr_dict.items():
+					# color needs special treatment
+					if attr == "color":
+						# value should be RGBColor or None
+						font.color.rgb = value
+						continue
+
+					if hasattr(font, attr):
+						setattr(font, attr, value)
+
+
+			# ParagraphStyle - paragraph_format
+			if 'paragraph-format' in style_spec['ParagraphStyle']:
+				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
+				
+				if pf:
+					for attr, value in attr_dict.items():
+						if hasattr(pf, attr):
+							setattr(pf, attr, value)
+
+	# borders
+	if 'borders' in style_spec:
+		if element is not None:
+			set_paragraph_border(element=element, borders=style_spec['borders'])
+
+	# backgroundcolor
+	if 'backgroundcolor' in style_spec:
+		if element is not None:
+			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
+
+
+''' process custom styles
+'''
+def process_custom_style(docx, style_spec, nesting_level=0):
+	custom_styles = {}
+	if style_spec:
+		trace(f"processing custom styles from conf/style-spec.yml", nesting_level=nesting_level)
+		parse_style_properties(style_spec, nesting_level=nesting_level+1)
+
+		# iterate and apply or store
+		for key, value in style_spec.items():
+			if value:
+				style_name = value.get('name', None)
+				if style_name:
+					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
+					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
+					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
+
+				else:
+					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
+					custom_styles[key] = value
+					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
+	
+	return custom_styles
+
+
+''' parse style properties from yml to docx
+'''
+def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
+	if style_spec:
+		for style_key, this_style in style_spec.items():
+			debug(f"[parse_style_properties] {style_key}", nesting_level=nesting_level)
+	# 		if isinstance(value, dict):
+	# 			# If it's another dict, go deeper
+	# 			parse_style_properties(value, parent_key=key, nesting_level=nesting_level)
+
+	# 		else:	
+	# 			if value and value != '':
+	# 				new_value = value
+	# 				if key in DOCX_ATTR_MAP_HINT:
+	# 					# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
+	# 					new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level+1)
+	# 					# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
+
+	# 				elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
+	# 					# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
+	# 					new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level+1)
+	# 					# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
+
+	# 				if new_value:
+	# 					value = new_value
+
+	# 				style_spec[key] = value
+
+	# 			else:
+	# 				# style_spec.pop(key, None)
+	# 				pass
+
+			# check for *inline-image* and process
+			if 'inline-image' in this_style:
+				inline_image_list = []
+				# this may be a dict for one single image or a list for multiple images
+				if isinstance(this_style['inline-image'], dict):
+					inline_image_list.append(this_style['inline-image'])
+
+				elif isinstance(this_style['inline-image'], list):
+					for ii_dict in this_style.get('inline-image', []):
+						inline_image_list.append(ii_dict)
+				
+				else:
+					warn(f"inline-image is neither a dict nor a list", nesting_level=nesting_level)
+
+				this_style['inline-image'] = []
+				for ii_dict in inline_image_list:
+					if 'url' in ii_dict:
+						url = ii_dict.get('url')
+						
+						# download image
+						debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+						ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+						# type background/inline
+						ii_image_dict['type'] = ii_dict.get('type', 'background')
+
+						# fit-height-to-container true/false,
+						ii_image_dict['fit-height-to-container'] = ii_dict.get('fit-height-to-container', False)
+
+						# fit-width-to-container true/false,
+						ii_image_dict['fit-width-to-container'] = ii_dict.get('fit-width-to-container', False)
+
+						# fit-height-to-container true/false,
+						ii_image_dict['keep-aspect-ratio'] = ii_dict.get('keep-aspect-ratio', True)
+
+						# extend-container-height true/false,
+						ii_image_dict['extend-container-height'] = ii_dict.get('extend-container-height', False)
+
+						# position is horizontal and vertical positions [center/left/right] [middle/top/bottom]
+						ii_image_dict['position'] = ii_dict.get('position', 'center middle')
+
+						# wrap none/parallel
+						ii_image_dict['wrap'] = ii_dict.get('wrap', 'parallel')
+
+						this_style['inline-image'].append(ii_image_dict)
+						# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+
+			# check for *page-background* and process
+			if 'page-background' in this_style:
+				page_background_image_list = []
+				# this may be a dict for one single image or a list for multiple images
+				if isinstance(this_style['page-background'], dict):
+					page_background_image_list.append(this_style['page-background'])
+
+				elif isinstance(this_style['page-background'], list):
+					for pb_dict in this_style.get('page-background', []):
+						page_background_image_list.append(pb_dict)
+				
+				else:
+					warn(f"page-background is neither a dict nor a list", nesting_level=nesting_level)
+
+				this_style['page-background'] = []
+				for pb_dict in page_background_image_list:
+					if 'url' in pb_dict:
+						url = pb_dict.get('url')
+						
+						# download image
+						debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+						pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
+
+						# type background/inline
+						pb_image_dict['type'] = 'background'
+
+						this_style['page-background'].append(pb_image_dict)
+						# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
+
+			# print(style_spec[style_key])
+
+
 ''' data: The original nested dictionary.
     mapping_schema: {
-        (child_full_path): (parent_full_path, "new_key_name")
+        (source_path): (target_parent_path, "new_name", transform_func)
     }
 '''
 def transform_nested_dict(data, mapping_schema, nesting_level=0):
-    moved_values = {} # Stores values to be injected: { parent_path: {new_key: value} }
+    moved_values = {}
     paths_to_delete = set(mapping_schema.keys())
 
-    # --- PASS 1: Collection ---
+    # --- PASS 1: Collection & Value Transformation ---
     def collect_moves(obj, current_path):
         if not isinstance(obj, dict):
             return
         
         for key, value in obj.items():
             path = current_path + (key,)
-            if path in mapping_schema:
-                target_parent_path, new_key_name = mapping_schema[path]
-                if target_parent_path not in moved_values:
-                    moved_values[target_parent_path] = {}
-                # Store the value (and recurse into it in case it's a dict)
-                moved_values[target_parent_path][new_key_name] = value
             
+            # Check if this node is marked for a move/transform
+            if path in mapping_schema:
+                target_parent, new_name, func = mapping_schema[path]
+                
+                # Apply the transformation function if it exists
+                # e.g., converting 'Yes' to True or adding 'pt'
+                transformed_val = func(value) if func else value
+                
+                # Store it for the Target Parent
+                if target_parent not in moved_values:
+                    moved_values[target_parent] = {}
+                moved_values[target_parent][new_name] = transformed_val
+            
+            # Continue traversing
             if isinstance(value, dict):
                 collect_moves(value, path)
 
     collect_moves(data, ())
 
-    # --- PASS 2: Reconstruction & Injection ---
+    # --- PASS 2: Reconstruction & Existing Parent Injection ---
     def rebuild(obj, current_path):
         if not isinstance(obj, dict):
             return obj
 
         new_obj = {}
         
-        # 1. Add existing keys (unless they were marked for deletion/moving)
-        for key, value in obj.items():
-            path = current_path + (key,)
-            if path in paths_to_delete:
-                continue
-            
-            if isinstance(value, dict):
-                processed_dict = rebuild(value, path)
-                # Only keep the dictionary if it's not empty after moves
-                if processed_dict:
-                    new_obj[key] = processed_dict
-            else:
-                new_obj[key] = value
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                path = current_path + (key,)
+                
+                # Skip the key if it was moved out
+                if path in paths_to_delete:
+                    continue
+                
+                processed = rebuild(value, path)
+                # Keep existing data if it's not a dictionary that became empty
+                if processed is not None:
+                    new_obj[key] = processed
 
-        # 2. Inject moved keys belonging to this parent
+        # If THIS path is a Target Parent, inject the moved values now
         if current_path in moved_values:
-            for new_key, val in moved_values[current_path].items():
-                # Recurse into the moved value in case it's a nested dict itself
-                new_obj[new_key] = rebuild(val, current_path + (new_key,))
+            new_obj.update(moved_values[current_path])
+            # Remove from tracker to indicate "delivered"
+            del moved_values[current_path]
 
-        return new_obj
+        # Return None for empty dicts so parents can prune them
+        return new_obj if (new_obj or not isinstance(obj, dict)) else None
 
-    return rebuild(data, ())
+    # Initial tree build
+    result = rebuild(data, ()) or {}
+
+    # --- PASS 3: Safety Net (Auto-Create Missing Parent Branches) ---
+    # Any keys remaining in moved_values had parents that didn't exist in original data
+    for parent_path, values in list(moved_values.items()):
+        current = result
+        for step in parent_path:
+            # Create the nested dictionary path if it's missing
+            if step not in current or not isinstance(current[step], dict):
+                current[step] = {}
+            current = current[step]
+        current.update(values)
+
+    return result
 
 
 
@@ -2313,7 +2336,7 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float,
 
 ''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
 '''
-def str_to_size(str, what, nesting_level=0):
+def str_to_size(str, nesting_level=0):
 	allowed_units = ['pt', 'in', 'cm', 'mm']
 	match = re.match(r"(\d*\.?\d+)\s*([a-zA-Z]+)", str.strip())
 
@@ -2352,17 +2375,17 @@ def str_to_size(str, what, nesting_level=0):
 	val is any of dotted/dashed/single/thick/triple/double/none
 	space is space/padding between text and border in pt
 '''
-def str_to_border(str, what, nesting_level=0):
+def str_to_border(str, nesting_level=0):
 	try:
 		# we are expecting at least four parts (sz, val, color, space)
 		sz, val, color, space = str.split()
 
 	except ValueError:
-		warn(f"[{str}] is not a valid {what} ... expecting four parts sz val color space", nesting_level=nesting_level+1)
+		warn(f"[{str}] is not a valid border comprising four parts [sz val color space]", nesting_level=nesting_level+1)
 		return None
 
 	# sz
-	sz = str_to_size(str=sz, what=what, nesting_level=nesting_level)
+	sz = str_to_size(str=sz, nesting_level=nesting_level)
 	if sz is not None:
 		sz = sz.pt * 8
 	else:
@@ -2371,17 +2394,17 @@ def str_to_border(str, what, nesting_level=0):
 	# val
 	allowed_vals = ['dotted', 'dashed', 'single', 'thick', 'triple', 'double', 'none']
 	if val not in allowed_vals:
-		warn(f"[{val}] is not valid in {what} ... valid values are {allowed_vals}", nesting_level=nesting_level+1)
+		warn(f"[{val}] is not a valid style ... valid values are {allowed_vals}", nesting_level=nesting_level+1)
 		return None
 
 	# color
 	color = color.lstrip("#")
 	if not is_valid_hex(color, 6):
-		warn(f"[{color}] is not valid in {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
+		warn(f"[{color}] is not a valid 6 digit hex color", nesting_level=nesting_level+1)
 		return None
 
 	# space
-	space = str_to_size(str=space, what=what, nesting_level=nesting_level)
+	space = str_to_size(str=space, nesting_level=nesting_level)
 	if space:
 		space = space.pt
 	else:
@@ -2392,12 +2415,12 @@ def str_to_border(str, what, nesting_level=0):
 
 ''' conver rgb colors like '#RRGGBB' to RGBColor
 '''
-def rgb_from_hex(str, what, nesting_level=0):
+def rgb_from_hex(str, nesting_level=0):
     hexstr = str.lstrip("#")
     if is_valid_hex(hexstr, 6):
         return RGBColor(int(hexstr[0:2], 16), int(hexstr[2:4], 16), int(hexstr[4:6], 16),)
     else:
-    	warn(f"[{str}] is not a valid {what} ... not a valid 6 digit hex color", nesting_level=nesting_level+1)
+    	warn(f"[{str}] is not a valid 6 digit hex color", nesting_level=nesting_level+1)
 
 
 ''' is the string a valid hex-string
@@ -2407,6 +2430,12 @@ def is_valid_hex(str, digits, nesting_level=0):
 	return bool(re.fullmatch(pattern, str))
 
 
+''' mapper to map string to TEXT_HALIGN
+'''
+def str_to_docx_halign(align, nesting_level=0):
+	return TEXT_HALIGN_MAP.get(align.upper(), WD_PARAGRAPH_ALIGNMENT.CENTER)
+
+
 ''' pretty print element xml
 '''
 def print_xml(element, nesting_level=0):
@@ -2414,28 +2443,28 @@ def print_xml(element, nesting_level=0):
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 
 
-''' map attribute key/value to a modified ke/value
-'''
-def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
-	if attr_key in DOCX_ATTR_MAP_HINT:
-		obj = DOCX_ATTR_MAP_HINT[attr_key]
-		mapper = obj['lambda']
+# ''' map attribute key/value to a modified ke/value
+# '''
+# def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
+# 	if attr_key in DOCX_ATTR_MAP_HINT:
+# 		obj = DOCX_ATTR_MAP_HINT[attr_key]
+# 		mapper = obj['lambda']
 
-		# if the mapper is a dict
-		if isinstance(mapper, dict):
-			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
-			if attr_value in mapper:
-				return mapper[attr_value]
+# 		# if the mapper is a dict
+# 		if isinstance(mapper, dict):
+# 			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
+# 			if attr_value in mapper:
+# 				return mapper[attr_value]
 			
-			else:
-				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
+# 			else:
+# 				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
 
-		# of the mapper is a function
-		if isinstance(mapper, types.FunctionType):
-			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
-			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
+# 		# of the mapper is a function
+# 		if isinstance(mapper, types.FunctionType):
+# 			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
+# 			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
 		
-	return attr_value
+# 	return attr_value
 			
 
 
@@ -2559,123 +2588,69 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # custom style map specific
 
-DOCX_ATTR_MAP_HINT = {
-	'color':				{'lambda': rgb_from_hex},
-	'highlight_color':		{'lambda': rgb_from_hex},
-	# 'backgroundcolor':	{'lambda': rgb_from_hex},
-	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
-	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
-	'size': 				{'lambda': str_to_size},
-	'left_indent':      	{'lambda': str_to_size},
-	'right_indent':     	{'lambda': str_to_size},
-	'space_before':     	{'lambda': str_to_size},
-	'space_after':    		{'lambda': str_to_size},
-	('borders', 'start'):   {'lambda': str_to_border},
-	('borders', 'top'):     {'lambda': str_to_border},
-	('borders', 'end'):     {'lambda': str_to_border},
-	('borders', 'bottom'):  {'lambda': str_to_border},
-	('padding', 'start'):   {'lambda': str_to_size},
-	('padding', 'top'):     {'lambda': str_to_size},
-	('padding', 'end'):     {'lambda': str_to_size},
-	('padding', 'bottom'):  {'lambda': str_to_size},
-}
+# DOCX_ATTR_MAP_HINT = {
+# 	'color':				{'lambda': rgb_from_hex},
+# 	'highlight_color':		{'lambda': rgb_from_hex},
+# 	# 'backgroundcolor':	{'lambda': rgb_from_hex},
+# 	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
+# 	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
+# 	'size': 				{'lambda': str_to_size},
+# 	'left_indent':      	{'lambda': str_to_size},
+# 	'right_indent':     	{'lambda': str_to_size},
+# 	'space_before':     	{'lambda': str_to_size},
+# 	'space_after':    		{'lambda': str_to_size},
+# 	('borders', 'start'):   {'lambda': str_to_border},
+# 	('borders', 'top'):     {'lambda': str_to_border},
+# 	('borders', 'end'):     {'lambda': str_to_border},
+# 	('borders', 'bottom'):  {'lambda': str_to_border},
+# 	('padding', 'start'):   {'lambda': str_to_size},
+# 	('padding', 'top'):     {'lambda': str_to_size},
+# 	('padding', 'end'):     {'lambda': str_to_size},
+# 	('padding', 'bottom'):  {'lambda': str_to_size},
+# }
 
-STYLE_PROPERTY_MAP = {
-	"ParagraphStyle": 
-	{
-		"font":
-		[
-			"name",
-			"size",
-			"color",
-			"bold",
-			"italic",
-			"underline",
-			"strike",
-			"double_strike",
-			"highlight_color",
-			"all_caps",
-			"small_caps",
-			"subscript",
-			"superscript",
-			"complex_script",
-			"cs_bold",
-			"cs_italic",
-			"emboss",
-			"imprint",
-			"outline",
-			"shadow",
-		],
-		"paragraph_format":
-		[
-			# A member of the WD_PARAGRAPH_ALIGNMENT enumeration specifying the justification setting for this paragraph.
-			"alignment",
-			# Length value specifying the relative difference in indentation for the first line of the paragraph.
-			"first_line_indent",
-			# True if the paragraph should be kept “in one piece” and not broken across a page boundary when the document is rendered.
-			"keep_together",
-			"keep_with_next",
-			# Length value specifying the space between the left margin and the left side of the paragraph.
-			"left_indent",
-			# float or Length value specifying the space between baselines in successive lines of the paragraph.
-			"line_spacing",
-			# A member of the WD_LINE_SPACING enumeration indicating how the value of line_spacing should be interpreted.
-			"line_spacing_rule",
-			"page_break_before",
-			"right_indent",
-			# Length value specifying the spacing to appear between this paragraph and the subsequent paragraph.
-			"space_after",
-			# Length value specifying the spacing to appear between this paragraph and the prior paragraph.
-			"space_before",
-			# TabStops object providing access to the tab stops defined for this paragraph format
-			"tab_stops",
-			# True if the first and last lines in the paragraph remain on the same page as the rest of the paragraph when Word repaginates the document.
-			"widow_control",
-		],
-	},
-}
 
-# style paths to move up and what they become
-# Format: (Parent, Child, SubChild): "NewName"
+# style paths to move up and what they become - Format: (Parent, Child, SubChild): "NewName"
 STYLE_TRANSFORMATION_MAP = {
-    ("text-properties", "color")           			: (("ParagraphStyle",), "color"),
-    ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name"),
-    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size"),
-	# color
-	# alignment
+    ("text-properties", "color")           	        : (("ParagraphStyle", "font",), "color", rgb_from_hex),
+    ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name", None),
+    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),
 	# bold
 	# italic
 	# underline
 	# strike
 	# double_strike
-    # ("text-properties", "font", "style")            : (("ParagraphStyle", "font",), "fontstyle"),
-    # ("text-properties", "font", "weight")           : (("ParagraphStyle", "font",), "fontweight"),
 
-    # ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin"),
+	("paragraph-properties", "backgroundcolor")		: (("ParagraphStyle",), "backgroundcolor", rgb_from_hex),
+
+    ("paragraph-properties", "textalign")			: (("ParagraphStyle", "paragraph-format",), "alignment", str_to_docx_halign),
+	# ("paragraph-properties", "verticalalign")		: (("ParagraphStyle", "paragraph-format",), "verticalalign", str_to_docx_halign),
+
+    # ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin", None),
     #   'left_indent':        '1.0in'
     #   'right_indent':       '1.0in'
     #   'space_before':       '1.0in'
     #   'space_after':        '1.0in'
-    ("paragraph-properties", "margin", "bottom")    : (("paragraph-properties",), "marginbottom"),
-    ("paragraph-properties", "margin", "left")      : (("paragraph-properties",), "marginleft"),
-    ("paragraph-properties", "margin", "top")       : (("paragraph-properties",), "margintop"),
-    ("paragraph-properties", "margin", "right")     : (("paragraph-properties",), "marginright"),
+    ("paragraph-properties", "margin", "bottom")    : (("ParagraphStyle", "paragraph-format",), "space_after", str_to_size),
+    ("paragraph-properties", "margin", "left")      : (("ParagraphStyle", "paragraph-format",), "left_indent", str_to_size),
+    ("paragraph-properties", "margin", "top")       : (("ParagraphStyle", "paragraph-format",), "space_before", str_to_size),
+    ("paragraph-properties", "margin", "right")     : (("ParagraphStyle", "paragraph-format",), "right_indent", str_to_size),
 
-    # ("paragraph-properties", "padding", "all")      : (("paragraph-properties",), "padding"),
-    ("paragraph-properties", "padding", "bottom")   : (("paragraph-properties",), "paddingbottom"),
-    ("paragraph-properties", "padding", "left")     : (("paragraph-properties",), "paddingleft"),
-    ("paragraph-properties", "padding", "top")      : (("paragraph-properties",), "paddingtop"),
-    ("paragraph-properties", "padding", "right")    : (("paragraph-properties",), "paddingright"),
+    # ("paragraph-properties", "padding", "all")      : (("paragraph-properties",), "padding", str_to_size),
+    # ("paragraph-properties", "padding", "bottom")   : (("paragraph-properties",), "paddingbottom", str_to_size),
+    # ("paragraph-properties", "padding", "left")     : (("paragraph-properties",), "paddingleft", str_to_size),
+    # ("paragraph-properties", "padding", "top")      : (("paragraph-properties",), "paddingtop", str_to_size),
+    # ("paragraph-properties", "padding", "right")    : (("paragraph-properties",), "paddingright", str_to_size),
 
-    # ("paragraph-properties", "border", "style", "all")      : (("paragraph-properties",), "border"),
-    ("paragraph-properties", "border", "style", "bottom")   : (("paragraph-properties",), "borderbottom"),
-    ("paragraph-properties", "border", "style", "left")     : (("paragraph-properties",), "borderleft"),
-    ("paragraph-properties", "border", "style", "top")      : (("paragraph-properties",), "bordertop"),
-    ("paragraph-properties", "border", "style", "right")    : (("paragraph-properties",), "borderright"),
+    # ("paragraph-properties", "border", "style", "all")      : (("paragraph-properties",), "border", None),
+    ("paragraph-properties", "border", "style", "bottom")   : (("ParagraphStyle", "borders",), "bottom", str_to_border),
+    ("paragraph-properties", "border", "style", "left")     : (("ParagraphStyle", "borders",), "start", str_to_border),
+    ("paragraph-properties", "border", "style", "top")      : (("ParagraphStyle", "borders",), "top", str_to_border),
+    ("paragraph-properties", "border", "style", "right")    : (("ParagraphStyle", "borders",), "end", str_to_border),
 
-    ("paragraph-properties", "border", "linewidth", "all")      : (("paragraph-properties",), "borderlinewidth"),
-    ("paragraph-properties", "border", "linewidth", "bottom")   : (("paragraph-properties",), "borderlinewidthbottom"),
-    ("paragraph-properties", "border", "linewidth", "left")     : (("paragraph-properties",), "borderlinewidthleft"),
-    ("paragraph-properties", "border", "linewidth", "top")      : (("paragraph-properties",), "borderlinewidthtop"),
-    ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright"),
+    # ("paragraph-properties", "border", "linewidth", "all")      : (("paragraph-properties",), "borderlinewidth", None),
+    # ("paragraph-properties", "border", "linewidth", "bottom")   : (("paragraph-properties",), "borderlinewidthbottom", None),
+    # ("paragraph-properties", "border", "linewidth", "left")     : (("paragraph-properties",), "borderlinewidthleft", None),
+    # ("paragraph-properties", "border", "linewidth", "top")      : (("paragraph-properties",), "borderlinewidthtop", None),
+    # ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright", None),
 }

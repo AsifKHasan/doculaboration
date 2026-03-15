@@ -27,7 +27,7 @@
       'underline':
       'strike':
       'double_strike':
-      'highlight_color':
+      'highlight_color': 
       'all_caps':
       'small_caps':
       'subscript':
@@ -58,3 +58,59 @@
     'top':                  '0pt none #222222 0.25in'
     'end':                  '0pt none #222222 0.25in'
     'bottom':               '0pt none #222222 0.25in'
+
+
+STYLE_PROPERTY_MAP = {
+	"ParagraphStyle": 
+	{
+		"font":
+		[
+			"name",
+			"size",
+			"color",
+			"bold",
+			"italic",
+			"underline",
+			"strike",
+			"double_strike",
+			"highlight_color",
+			"all_caps",
+			"small_caps",
+			"subscript",
+			"superscript",
+			"complex_script",
+			"cs_bold",
+			"cs_italic",
+			"emboss",
+			"imprint",
+			"outline",
+			"shadow",
+		],
+		"paragraph_format":
+		[
+			# A member of the WD_PARAGRAPH_ALIGNMENT enumeration specifying the justification setting for this paragraph.
+			"alignment",
+			# Length value specifying the relative difference in indentation for the first line of the paragraph.
+			"first_line_indent",
+			# True if the paragraph should be kept “in one piece” and not broken across a page boundary when the document is rendered.
+			"keep_together",
+			"keep_with_next",
+			# Length value specifying the space between the left margin and the left side of the paragraph.
+			"left_indent",
+			# float or Length value specifying the space between baselines in successive lines of the paragraph.
+			"line_spacing",
+			# A member of the WD_LINE_SPACING enumeration indicating how the value of line_spacing should be interpreted.
+			"line_spacing_rule",
+			"page_break_before",
+			"right_indent",
+			# Length value specifying the spacing to appear between this paragraph and the subsequent paragraph.
+			"space_after",
+			# Length value specifying the spacing to appear between this paragraph and the prior paragraph.
+			"space_before",
+			# TabStops object providing access to the tab stops defined for this paragraph format
+			"tab_stops",
+			# True if the first and last lines in the paragraph remain on the same page as the rest of the paragraph when Word repaginates the document.
+			"widow_control",
+		],
+	},
+}

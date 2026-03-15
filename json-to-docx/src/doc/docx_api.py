@@ -164,9 +164,11 @@ class DocxSectionBase(object):
 
                 # handle background image
                 if 'page-background' in ConfigService()._style_specs[self.heading_style]:
-                    for pb_dict in ConfigService()._style_specs[self.heading_style]['page-background']:
-                        pb_image = InlineImage(ii_dict=pb_dict)
-                        add_background_image_to_header(docx_section=self.docx_section, image_path=pb_image.file_path, width=self.docx_section.page_width.inches, height=self.docx_section.page_height.inches, nesting_level=nesting_level+1)
+                    # it is a list, get the first item
+                    pb_dict = ConfigService()._style_specs[self.heading_style]['page-background'][0]
+                    # print(pb_dict)
+                    pb_image = InlineImage(ii_dict=pb_dict)
+                    add_background_image_to_header(docx_section=self.docx_section, image_path=pb_image.file_path, width=self.docx_section.page_width.inches, height=self.docx_section.page_height.inches, nesting_level=nesting_level+1)
 
 
 
