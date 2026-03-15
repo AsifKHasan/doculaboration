@@ -2018,6 +2018,70 @@ def download_media_from_dive(drive_service, file_id, local_path, nesting_level=0
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# DOCX style specific utility functions
+
+''' data: The original nested dictionary.
+    mapping_schema: {
+        (child_full_path): (parent_full_path, "new_key_name")
+    }
+'''
+def transform_nested_dict(data, mapping_schema, nesting_level=0):
+    moved_values = {} # Stores values to be injected: { parent_path: {new_key: value} }
+    paths_to_delete = set(mapping_schema.keys())
+
+    # --- PASS 1: Collection ---
+    def collect_moves(obj, current_path):
+        if not isinstance(obj, dict):
+            return
+        
+        for key, value in obj.items():
+            path = current_path + (key,)
+            if path in mapping_schema:
+                target_parent_path, new_key_name = mapping_schema[path]
+                if target_parent_path not in moved_values:
+                    moved_values[target_parent_path] = {}
+                # Store the value (and recurse into it in case it's a dict)
+                moved_values[target_parent_path][new_key_name] = value
+            
+            if isinstance(value, dict):
+                collect_moves(value, path)
+
+    collect_moves(data, ())
+
+    # --- PASS 2: Reconstruction & Injection ---
+    def rebuild(obj, current_path):
+        if not isinstance(obj, dict):
+            return obj
+
+        new_obj = {}
+        
+        # 1. Add existing keys (unless they were marked for deletion/moving)
+        for key, value in obj.items():
+            path = current_path + (key,)
+            if path in paths_to_delete:
+                continue
+            
+            if isinstance(value, dict):
+                processed_dict = rebuild(value, path)
+                # Only keep the dictionary if it's not empty after moves
+                if processed_dict:
+                    new_obj[key] = processed_dict
+            else:
+                new_obj[key] = value
+
+        # 2. Inject moved keys belonging to this parent
+        if current_path in moved_values:
+            for new_key, val in moved_values[current_path].items():
+                # Recurse into the moved value in case it's a nested dict itself
+                new_obj[new_key] = rebuild(val, current_path + (new_key,))
+
+        return new_obj
+
+    return rebuild(data, ())
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
 ''' inches to emu
@@ -2569,4 +2633,49 @@ STYLE_PROPERTY_MAP = {
 			"widow_control",
 		],
 	},
+}
+
+# style paths to move up and what they become
+# Format: (Parent, Child, SubChild): "NewName"
+STYLE_TRANSFORMATION_MAP = {
+    ("text-properties", "color")           			: (("ParagraphStyle",), "color"),
+    ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name"),
+    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size"),
+	# color
+	# alignment
+	# bold
+	# italic
+	# underline
+	# strike
+	# double_strike
+    # ("text-properties", "font", "style")            : (("ParagraphStyle", "font",), "fontstyle"),
+    # ("text-properties", "font", "weight")           : (("ParagraphStyle", "font",), "fontweight"),
+
+    # ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin"),
+    #   'left_indent':        '1.0in'
+    #   'right_indent':       '1.0in'
+    #   'space_before':       '1.0in'
+    #   'space_after':        '1.0in'
+    ("paragraph-properties", "margin", "bottom")    : (("paragraph-properties",), "marginbottom"),
+    ("paragraph-properties", "margin", "left")      : (("paragraph-properties",), "marginleft"),
+    ("paragraph-properties", "margin", "top")       : (("paragraph-properties",), "margintop"),
+    ("paragraph-properties", "margin", "right")     : (("paragraph-properties",), "marginright"),
+
+    # ("paragraph-properties", "padding", "all")      : (("paragraph-properties",), "padding"),
+    ("paragraph-properties", "padding", "bottom")   : (("paragraph-properties",), "paddingbottom"),
+    ("paragraph-properties", "padding", "left")     : (("paragraph-properties",), "paddingleft"),
+    ("paragraph-properties", "padding", "top")      : (("paragraph-properties",), "paddingtop"),
+    ("paragraph-properties", "padding", "right")    : (("paragraph-properties",), "paddingright"),
+
+    # ("paragraph-properties", "border", "style", "all")      : (("paragraph-properties",), "border"),
+    ("paragraph-properties", "border", "style", "bottom")   : (("paragraph-properties",), "borderbottom"),
+    ("paragraph-properties", "border", "style", "left")     : (("paragraph-properties",), "borderleft"),
+    ("paragraph-properties", "border", "style", "top")      : (("paragraph-properties",), "bordertop"),
+    ("paragraph-properties", "border", "style", "right")    : (("paragraph-properties",), "borderright"),
+
+    ("paragraph-properties", "border", "linewidth", "all")      : (("paragraph-properties",), "borderlinewidth"),
+    ("paragraph-properties", "border", "linewidth", "bottom")   : (("paragraph-properties",), "borderlinewidthbottom"),
+    ("paragraph-properties", "border", "linewidth", "left")     : (("paragraph-properties",), "borderlinewidthleft"),
+    ("paragraph-properties", "border", "linewidth", "top")      : (("paragraph-properties",), "borderlinewidthtop"),
+    ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright"),
 }

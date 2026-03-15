@@ -39,32 +39,41 @@ class ConfigService:
         self._docx_template = Path(_config_dict.get('docx-template', None)).resolve()
         self._generate_pdf = _config_dict.get('generate-pdf', True)
 
-        # page specs
-        page_spec_file = self._config_dir / 'page-specs.yml'
-        self._page_specs = yaml.safe_load(open(page_spec_file, 'r', encoding='utf-8'))
+        self.process_spec_ymls = _config_dict.get('process-spec-ymls', False)
 
-        # font specs
-        # font_spec_file = self._config_dir / 'font-specs.yml'
-        # if Path.exists(font_spec_file):
-        #     self._font_specs = yaml.safe_load(open(font_spec_file, 'r', encoding='utf-8'))
-        # else:
-        #     warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register", nesting_level=nesting_level)
+        self._page_specs = {}
+        self._margin_specs = {}
+        self._font_specs = {}
+        self._style_specs = {}
+        if self.process_spec_ymls:
+            # page specs
+            page_spec_file = self._config_dir / 'page-specs.yml'
+            self._page_specs = yaml.safe_load(open(page_spec_file, 'r', encoding='utf-8'))
 
-        # style specs
-        style_spec_file = self._config_dir / 'style-specs.yml'
-        if Path.exists(page_spec_file):
-            style_specs_original = yaml.safe_load(open(style_spec_file, 'r', encoding='utf-8'))
+            # font specs
+            font_spec_file = self._config_dir / 'font-specs.yml'
+            if Path.exists(font_spec_file):
+                self._font_specs = yaml.safe_load(open(font_spec_file, 'r', encoding='utf-8'))
+            else:
+                warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register", nesting_level=nesting_level)
 
-            # now we re-code the style-specs to something docx requires
-            self._style_specs = {}
-            for k, v in style_specs_original.items():
-                self._style_specs[k] = self.recode_style_specs(style_specs_original=v, nesting_level=nesting_level)
+            # style specs
+            style_spec_file = self._config_dir / 'style-specs.yml'
+            if Path.exists(page_spec_file):
+                style_specs_original = yaml.safe_load(open(style_spec_file, 'r', encoding='utf-8'))
+
+                # now we re-code the style-specs to something docx requires
+                for k, v in style_specs_original.items():
+                    self._style_specs[k] = self.recode_style_specs(style_specs_original=v, nesting_level=nesting_level)
+
+            else:
+                warn(f"No style-spec [{style_spec_file}]' found .. will not override any style", nesting_level=nesting_level)
 
         else:
-            warn(f"No style-spec [{style_spec_file}]' found .. will not override any style", nesting_level=nesting_level)
-
+            debug(f"No spec ymls will be processed", nesting_level=nesting_level)
 
         self._initialized = True
+
 
 
     ''' re-code the style-specs to something docx requires

@@ -17,8 +17,17 @@ class DocxHelper(object):
 
     ''' constructor
     '''
-    def __init__(self):
+    def __init__(self, spec_list, nesting_level=0):
         self._docx = Document(ConfigService()._docx_template)
+
+        # specs to config
+        ConfigService()._page_specs = spec_list.get('page-spec', {})
+        ConfigService()._margin_specs = spec_list.get('margin-spec', {})
+        ConfigService()._font_specs = spec_list.get('font-spec', {})
+        ConfigService()._style_specs = {}
+        for style_key, style_spec in spec_list.get('style-spec', {}).items():
+            transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
+            ConfigService()._style_specs[style_key] = transfomed_style_spec
 
 
     ''' generate and save the docx

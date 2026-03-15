@@ -37,7 +37,7 @@ class DocFromJson(object):
                 self._data = json.load(f)
 
             # doc-helper
-            docx_helper = DocxHelper()
+            docx_helper = DocxHelper(spec_list=self._data['specs'], nesting_level=nesting_level)
             docx_helper.generate_and_save(section_list=self._data['sections'], nesting_level=nesting_level+1)
 
 			# pdf to be generated
