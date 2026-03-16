@@ -4,9 +4,6 @@
 '''
 
 import time
-import yaml
-import datetime
-import pprint
 
 from docx import Document
 
@@ -30,22 +27,16 @@ class DocxHelper(object):
             transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
             ConfigService()._style_specs[style_key] = transfomed_style_spec
 
-        for k, v in ConfigService()._style_specs.items():
-            print(k)
-            print('----------')
-            print(yaml.dump(v, sort_keys=False))
-            print()
-
 
     ''' generate and save the docx
     '''
     def generate_and_save(self, section_list, nesting_level=0):
         self.start_time = int(round(time.time() * 1000))
 
-        # override styles
+        # process custom styles and override styles
         ConfigService()._custom_styles = {}
         if ConfigService()._style_specs:
-            ConfigService()._custom_styles = process_custom_style(docx=self._docx, style_spec=ConfigService()._style_specs, nesting_level=nesting_level+1)
+            ConfigService()._custom_styles = process_custom_styles(docx=self._docx, style_spec=ConfigService()._style_specs, nesting_level=nesting_level+1)
 
         # process the sections
         section_list_to_docx(docx=self._docx, section_list=section_list, nesting_level=nesting_level+1)

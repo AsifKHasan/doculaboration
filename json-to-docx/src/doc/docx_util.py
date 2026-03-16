@@ -6,9 +6,10 @@ various utilities for formatting a docx
 import re
 import sys
 import lxml
-import types
+import yaml
 import string
 import random
+import inspect
 import requests
 import importlib
 import traceback
@@ -233,7 +234,7 @@ def insert_image(container, inline_image, container_width, container_height, boo
 		return container
 	
 	else:
-		trace(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
+		# trace(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
 		if is_document(container):
 			paragraph = container.add_paragraph()
 
@@ -481,7 +482,7 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 		cNvPr = new_run._r.xpath('.//pic:cNvPr')[0]
 		image_id = cNvPr.get('id')
 		image_name = cNvPr.get('name')
-		trace(f"bg image [{image_name}]", nesting_level=nesting_level)
+		# trace(f"bg image [{image_name}]", nesting_level=nesting_level)
 
 		blip = new_run._r.xpath('.//a:blip')[0]
 
@@ -502,7 +503,7 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 				# attr_key = f"{{{namespaces['r']}}}embed"
 				attr_key = f"r:embed"
 				rid = blip.attrib.get(attr_key)
-				trace(f"rid [{rid}]")
+				# trace(f"rid [{rid}]")
 
 			except Exception as e:
 				warn(f"r:embed not found under blip")
@@ -523,7 +524,6 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 '''
 def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
-	print(image_path)
 	for header in [docx_section.header, docx_section.even_page_header]:
 		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
 		run = p.add_run()
@@ -1819,14 +1819,16 @@ def get_style_by_name(docx, style_name, nesting_level=0):
 
 
 ''' apply a custom style to a Style/paragraph
+	1. ParagraphStyle (*font* and *paragraph-format*)
+	2. borders
+	3. backgroundcolor
+	TODO: check carefully
 '''
 def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nesting_level=0):
-	# the following elemnts are to be updated
-	# TODO: check carefully
-	font, pf = None, None
-	border_around = None
 
-	# if style_name
+	# the following elemnts are to be updated
+	font, pf = None, None
+
 	if style_name:
 		style = get_style_by_name(docx=docx, style_name=style_name)
 		if style is None:
@@ -1845,101 +1847,91 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 		element = paragraph._p
 
 
-	# now apply
-	# ParagraphStyle
+	# now apply ParagraphStyle
 	if 'ParagraphStyle' in style_spec:
 		if 'font' in style_spec['ParagraphStyle']:
 			# ParagraphStyle - font
 			attr_dict = style_spec['ParagraphStyle']['font']
 
 			if font:
+				print(f"applying font spec")
 				for attr, value in attr_dict.items():
 					# color needs special treatment
 					if attr == "color":
 						# value should be RGBColor or None
+						print(f".. applying [{attr}]")
 						font.color.rgb = value
 						continue
 
 					if hasattr(font, attr):
+						print(f".. applying [{attr}]")
 						setattr(font, attr, value)
 
 
-			# ParagraphStyle - paragraph_format
-			if 'paragraph-format' in style_spec['ParagraphStyle']:
-				attr_dict = style_spec['ParagraphStyle']['paragraph-format']
-				
-				if pf:
-					for attr, value in attr_dict.items():
-						if hasattr(pf, attr):
-							setattr(pf, attr, value)
+		# ParagraphStyle - paragraph_format
+		if 'paragraph-format' in style_spec['ParagraphStyle']:
+			attr_dict = style_spec['ParagraphStyle']['paragraph-format']
+			
+			if pf:
+				print(f"applying paragraph-format spec")
+				for attr, value in attr_dict.items():
+					if hasattr(pf, attr):
+						print(f".. applying [{attr}]")
+						setattr(pf, attr, value)
 
-	# borders
-	if 'borders' in style_spec:
-		if element is not None:
-			set_paragraph_border(element=element, borders=style_spec['borders'])
+		# borders
+		if 'borders' in style_spec['ParagraphStyle']:
+			print(f"applying borders spec")
+			if element is not None:
+				set_paragraph_border(element=element, borders=style_spec['ParagraphStyle']['borders'])
 
-	# backgroundcolor
-	if 'backgroundcolor' in style_spec:
-		if element is not None:
-			set_paragraph_bgcolor(element=element, color=style_spec['backgroundcolor'])
+		# backgroundcolor
+		if 'backgroundcolor' in style_spec['ParagraphStyle']:
+			print(f"applying backgroundcolor spec")
+			if element is not None:
+				set_paragraph_bgcolor(element=element, color=style_spec['ParagraphStyle']['backgroundcolor'])
 
 
 ''' process custom styles
+	there are two steps
+	1. process inline-images (along with page-backgrounds) which are not part of text/paragraph styling
+	2. process text/paragraph styles which are defined and may override existing styles
 '''
-def process_custom_style(docx, style_spec, nesting_level=0):
+def process_custom_styles(docx, style_spec, nesting_level=0):
 	custom_styles = {}
 	if style_spec:
-		trace(f"processing custom styles from conf/style-spec.yml", nesting_level=nesting_level)
-		parse_style_properties(style_spec, nesting_level=nesting_level+1)
+		trace(f"processing custom styles", nesting_level=nesting_level)
+	
+		# 1. process inline-images (along with page-backgrounds) which are not part of text/paragraph styling
+		parse_image_properties_from_custom_style(style_spec, nesting_level=nesting_level+1)
 
+		# 2. process text/paragraph styles which are defined and may override existing styles
 		# iterate and apply or store
 		for key, value in style_spec.items():
 			if value:
 				style_name = value.get('name', None)
 				if style_name:
-					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level)
+					trace(f"customizing style [{style_name}]", nesting_level=nesting_level+1)
 					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
 					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
 
 				else:
-					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level)
+					trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level+1)
 					custom_styles[key] = value
+					print(yaml.dump(value, sort_keys=False))
 					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
 
 
-''' parse style properties from yml to docx
+''' parse image specific custom style properties from a style spec
+	1. parse inline-image
+	2. page-background
 '''
-def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
+def parse_image_properties_from_custom_style(style_spec, parent_key=None, nesting_level=0):
 	if style_spec:
 		for style_key, this_style in style_spec.items():
-			debug(f"[parse_style_properties] {style_key}", nesting_level=nesting_level)
-	# 		if isinstance(value, dict):
-	# 			# If it's another dict, go deeper
-	# 			parse_style_properties(value, parent_key=key, nesting_level=nesting_level)
-
-	# 		else:	
-	# 			if value and value != '':
-	# 				new_value = value
-	# 				if key in DOCX_ATTR_MAP_HINT:
-	# 					# trace(f"parsing   property [{key}] with value [{value}]", nesting_level=nesting_level+1)
-	# 					new_value = map_docx_attr(key, value, parent_key=parent_key, nesting_level=nesting_level+1)
-	# 					# trace(f"parsed to property [{key}] with value [{new_value}]", nesting_level=nesting_level+1)
-
-	# 				elif (parent_key, key) in DOCX_ATTR_MAP_HINT:
-	# 					# trace(f"parsing   property [{parent_key, key}] with value [{value}]", nesting_level=nesting_level+1)
-	# 					new_value = map_docx_attr((parent_key, key), value, parent_key=parent_key, nesting_level=nesting_level+1)
-	# 					# trace(f"parsed to property [{parent_key, key}] with value [{new_value}]", nesting_level=nesting_level+1)
-
-	# 				if new_value:
-	# 					value = new_value
-
-	# 				style_spec[key] = value
-
-	# 			else:
-	# 				# style_spec.pop(key, None)
-	# 				pass
+			debug(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
 
 			# check for *inline-image* and process
 			if 'inline-image' in this_style:
@@ -2017,8 +2009,6 @@ def parse_style_properties(style_spec, parent_key=None, nesting_level=0):
 
 						this_style['page-background'].append(pb_image_dict)
 						# trace(f"downloaded  inline image {url}", nesting_level=nesting_level+1)
-
-			# print(style_spec[style_key])
 
 
 ''' data: The original nested dictionary.
@@ -2443,33 +2433,9 @@ def print_xml(element, nesting_level=0):
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 
 
-# ''' map attribute key/value to a modified ke/value
-# '''
-# def map_docx_attr(attr_key, attr_value, parent_key, nesting_level=0):
-# 	if attr_key in DOCX_ATTR_MAP_HINT:
-# 		obj = DOCX_ATTR_MAP_HINT[attr_key]
-# 		mapper = obj['lambda']
-
-# 		# if the mapper is a dict
-# 		if isinstance(mapper, dict):
-# 			# trace(f"[{attr_key}] mapper is a dict", nesting_level=nesting_level)
-# 			if attr_value in mapper:
-# 				return mapper[attr_value]
-			
-# 			else:
-# 				warn(f"[{attr_value}] in [{attr_key}] is not .. allowed values are {list(mapper.keys())}", nesting_level=nesting_level)
-
-# 		# of the mapper is a function
-# 		if isinstance(mapper, types.FunctionType):
-# 			# trace(f"[{attr_key}] mapper is a function [{mapper}]", nesting_level=nesting_level)
-# 			return mapper(attr_value, what=attr_key, nesting_level=nesting_level)
-		
-# 	return attr_value
-			
-
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# various utility data
+# various utility data and constants
 
 # mml2omml_stylesheet_path = '../conf/MML2OMML_15.XSL'
 mml2omml_stylesheet_path = '../conf/MML2OMML_16.XSL'
@@ -2497,24 +2463,7 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 			'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ',
 			'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# gsheet to odt constants and type mapping
-
-HEADING_TO_LEVEL = {
-	'Heading 1': {'outline-level': 1},
-	'Heading 2': {'outline-level': 2},
-	'Heading 3': {'outline-level': 3},
-	'Heading 4': {'outline-level': 4},
-	'Heading 5': {'outline-level': 5},
-	'Heading 6': {'outline-level': 6},
-	'Heading 7': {'outline-level': 7},
-	'Heading 8': {'outline-level': 8},
-	'Heading 9': {'outline-level': 9},
-	'Heading 10': {'outline-level': 10},
-}
-
+# outline level list for Table of Contents
 LEVEL_TO_HEADING = [
 	'Title',
 	'Heading 1',
@@ -2529,31 +2478,52 @@ LEVEL_TO_HEADING = [
 	'Heading 10',
 ]
 
+# heading style to outline level map
+HEADING_TO_LEVEL = {
+	'Heading 1'		: {'outline-level': 1},
+	'Heading 2'		: {'outline-level': 2},
+	'Heading 3'		: {'outline-level': 3},
+	'Heading 4'		: {'outline-level': 4},
+	'Heading 5'		: {'outline-level': 5},
+	'Heading 6'		: {'outline-level': 6},
+	'Heading 7'		: {'outline-level': 7},
+	'Heading 8'		: {'outline-level': 8},
+	'Heading 9'		: {'outline-level': 9},
+	'Heading 10'	: {'outline-level': 10},
+}
+
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# gsheet to odt constants and type mapping
+
 CELL_VALIGN_MAP = {
-	'TOP': WD_CELL_VERTICAL_ALIGNMENT.TOP,
-	'MIDDLE': WD_CELL_VERTICAL_ALIGNMENT.CENTER,
-	'BOTTOM': WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
+	'TOP'		: WD_CELL_VERTICAL_ALIGNMENT.TOP,
+	'MIDDLE'	: WD_CELL_VERTICAL_ALIGNMENT.CENTER,
+	'BOTTOM'	: WD_CELL_VERTICAL_ALIGNMENT.BOTTOM
 }
 
 TEXT_HALIGN_MAP = {
-	'LEFT': WD_PARAGRAPH_ALIGNMENT.LEFT,
-	'CENTER': WD_PARAGRAPH_ALIGNMENT.CENTER,
-	'RIGHT': WD_PARAGRAPH_ALIGNMENT.RIGHT,
-	'JUSTIFY': WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+	'LEFT'		: WD_PARAGRAPH_ALIGNMENT.LEFT,
+	'CENTER'	: WD_PARAGRAPH_ALIGNMENT.CENTER,
+	'RIGHT'		: WD_PARAGRAPH_ALIGNMENT.RIGHT,
+	'JUSTIFY'	: WD_PARAGRAPH_ALIGNMENT.JUSTIFY
 }
 
 WRAP_STRATEGY_MAP = {
-	'OVERFLOW': 'no-wrap', 'CLIP': 'no-wrap', 'WRAP': 'wrap'
+	'OVERFLOW'	: 'no-wrap', 
+	'CLIP'		: 'no-wrap', 
+	'WRAP'		: 'wrap'
 }
 
 GSHEET_OXML_BORDER_MAPPING = {
-	'DOTTED': 'dotted',
-	'DASHED': 'dashed',
-	'SOLID': 'single',
-	'SOLID_MEDIUM': 'thick',
-	'SOLID_THICK': 'triple',
-	'DOUBLE': 'double',
-	'NONE': 'none'
+	'DOTTED'		: 'dotted',
+	'DASHED'		: 'dashed',
+	'SOLID'			: 'single',
+	'SOLID_MEDIUM'	: 'thick',
+	'SOLID_THICK'	: 'triple',
+	'DOUBLE'		: 'double',
+	'NONE'			: 'none'
 }
 
 
@@ -2586,29 +2556,7 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# custom style map specific
-
-# DOCX_ATTR_MAP_HINT = {
-# 	'color':				{'lambda': rgb_from_hex},
-# 	'highlight_color':		{'lambda': rgb_from_hex},
-# 	# 'backgroundcolor':	{'lambda': rgb_from_hex},
-# 	'alignment': 			{'lambda': TEXT_HALIGN_MAP},
-# 	'verticalalign':		{'lambda': CELL_VALIGN_MAP},
-# 	'size': 				{'lambda': str_to_size},
-# 	'left_indent':      	{'lambda': str_to_size},
-# 	'right_indent':     	{'lambda': str_to_size},
-# 	'space_before':     	{'lambda': str_to_size},
-# 	'space_after':    		{'lambda': str_to_size},
-# 	('borders', 'start'):   {'lambda': str_to_border},
-# 	('borders', 'top'):     {'lambda': str_to_border},
-# 	('borders', 'end'):     {'lambda': str_to_border},
-# 	('borders', 'bottom'):  {'lambda': str_to_border},
-# 	('padding', 'start'):   {'lambda': str_to_size},
-# 	('padding', 'top'):     {'lambda': str_to_size},
-# 	('padding', 'end'):     {'lambda': str_to_size},
-# 	('padding', 'bottom'):  {'lambda': str_to_size},
-# }
-
+# custom style specific maps
 
 # style paths to move up and what they become - Format: (Parent, Child, SubChild): "NewName"
 STYLE_TRANSFORMATION_MAP = {
@@ -2621,7 +2569,7 @@ STYLE_TRANSFORMATION_MAP = {
 	# strike
 	# double_strike
 
-	("paragraph-properties", "backgroundcolor")		: (("ParagraphStyle",), "backgroundcolor", rgb_from_hex),
+	("paragraph-properties", "backgroundcolor")		: (("ParagraphStyle",), "backgroundcolor", None),
 
     ("paragraph-properties", "textalign")			: (("ParagraphStyle", "paragraph-format",), "alignment", str_to_docx_halign),
 	# ("paragraph-properties", "verticalalign")		: (("ParagraphStyle", "paragraph-format",), "verticalalign", str_to_docx_halign),
