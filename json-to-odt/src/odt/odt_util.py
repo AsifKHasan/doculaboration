@@ -950,8 +950,40 @@ def apply_custom_style(style, custom_properties, nesting_level=0):
                         continue
 
                     try:
-                        style_instance.setAttribute(attr, value)
-                        # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
+                        # HACK: handle bold, italic, oblique, underline, strikethrough
+                        if attr == 'bold':
+                            if value == True:
+                                style_instance.setAttribute('fontweight', 'bold')
+                                style_instance.setAttribute('fontweightasian', 'bold')
+                                style_instance.setAttribute('fontweightcomplex', 'bold')
+
+                            else:
+                                style_instance.setAttribute('fontweight', 'normal')
+                                style_instance.setAttribute('fontweightasian', 'normal')
+                                style_instance.setAttribute('fontweightcomplex', 'normal')
+
+                        elif attr == 'italic' and value == True:
+                            style_instance.setAttribute('fontstyle', 'italic')
+                            style_instance.setAttribute('fontstyleasian', 'italic')
+                            style_instance.setAttribute('fontstylecomplex', 'italic')
+
+                        elif attr == 'oblique' and value == True:
+                            style_instance.setAttribute('fontstyle', 'oblique')
+                            style_instance.setAttribute('fontstyleasian', 'oblique')
+                            style_instance.setAttribute('fontstylecomplex', 'oblique')
+
+                        elif attr == 'underline' and value == True:
+                            style_instance.setAttribute('textunderlinestyle', 'solid')
+                            style_instance.setAttribute('textunderlinewidth', 'auto')
+                            style_instance.setAttribute('textunderlinecolor', 'font-color')
+
+                        elif attr == 'strikethrough' and value == True:
+                            style_instance.setAttribute('textlinethroughstyle', 'solid')
+                            style_instance.setAttribute('textlinethroughtype', 'single')
+
+                        else: 
+                            style_instance.setAttribute(attr, value)
+                            # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
                     except:
                         warn(f"{attr} not allowed {type(style_instance)}", nesting_level=nesting_level)
                         pass
@@ -1728,8 +1760,11 @@ ODT_ATTR_MAP_HINT = {
 STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "font", "family")           : (("text-properties",), "fontfamily"),
     ("text-properties", "font", "size")             : (("text-properties",), "fontsize"),
-    ("text-properties", "font", "style")            : (("text-properties",), "fontstyle"),
-    ("text-properties", "font", "weight")           : (("text-properties",), "fontweight"),
+    ("text-properties", "font", "bold")             : (("text-properties",), "bold"),
+    ("text-properties", "font", "italic")           : (("text-properties",), "italic"),
+    ("text-properties", "font", "oblique")          : (("text-properties",), "oblique"),
+    ("text-properties", "font", "underline")        : (("text-properties",), "underline"),
+    ("text-properties", "font", "strikethrough")    : (("text-properties",), "strikethrough"),
 
     ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin"),
     ("paragraph-properties", "margin", "bottom")    : (("paragraph-properties",), "marginbottom"),
