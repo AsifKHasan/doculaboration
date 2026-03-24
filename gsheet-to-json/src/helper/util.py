@@ -699,7 +699,7 @@ SPEC_DICT = {
     'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D',  'print': False, 'spec-name': 'page-spec'}, 
     'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H',  'print': False, 'spec-name': 'margin-spec'}, 
     'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B',  'print': False, 'spec-name': 'font-spec'}, 
-    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AS', 'print': False, 'spec-name': 'style-spec'}
+    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AU', 'print': False, 'spec-name': 'style-spec'}
 }
 
 SPEC_KEY_TRANSFORMATIONS = {
@@ -708,6 +708,8 @@ SPEC_KEY_TRANSFORMATIONS = {
     ('text-properties', 'font', 'italic'): yes_to_bool,
     ('text-properties', 'font', 'oblique'): yes_to_bool,
     ('text-properties', 'font', 'underline'): yes_to_bool,
+    ('text-properties', 'font', 'smallcaps'): yes_to_bool,
+    ('text-properties', 'font', 'allcaps'): yes_to_bool,
     ('text-properties', 'font', 'strikethrough'): yes_to_bool,
     ('inline-image', 'fit-height-to-container'): yes_to_bool,
     ('inline-image', 'fit-width-to-container'): yes_to_bool,

@@ -1854,17 +1854,14 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 			attr_dict = style_spec['ParagraphStyle']['font']
 
 			if font:
-				print(f"applying font spec")
 				for attr, value in attr_dict.items():
 					# color needs special treatment
 					if attr == "color":
 						# value should be RGBColor or None
-						print(f".. applying [{attr}]")
 						font.color.rgb = value
 						continue
 
 					if hasattr(font, attr):
-						print(f".. applying [{attr}]")
 						setattr(font, attr, value)
 
 
@@ -1873,21 +1870,17 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 			attr_dict = style_spec['ParagraphStyle']['paragraph-format']
 			
 			if pf:
-				print(f"applying paragraph-format spec")
 				for attr, value in attr_dict.items():
 					if hasattr(pf, attr):
-						print(f".. applying [{attr}]")
 						setattr(pf, attr, value)
 
 		# borders
 		if 'borders' in style_spec['ParagraphStyle']:
-			print(f"applying borders spec")
 			if element is not None:
 				set_paragraph_border(element=element, borders=style_spec['ParagraphStyle']['borders'])
 
 		# backgroundcolor
 		if 'backgroundcolor' in style_spec['ParagraphStyle']:
-			print(f"applying backgroundcolor spec")
 			if element is not None:
 				set_paragraph_bgcolor(element=element, color=style_spec['ParagraphStyle']['backgroundcolor'])
 
@@ -1918,7 +1911,6 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 				else:
 					trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level+1)
 					custom_styles[key] = value
-					print(yaml.dump(value, sort_keys=False))
 					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
@@ -2563,10 +2555,12 @@ STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "color")           	        : (("ParagraphStyle", "font",), "color", rgb_from_hex),
     ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name", None),
     ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),
-	# bold
-	# italic
-	# underline
-	# strike
+    ("text-properties", "font", "bold")             : (("ParagraphStyle", "font",), "bold", None),
+    ("text-properties", "font", "italic")           : (("ParagraphStyle", "font",), "italic", None),
+    ("text-properties", "font", "underline")        : (("ParagraphStyle", "font",), "underline", None),
+    ("text-properties", "font", "smallcaps")        : (("ParagraphStyle", "font",), "small_caps", None),
+    ("text-properties", "font", "allcaps")          : (("ParagraphStyle", "font",), "all_caps", None),
+    ("text-properties", "font", "strikethrough")    : (("ParagraphStyle", "font",), "strike", None),
 	# double_strike
 
 	("paragraph-properties", "backgroundcolor")		: (("ParagraphStyle",), "backgroundcolor", None),
@@ -2575,10 +2569,6 @@ STYLE_TRANSFORMATION_MAP = {
 	# ("paragraph-properties", "verticalalign")		: (("ParagraphStyle", "paragraph-format",), "verticalalign", str_to_docx_halign),
 
     # ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin", None),
-    #   'left_indent':        '1.0in'
-    #   'right_indent':       '1.0in'
-    #   'space_before':       '1.0in'
-    #   'space_after':        '1.0in'
     ("paragraph-properties", "margin", "bottom")    : (("ParagraphStyle", "paragraph-format",), "space_after", str_to_size),
     ("paragraph-properties", "margin", "left")      : (("ParagraphStyle", "paragraph-format",), "left_indent", str_to_size),
     ("paragraph-properties", "margin", "top")       : (("ParagraphStyle", "paragraph-format",), "space_before", str_to_size),
