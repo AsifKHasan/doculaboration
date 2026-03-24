@@ -977,6 +977,12 @@ def apply_custom_style(style, custom_properties, nesting_level=0):
                             style_instance.setAttribute('textunderlinewidth', 'auto')
                             style_instance.setAttribute('textunderlinecolor', 'font-color')
 
+                        elif attr == 'smallcaps' and value == True:
+                            style_instance.setAttribute('fontvariant', 'small-caps')
+
+                        elif attr == 'allcaps' and value == True:
+                            style_instance.setAttribute('texttransform', 'uppercase')
+
                         elif attr == 'strikethrough' and value == True:
                             style_instance.setAttribute('textlinethroughstyle', 'solid')
                             style_instance.setAttribute('textlinethroughtype', 'single')
@@ -1764,6 +1770,8 @@ STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "font", "italic")           : (("text-properties",), "italic"),
     ("text-properties", "font", "oblique")          : (("text-properties",), "oblique"),
     ("text-properties", "font", "underline")        : (("text-properties",), "underline"),
+    ("text-properties", "font", "smallcaps")        : (("text-properties",), "smallcaps"),
+    ("text-properties", "font", "allcaps")          : (("text-properties",), "allcaps"),
     ("text-properties", "font", "strikethrough")    : (("text-properties",), "strikethrough"),
 
     ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin"),

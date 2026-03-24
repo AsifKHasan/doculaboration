@@ -2,21 +2,37 @@ git add -A ; git commit -m "updated" ; git push
 
 cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 
+## linux
+TYPE=odt
+TYPE=docx
+DOC=doculaboration__examples__correct
+
+# docx/odt unzip
+unzip ${DOC}.${TYPE} -d ${DOC}
+
+# docx zip
+pushd ${DOC} ; zip -r ../${DOC}.${TYPE} . ; popd
+
+
+## Windows
+set TYPE=odt
+set TYPE=docx
+set DOC=doculaboration__examples
+
+# docx/odt unzip
+unzip %DOC%.%TYPE% -d %DOC%
+
+# docx/odt zip
+pushd %DOC% && zip -r ..\%DOC%.%TYPE% . && popd
+
+
+
+
 ODT=doculaboration__examples
 unzip ${ODT}.odt -d test-odt
 
-DOCX=doculaboration__examples
-unzip ${DOCX}.docx -d test-docx
-
-
-set DOCX=doculaboration__examples
-unzip %DOCX%.docx -d test-docx
-
-
-
 pushd test-odt ; zip -r ../${ODT}-changed.odt . ; popd
 
-pushd test-docx && zip -r ..\%DOCX%.docx . && popd
 
 search
 \(document #([0-9]+)\)

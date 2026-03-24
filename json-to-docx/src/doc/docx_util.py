@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-'''
-various utilities for formatting a docx
+''' various utilities for formatting a docx
 '''
 
+import os
 import re
 import sys
 import lxml
@@ -328,7 +328,9 @@ def insert_cell_image(cell, inline_image, container_width, container_height, nes
 		<wp:effectExtent l="0" t="0" r="0" b="0"/>
         {wrap_xml}
 		<wp:docPr id="{pic_id}" name="{name}" />
-        <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
+        <wp:cNvGraphicFramePr>
+			<a:graphicFrameLocks noChangeAspect="1"/>
+		</wp:cNvGraphicFramePr>
 	</wp:anchor>
     '''
     anchor = parse_xml(anchor_xml)
@@ -1506,28 +1508,19 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 def update_indexes(docx_path, nesting_level=0):
 
 	try:
-		word = client.DispatchEx("Word.Application")
+		word = client.gencache.EnsureDispatch("Word.Application")
+		# word = client.DispatchEx("Word.Application")
 	except Exception as e:
 		raise e
 
 	try:
-		docx = word.Documents.Open(docx_path)
+		abs_path = os.path.abspath(docx_path)
+		docx = word.Documents.Open(FileName=abs_path, ConfirmConversions=False, ReadOnly=False)
 		docx.Close()
 	except Exception as e:
 		raise e
 	finally:
 		word.Quit()
-
-
-''' set docx updateFields property true
-'''
-def set_updatefields_true_old(docx_path, nesting_level=0):
-	namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-	docx = Document(docx_path)
-	# add child to docx.settings element
-	element_updatefields = lxml.etree.SubElement(docx.settings.element, f"{namespace}updateFields")
-	element_updatefields.set(f"{namespace}val", "true")
-	docx.save(docx_path)
 
 
 ''' set docx updateFields property true
@@ -1545,21 +1538,24 @@ def set_updatefields_true(docx_path, nesting_level=0):
 
 ''' given an docx file generates pdf in the given directory
 '''
-def generate_pdf(infile, outdir, nesting_level=0):
+def generate_pdf(infile, output_dir, nesting_level=0):
 	# Constants for Word Export
 	wdExportFormatPDF = 17
 	wdExportOptimizeForPrint = 0
 	wdExportAllDocument = 0
 	wdExportCreateHeadingBookmarks = 1  # This enables the bookmarks
 
-	pdf_path = infile + '.pdf'
+	abs_path = os.path.abspath(infile)
+	pdf_path = Path(str(abs_path) + '.pdf')
 	try:
-		word = client.DispatchEx("Word.Application")
+		word = client.gencache.EnsureDispatch("Word.Application")
+		# word = client.DispatchEx("Word.Application")
+
 	except Exception as e:
 		raise e
 
 	try:
-		docx = word.Documents.Open(infile)
+		docx = word.Documents.Open(FileName=abs_path, ConfirmConversions=False, ReadOnly=False)
 		try:
 			docx.ExportAsFixedFormat(pdf_path, 
 				ExportFormat=wdExportFormatPDF,

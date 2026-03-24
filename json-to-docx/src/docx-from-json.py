@@ -44,7 +44,7 @@ class DocFromJson(object):
             if config_service._generate_pdf:
                 info(msg=f"generating pdf ..", nesting_level=nesting_level)
                 pdf_start_time = int(round(time.time() * 1000))
-                generate_pdf(docx_path=config_service._output_docx_path, output_dir=config_service._output_dir, nesting_level=nesting_level+1)
+                generate_pdf(infile=config_service._output_docx_path, output_dir=config_service._output_dir, nesting_level=nesting_level+1)
                 self.end_time = int(round(time.time() * 1000))
                 info(msg=f"generating pdf .. done {(self.end_time - pdf_start_time)/1000} seconds", nesting_level=nesting_level)
 
