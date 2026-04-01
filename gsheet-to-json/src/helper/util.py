@@ -750,37 +750,72 @@ COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'
 
 
 MASTER_TOC_COLUMNS = {
-  "section" : {"availability": "must", "blank-allowed": True},
-  "heading" : {"availability": "must", "blank-allowed": True},
-  "process" : {"availability": "must", "blank-allowed": True},
-  "level" : {"availability": "must", "blank-allowed": False},
-  "content-type" : {"availability": "must", "blank-allowed": False},
-  "link" : {"availability": "must"},
-  "break" : {"availability": "must"},
-  "page-spec" : {"availability": "must", "blank-allowed": False},
-  "margin-spec" : {"availability": "must", "blank-allowed": False},
+    # *section* - 
+    "section" : {"availability": "must", "blank-allowed": True},
 
-  "landscape" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "bookmark" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    # *heading* - 
+    "heading" : {"availability": "must", "blank-allowed": True},
 
-  "jpeg-quality" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": '90'},
-  "page-list" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "autocrop" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
-  "page-bg" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
- 
-  "hide-heading" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
-  "header-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "header-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "header-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "footer-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "footer-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "footer-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "override-header" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
-  "override-footer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+    # *process* - 
+    "process" : {"availability": "must", "blank-allowed": True},
 
-  "responsible" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "reviewer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "status" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
-  "comment" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    # *level* - 
+    "level" : {"availability": "must", "blank-allowed": False},
+
+    # *content-type* - 
+    "content-type" : {"availability": "must", "blank-allowed": False},
+
+    # *link* - 
+    "link" : {"availability": "must"},
+
+    # *break* - 
+    "break" : {"availability": "must"},
+
+    # *page-spec* - 
+    "page-spec" : {"availability": "must", "blank-allowed": False},
+
+    # *margin-spec* - 
+    "margin-spec" : {"availability": "must", "blank-allowed": False},
+
+    # *landscape* - 
+    "landscape" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    # *heading-style* - 
+    "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    # *bookmark* - 
+    "bookmark" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    # *jpeg-quality* - if this section's content-type is *pdf* and the link is a pdf file, the pdf is converted to jpeg images page by page.
+    # 1. This parameter specifies the quality which will be used to extract the page images in jpg.
+    # 2. Value can be blank in which case it defaults JPEG_QUALITY_DEFAULT (typically 90)
+    # 3. allowed values are in the range of 1 to 100. Where 1 is the lowest quality (resulting in very small sized image) and 100 is the hifgest quality resulting in large image size
+    "jpeg-quality" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": '90'},
+    "page-list" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    # *autocrop* - if this section's content-type is *pdf* and the link is a pdf file or any image file, the option decides whether the images will be automatically cropped or not
+    # 1. Value can be blank which means the image will not be cropped automatically and remain as it is in the source
+    # 2. Value can be *Yes* which means the image will be cropped automatically discarding white borders, padding and margin area if there are any from all sides 
+    "autocrop" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+    
+    # *page-bg* - 
+    "page-bg" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+
+    # *hide-heading* - 
+    "hide-heading" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+    
+    "header-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "header-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "header-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "footer-first" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "footer-odd" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "footer-even" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    "override-header" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+    "override-footer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": False},
+
+    "responsible" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "reviewer" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "status" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+    "comment" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 }

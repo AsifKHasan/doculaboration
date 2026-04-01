@@ -503,14 +503,6 @@ class GsheetHelper(object):
         section_meta['different-firstpage'] = different_header_first_page or different_footer_first_page
         section_meta['different-odd-even-pages'] = different_header_odd_even_pages or different_footer_odd_even_pages
 
-        # process 'background-image'
-        # if section_prop['background-image'] != '':
-        #     bg_dict = download_image(drive_service=GoogleServices().drive_api, url=section_prop['background-image'], title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level)
-        #     if bg_dict:
-        #         section_prop['background-image'] = bg_dict['file-path']
-        #     else:
-        #         section_prop['background-image'] = ''
-
         # import and use the specific processor
         if section_prop['link'] == '' or section_prop['link'] is None:
             d['contents'] = None
