@@ -31,7 +31,7 @@ class ConfigService:
 
         self._gsheet_list = _config_dict.get('gsheets', [])
         self._output_dir = Path(_config_dict.get('output-dir', '../../out')).resolve()
-        self._google_cred_json_path = Path(_config_dict.get('google-cred', None)).resolve()
+        self._google_cred_json_path = Path(_config_dict.get('google-cred')).resolve()
         self._autocrop_pdf_pages = _config_dict.get('autocrop-pdf-pages', False)
 
         self._temp_dir = self._output_dir / 'tmp'
