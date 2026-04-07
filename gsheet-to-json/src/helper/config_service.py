@@ -22,9 +22,12 @@ class ConfigService:
             return
         
         self._config_path = Path(config_file).resolve()
+        print(self._config_path)
 
         self._config_dir = self._config_path.parent
+        print(self._config_dir)
         _config_dict = yaml.safe_load(open(self._config_path, 'r', encoding='utf-8'))
+        print(_config_dict)
 
         self._log_level = _config_dict.get("log-level", 0)
         logger.LOG_LEVEL = self._log_level
