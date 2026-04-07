@@ -22,20 +22,15 @@ class ConfigService:
             return
         
         self._config_path = Path(config_file).resolve()
-        print(self._config_path)
 
         self._config_dir = self._config_path.parent
-        print(self._config_dir)
         _config_dict = yaml.safe_load(open(self._config_path, 'r', encoding='utf-8'))
-        print(_config_dict)
 
         self._log_level = _config_dict.get("log-level", 0)
         logger.LOG_LEVEL = self._log_level
 
         self._gsheet_list = _config_dict.get('gsheets', [])
         self._output_dir = Path(_config_dict.get('output-dir')).resolve()
-        print(self._output_dir)
-        print(_config_dict.get('google-cred'))
         self._google_cred_json_path = Path(_config_dict.get('google-cred')).resolve()
         self._autocrop_pdf_pages = _config_dict.get('autocrop-pdf-pages', False)
 
