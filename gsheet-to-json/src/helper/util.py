@@ -543,7 +543,7 @@ def translate_dict_to_value(data_list, dict_obj, first_key, look_up_key='column'
         return value_to_return
 
     # get the value in the data_list
-    value = data_list[obj[look_up_key]].strip()
+    value = str(data_list[obj[look_up_key]]).strip()
     if look_up_value is None:
         # trace(f"[{first_key:<20}]: found .. returning '{value}'", nesting_level=nesting_level)
         return value
