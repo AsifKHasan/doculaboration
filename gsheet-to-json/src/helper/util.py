@@ -698,7 +698,7 @@ def data_to_hierarchical_dict(data, header_row_start, header_row_end, key_column
 SPEC_DICT = {
     'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D',  'print': False, 'spec-name': 'page-spec'}, 
     'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H',  'print': False, 'spec-name': 'margin-spec'}, 
-    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'B',  'print': False, 'spec-name': 'font-spec'}, 
+    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'C',  'print': False, 'spec-name': 'font-spec'}, 
     'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AU', 'print': False, 'spec-name': 'style-spec'}
 }
 

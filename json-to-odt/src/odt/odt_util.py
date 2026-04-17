@@ -906,15 +906,15 @@ def get_style_from_name(class_name, nesting_level=0):
         return None
 
     return cls()
-    return 
 
 
 ''' registers a font in the document
 '''
 def register_font(odt, font_name, font_spec, nesting_level=0):
-    font_family = font_spec
-    trace(f"registering font [{font_name}] family [{font_spec}]", nesting_level=nesting_level)
-    the_font = FontFace(name=font_name, fontfamily=font_family)
+    font_family = font_spec.get('font', None)
+    fallback_font = font_spec.get('fallback-font', None)
+    trace(f"registering font [{font_name}] family [{font_family}] with fallback-font [{fallback_font}]", nesting_level=nesting_level)
+    the_font = FontFace(name=font_name, fontfamily=font_family, fontfamilygeneric=fallback_font)
     odt.fontfacedecls.addElement(the_font)
 
 
