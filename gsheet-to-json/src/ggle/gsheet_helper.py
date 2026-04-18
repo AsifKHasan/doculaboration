@@ -100,7 +100,7 @@ class GsheetHelper(object):
                         header_row_start = spec_def.get('header-row-start', 1)
                         header_row_end = spec_def.get('header-row-end', 1)
                         start_col = spec_def.get('start-col', 'A')
-                        end_col = spec_def.get('end-col', 'Z')
+                        end_col = spec_def.get('end-col', 'AZ')
                         print_it = spec_def.get('print', False)
                         spec_name = spec_def.get('spec-name')
                         range_spec = f"'{ws_name}'!{start_col}1:{end_col}"
