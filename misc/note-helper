@@ -24,6 +24,8 @@ git push
   "page-number": "long",
 }
 
+{"keep-line-breaks": true, "force-halign": true}
+
 {
   "footnote": {
     "": ""
