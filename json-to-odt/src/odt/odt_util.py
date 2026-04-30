@@ -324,7 +324,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, directives=True, nesting_level=0):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=True, directives=True, nesting_level=0):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")

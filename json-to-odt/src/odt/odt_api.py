@@ -1175,7 +1175,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark={}, keep_line_breaks=False, directives=True, nesting_level=0):
+    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark={}, keep_line_breaks=True, directives=True, nesting_level=0):
         super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1255,7 +1255,7 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, keep_line_breaks=False, nesting_level=0):
+    def __init__(self, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, keep_line_breaks=True, nesting_level=0):
         super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
@@ -1920,7 +1920,7 @@ class CellNote(object):
         self.force_halign = note_dict.get('force-halign', False)
         self.keep_with_next = note_dict.get('keep-with-next', False)
         self.keep_with_previous = note_dict.get('keep-with-previous', False)
-        self.keep_line_breaks = note_dict.get('keep-line-breaks', False)
+        self.keep_line_breaks = note_dict.get('keep-line-breaks', True)
         self.directives = note_dict.get('directives', True)
         self.angle = int(note_dict.get("angle", 0))
 

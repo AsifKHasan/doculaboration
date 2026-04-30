@@ -297,7 +297,8 @@ class GsheetHelper(object):
 
         # transform to a dict
         if parent:
-            document_nesting_depth = parent['section-meta']['document-nesting-depth'] + 1
+            # if the parent section level is N and document level is M, this section's nesting_depth should be (N + M + 1) so that outline level is under the parent outline level
+            document_nesting_depth = parent['section-prop']['level'] + parent['section-meta']['document-nesting-depth'] + 1
         else:
             document_nesting_depth = 0
 

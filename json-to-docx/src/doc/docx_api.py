@@ -1805,7 +1805,7 @@ class CellNote(object):
         self.force_halign = note_dict.get('force-halign', False)
         self.keep_with_next = note_dict.get('keep-with-next', False)
         self.keep_with_previous = note_dict.get('keep-with-previous', False)
-        self.keep_line_breaks = note_dict.get('keep-line-breaks', False)
+        self.keep_line_breaks = note_dict.get('keep-line-breaks', True)
         self.directives = note_dict.get('directives', True)
         self.angle = int(note_dict.get("angle", 0))
 
