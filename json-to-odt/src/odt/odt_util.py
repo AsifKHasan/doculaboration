@@ -951,6 +951,53 @@ def get_style_by_name(odt, style_name, nesting_level=0):
     return None
 
 
+''' set text attribute to a style instance
+'''
+def set_style_text_attribute(style_instance, attr, value, nesting_level=0):
+    # HACK: handle bold, italic, oblique, underline, strikethrough
+    # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
+    if attr == 'bold':
+        if value == True:
+            style_instance.setAttribute('fontweight', 'bold')
+            style_instance.setAttribute('fontweightasian', 'bold')
+            style_instance.setAttribute('fontweightcomplex', 'bold')
+
+        else:
+            style_instance.setAttribute('fontweight', 'normal')
+            style_instance.setAttribute('fontweightasian', 'normal')
+            style_instance.setAttribute('fontweightcomplex', 'normal')
+
+    elif attr == 'italic' and value == True:
+        style_instance.setAttribute('fontstyle', 'italic')
+        style_instance.setAttribute('fontstyleasian', 'italic')
+        style_instance.setAttribute('fontstylecomplex', 'italic')
+
+    elif attr == 'oblique' and value == True:
+        style_instance.setAttribute('fontstyle', 'oblique')
+        style_instance.setAttribute('fontstyleasian', 'oblique')
+        style_instance.setAttribute('fontstylecomplex', 'oblique')
+
+    elif attr == 'underline' and value == True:
+        style_instance.setAttribute('textunderlinestyle', 'solid')
+        style_instance.setAttribute('textunderlinewidth', 'auto')
+        style_instance.setAttribute('textunderlinecolor', 'font-color')
+
+    elif attr == 'smallcaps' and value == True:
+        style_instance.setAttribute('fontvariant', 'small-caps')
+
+    elif attr == 'allcaps' and value == True:
+        style_instance.setAttribute('texttransform', 'uppercase')
+
+    elif attr == 'strikethrough' and value == True:
+        style_instance.setAttribute('textlinethroughstyle', 'solid')
+        style_instance.setAttribute('textlinethroughtype', 'single')
+
+    else: 
+        style_instance.setAttribute(attr, value)
+        # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
+
+
+
 ''' apply a custom style to something
 '''
 def apply_custom_style(style, custom_properties, nesting_level=0):
@@ -967,46 +1014,8 @@ def apply_custom_style(style, custom_properties, nesting_level=0):
                         continue
 
                     try:
-                        # HACK: handle bold, italic, oblique, underline, strikethrough
-                        if attr == 'bold':
-                            if value == True:
-                                style_instance.setAttribute('fontweight', 'bold')
-                                style_instance.setAttribute('fontweightasian', 'bold')
-                                style_instance.setAttribute('fontweightcomplex', 'bold')
+                        set_style_text_attribute(style_instance=style_instance, attr=attr, value=value, nesting_level=nesting_level)
 
-                            else:
-                                style_instance.setAttribute('fontweight', 'normal')
-                                style_instance.setAttribute('fontweightasian', 'normal')
-                                style_instance.setAttribute('fontweightcomplex', 'normal')
-
-                        elif attr == 'italic' and value == True:
-                            style_instance.setAttribute('fontstyle', 'italic')
-                            style_instance.setAttribute('fontstyleasian', 'italic')
-                            style_instance.setAttribute('fontstylecomplex', 'italic')
-
-                        elif attr == 'oblique' and value == True:
-                            style_instance.setAttribute('fontstyle', 'oblique')
-                            style_instance.setAttribute('fontstyleasian', 'oblique')
-                            style_instance.setAttribute('fontstylecomplex', 'oblique')
-
-                        elif attr == 'underline' and value == True:
-                            style_instance.setAttribute('textunderlinestyle', 'solid')
-                            style_instance.setAttribute('textunderlinewidth', 'auto')
-                            style_instance.setAttribute('textunderlinecolor', 'font-color')
-
-                        elif attr == 'smallcaps' and value == True:
-                            style_instance.setAttribute('fontvariant', 'small-caps')
-
-                        elif attr == 'allcaps' and value == True:
-                            style_instance.setAttribute('texttransform', 'uppercase')
-
-                        elif attr == 'strikethrough' and value == True:
-                            style_instance.setAttribute('textlinethroughstyle', 'solid')
-                            style_instance.setAttribute('textlinethroughtype', 'single')
-
-                        else: 
-                            style_instance.setAttribute(attr, value)
-                            # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
                     except:
                         warn(f"{attr} not allowed {type(style_instance)}", nesting_level=nesting_level)
                         pass
@@ -1022,10 +1031,10 @@ def apply_custom_style(style, custom_properties, nesting_level=0):
                         continue
 
                     try:
-                        # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
-                        style_instance.setAttribute(attr, value)
+                        set_style_text_attribute(style_instance=style_instance, attr=attr, value=value, nesting_level=nesting_level)
+
                     except:
-                        warn(f"{attr} not allowed {type(style_instance)}", nesting_level=nesting_level)
+                        warn(f"{attr} not at all allowed {type(style_instance)}", nesting_level=nesting_level)
                         pass
 
 
@@ -1060,12 +1069,11 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                             # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
                             continue
 
-                        # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
                         try:
-                            style_instance.setAttribute(attr, value)
-                            # trace(f"{attr} set for {type(style_instance)}", nesting_level=nesting_level)
+                            set_style_text_attribute(style_instance=style_instance, attr=attr, value=value, nesting_level=nesting_level)
+
                         except:
-                            warn(f"{attr} not allowed for {type(style_instance)}", nesting_level=nesting_level)
+                            warn(f"{attr} not at all allowed for {type(style_instance)}", nesting_level=nesting_level)
                             pass
 
                     style.addElement(style_instance)
@@ -1078,49 +1086,8 @@ def update_style(odt, style_key, style_spec, custom_styles, nesting_level=0):
                             # trace(f"ignoring '{attr}' as it is a dict for [{value}]", nesting_level=nesting_level)
                             continue
 
-                        # trace(f"setting '{attr}' to [{value}]", nesting_level=nesting_level)
                         try:
-                            # HACK: handle bold, italic, oblique, underline, strikethrough
-                            if attr == 'bold':
-                                if value == True:
-                                    style_instance.setAttribute('fontweight', 'bold')
-                                    style_instance.setAttribute('fontweightasian', 'bold')
-                                    style_instance.setAttribute('fontweightcomplex', 'bold')
-
-                                else:
-                                    style_instance.setAttribute('fontweight', 'normal')
-                                    style_instance.setAttribute('fontweightasian', 'normal')
-                                    style_instance.setAttribute('fontweightcomplex', 'normal')
-
-                            elif attr == 'italic' and value == True:
-                                style_instance.setAttribute('fontstyle', 'italic')
-                                style_instance.setAttribute('fontstyleasian', 'italic')
-                                style_instance.setAttribute('fontstylecomplex', 'italic')
-
-                            elif attr == 'oblique' and value == True:
-                                style_instance.setAttribute('fontstyle', 'oblique')
-                                style_instance.setAttribute('fontstyleasian', 'oblique')
-                                style_instance.setAttribute('fontstylecomplex', 'oblique')
-
-                            elif attr == 'underline' and value == True:
-                                style_instance.setAttribute('textunderlinestyle', 'solid')
-                                style_instance.setAttribute('textunderlinewidth', 'auto')
-                                style_instance.setAttribute('textunderlinecolor', 'font-color')
-
-                            elif attr == 'smallcaps' and value == True:
-                                style_instance.setAttribute('fontvariant', 'small-caps')
-
-                            elif attr == 'allcaps' and value == True:
-                                style_instance.setAttribute('texttransform', 'uppercase')
-
-                            elif attr == 'strikethrough' and value == True:
-                                style_instance.setAttribute('textlinethroughstyle', 'solid')
-                                style_instance.setAttribute('textlinethroughtype', 'single')
-
-                            else: 
-                                style_instance.setAttribute(attr, value)
-
-                            # trace(f"{attr} set for {type(style_instance)}", nesting_level=nesting_level)
+                            set_style_text_attribute(style_instance=style_instance, attr=attr, value=value, nesting_level=nesting_level)
 
                         except:
                             warn(f"{attr} not allowed for {type(style_instance)}", nesting_level=nesting_level)
