@@ -797,6 +797,8 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
         page_layout = style.PageLayout(name=page_layout_name)
         odt.automaticstyles.addElement(page_layout)
 
+    page_layout.setAttribute('pageusage', "mirrored")
+
     # get page_layout_properties
     page_layout_properties = get_page_layout_properties(page_layout=page_layout, nesting_level=nesting_level)
 
@@ -813,11 +815,17 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
     page_layout_attrs['marginleft'] = f"{margin_spec['left']}in"
     page_layout_attrs['marginright'] = f"{margin_spec['right']}in"
     page_layout_attrs['printorientation'] = orientation
-    # page_layout_attrs['margingutter'] = f"{margin_spec]['gutter']}in"
+
+    if margin_spec['gutter'] != '':
+        outer_margin = margin_spec['left'] + margin_spec['gutter']
+        page_layout_attrs['marginleft'] = f"{outer_margin}in"
 
     # set attributes
     for attr_name, attr_value in page_layout_attrs.items():
-        page_layout_properties.setAttribute(attr_name, attr_value)
+        try:
+            page_layout_properties.setAttribute(attr_name, attr_value)
+        except:
+            warn(f"[{attr_name}] is not a valid page-layout-property", nesting_level=nesting_level+1)
 
     return page_layout
 
@@ -1833,6 +1841,8 @@ STYLE_TRANSFORMATION_MAP = {
     ("paragraph-properties", "border", "linewidth", "left")     : (("paragraph-properties",), "borderlinewidthleft"),
     ("paragraph-properties", "border", "linewidth", "top")      : (("paragraph-properties",), "borderlinewidthtop"),
     ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright"),
+
+    ("paragraph-properties", "line", "height")    : (("paragraph-properties",), "lineheight"),
 }
 
 

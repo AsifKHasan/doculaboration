@@ -36,7 +36,7 @@ class ConfigService:
         self._temp_dir = self._output_dir / 'tmp'
         self._temp_dir.mkdir(parents=True, exist_ok=True)
 
-        self._odt_template = Path(_config_dict.get('odt-template', None)).resolve()
+        self._odt_template = Path(_config_dict.get('odt-template')).resolve()
         self._generate_pdf = _config_dict.get('generate-pdf', True)
 
         self.process_spec_ymls = _config_dict.get('process-spec-ymls', False)
