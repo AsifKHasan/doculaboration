@@ -12,7 +12,7 @@ cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 ## linux
 TYPE=odt
 TYPE=docx
-DOC=doculaboration__examples__correct
+DOC=template-classic
 
 # docx/odt unzip
 unzip ${DOC}.${TYPE} -d ${DOC}

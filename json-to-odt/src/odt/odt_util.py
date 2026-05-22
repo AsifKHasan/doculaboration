@@ -242,7 +242,8 @@ def create_table_row(odt, table_row_style_attributes, table_row_properties_attri
 
     # create the style
     table_row_style = style.Style(attributes=table_row_style_attributes)
-    table_row_properties_attributes['keeptogether'] = 'always'
+    # TODO: hardcoding it to *auto* (not *always*) so that rows can spill over pages
+    table_row_properties_attributes['keeptogether'] = 'auto'
     table_row_style.addElement(style.TableRowProperties(attributes=table_row_properties_attributes))
     odt.automaticstyles.addElement(table_row_style)
 
@@ -1843,6 +1844,7 @@ STYLE_TRANSFORMATION_MAP = {
     ("paragraph-properties", "border", "linewidth", "right")    : (("paragraph-properties",), "borderlinewidthright"),
 
     ("paragraph-properties", "line", "height")    : (("paragraph-properties",), "lineheight"),
+    ("paragraph-properties", "keep", "together")  : (("paragraph-properties",), "keeptogether"),
 }
 
 
