@@ -441,6 +441,18 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
     inline_blocks = new_inline_blocks
 
+    # process FIELD{..} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'])
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
+
     # create the P or H or span
     if text_type == 'P':
         paragraph = text.P(stylename=style_name)
@@ -501,6 +513,13 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             # target is an xlink
             text_a = create_text_a(anchor=anchor, target=target)
             paragraph.addElement(text_a)
+
+        elif 'field' in inline_block:
+            field = inline_block['field']
+            warn(f"found field [{field}]")
+            # TODO: identify the field, extract the field value
+            # text_a = create_text_a(anchor=anchor, target=target)
+            # paragraph.addElement(text_a)
 
     return paragraph
 
@@ -634,6 +653,38 @@ def process_bookmark_page_blocks(text_content, nesting_level=0):
     texts_and_bookmarks.append({'text': text})
 
     return texts_and_bookmarks
+
+
+''' process FIELD's inside text
+    example of fields [section, heading]
+'''
+def process_field_blocks(text_content, nesting_level=0):
+    # find out if there is any match with FIELD{...} inside the text_content
+    texts_and_fields = []
+
+    pattern = r'FIELD{[^}]*}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        field_content = match.group()[6:-1].strip()
+
+        # we have found a FIELD block, we add the preceding text and the field block into the list
+        field_start_index, field_end_index = match.span()[0], match.span()[1]
+        if field_start_index >= current_index:
+            # there are preceding text before the bookmark
+            text = text_content[current_index:field_start_index]
+
+            texts_and_fields.append({'text': text})
+
+            texts_and_fields.append({'field': field_content})
+
+            current_index = field_end_index
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_fields.append({'text': text})
+
+    return texts_and_fields
 
 
 ''' process external url or bookmark links
