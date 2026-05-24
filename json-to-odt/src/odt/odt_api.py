@@ -53,6 +53,15 @@ class OdtSectionBase(object):
         self.different_odd_even_pages = self.section_meta['different-odd-even-pages']
         self.document_nesting_depth = self.section_meta['document-nesting-depth']
 
+
+        # prepare field_list for values for FIELD{} directive
+        self.field_list = {
+            'SECTION': self.label,
+            'HEADING': self.heading,
+            'SECTION:HEADING' : concat_with(texts=[self.label, self.heading], concatenator=' : '),
+        }
+
+
         # TODO: page-layout is not used as of now
         # self.page_layout = self.section_meta['page-layout']
 
@@ -115,9 +124,7 @@ class OdtSectionBase(object):
 
         # identify what style the heading will be and its content
         if not self.hide_heading:
-            heading_text = self.heading
-            if self.label != '':
-                heading_text = f"{self.label} {heading_text}".strip()
+            heading_text = concat_with(texts=[self.label, self.heading], concatenator=' : ')
 
             outline_level = self.level + self.document_nesting_depth
             if outline_level == 0:
@@ -142,24 +149,24 @@ class OdtSectionBase(object):
             master_page = self.first_master_page
 
             if self.header_first:
-                self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+                self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
             if self.footer_first:
-                self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+                self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
         master_page = self.master_page
 
         if self.header_odd:
-            self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+            self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.footer_odd:
-            self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+            self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.header_even:
-            self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+            self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.footer_even:
-            self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, nesting_level=nesting_level+1)
+            self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
 
 
     ''' generates the odt code
@@ -190,7 +197,7 @@ class OdtSectionBase(object):
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark)
+        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
@@ -229,7 +236,7 @@ class OdtTableSection(OdtSectionBase):
     '''
     def section_to_odt(self, nesting_level=0):
         super().section_to_odt(nesting_level=nesting_level+1)
-        self.section_contents.content_to_odt(odt=self._odt, container=self._odt.text, nesting_level=nesting_level+1)
+        self.section_contents.content_to_odt(odt=self._odt, container=self._odt.text, field_list=self.field_list, nesting_level=nesting_level+1)
 
 
 
@@ -626,12 +633,12 @@ class OdtContent(object):
     ''' generates the odt code
         container may be odt.text or a table-cell
     '''
-    def content_to_odt(self, odt, container, nesting_level=0):
+    def content_to_odt(self, odt, container, field_list={}, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # iterate through tables and blocks contents
         for block in self.content_list:
-            block.block_to_odt(odt=odt, container=container, nesting_level=nesting_level)
+            block.block_to_odt(odt=odt, container=container, field_list=field_list, nesting_level=nesting_level)
 
 
 
@@ -651,7 +658,7 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' generates the odt code
     '''
-    def page_header_footer_to_odt(self, odt, master_page, nesting_level=0):
+    def page_header_footer_to_odt(self, odt, master_page, field_list={}, nesting_level=0):
         if self.content_data is None:
             return
 
@@ -659,7 +666,7 @@ class OdtPageHeaderFooter(OdtContent):
         if header_footer:
             # iterate through tables and blocks contents
             for block in self.content_list:
-                block.block_to_odt(odt=odt, container=header_footer, nesting_level=nesting_level+1)
+                block.block_to_odt(odt=odt, container=header_footer, field_list=field_list, nesting_level=nesting_level+1)
 
 
 
@@ -707,7 +714,7 @@ class OdtTable(OdtBlock):
 
     ''' generates the odt code
     '''
-    def block_to_odt(self, odt, container, nesting_level=0):
+    def block_to_odt(self, odt, container, field_list={}, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # create the table with styles
@@ -728,7 +735,7 @@ class OdtTable(OdtBlock):
         # iterate header rows render the table's contents
         table_header_rows = create_table_header_rows(nesting_level=nesting_level+1)
         for row in self.table_cell_matrix[0:self.header_row_count]:
-            table_row = row.row_to_odt_table_row(odt, self.table_name)
+            table_row = row.row_to_odt_table_row(odt, self.table_name, field_list=field_list, nesting_level=nesting_level+1)
             table_header_rows.addElement(table_row)
 
         table.addElement(table_header_rows)
@@ -737,7 +744,7 @@ class OdtTable(OdtBlock):
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
         for row in self.table_cell_matrix[self.header_row_count:]:
-            table_row = row.row_to_odt_table_row(odt, self.table_name)
+            table_row = row.row_to_odt_table_row(odt, self.table_name, field_list=field_list, nesting_level=nesting_level+1)
             table.addElement(table_row)
 
         container.addElement(table)
@@ -761,13 +768,13 @@ class OdtParagraph(OdtBlock):
 
     """ generates the odt code
     """
-    def block_to_odt(self, odt, container, nesting_level=0):
+    def block_to_odt(self, odt, container, field_list={}, nesting_level=0):
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
             # We take the first cell, the cell will take the whole row width
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
-            cell_to_produce.cell_to_odt(odt=odt, container=container, nesting_level=nesting_level+1)
+            cell_to_produce.cell_to_odt(odt=odt, container=container, field_list=field_list, nesting_level=nesting_level+1)
 
 
 
@@ -901,7 +908,7 @@ class Row(object):
 
     ''' generates the odt code
     '''
-    def row_to_odt_table_row(self, odt, table_name, nesting_level=0):
+    def row_to_odt_table_row(self, odt, table_name, field_list={}, nesting_level=0):
         self.table_name = table_name
 
         # create table-row
@@ -920,7 +927,7 @@ class Row(object):
             if cell is None:
                 warn(f"{self.row_name} has a Null cell at {c}", nesting_level=nesting_level)
             else:
-                table_cell = cell.cell_to_odt_table_cell(odt, self.table_name, nesting_level=nesting_level+1)
+                table_cell = cell.cell_to_odt_table_cell(odt, self.table_name, field_list=field_list, nesting_level=nesting_level+1)
                 if table_cell:
                     table_row.addElement(table_cell)
 
@@ -1023,7 +1030,7 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def cell_to_odt_table_cell(self, odt, table_name, nesting_level=0):
+    def cell_to_odt_table_cell(self, odt, table_name, field_list={}, nesting_level=0):
         self.table_name = table_name
         col_a1 = COLUMNS[self.col_num+1]
         table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
@@ -1076,7 +1083,7 @@ class Cell(object):
 
             if table_cell:
                 # trace(f"[{self}] : {table_cell_properties_attributes}", nesting_level=nesting_level)
-                self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True, nesting_level=nesting_level+1)
+                self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True, field_list=field_list, nesting_level=nesting_level+1)
 
         else:
             # wrap this into a covered-table-cell
@@ -1087,7 +1094,7 @@ class Cell(object):
 
     ''' odt code for cell content
     '''
-    def cell_to_odt(self, odt, container, is_table_cell=False, nesting_level=0):
+    def cell_to_odt(self, odt, container, is_table_cell=False, field_list={}, nesting_level=0):
         # trace(f"{self}", nesting_level=nesting_level)
         if self.note:
             paragraph_attributes_from_notes = self.note.paragraph_attributes(nesting_level=nesting_level+1)
@@ -1116,7 +1123,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark, nesting_level=nesting_level+1)
+                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark, field_list=field_list, nesting_level=nesting_level+1)
                 # place the image frame
                 if paragraph:
                     for image_frame in self.image_frames:
@@ -1211,12 +1218,12 @@ class StringValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives, field_list=field_list, nesting_level=nesting_level+1)
         container.addElement(paragraph)
 
         return paragraph
@@ -1249,7 +1256,7 @@ class LatexValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, filed_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1281,7 +1288,7 @@ class TextRunValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1299,7 +1306,7 @@ class TextRunValue(CellValue):
             text_attributes=text_attributes,
             nesting_level=nesting_level+1
         )
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         container.addElement(paragraph)
 
         return paragraph
@@ -1326,7 +1333,7 @@ class ImageValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1408,9 +1415,9 @@ class ContentValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
         self.contents = OdtContent(content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
-        self.contents.content_to_odt(odt=odt, container=container, nesting_level=nesting_level+1)
+        self.contents.content_to_odt(odt=odt, container=container, field_list=field_list, nesting_level=nesting_level+1)
 
         return None
 

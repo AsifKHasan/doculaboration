@@ -342,7 +342,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=True, directives=True, nesting_level=0):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=True, directives=True, field_list={}, nesting_level=0):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -359,15 +359,15 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
+            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
             paragraph.addElement(fragment)
 
     # P or H
     elif text_content is not None:
         if outline_level == 0:
-            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
+            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         else:
-            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks)
+            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -399,7 +399,7 @@ def add_text_to_paragraph(paragraph, text_string, nesting_level=0):
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, nesting_level=0):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, field_list={}, nesting_level=0):
     paragraph = None
 
     # process FN{...} first, we get a list of block dicts
@@ -516,10 +516,15 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
         elif 'field' in inline_block:
             field = inline_block['field']
-            warn(f"found field [{field}]")
+
             # TODO: identify the field, extract the field value
-            # text_a = create_text_a(anchor=anchor, target=target)
-            # paragraph.addElement(text_a)
+            if field in field_list:
+                field_value = field_list[field]
+                # trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+            else:
+                warn(f"unknown field [{field}]", nesting_level=nesting_level+1)
+
+            add_text_to_paragraph(paragraph=paragraph, text_string=field_value)
 
     return paragraph
 
@@ -1055,7 +1060,6 @@ def set_style_text_attribute(style_instance, attr, value, nesting_level=0):
     else: 
         style_instance.setAttribute(attr, value)
         # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
-
 
 
 ''' apply a custom style to something
@@ -1724,6 +1728,12 @@ def strip_math_mode_delimeters(latex_content, nesting_level=0):
 
     return stripped
 
+
+''' concatenate a list of strings with a concatenator
+'''
+def concat_with(texts, concatenator, nesting_level=0):
+    cleaned_list = [s.strip() for s in texts if s and s.strip()]
+    return ' : '.join(cleaned_list)    
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
