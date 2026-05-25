@@ -199,19 +199,19 @@ class OdtSectionBase(object):
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
         paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark, field_list=self.field_list, nesting_level=nesting_level+1)
 
-        if self.heading_style:
+        for heading_style in self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
             if style:
-                if self.heading_style not in ConfigService()._style_specs:
-                    warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
+                if heading_style not in ConfigService()._style_specs:
+                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
                 else:
-                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
-                    apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.heading_style], nesting_level=nesting_level+1)
+                    trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                    apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[heading_style], nesting_level=nesting_level+1)
 
                     # handle background image
-                    if 'page-background' in ConfigService()._style_specs[self.heading_style]:
-                        for pb_dict in ConfigService()._style_specs[self.heading_style]['page-background']:
+                    if 'page-background' in ConfigService()._style_specs[heading_style]:
+                        for pb_dict in ConfigService()._style_specs[heading_style]['page-background']:
                             pb_image = InlineImage(ii_dict=pb_dict)
                             add_background_image_to_master_page(odt=self._odt, master_page=self.master_page, background_image_path=pb_image.file_path, opacity=pb_image.opacity, nesting_level=nesting_level+1)
 
@@ -1050,19 +1050,25 @@ class Cell(object):
             background_image_style = None
 
             # the cell may have a custom style with a bg image 
-            if self.note is not None and self.note.style is not None and self.note.style in ConfigService()._style_specs:
-                # this custom style may have an inline-image, if so apply it
-                if 'inline-image' in ConfigService()._style_specs[self.note.style]:
-                    for ii_dict in ConfigService()._style_specs[self.note.style]['inline-image']:
-                        inline_image = InlineImage(ii_dict, nesting_level=nesting_level+1)
+            if self.note is not None and self.note.style_list is not None:
+                for style_name in self.note.style_list:
+                    if style_name in ConfigService()._style_specs:
+                        # this custom style may have an inline-image, if so apply it
+                        if 'inline-image' in ConfigService()._style_specs[style_name]:
+                            for ii_dict in ConfigService()._style_specs[style_name]['inline-image']:
+                                inline_image = InlineImage(ii_dict, nesting_level=nesting_level+1)
 
-                        # consider only the first bg image
-                        if inline_image.type == 'background':
-                            background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, opacity=inline_image.opacity, nesting_level=nesting_level+1)
-                            break
+                                # consider only the first bg image
+                                if inline_image.type == 'background':
+                                    background_image_style = create_background_image_style(odt=odt, picture_path=inline_image.file_path, opacity=inline_image.opacity, nesting_level=nesting_level+1)
+                                    break
 
-                        else:
-                            self.inline_images.append(inline_image)
+                                else:
+                                    self.inline_images.append(inline_image)
+                        
+                    else:
+                        warn(f"custom style [{style_name}] not defined", nesting_level=nesting_level)
+
 
             # and/or there might me inline images in notes
             for inline_image in self.inline_images:
@@ -1130,10 +1136,16 @@ class Cell(object):
                         paragraph.addElement(image_frame)
 
                     # the cell/paragraph may have custom style, if so apply it
-                    if self.note is not None and self.note.style is not None and self.note.style in ConfigService()._style_specs:
-                        trace(f"applying custom style [{self.note.style}] to {self}", nesting_level=nesting_level)
-                        style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"), nesting_level=nesting_level+1)
-                        apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[self.note.style], nesting_level=nesting_level+1)
+                    if self.note is not None and self.note.style_list is not None:
+                        for style_name in self.note.style_list:
+                            if style_name in ConfigService()._style_specs:
+                                trace(f"applying custom style [{style_name}] to {self}", nesting_level=nesting_level)
+                                style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"), nesting_level=nesting_level+1)
+                                apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[style_name], nesting_level=nesting_level+1)
+                            
+                            else:
+                                warn(f"custom style [{style_name}] not defined", nesting_level=nesting_level)
+
 
                 else:
                     # warn(f"[{self}] No paragraph to add inline image(s) to", nesting_level=nesting_level)
@@ -1933,7 +1945,6 @@ class CellNote(object):
         self.outline_level = 0
         self.free_content = False
         self.content = note_dict.get('content', None)
-        self.style = note_dict.get('style', None)
         self.header_rows = int(note_dict.get('repeat-rows', 0))
         self.new_page = note_dict.get('new-page', False)
         self.force_halign = note_dict.get('force-halign', halign_to_be_forced)
@@ -1949,6 +1960,13 @@ class CellNote(object):
         self.table_spacing = note_dict.get('table-spacing', True)
         self.script = note_dict.get('script')
 
+        styles = note_dict.get('style', None)
+        if styles is not None:
+            raw_list = styles.split(',')
+            self.style_list = [s.strip() for s in raw_list if s.strip()]
+        else:
+            self.style_list = []
+
         # content
         if self.content is not None and self.content in ['free', 'out-of-cell']:
             self.free_content = True
@@ -1962,15 +1980,22 @@ class CellNote(object):
             self.table_spacing = False
 
         # style
-        if self.style is not None:
-            outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+        style_replace_list = []
+        for style in self.style_list:
+            outline_level_object = HEADING_TO_LEVEL.get(style, None)
             if outline_level_object:
                 self.outline_level = outline_level_object['outline-level'] + document_nesting_depth
-                self.style = LEVEL_TO_HEADING[self.outline_level]
+                style_replace_list.append({'style-to-replace': style, 'new-style': LEVEL_TO_HEADING[self.outline_level]})
 
             # if style is any Title/Heading or Table or Figure, apply keep-with-next
-            if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+            if style in LEVEL_TO_HEADING or style in ['Table', 'Figure']:
                 self.keep_with_next = True
+
+        for obj in style_replace_list:
+            style_to_replace = obj['style-to-replace']
+            new_style = obj['new-style']
+            if "style_to_replace" in self.style_list:
+                self.style_list[self.style_list.index(style_to_replace)] = new_style
 
         # footnotes
         if self.footnotes:
@@ -1996,8 +2021,8 @@ class CellNote(object):
     def style_attributes(self, nesting_level=0):
         attributes = {}
 
-        if self.style is not None:
-            attributes['parentstylename'] = self.style
+        # if self.style is not None:
+        #     attributes['parentstylename'] = self.style
 
         return attributes
 

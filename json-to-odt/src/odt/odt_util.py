@@ -1906,6 +1906,9 @@ STYLE_TRANSFORMATION_MAP = {
 
     ("paragraph-properties", "line", "height")    : (("paragraph-properties",), "lineheight"),
     ("paragraph-properties", "keep", "together")  : (("paragraph-properties",), "keeptogether"),
+
+    ("paragraph-properties", "break", "before") : (("paragraph-properties",), "breakbefore"),
+    ("paragraph-properties", "break", "after")  : (("paragraph-properties",), "breakafter"),
 }
 
 

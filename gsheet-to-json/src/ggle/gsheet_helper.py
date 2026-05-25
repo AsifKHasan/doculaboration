@@ -353,6 +353,13 @@ class GsheetHelper(object):
         section_meta = d['section-meta']
         section_prop = d['section-prop']
 
+        # heading-style is a comma separated string, convert it to list
+        if section_prop['heading-style'] is not None:
+            raw_list = section_prop['heading-style'].split(',')
+            section_prop['heading-style'] = [s.strip() for s in raw_list if s.strip()]
+        else:
+            section_prop['heading-style'] = []
+
         # the page-spec, margin-spec is overridden by parent page-spec
         if parent:
             section_prop['page-spec'] = parent['section-prop']['page-spec']
