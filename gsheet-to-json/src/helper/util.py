@@ -784,6 +784,9 @@ MASTER_TOC_COLUMNS = {
     "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 
     # *bookmark* - 
+    "reset-page-to" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
+
+    # *bookmark* - 
     "bookmark" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 
     # *jpeg-quality* - if this section's content-type is *pdf* and the link is a pdf file, the pdf is converted to jpeg images page by page.

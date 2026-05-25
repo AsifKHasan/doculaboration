@@ -5,6 +5,8 @@ git push
 
 {"repeat-rows": 1}
 {"content": "free"}
+{"content": "free", "new-page": true}
+
 {"force-halign": true}
 
 {"style": "Figure", "content": "free", "keep-with-next": true}

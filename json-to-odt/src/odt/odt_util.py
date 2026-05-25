@@ -496,15 +496,18 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
                 paragraph.addElement(latex_df)
 
         elif 'page-num' in inline_block:
-            page_num = text.PageNumber(selectpage='current')
+            num_format = inline_block['page-num']
+            page_num = text.PageNumber(selectpage='current', numformat=num_format)
             paragraph.addElement(page_num)
 
         elif 'page-count' in inline_block:
+            num_format = inline_block['page-count']
             page_count = text.PageCount()
             paragraph.addElement(page_count)
 
         elif 'bookmark-page' in inline_block:
-            bookmark_ref = inline_block['bookmark-page'].strip()
+            bookmark_ref = inline_block['bookmark-page'][0].strip()
+            num_format = inline_block['bookmark-page'][1]
             if bookmark_ref != '':
                 paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
 
@@ -640,15 +643,17 @@ def process_bookmark_page_blocks(text_content, nesting_level=0):
 
             texts_and_bookmarks.append({'text': text})
 
-            # PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
-            if bookmark_content == '':
-                texts_and_bookmarks.append({"page-num": None})
+            # PAGE{[iI1]} means current page, PAGE{*:[iI1]} means number of pages, PAGE{XYZ:[iI1]} means page number where bookmark XYZ is set
+            # :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman
+            page_directive, num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
+            if page_directive == '':
+                texts_and_bookmarks.append({"page-num": num_format})
 
-            elif bookmark_content == '*':
-                texts_and_bookmarks.append({'page-count': None})
+            elif page_directive == '*':
+                texts_and_bookmarks.append({'page-count': num_format})
 
             else:
-                texts_and_bookmarks.append({'bookmark-page': bookmark_content})
+                texts_and_bookmarks.append({'bookmark-page': (bookmark_content, num_format)})
 
             current_index = bookmark_end_index
 
@@ -1734,6 +1739,31 @@ def strip_math_mode_delimeters(latex_content, nesting_level=0):
 def concat_with(texts, concatenator, nesting_level=0):
     cleaned_list = [s.strip() for s in texts if s and s.strip()]
     return ' : '.join(cleaned_list)    
+
+
+''' parse page directive string like
+    '' meaning it is current page number in Arabic
+    ':[iIi]' meaning it is current page number in roman/ROMAN/Arabic
+    '*' meaning it is page count in Arabic
+    '*:[iIi]' meaning it is epage count in roman/ROMAN/Arabic
+    'xyz' meaning it is a bookamrk (page number in Arabic)
+    'xyz:[iIi]' meaning it is a bookamrk (page number in roman/ROMAN/Arabic)
+'''
+def parse_page_directive(page_directive_string, nesting_level=0):
+    match = re.match(r"^([^:]*)(?::(i|I|1))?$", page_directive_string.strip())
+    
+    if not match:
+        # Fallback/Safety check for completely malformed strings
+        error(f"invalid page directive [{page_directive_string}]", nesting_level=nesting_level+1)
+        return (page_directive_string, "1")
+    
+    directive, num_format = match.groups()
+    
+    # If no number format was explicitly provided (e.g., '', '*', 'xyz'), default to '1'
+    if num_format is None:
+        num_format = "1"
+        
+    return (directive, num_format)
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

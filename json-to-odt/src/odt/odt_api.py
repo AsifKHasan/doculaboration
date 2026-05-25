@@ -37,6 +37,7 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
+        self.reset_page_to = self.section_prop['reset-page-to']
         self.bookmark = self.section_prop['bookmark']
 
         self.autocrop = self.section_prop['autocrop']
@@ -177,10 +178,13 @@ class OdtSectionBase(object):
         #  get heading
         heading_text, outline_level, style_attributes = self.get_heading(nesting_level=nesting_level+1)
 
-        paragraph_attributes = None
+        paragraph_attributes = {}
         # handle section-break and page-break
         if self.section_break:
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
+            if self.reset_page_to != '':
+                paragraph_attributes['pagenumber'] = self.reset_page_to
+
             style_name = f"P{self.section_id}-P0-with-section-break"
             if self.different_firstpage:
                 style_attributes['masterpagename'] = self.first_master_page_name
@@ -189,7 +193,7 @@ class OdtSectionBase(object):
         else:
             if self.page_break:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
-                paragraph_attributes = {'breakbefore': 'page'}
+                paragraph_attributes['breakbefore'] = 'page'
                 style_name = f"P{self.section_id}-P0-with-page-break"
             else:
                 style_name = f"P{self.section_id}-P0"
