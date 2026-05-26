@@ -402,8 +402,21 @@ def add_text_to_paragraph(paragraph, text_string, nesting_level=0):
 def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, field_list={}, nesting_level=0):
     paragraph = None
 
-    # process FN{...} first, we get a list of block dicts
-    inline_blocks = process_footnotes(text_content=text_content, footnote_list=footnote_list)
+    # process BK{..} first, we get a list of block dicts
+    inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
+
+    # process FN{...} for each text item
+    new_inline_blocks = []
+    for inline_block in inline_blocks:
+        # process only 'text'
+        if 'text' in inline_block:
+            # print(inline_block['text'])
+            new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block['text'], footnote_list=footnote_list)
+
+        else:
+            new_inline_blocks.append(inline_block)
+
+    inline_blocks = new_inline_blocks
 
     # process LATEX$...$ for each text item
     new_inline_blocks = []
@@ -486,6 +499,24 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             else:
                 add_text_to_paragraph(paragraph=paragraph, text_string=inline_block['text'])
 
+        elif 'bookmark' in inline_block:
+            # in odt bookmarks only has name, no text
+            bk_name = inline_block['bookmark']['name']
+            paragraph.addElement(text.Bookmark(name=bk_name))
+            warn(f"bookmark [{bk_name}] added")
+
+        elif 'bookmark-start' in inline_block:
+            # in odt bookmarks only has name, no text
+            bk_name = inline_block['bookmark-start']['name']
+            paragraph.addElement(text.BookmarkStart(name=bk_name))
+            warn(f"bookmark-start [{bk_name}] added")
+
+        elif 'bookmark-end' in inline_block:
+            # in odt bookmarks only has name, no text
+            bk_name = inline_block['bookmark-end']['name']
+            paragraph.addElement(text.BookmarkStart(name=bk_name))
+            warn(f"bookmark-end [{bk_name}] added")
+
         elif 'fn' in inline_block:
             footnote_object = create_footnote(inline_block['fn'])
             paragraph.addElement(footnote_object)
@@ -509,6 +540,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             bookmark_ref = inline_block['bookmark-page'][0].strip()
             num_format = inline_block['bookmark-page'][1]
             if bookmark_ref != '':
+                warn(f"found BookmarkRef [{bookmark_ref}]")
                 paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
 
         elif 'link' in inline_block:
@@ -563,19 +595,20 @@ def create_text_a(anchor, target, nesting_level=0):
 ''' process bookmarks inside text
 '''
 def process_bookmarks(text_content, nesting_level=0):
-    # Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
+# Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
     # Pattern 2 matches: BK_E{bk_name}
-    # Using curly brace escaping \{\} for regex parsing
     pattern = r"(BK\{([^}]*)\}\{(.*?)\})|(BK_E\{([^}]+)\})"
     
     bookmarks_and_texts = []
-    active_bookmarks = set()
+    # Tracks references to 'bookmark' dicts that are open and eligible for upgrade
+    # Map structure: { bk_name: dict_reference }
+    active_bookmarks = {}
     last_idx = 0
     
     for match in re.finditer(pattern, text_content):
         start, end = match.span()
         
-        # 1. Capture any text before the current match (Outside match)
+        # 1. Capture any text before the current match
         if start > last_idx:
             unmatched_text = text_content[last_idx:start]
             bookmarks_and_texts.append({'text': unmatched_text})
@@ -585,31 +618,38 @@ def process_bookmarks(text_content, nesting_level=0):
             bk_name = match.group(2)
             bk_text = match.group(3)
             
-            bookmarks_and_texts.append({
+            # Create the initial standalone 'bookmark' dict
+            bk_dict = {
                 'bookmark': {
                     'name': bk_name,
                     'text': bk_text
                 }
-            })
-            # Track this name as an active preceding bookmark if it's not empty
+            }
+            bookmarks_and_texts.append(bk_dict)
+            
+            # If it has a valid name, track its reference for a potential future BK_E
             if bk_name:
-                active_bookmarks.add(bk_name)
+                active_bookmarks[bk_name] = bk_dict
                 
         elif match.group(4):  # BK_E pattern matched
             bk_name = match.group(5)
             
-            # Validation: Ensure it matches a preceding BK name
+            # Validation: Ensure it matches a preceding active BK name
             if bk_name in active_bookmarks:
+                # Upgrade the historical 'bookmark' to 'bookmark-start'
+                matched_bk_dict = active_bookmarks[bk_name]
+                matched_bk_dict['bookmark-start'] = matched_bk_dict.pop('bookmark')
+                
+                # Append the 'bookmark-end' dict
                 bookmarks_and_texts.append({
                     'bookmark-end': {
                         'name': bk_name
                     }
                 })
-                # Optionally remove from active tracking once closed
-                active_bookmarks.remove(bk_name)
+                # Remove from tracking since it has been paired and closed
+                del active_bookmarks[bk_name]
             else:
                 warn(f"ignoring dangling end-bookmark: 'BK_E{{{bk_name}}}'. No matching preceding BK found.", nesting_level=nesting_level+1)
-                # If ignored, treat the raw string match as regular unmatched text
                 bookmarks_and_texts.append({'text': match.group(4)})
                 
         last_idx = end
