@@ -560,6 +560,67 @@ def create_text_a(anchor, target, nesting_level=0):
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # footnotes, bookmarks, links, latex, mathml related
 
+''' process bookmarks inside text
+'''
+def process_bookmarks(text_content, nesting_level=0):
+    # Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
+    # Pattern 2 matches: BK_E{bk_name}
+    # Using curly brace escaping \{\} for regex parsing
+    pattern = r"(BK\{([^}]*)\}\{(.*?)\})|(BK_E\{([^}]+)\})"
+    
+    bookmarks_and_texts = []
+    active_bookmarks = set()
+    last_idx = 0
+    
+    for match in re.finditer(pattern, text_content):
+        start, end = match.span()
+        
+        # 1. Capture any text before the current match (Outside match)
+        if start > last_idx:
+            unmatched_text = text_content[last_idx:start]
+            bookmarks_and_texts.append({'text': unmatched_text})
+            
+        # Check which pattern matched
+        if match.group(1):  # BK pattern matched
+            bk_name = match.group(2)
+            bk_text = match.group(3)
+            
+            bookmarks_and_texts.append({
+                'bookmark': {
+                    'name': bk_name,
+                    'text': bk_text
+                }
+            })
+            # Track this name as an active preceding bookmark if it's not empty
+            if bk_name:
+                active_bookmarks.add(bk_name)
+                
+        elif match.group(4):  # BK_E pattern matched
+            bk_name = match.group(5)
+            
+            # Validation: Ensure it matches a preceding BK name
+            if bk_name in active_bookmarks:
+                bookmarks_and_texts.append({
+                    'bookmark-end': {
+                        'name': bk_name
+                    }
+                })
+                # Optionally remove from active tracking once closed
+                active_bookmarks.remove(bk_name)
+            else:
+                warn(f"ignoring dangling end-bookmark: 'BK_E{{{bk_name}}}'. No matching preceding BK found.", nesting_level=nesting_level+1)
+                # If ignored, treat the raw string match as regular unmatched text
+                bookmarks_and_texts.append({'text': match.group(4)})
+                
+        last_idx = end
+
+    # 2. Capture any remaining text at the end of the string
+    if last_idx < len(text_content):
+        bookmarks_and_texts.append({'text': text_content[last_idx:]})
+        
+    return bookmarks_and_texts
+
+
 ''' process footnotes inside text
 '''
 def process_footnotes(text_content, footnote_list, nesting_level=0):
