@@ -210,7 +210,7 @@ class OdtSectionBase(object):
                     warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
                 else:
-                    trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                    # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
                     apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[heading_style], nesting_level=nesting_level+1)
 
                     # handle background image
@@ -1143,7 +1143,7 @@ class Cell(object):
                     if self.note is not None and self.note.style_list is not None:
                         for style_name in self.note.style_list:
                             if style_name in ConfigService()._style_specs:
-                                trace(f"applying custom style [{style_name}] to {self}", nesting_level=nesting_level)
+                                # trace(f"applying custom style [{style_name}] to {self}", nesting_level=nesting_level)
                                 style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"), nesting_level=nesting_level+1)
                                 apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[style_name], nesting_level=nesting_level+1)
                             

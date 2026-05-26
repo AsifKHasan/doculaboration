@@ -503,19 +503,21 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             # in odt bookmarks only has name, no text
             bk_name = inline_block['bookmark']['name']
             paragraph.addElement(text.Bookmark(name=bk_name))
-            warn(f"bookmark [{bk_name}] added")
+            trace(f"bookmark [{bk_name}] added")
 
         elif 'bookmark-start' in inline_block:
             # in odt bookmarks only has name, no text
             bk_name = inline_block['bookmark-start']['name']
             paragraph.addElement(text.BookmarkStart(name=bk_name))
-            warn(f"bookmark-start [{bk_name}] added")
+            trace(f"bookmark-start [{bk_name}] added")
 
         elif 'bookmark-end' in inline_block:
             # in odt bookmarks only has name, no text
             bk_name = inline_block['bookmark-end']['name']
-            paragraph.addElement(text.BookmarkStart(name=bk_name))
-            warn(f"bookmark-end [{bk_name}] added")
+            paragraph.addElement(text.BookmarkEnd(name=bk_name))
+            # HACK: we need a dummy bookmark here so that we can identify the reference for this end
+            paragraph.addElement(text.Bookmark(name=f"{bk_name}-end"))
+            trace(f"bookmark-end [{bk_name}] added")
 
         elif 'fn' in inline_block:
             footnote_object = create_footnote(inline_block['fn'])
@@ -537,11 +539,12 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             paragraph.addElement(page_count)
 
         elif 'bookmark-page' in inline_block:
-            bookmark_ref = inline_block['bookmark-page'][0].strip()
+            bookmark_name = inline_block['bookmark-page'][0].strip()
             num_format = inline_block['bookmark-page'][1]
-            if bookmark_ref != '':
-                warn(f"found BookmarkRef [{bookmark_ref}]")
-                paragraph.addElement(text.BookmarkRef(refname=bookmark_ref, referenceformat='page'))
+            if bookmark_name != '':
+                trace(f"found BookmarkRef [{bookmark_name}]")
+                bookmark_ref = text.BookmarkRef(refname=bookmark_name, referenceformat='page')
+                paragraph.addElement(bookmark_ref)
 
         elif 'link' in inline_block:
             target, anchor = inline_block['link'][0], inline_block['link'][1]
