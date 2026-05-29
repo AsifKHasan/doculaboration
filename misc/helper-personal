@@ -7,6 +7,18 @@ SYMBOLS
 o
 
 
+this pattern
+--------------------
+§ 76 : 
+(§ \d+) : 
+\n$1	:	
+
+this pattern
+--------------------
+ p. 62 or pp.62-123
+ ([p]{1,2}\.) (\b\d+(?:-\d+)?\b)
+ 	$1	$2\n	
+
 cd /home/asifhasan/projects/asif@github.com/doculaboration/out
 
 ## linux
