@@ -993,6 +993,13 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
         except:
             warn(f"[{attr_name}] is not a valid page-layout-property", nesting_level=nesting_level+1)
 
+    # HACK: Set the footnote max-height constraint.
+    # To allow it to split across pages dynamically without an artificial ceiling,
+    # we set the maximum footnote height to 0 (which ODF interprets as "no maximum limit",
+    # meaning it can take up the entire page area up to the margins if necessary).
+    fo_ns = 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0'
+    page_layout_properties.setAttribute('footnotemaxheight', '10cm')
+
     return page_layout
 
 
