@@ -71,7 +71,7 @@ def process(gsheet, section_data, worksheet_cache, gsheet_data, current_document
 '''
 def process_note(note_json, cell_data, row, val, tmp_dir, nesting_level=0):
     try:
-        note_dict = json.loads(note_json)
+        note_dict = json.loads(note_json, strict=False)
 
     except json.JSONDecodeError as e:
         warn(e)

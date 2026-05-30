@@ -851,8 +851,22 @@ def create_footnote(footnote_tuple, nesting_level=0):
     note = text.Note(noteclass='footnote')
     note_citation = text.NoteCitation(label=citation)
     note_body = text.NoteBody()
-    patagraph = text.P(text=footnote)
-    note_body.addElement(patagraph)
+
+    # footnote may contain multiple lines/paragraphs
+    paragraph = text.P()
+    lines = footnote.split('\n')
+    if len(lines) == 1:
+        add_text_to_paragraph(paragraph=paragraph, text_string=footnote)
+
+    else:
+        add_text_to_paragraph(paragraph=paragraph, text_string=lines[0])
+        for part in lines[1:]:
+            paragraph.addElement(text.LineBreak())
+            add_text_to_paragraph(paragraph=paragraph, text_string=part)
+
+    # patagraph = text.P(text=footnote)
+    note_body.addElement(paragraph)
+    
     note.addElement(note_citation)
     note.addElement(note_body)
 
