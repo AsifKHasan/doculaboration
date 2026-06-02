@@ -1891,10 +1891,10 @@ class Padding(object):
             # self.right = int(padding_dict.get('right', 0))
             # self.bottom = int(padding_dict.get('bottom', 0))
             # self.left = int(padding_dict.get('left', 0))
-            self.top = 1
-            self.right = 2
-            self.bottom = 1
-            self.left = 2
+            self.top = 0
+            self.right = 0
+            self.bottom = 0
+            self.left = 0
         else:
             self.top = 1
             self.right = 2

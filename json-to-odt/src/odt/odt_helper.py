@@ -41,6 +41,21 @@ class OdtHelper(object):
             if k != 'default':
                 register_font(odt=self._odt, font_name=k, font_spec=v, nesting_level=nesting_level+2)
 
+
+        # HACK: CTL language setting for Bangla
+        # Create a default style or modify an existing one
+        default_style = Style(name="Standard", family="paragraph")
+
+        # Use languagectl and countryctl for Complex Text Layout
+        text_props = TextProperties(
+            languagecomplex="bn",   # ISO language code (e.g., 'bn' for Bengali, 'ar' for Arabic)
+            countrycomplex="BD",     # ISO country code (e.g., 'BD' for Bangladesh, 'EG' for Egypt)
+            fontnamecomplex="Noto Serif Bengali",
+        )
+        default_style.appendChild(text_props)
+        self._odt.styles.appendChild(default_style)
+
+
         # override styles
         trace(f"processing custom styles from conf/style-specs.yml", nesting_level=nesting_level+1)
         for k, v in ConfigService()._style_specs.items():

@@ -2042,6 +2042,7 @@ ODT_ATTR_MAP_HINT = {
 # style paths to move up and what they become
 # Format: (Parent, Child, SubChild): "NewName"
 STYLE_TRANSFORMATION_MAP = {
+    ("text-properties", "letter", "spacing")        : (("text-properties",), "letterspacing"),
     ("text-properties", "font", "family")           : (("text-properties",), "fontfamily"),
     ("text-properties", "font", "size")             : (("text-properties",), "fontsize"),
     ("text-properties", "font", "bold")             : (("text-properties",), "bold"),
