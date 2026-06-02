@@ -515,6 +515,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
             # in odt bookmarks only has name, no text
             bk_name = inline_block['bookmark-end']['name']
             paragraph.addElement(text.BookmarkEnd(name=bk_name))
+
             # HACK: we need a dummy bookmark here so that we can identify the reference for this end
             paragraph.addElement(text.Bookmark(name=f"{bk_name}-end"))
             trace(f"bookmark-end [{bk_name}] added", nesting_level=nesting_level+1)
@@ -1038,7 +1039,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
         <style:header-footer-properties svg:height="0.0402in" fo:margin-left="0in" fo:margin-right="0in" fo:margin-top="0in" fo:background-color="transparent" style:dynamic-spacing="false" draw:fill="none"/>
     </style:footer-style>
 '''
-def create_header_footer(odt, master_page, header_or_footer, odd_or_even, nesting_level=0):
+def create_header_footer(odt, master_page, header_or_footer, odd_or_even, header_distance, footer_distance, nesting_level=0):
     # get the page_layout
     page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
@@ -1047,8 +1048,10 @@ def create_header_footer(odt, master_page, header_or_footer, odd_or_even, nestin
         return None
 
     header_footer = None
-    header_footer_properties_attributes = {'margin': '0in', 'padding': '0in', 'dynamicspacing': False}
+    header_footer_properties_attributes = {'padding': '0in', 'dynamicspacing': False}
+
     if header_or_footer == 'header':
+        header_footer_properties_attributes['marginbottom'] = f"{header_distance}in"
         if odd_or_even == 'odd':
             header_footer = Header()
         elif odd_or_even == 'even':
@@ -1059,11 +1062,13 @@ def create_header_footer(odt, master_page, header_or_footer, odd_or_even, nestin
         if header_footer:
             # TODO: the height should come from actual header content height
             header_style = style.HeaderStyle()
-            header_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
+            header_footer_properties = style.HeaderFooterProperties(attributes=header_footer_properties_attributes)
+            header_style.addElement(header_footer_properties)
             page_layout.addElement(header_style)
             master_page.addElement(header_footer)
 
     elif header_or_footer == 'footer':
+        header_footer_properties_attributes['margintop'] = f"{footer_distance}in"
         if odd_or_even == 'odd':
             header_footer = Footer()
         elif odd_or_even == 'even':
@@ -1162,7 +1167,7 @@ def get_style_by_name(odt, style_name, nesting_level=0):
 ''' set text attribute to a style instance
 '''
 def set_style_text_attribute(style_instance, attr, value, nesting_level=0):
-    # HACK: handle bold, italic, oblique, underline, strikethrough
+    # handle bold, italic, oblique, underline, strikethrough
     # trace(f"{attr} set {type(style_instance)}", nesting_level=nesting_level)
     if attr == 'bold':
         if value == True:

@@ -37,6 +37,9 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
+        self.header_distance = self.margin_spec['distance']['header']
+        self.footer_distance = self.margin_spec['distance']['footer']
+
         self.page_num_format = self.section_prop.get('page-num-format', '1')
         if self.page_num_format == '':
             self.page_num_format = '1'
@@ -154,24 +157,24 @@ class OdtSectionBase(object):
             master_page = self.first_master_page
 
             if self.header_first:
-                self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+                self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
             if self.footer_first:
-                self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+                self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
         master_page = self.master_page
 
         if self.header_odd:
-            self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.footer_odd:
-            self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.header_even:
-            self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
         if self.footer_even:
-            self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
 
     ''' generates the odt code
@@ -666,11 +669,11 @@ class OdtPageHeaderFooter(OdtContent):
 
     ''' generates the odt code
     '''
-    def page_header_footer_to_odt(self, odt, master_page, field_list={}, nesting_level=0):
+    def page_header_footer_to_odt(self, odt, master_page, header_distance, footer_distance, field_list={}, nesting_level=0):
         if self.content_data is None:
             return
 
-        header_footer = create_header_footer(odt=odt, master_page=master_page, header_or_footer=self.header_footer, odd_or_even=self.odd_even, nesting_level=nesting_level+1)
+        header_footer = create_header_footer(odt=odt, master_page=master_page, header_or_footer=self.header_footer, odd_or_even=self.odd_even, header_distance=header_distance, footer_distance=footer_distance, nesting_level=nesting_level+1)
         if header_footer:
             # iterate through tables and blocks contents
             for block in self.content_list:
