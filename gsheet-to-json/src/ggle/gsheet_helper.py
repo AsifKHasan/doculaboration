@@ -327,6 +327,7 @@ class GsheetHelper(object):
 
                 'landscape'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='landscape', look_up_value='Yes', nesting_level=nesting_level+1),
                 'heading-style'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading-style', nesting_level=nesting_level+1),
+                'page-num-format'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-num-format', nesting_level=nesting_level+1),
                 'reset-page-to'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='reset-page-to', nesting_level=nesting_level+1),
                 'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='bookmark', nesting_level=nesting_level+1): f"{str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1))} {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1)}".strip()},
 

@@ -37,6 +37,10 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
+        self.page_num_format = self.section_prop.get('page-num-format', '1')
+        if self.page_num_format == '':
+            self.page_num_format = '1'
+
         self.reset_page_to = self.section_prop['reset-page-to']
         self.bookmark = self.section_prop['bookmark']
 
@@ -69,13 +73,13 @@ class OdtSectionBase(object):
         self.section_id = f"D{str(self.document_index).zfill(3)}--S{str(self.section_index).zfill(3)}"
 
         self.master_page_name = f"mp-{self.section_id}"
-        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, nesting_level=nesting_level+1)
+        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, nesting_level=nesting_level+1)
         self.master_page_name = self.master_page.getAttribute('name')
 
         # handle if first-page is different
         if self.different_firstpage:
             self.first_master_page_name = f"mp-{self.section_id}-first"
-            self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, next_master_page_style=self.master_page_name, nesting_level=nesting_level+1)
+            self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, next_master_page_style=self.master_page_name, nesting_level=nesting_level+1)
             self.first_master_page_name = self.first_master_page.getAttribute('name')
         else:
             self.first_master_page_name = None
@@ -360,7 +364,7 @@ class OdtPdfSection(OdtSectionBase):
                     # if the image should be treated as page bg
                     if self.page_bg:
                         master_page_name = f"{self.master_page_name}-page-{str(i).zfill(3)}"
-                        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, nesting_level=nesting_level+1)
+                        self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, nesting_level=nesting_level+1)
                         master_page_name = self.master_page.getAttribute('name')
                         # handle background image
                         add_background_image_to_master_page(odt=self._odt, master_page=self.master_page, background_image_path=image['path'], nesting_level=nesting_level+1)

@@ -23,7 +23,7 @@ from odf import style, text, draw, table
 from odf.style import Style, TextProperties, ParagraphProperties, Header, HeaderLeft, Footer, FooterLeft, FontFace
 from odf.element import Element
 from namespaces import MATHNS
-from odf.namespaces import DRAWNS
+from odf.namespaces import STYLENS, DRAWNS
 
 from xml.dom.minidom import parseString
 from xml.dom import Node
@@ -529,20 +529,24 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
                 paragraph.addElement(latex_df)
 
         elif 'page-num' in inline_block:
-            num_format = inline_block['page-num']
-            page_num = text.PageNumber(selectpage='current', numformat=num_format)
+            page_num_format = inline_block['page-num']
+            page_num = text.PageNumber(selectpage='current', numformat=page_num_format)
             paragraph.addElement(page_num)
 
         elif 'page-count' in inline_block:
-            num_format = inline_block['page-count']
-            page_count = text.PageCount()
+            page_num_format = inline_block['page-count']
+            trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+            page_count = text.PageCount(numformat=page_num_format)
+            # page_count.setAttribute('numformat', page_num_format)
+            # page_count.setAttrNS(STYLENS, 'numformat', 'I')
             paragraph.addElement(page_count)
 
         elif 'bookmark-page' in inline_block:
             bookmark_name = inline_block['bookmark-page'][0].strip()
-            num_format = inline_block['bookmark-page'][1]
+            page_num_format = inline_block['bookmark-page'][1]
             if bookmark_name != '':
-                trace(f"found BookmarkRef [{bookmark_name}]", nesting_level=nesting_level+1)
+                trace(f"found BookmarkRef [{bookmark_name}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
+                # bookmark_ref = text.BookmarkRef(refname=bookmark_name, referenceformat='page', numformat=page_num_format)
                 bookmark_ref = text.BookmarkRef(refname=bookmark_name, referenceformat='page')
                 paragraph.addElement(bookmark_ref)
 
@@ -749,15 +753,22 @@ def process_bookmark_page_blocks(text_content, nesting_level=0):
 
             # PAGE{[iI1]} means current page, PAGE{*:[iI1]} means number of pages, PAGE{XYZ:[iI1]} means page number where bookmark XYZ is set
             # :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman
-            page_directive, num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
+            page_directive, page_num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
+
+            if page_num_format == '১':
+                # page_num_format = '১, ২, ৩, ...'
+                page_num_format = 'Native Numbering'
+
             if page_directive == '':
-                texts_and_bookmarks.append({"page-num": num_format})
+                texts_and_bookmarks.append({"page-num": page_num_format})
 
             elif page_directive == '*':
-                texts_and_bookmarks.append({'page-count': num_format})
+                # trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+                texts_and_bookmarks.append({'page-count': page_num_format})
 
             else:
-                texts_and_bookmarks.append({'bookmark-page': (bookmark_content, num_format)})
+                # trace(f"found BookmarkLink [{page_directive}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
+                texts_and_bookmarks.append({'bookmark-page': (page_directive, page_num_format)})
 
             current_index = bookmark_end_index
 
@@ -945,17 +956,17 @@ def mathml_odf_(parent, nesting_level=0):
 ''' create (section-specific) master-page
     page layouts are saved with a name mp-section-no
 '''
-def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, next_master_page_style=None, nesting_level=0):
+def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, page_num_format='1', next_master_page_style=None, nesting_level=0):
     # if the very first section, it is already existing and named *Standarad* master-page. update page-layout for the existing *Standarad* master-page
     if first_section and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
         existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
-        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
+        page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, page_num_format=page_num_format, nesting_level=nesting_level)
     
     # create page-layout and master-page
     else:
         page_layout_name = f"pl-{master_page_name[3:]}"
-        page_layout = create_page_layout(odt=odt, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, nesting_level=nesting_level)
+        page_layout = create_page_layout(odt=odt, page_layout_name=page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, page_num_format=page_num_format, nesting_level=nesting_level)
         master_page = style.MasterPage(name=master_page_name, pagelayoutname=page_layout_name, nextstylename=next_master_page_style)
         odt.masterstyles.addElement(master_page)
 
@@ -970,7 +981,7 @@ def create_master_page(odt, first_section, document_index, master_page_name, pag
         fillimagerefpoint = 'center'
         tilerepeatoffset = '0% vertical'
 '''
-def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, nesting_level=0):
+def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientation, page_num_format='1', nesting_level=0):
     # get one, if not found create one
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name)
     if page_layout is None:
@@ -995,6 +1006,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
     page_layout_attrs['marginleft'] = f"{margin_spec['left']}in"
     page_layout_attrs['marginright'] = f"{margin_spec['right']}in"
     page_layout_attrs['printorientation'] = orientation
+    page_layout_attrs['numformat'] = page_num_format
 
     if margin_spec['gutter'] != '':
         outer_margin = margin_spec['left'] + margin_spec['gutter']
@@ -1003,6 +1015,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
     # set attributes
     for attr_name, attr_value in page_layout_attrs.items():
         try:
+            # trace(f"attr [{attr_name}] is [{attr_value}]", nesting_level=nesting_level+1)
             page_layout_properties.setAttribute(attr_name, attr_value)
         except:
             warn(f"[{attr_name}] is not a valid page-layout-property", nesting_level=nesting_level+1)
@@ -1012,7 +1025,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
     # we set the maximum footnote height to 0 (which ODF interprets as "no maximum limit",
     # meaning it can take up the entire page area up to the margins if necessary).
     fo_ns = 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0'
-    page_layout_properties.setAttribute('footnotemaxheight', '10cm')
+    page_layout_properties.setAttribute('footnotemaxheight', FOOTNOTE_MAX_HEIGHT)
 
     return page_layout
 
@@ -1875,20 +1888,20 @@ def concat_with(texts, concatenator, nesting_level=0):
     'xyz:[iIi]' meaning it is a bookamrk (page number in roman/ROMAN/Arabic)
 '''
 def parse_page_directive(page_directive_string, nesting_level=0):
-    match = re.match(r"^([^:]*)(?::(i|I|1))?$", page_directive_string.strip())
+    match = re.match(r"^([^:]*)(?::(i|I|1|১))?$", page_directive_string.strip())
     
     if not match:
         # Fallback/Safety check for completely malformed strings
         error(f"invalid page directive [{page_directive_string}]", nesting_level=nesting_level+1)
         return (page_directive_string, "1")
     
-    directive, num_format = match.groups()
+    directive, page_num_format = match.groups()
     
     # If no number format was explicitly provided (e.g., '', '*', 'xyz'), default to '1'
-    if num_format is None:
-        num_format = "1"
+    if page_num_format is None:
+        page_num_format = "1"
         
-    return (directive, num_format)
+    return (directive, page_num_format)
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1922,6 +1935,10 @@ ROW_HEIGHT_WHEN_FIT_TO_DATA = 21
 
 # ratio of the cell width to table width below which we should force "force-halign" so that cell content is not justified and look ugly
 CELL_WIDTH_RATIO_TO_FORCE_HALIGN_TRUE = 0.7
+
+# max height the footnote area can occupy in a page before spilling over to the next page
+FOOTNOTE_MAX_HEIGHT = '10cm'
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # gsheet to odt constants and type mapping

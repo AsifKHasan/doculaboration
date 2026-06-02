@@ -74,7 +74,8 @@ def process_note(note_json, cell_data, row, val, tmp_dir, nesting_level=0):
         note_dict = json.loads(note_json, strict=False)
 
     except json.JSONDecodeError as e:
-        warn(e)
+        warn(f"row [{row}] : {e}", nesting_level=nesting_level+1)
+        print(note_json)
         note_dict = {}
         return
 

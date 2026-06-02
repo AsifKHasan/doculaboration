@@ -157,6 +157,7 @@ def copy_drive_file(drive_service, origin_file_id, copy_title, nesting_level):
     copied_file = {'title': copy_title}
     try:
         return drive_service.files().copy(fileId=origin_file_id, body=copied_file).execute()
+    
     except(errors.HttpError, error):
         error(f"An error occurred: {error}", nesting_level=nesting_level)
         return None
@@ -642,6 +643,7 @@ def data_to_hierarchical_dict(data, header_row_start, header_row_end, key_column
     try:
         # Match 'key' against the last element of each path
         key_idx = [p[-1] if p else "" for p in col_paths].index(key_column_name)
+        
     except ValueError:
         return f"Error: Key column '{key_column_name}' not found."
 
@@ -783,7 +785,10 @@ MASTER_TOC_COLUMNS = {
     # *heading-style* - 
     "heading-style" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 
-    # *bookmark* - 
+    # *page-num-format* - 
+    "page-num-format" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": "1"},
+
+    # *reset-page-to* - 
     "reset-page-to" : {"availability": "preferred", "blank-allowed": True, "value-if-missing": ""},
 
     # *bookmark* - 
