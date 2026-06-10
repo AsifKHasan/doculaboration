@@ -153,21 +153,22 @@ class DocxSectionBase(object):
         if heading_text:
             paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark=self.bookmark, nesting_level=nesting_level+1)
 
-        if self.heading_style:
-            if self.heading_style not in ConfigService()._custom_styles:
-                warn(f"custom style [{self.heading_style}] not defined in style-specs", nesting_level=nesting_level)
+        for heading_style in self.heading_style:
+            if heading_style:
+                if heading_style not in ConfigService()._custom_styles:
+                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
-            else:
-                if paragraph:
-                    trace(f"applying custom style [{self.heading_style}] to heading", nesting_level=nesting_level)
-                    apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[self.heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
+                else:
+                    if paragraph:
+                        trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                        apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
-                # handle background image
-                if 'page-background' in ConfigService()._style_specs[self.heading_style]:
-                    # it is a list, get the first item
-                    pb_dict = ConfigService()._style_specs[self.heading_style]['page-background'][0]
-                    pb_image = InlineImage(ii_dict=pb_dict)
-                    add_background_image_to_header(docx_section=self.docx_section, image_path=pb_image.file_path, width=self.docx_section.page_width.inches, height=self.docx_section.page_height.inches, nesting_level=nesting_level+1)
+                    # handle background image
+                    if 'page-background' in ConfigService()._style_specs[heading_style]:
+                        # it is a list, get the first item
+                        pb_dict = ConfigService()._style_specs[heading_style]['page-background'][0]
+                        pb_image = InlineImage(ii_dict=pb_dict)
+                        add_background_image_to_header(docx_section=self.docx_section, image_path=pb_image.file_path, width=self.docx_section.page_width.inches, height=self.docx_section.page_height.inches, nesting_level=nesting_level+1)
 
 
 

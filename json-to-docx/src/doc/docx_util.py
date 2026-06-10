@@ -2315,9 +2315,13 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float,
 
 ''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
 '''
-def str_to_size(str, nesting_level=0):
+def str_to_size(text, nesting_level=0):
 	allowed_units = ['pt', 'in', 'cm', 'mm']
-	match = re.match(r"(\d*\.?\d+)\s*([a-zA-Z]+)", str.strip())
+	match = re.match(r"(\d*\.?\d+)\s*([a-zA-Z]+)", str(text).strip())
+
+	if match is None:
+		warn(f"[{text}] is not a size", nesting_level=nesting_level+1)
+		return None
 
 	# the match must return exactly two groups
 	try:
@@ -2326,7 +2330,7 @@ def str_to_size(str, nesting_level=0):
 		try:
 			num = float(number)
 			if unit not in allowed_units:
-				warn(f"[{unit}] in [{str}] is not a valid {what} .. allowed values are [{allowed_units}]", nesting_level=nesting_level+1)
+				warn(f"[{unit}] in [{text}] is not a valid size .. allowed values are [{allowed_units}]", nesting_level=nesting_level+1)
 				return None
 			
 			if unit == 'pt':
@@ -2339,11 +2343,11 @@ def str_to_size(str, nesting_level=0):
 				return Cm(num)
 
 		except:
-			warn(f"[{str}] is not a valid {what} .. first part must be a number", nesting_level=nesting_level+1)
+			warn(f"[{str}] is not a valid size .. first part must be a number", nesting_level=nesting_level+1)
 			return None
 
 	except ValueError:
-		warn(f"[{str}] is not a valid {what}", nesting_level=nesting_level+1)
+		warn(f"[{str}] is not a valid size", nesting_level=nesting_level+1)
 		return None
 
 	return Pt(float(num))
@@ -2557,7 +2561,7 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "color")           	        : (("ParagraphStyle", "font",), "color", rgb_from_hex),
     ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name", None),
-    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),
+    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", None),
     ("text-properties", "font", "bold")             : (("ParagraphStyle", "font",), "bold", None),
     ("text-properties", "font", "italic")           : (("ParagraphStyle", "font",), "italic", None),
     ("text-properties", "font", "underline")        : (("ParagraphStyle", "font",), "underline", None),
