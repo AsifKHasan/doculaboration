@@ -638,7 +638,7 @@ def create_cell_background_new(cell, image_path, width, height, nesting_level=0)
 def create_table(container, num_rows, num_cols, container_width=None, nesting_level=0):
 	tbl = None
 
-	# debug(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
+	# trace(f"... creating ({num_rows} x {num_cols} : width = {container_width}) table for {type(container)}")
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
@@ -834,7 +834,7 @@ def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, directives=True, contains_inline_image=False, nesting_level=0):
+def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, field_list={}, directives=True, contains_inline_image=False, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -865,16 +865,16 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	if run_list is not None:
 		# run lists are a series of runs inside the paragraph
 		for text_run in run_list:
-			process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list, nesting_level=nesting_level+1)
+			process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list, field_list=field_list, nesting_level=nesting_level+1)
 
 	elif text_content is not None:
-		process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list, nesting_level=nesting_level+1)
+		process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list, field_list=field_list, nesting_level=nesting_level+1)
 
 
 	# bookmark
 	if bookmark:
 		for k, v in bookmark.items():
-			# debug(f"creating bookmark {k} : {v}")
+			# trace(f"creating bookmark {k} : {v}")
 			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 	# apply the style if any
@@ -1042,18 +1042,28 @@ def zero_paragraph_spacing(paragraph, nesting_level=0):
 
 ''' process inline blocks inside a text and add to a paragraph
 '''
-def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, nesting_level=0):
-	# process FN{...} first, we get a list of block dicts
-	inline_blocks = process_footnotes(
-		text_content=text_content, footnote_list=footnote_list
-	)
+def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, field_list={}, nesting_level=0):
+	# process BK{..} first, we get a list of block dicts
+	inline_blocks = process_bookmark_blocks(text_content=text_content, nesting_level=nesting_level+1)
+
+	# process FN{...} next, we get a list of block dicts
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block["text"], footnote_list=footnote_list, nesting_level=nesting_level+1)
+
+		else:
+			new_inline_blocks.append(inline_block)
+
+	inline_blocks = new_inline_blocks
 
 	# process LATEX{...} for each text item
 	new_inline_blocks = []
 	for inline_block in inline_blocks:
 		# process only 'text'
 		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"])
+			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
 		else:
 			new_inline_blocks.append(inline_block)
@@ -1065,7 +1075,7 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 	for inline_block in inline_blocks:
 		# process only 'text'
 		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"])
+			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
 		else:
 			new_inline_blocks.append(inline_block)
@@ -1077,7 +1087,19 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 	for inline_block in inline_blocks:
 		# process only 'text'
 		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_links(inline_block["text"])
+			new_inline_blocks = new_inline_blocks + process_links(inline_block["text"], nesting_level=nesting_level+1)
+
+		else:
+			new_inline_blocks.append(inline_block)
+
+	inline_blocks = new_inline_blocks
+
+	# process FIELD{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if 'text' in inline_block:
+			new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'], nesting_level=nesting_level+1)
 
 		else:
 			new_inline_blocks.append(inline_block)
@@ -1091,30 +1113,109 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			set_text_style(run=run, text_attributes=text_attributes)
 
 		elif "fn" in inline_block:
-			create_footnote_bayoo(paragraph=paragraph, footnote_tuple=inline_block["fn"])
+			create_footnote_bayoo(paragraph=paragraph, footnote_tuple=inline_block["fn"], nesting_level=nesting_level+1)
 			# create_footnote(docx=docx, paragraph=paragraph, footnote_tuple=inline_block["fn"])
 
 		elif "latex" in inline_block:
 			run = paragraph.add_run()
-			create_latex(container=run, latex_content=inline_block["latex"])
-			set_text_style(run=run, text_attributes=text_attributes)
+			create_latex(container=run, latex_content=inline_block["latex"], nesting_level=nesting_level+1)
+			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "page-num" in inline_block:
-			run = add_page_reference(paragraph=paragraph, bookmark_name='')
-			set_text_style(run=run, text_attributes=text_attributes)
+			run = add_page_reference(paragraph=paragraph, bookmark_name='', nesting_level=nesting_level+1)
+			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "page-count" in inline_block:
-			run = add_page_reference(paragraph=paragraph, bookmark_name='*')
-			set_text_style(run=run, text_attributes=text_attributes)
+			run = add_page_reference(paragraph=paragraph, bookmark_name='*', nesting_level=nesting_level+1)
+			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "bookmark-page" in inline_block:
 			# add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
-			run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip())
-			set_text_style(run=run, text_attributes=text_attributes)
+			run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip(), nesting_level=nesting_level+1)
+			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif 'link' in inline_block:
 			target, anchor = inline_block['link'][0], inline_block['link'][1]
-			create_hyperlink(attach_to=paragraph, anchor=anchor, target=target)
+			create_hyperlink(attach_to=paragraph, anchor=anchor, target=target, nesting_level=nesting_level+1)
+
+		elif 'field' in inline_block:
+			field = inline_block['field']
+
+			# TODO: identify the field, extract the field value
+			if field in field_list:
+				field_value = field_list[field]
+				# trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+			else:
+				warn(f"unknown field [{field}]", nesting_level=nesting_level+1)
+
+
+''' process bookmarks inside text
+'''
+def process_bookmark_blocks(text_content, nesting_level=0):
+# Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
+    # Pattern 2 matches: BK_E{bk_name}
+    pattern = r"(BK\{([^}]*)\}\{(.*?)\})|(BK_E\{([^}]+)\})"
+    
+    bookmarks_and_texts = []
+    # Tracks references to 'bookmark' dicts that are open and eligible for upgrade
+    # Map structure: { bk_name: dict_reference }
+    active_bookmarks = {}
+    last_idx = 0
+    
+    for match in re.finditer(pattern, text_content):
+        start, end = match.span()
+        
+        # 1. Capture any text before the current match
+        if start > last_idx:
+            unmatched_text = text_content[last_idx:start]
+            bookmarks_and_texts.append({'text': unmatched_text})
+            
+        # Check which pattern matched
+        if match.group(1):  # BK pattern matched
+            bk_name = match.group(2)
+            bk_text = match.group(3)
+            
+            # Create the initial standalone 'bookmark' dict
+            bk_dict = {
+                'bookmark': {
+                    'name': bk_name,
+                    'text': bk_text
+                }
+            }
+            bookmarks_and_texts.append(bk_dict)
+            
+            # If it has a valid name, track its reference for a potential future BK_E
+            if bk_name:
+                active_bookmarks[bk_name] = bk_dict
+                
+        elif match.group(4):  # BK_E pattern matched
+            bk_name = match.group(5)
+            
+            # Validation: Ensure it matches a preceding active BK name
+            if bk_name in active_bookmarks:
+                # Upgrade the historical 'bookmark' to 'bookmark-start'
+                matched_bk_dict = active_bookmarks[bk_name]
+                matched_bk_dict['bookmark-start'] = matched_bk_dict.pop('bookmark')
+                
+                # Append the 'bookmark-end' dict
+                bookmarks_and_texts.append({
+                    'bookmark-end': {
+                        'name': bk_name
+                    }
+                })
+                # Remove from tracking since it has been paired and closed
+                del active_bookmarks[bk_name]
+            else:
+                warn(f"ignoring dangling end-bookmark: 'BK_E{{{bk_name}}}'. No matching preceding BK found.", nesting_level=nesting_level+1)
+                bookmarks_and_texts.append({'text': match.group(4)})
+                
+        last_idx = end
+
+    # 2. Capture any remaining text at the end of the string
+    if last_idx < len(text_content):
+        bookmarks_and_texts.append({'text': text_content[last_idx:]})
+        
+    return bookmarks_and_texts
 
 
 ''' process footnotes inside text
@@ -1129,7 +1230,7 @@ def process_footnotes(text_content, footnote_list, nesting_level=0):
 	for match in re.finditer(pattern, text_content):
 		footnote_key = match.group()[3:-1]
 		if footnote_key in footnote_list:
-			# debug(f".... footnote {footnote_key} found at {match.span()} with description")
+			# trace(f".... footnote {footnote_key} found at {match.span()} with description")
 			# we have found a footnote, we add the preceding text and the footnote spec into the list
 			footnote_start_index, footnote_end_index = match.span()[0], match.span()[1]
 			if footnote_start_index >= current_index:
@@ -1263,6 +1364,38 @@ def process_links(text_content, nesting_level=0):
 	return links
 
 
+''' process FIELD's inside text
+    example of fields [section, heading]
+'''
+def process_field_blocks(text_content, nesting_level=0):
+    # find out if there is any match with FIELD{...} inside the text_content
+    texts_and_fields = []
+
+    pattern = r'FIELD{[^}]*}'
+    current_index = 0
+    for match in re.finditer(pattern, text_content):
+        field_content = match.group()[6:-1].strip()
+
+        # we have found a FIELD block, we add the preceding text and the field block into the list
+        field_start_index, field_end_index = match.span()[0], match.span()[1]
+        if field_start_index >= current_index:
+            # there are preceding text before the bookmark
+            text = text_content[current_index:field_start_index]
+
+            texts_and_fields.append({'text': text})
+
+            texts_and_fields.append({'field': field_content})
+
+            current_index = field_end_index
+
+    # there may be trailing text
+    text = text_content[current_index:]
+
+    texts_and_fields.append({'text': text})
+
+    return texts_and_fields
+
+
 ''' create a footnote
 '''
 def create_footnote(docx, paragraph, footnote_tuple, nesting_level=0):
@@ -1316,7 +1449,7 @@ def create_latex(container, latex_content, nesting_level=0):
 ''' create a bookmark
 '''
 def add_bookmark(paragraph, bookmark_name, bookmark_text='', nesting_level=0):
-	# debug(f"creating bookmark {bookmark_name} : {bookmark_text}")
+	# trace(f"creating bookmark {bookmark_name} : {bookmark_text}")
 	start = OxmlElement('w:bookmarkStart')
 	start.set(qn('w:id'), '0')
 	start.set(qn('w:name'), bookmark_name)
@@ -1920,7 +2053,7 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 def parse_image_properties_from_custom_style(style_spec, parent_key=None, nesting_level=0):
 	if style_spec:
 		for style_key, this_style in style_spec.items():
-			debug(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
+			trace(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
 
 			# check for *inline-image* and process
 			if 'inline-image' in this_style:
@@ -1942,7 +2075,7 @@ def parse_image_properties_from_custom_style(style_spec, parent_key=None, nestin
 						url = ii_dict.get('url')
 						
 						# download image
-						debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+						trace(f"downloading inline image {url}", nesting_level=nesting_level+1)
 						ii_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
 
 						# type background/inline
@@ -1990,7 +2123,7 @@ def parse_image_properties_from_custom_style(style_spec, parent_key=None, nestin
 						url = pb_dict.get('url')
 						
 						# download image
-						debug(f"downloading inline image {url}", nesting_level=nesting_level+1)
+						trace(f"downloading inline image {url}", nesting_level=nesting_level+1)
 						pb_image_dict = download_image(drive_service=GoogleServices().drive_api, url=url, title=None, tmp_dir=ConfigService()._temp_dir, nesting_level=nesting_level+1)
 
 						# type background/inline
@@ -2426,6 +2559,13 @@ def print_xml(element, nesting_level=0):
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 
 
+''' concatenate a list of strings with a concatenator
+'''
+def concat_with(texts, concatenator, nesting_level=0):
+    cleaned_list = [s.strip() for s in texts if s and s.strip()]
+    return ' : '.join(cleaned_list)    
+
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data and constants
@@ -2561,7 +2701,7 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "color")           	        : (("ParagraphStyle", "font",), "color", rgb_from_hex),
     ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name", None),
-    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", None),
+    ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),
     ("text-properties", "font", "bold")             : (("ParagraphStyle", "font",), "bold", None),
     ("text-properties", "font", "italic")           : (("ParagraphStyle", "font",), "italic", None),
     ("text-properties", "font", "underline")        : (("ParagraphStyle", "font",), "underline", None),
