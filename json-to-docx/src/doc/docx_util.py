@@ -1992,6 +1992,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 						continue
 
 					if hasattr(font, attr):
+						trace(f"applying font aatribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
 						setattr(font, attr, value)
 
 
