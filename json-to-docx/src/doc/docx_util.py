@@ -129,29 +129,18 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
+DOCX_PARAGRAPH_ATTRIBUTES_ALL = ['padding', 'borders', 'backgroundcolor', 'verticalalign', 'textalign', 'angle', ]
+
 ''' format container (paragraph or cell)
 	border, bgcolor, padding, valign, halign
 '''
-def format_container(container, attributes, custom_style_name=None, it_is_a_table_cell=True, nesting_level=0):
-	custom_style = ConfigService()._style_specs.get(custom_style_name, None)
-	if custom_style:
-		if 'padding' in custom_style:
-			attributes['padding'] = custom_style['padding']
-
-		if 'borders' in custom_style:
-			attributes['borders'] = custom_style['borders']
-
-		if 'backgroundcolor' in custom_style:
-			attributes['backgroundcolor'] = custom_style['backgroundcolor']
-
-		if 'verticalalign' in custom_style:
-			attributes['verticalalign'] = custom_style['verticalalign']
-
-		if 'textalign' in custom_style:
-			attributes['textalign'] = custom_style['textalign']
-
-		if 'angle' in custom_style:
-			attributes['angle'] = custom_style['angle']
+def format_container(container, attributes, custom_style_list=[], it_is_a_table_cell=True, nesting_level=0):
+	for custom_style_name in custom_style_list:
+		custom_style = ConfigService()._style_specs.get(custom_style_name, None)
+		if custom_style:
+			for attr_name in DOCX_PARAGRAPH_ATTRIBUTES_ALL:
+				if attr_name in custom_style:
+					attributes[attr_name] = custom_style[attr_name]
 
 	# borders
 	if it_is_a_table_cell:
@@ -540,7 +529,7 @@ def add_background_image_to_header(docx_section, image_path, width, height, nest
 '''
 def create_cell_background(cell, inline_image, container_width, container_height, nesting_level=0):
 	
-	# 1. Add a run to the paagraph
+	# 1. Add a run to the paragraph
 	paragraph = cell.paragraphs[0]
 	paragraph.clear()
 	run = paragraph.add_run()
@@ -1992,7 +1981,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 						continue
 
 					if hasattr(font, attr):
-						trace(f"applying font aatribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
+						trace(f"applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
 						setattr(font, attr, value)
 
 
@@ -2450,8 +2439,8 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float,
 ''' convert strings like '12pt' '3.00in' to Pt(12) or Inches(3.00)
 '''
 def str_to_size(text, nesting_level=0):
-	allowed_units = ['pt', 'in', 'cm', 'mm']
-	match = re.match(r"(\d*\.?\d+)\s*([a-zA-Z]+)", str(text).strip())
+	allowed_units = ['pt', 'in', 'cm', 'mm', '%']
+	match = re.match(r"([-]?\d*\.?\d+)\s*([a-zA-Z]+)", str(text).strip())
 
 	if match is None:
 		warn(f"[{text}] is not a size", nesting_level=nesting_level+1)
@@ -2475,6 +2464,9 @@ def str_to_size(text, nesting_level=0):
 			
 			if unit == 'cm':
 				return Cm(num)
+
+			if unit == '%':
+				return (num/100)
 
 		except:
 			warn(f"[{str}] is not a valid size .. first part must be a number", nesting_level=nesting_level+1)
@@ -2705,6 +2697,7 @@ STYLE_TRANSFORMATION_MAP = {
     ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),
     ("text-properties", "font", "bold")             : (("ParagraphStyle", "font",), "bold", None),
     ("text-properties", "font", "italic")           : (("ParagraphStyle", "font",), "italic", None),
+    ("text-properties", "font", "oblique")          : (("ParagraphStyle", "font",), "oblique", None),
     ("text-properties", "font", "underline")        : (("ParagraphStyle", "font",), "underline", None),
     ("text-properties", "font", "smallcaps")        : (("ParagraphStyle", "font",), "small_caps", None),
     ("text-properties", "font", "allcaps")          : (("ParagraphStyle", "font",), "all_caps", None),
@@ -2715,6 +2708,15 @@ STYLE_TRANSFORMATION_MAP = {
 
     ("paragraph-properties", "textalign")			: (("ParagraphStyle", "paragraph-format",), "alignment", str_to_docx_halign),
 	# ("paragraph-properties", "verticalalign")		: (("ParagraphStyle", "paragraph-format",), "verticalalign", str_to_docx_halign),
+
+    ("paragraph-properties", "textindent")    		: (("ParagraphStyle", "paragraph-format",), "first_line_indent", str_to_size),
+
+    ("paragraph-properties", "line", "height")      : (("ParagraphStyle", "paragraph-format",), "line_spacing", str_to_size),
+    ("paragraph-properties", "keep", "together")    : (("ParagraphStyle", "paragraph-format",), "keep_together", None),
+
+    ("paragraph-properties", "break", "before")     : (("ParagraphStyle", "paragraph-format",), "page_break_before", None),
+    ("paragraph-properties", "break", "after")      : (("ParagraphStyle", "paragraph-format",), "page_break_after", None),
+
 
     # ("paragraph-properties", "margin", "all")       : (("paragraph-properties",), "margin", None),
     ("paragraph-properties", "margin", "bottom")    : (("ParagraphStyle", "paragraph-format",), "space_after", str_to_size),

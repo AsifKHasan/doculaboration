@@ -24,8 +24,13 @@ class DocxHelper(object):
         ConfigService()._font_specs = spec_list.get('font-spec', {})
         ConfigService()._style_specs = {}
         for style_key, style_spec in spec_list.get('style-spec', {}).items():
-            transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
-            ConfigService()._style_specs[style_key] = transfomed_style_spec
+            transformed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
+            ConfigService()._style_specs[style_key] = transformed_style_spec
+
+            # print(f"style [{style_key}]")
+            # print(f"------------------------------------------------------------")
+            # print(f"{transformed_style_spec}")
+            # print()
 
 
     ''' generate and save the docx

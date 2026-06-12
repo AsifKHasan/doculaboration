@@ -162,13 +162,13 @@ class DocxSectionBase(object):
 
         for heading_style in self.heading_style:
             if heading_style:
-                if heading_style not in ConfigService()._custom_styles:
+                if heading_style not in ConfigService()._style_specs:
                     warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
                 else:
                     if paragraph:
                         trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
-                        apply_custom_style(docx=self._docx, style_spec=ConfigService()._custom_styles[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
+                        apply_custom_style(docx=self._docx, style_spec=ConfigService()._style_specs[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
                     # handle background image
                     if 'page-background' in ConfigService()._style_specs[heading_style]:
@@ -851,7 +851,7 @@ class Row(object):
     ''' generates the docx code
     '''
     def row_to_doc_table_row(self, table, table_row, field_list={}, nesting_level=0):
-        trace(f"writing [{self}]", nesting_level=nesting_level+1)
+        # trace(f"writing [{self}]", nesting_level=nesting_level+1)
         table_row.height = Inches(self.row_height)
 
         if self.fixed_row_height:
@@ -875,7 +875,7 @@ class Row(object):
         # if the row is a single cell row (only the first cell is empty) and the cell contains a style note, make it out-of-cell and make it keep-with-next
         if len(self.cells) > 0:
             first_cell = self.cells[0]
-            if not first_cell.is_empty and first_cell.note.style is not None:
+            if not first_cell.is_empty and len(first_cell.note.style_list) != 0:
                 # if the other cells all are empty, we mark *free* and keep-with-next
                 non_empty_cell_found = False
                 for cell in self.cells[1:]:
@@ -1070,18 +1070,20 @@ class Cell(object):
         table_cell.width = Inches(self.cell_width)
 
         # the cell may have a custom style with a bg image 
-        if self.note is not None and self.note.style is not None and self.note.style in ConfigService()._style_specs:
-            # this custom style may have an inline-image, if so apply it
-            if 'inline-image' in ConfigService()._style_specs[self.note.style]:
-                for ii_dict in ConfigService()._style_specs[self.note.style]['inline-image']:
-                    inline_image = InlineImage(ii_dict, nesting_level=nesting_level+1)
+        if self.note is not None:
+            for style_name in self.note.style_list:
+                if style_name in ConfigService()._style_specs:
+                    # this custom style may have an inline-image, if so apply it
+                    if 'inline-image' in ConfigService()._style_specs[style_name]:
+                        for ii_dict in ConfigService()._style_specs[style_name]['inline-image']:
+                            inline_image = InlineImage(ii_dict, nesting_level=nesting_level+1)
 
-                    # consider only the first bg image
-                    if inline_image.type == 'background':
-                        self.inline_images.append(inline_image)
+                            # consider only the first bg image
+                            if inline_image.type == 'background':
+                                self.inline_images.append(inline_image)
 
-                    else:
-                        self.inline_images.append(inline_image)
+                            else:
+                                self.inline_images.append(inline_image)
 
         if self.effective_format:
             self.cell_to_docx(container=table_cell, field_list=field_list, nesting_level=nesting_level+1)
@@ -1119,7 +1121,7 @@ class Cell(object):
                     text_attributes = {}
 
                 if self.note:
-                    paragraph_attributes = self.note.paragraph_attributes()
+                    paragraph_attributes = self.note.paragraph_attributes(docx=self._docx)
                     footnote_list = self.note.footnotes
                 else:
                     paragraph_attributes = {}
@@ -1128,10 +1130,9 @@ class Cell(object):
                 contains_inline_image = self.contains_inline_image(nesting_level=nesting_level+1)
                 where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark, field_list=field_list, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
 
-                # do not aaply table-cell format here, it needs to be done after the merging is done
+                # do not apply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
-                    format_container(container=where, attributes=table_cell_attributes, custom_style_name=self.note.style, it_is_a_table_cell=False, nesting_level=nesting_level+1)
-                    # pass
+                    format_container(container=where, attributes=table_cell_attributes, custom_style_list=self.note.style_list, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
 
     ''' apply formatting for table cell
@@ -1141,14 +1142,14 @@ class Cell(object):
         if self.note:
             force_halign = self.note.force_halign
             angle = self.note.angle
-            custom_style_name = self.note.style 
+            custom_style_list = self.note.style_list
         else:
             force_halign = False
             angle = 0
-            custom_style_name = None
+            custom_style_list = []
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
-        format_container(container=self.table_cell, attributes=table_cell_attributes, custom_style_name=custom_style_name, it_is_a_table_cell=True, nesting_level=nesting_level+1)
+        format_container(container=self.table_cell, attributes=table_cell_attributes, custom_style_list=custom_style_list, it_is_a_table_cell=True, nesting_level=nesting_level+1)
 
 
     ''' Copy format from the cell passed
@@ -1817,7 +1818,6 @@ class CellNote(object):
         self.outline_level = 0
         self.free_content = False
         self.content = note_dict.get('content', None)
-        self.style = note_dict.get('style', 'Normal')
         self.header_rows = int(note_dict.get('repeat-rows', 0))
         self.new_page = note_dict.get('new-page', False)
         self.force_halign = note_dict.get('force-halign', False)
@@ -1833,6 +1833,13 @@ class CellNote(object):
         self.table_spacing = note_dict.get('table-spacing', True)
         self.script = note_dict.get('script')
 
+        styles = note_dict.get('style', None)
+        if styles is not None:
+            raw_list = styles.split(',')
+            self.style_list = [s.strip() for s in raw_list if s.strip()]
+        else:
+            self.style_list = []
+
         # content
         # if self.content is not None and self.content in ['free', 'out-of-cell']:
         if self.content in ['free', 'out-of-cell']:
@@ -1847,16 +1854,23 @@ class CellNote(object):
             self.table_spacing = False
 
         # style
-        if self.style is not None:
-            outline_level_object = HEADING_TO_LEVEL.get(self.style, None)
+        style_replace_list = []
+        for style in self.style_list:
+            outline_level_object = HEADING_TO_LEVEL.get(style, None)
             if outline_level_object:
                 self.outline_level = outline_level_object['outline-level'] + document_nesting_depth
-                self.style = LEVEL_TO_HEADING[self.outline_level]
+                style_replace_list.append({'style-to-replace': style, 'new-style': LEVEL_TO_HEADING[self.outline_level]})
 
             # if style is any Title/Heading or Table or Figure, apply keep-with-next
-            if self.style in LEVEL_TO_HEADING or self.style in ['Table', 'Figure']:
+            if style in LEVEL_TO_HEADING or style in ['Table', 'Figure']:
                 self.keep_with_next = True
 
+        for obj in style_replace_list:
+            style_to_replace = obj['style-to-replace']
+            new_style = obj['new-style']
+            if "style_to_replace" in self.style_list:
+                self.style_list[self.style_list.index(style_to_replace)] = new_style
+        
         # footnotes
         if self.footnotes:
             if not isinstance(self.footnotes, dict):
@@ -1872,11 +1886,15 @@ class CellNote(object):
 
     ''' paragraph attributes dict
     '''
-    def paragraph_attributes(self):
+    def paragraph_attributes(self, docx):
         attributes = {}
 
-        if self.style is not None:
-            attributes['stylename'] = self.style
+        # if a style is a builtin style, apply it
+        for style_name in self.style_list:
+            style = get_style_by_name(docx=docx, style_name=style_name)
+            if style is not None:
+                attributes['stylename'] = style_name
+                break
 
         if self.new_page:
             attributes['breakbefore'] = 'page'
