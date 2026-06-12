@@ -152,9 +152,10 @@ class GsheetHelper(object):
             error('gsheet read request failed, quiting', nesting_level=nesting_level)
             sys.exit(1)
 
-        # clear matplotlib cache, this may not work, you may need to run this in Linux
-        # sudo apt-get remove fonts-noto-color-emoji
-        remove_matplotlib_cache(nesting_level=nesting_level+1)
+        # clear matplotlib cache
+        # remove_matplotlib_cache(nesting_level=nesting_level+1)
+
+        # HACK: this may not work, you may need to run this in Linux, sudo apt-get remove fonts-noto-color-emoji
 
         # font replacement/fallback cache
         font_cache = {} 
