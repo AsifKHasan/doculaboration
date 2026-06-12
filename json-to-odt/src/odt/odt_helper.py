@@ -26,6 +26,13 @@ class OdtHelper(object):
         for style_key, style_spec in spec_list.get('style-spec', {}).items():
             transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
             ConfigService()._style_specs[style_key] = transfomed_style_spec
+
+        # font default and font-cache
+        ConfigService()._default_font = spec_list.get('default-font', None)
+        ConfigService()._font_cache = spec_list.get('font-cache', {})
+
+        # print(ConfigService()._default_font)
+        # print(ConfigService()._font_cache)
         
 
 
@@ -36,10 +43,9 @@ class OdtHelper(object):
         info(msg=f"generating odt ..", nesting_level=nesting_level)
 
         # font specs
-        trace(f"registering fonts from conf/font-spec.yml", nesting_level=nesting_level+1)
-        for k, v in ConfigService()._font_specs.items():
-            if k != 'default':
-                register_font(odt=self._odt, font_name=k, font_spec=v, nesting_level=nesting_level+2)
+        trace(f"registering fonts from font-cache", nesting_level=nesting_level+1)
+        for k, v in ConfigService()._font_cache.items():
+            register_font(odt=self._odt, font_name=v, nesting_level=nesting_level+2)
 
 
         # HACK: CTL language setting for Bangla

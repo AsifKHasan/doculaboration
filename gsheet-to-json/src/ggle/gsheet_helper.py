@@ -90,7 +90,7 @@ class GsheetHelper(object):
                 response = {sheet['properties']['title']: sheet for sheet in response['sheets']}
 
 
-                # parse and procees the specs - pages, margins, fonts, style
+                # parse and process the specs - pages, margins, fonts, style
                 specs_data = {'specs': {}}
                 for ws_name, spec_def in SPEC_DICT.items():
                     trace(f"check for [{ws_name}] worksheet", nesting_level=nesting_level+1)
@@ -152,6 +152,38 @@ class GsheetHelper(object):
             error('gsheet read request failed, quiting', nesting_level=nesting_level)
             sys.exit(1)
 
+        # clear matplotlib cache, this may not work, you may need to run this in Linux
+        # sudo apt-get remove fonts-noto-color-emoji
+        remove_matplotlib_cache(nesting_level=nesting_level+1)
+
+        # font replacement/fallback cache
+        font_cache = {} 
+
+        # check for fonts
+        for font_key, font_spec in specs_data['specs']['font-spec'].items():
+            specified_font, font_to_use = get_the_font_to_use(font_spec, nesting_level=nesting_level+1)
+            if specified_font != font_to_use:
+                info(f"font [{specified_font}] will be replaced by [{font_to_use}]", nesting_level=nesting_level+1)
+            
+            font_cache[specified_font] = font_to_use
+            print()
+
+        # set the default font
+        if 'default' in specs_data['specs']['font-spec']:
+            specified_font, font_to_use = get_the_font_to_use(specs_data['specs']['font-spec']['default'], nesting_level=nesting_level+1)
+            info(f"default font set to [{font_to_use}]", nesting_level=nesting_level+1)
+            font_cache['default'] = font_to_use
+
+        else:
+            font_to_use = get_default_font(nesting_level=nesting_level+1)
+            info(f"default font set to [{font_to_use}]", nesting_level=nesting_level+1)
+            font_cache['default'] = font_to_use
+
+        specs_data['specs']['default-font'] = font_cache['default']
+        specs_data['specs']['font-cache'] = font_cache
+
+
+        # read and process the gsheet
         self.current_document_index = self.current_document_index + 1
         data = self.process_gsheet(gsheet=gsheet, parent=parent, current_document_index=self.current_document_index, nesting_level=nesting_level+1)
 

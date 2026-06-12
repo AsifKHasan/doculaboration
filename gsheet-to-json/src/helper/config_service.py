@@ -4,6 +4,7 @@
 
 import yaml
 from pathlib import Path
+import logging
 
 from helper.logger import *
 from helper import logger
@@ -43,3 +44,4 @@ class ConfigService:
 
         self._initialized = True
 
+        logging.getLogger('matplotlib.font_manager').setLevel(logging.CRITICAL)

@@ -1,36 +1,60 @@
 # common
 argparse
-colorama
-httplib2
+setuptools
+
+# for image manipulation
+pillow
+
+# for xml manipulation
 lxml
+
+# for latex 
+latex2mathml
+
+# for pdf manipulation
+pdf2image
+
+# for yaml support
+PyYAML
+yamllint
+
+# for data management
 numpy
-oauth2client
 pandas
+opencv-python
+
+# for colors in terminal
+colorama
+termcolor
+
+# for google oauth
+google-api-python-client
+oauth2client
+
+# for http access
+httplib2
+# ndg-httpsclient
+
+# for google gsuite
 PyDrive
 PyDrive2
 pygsheets
-PyYAML
-termcolor
-colorama
-yamllint
-pdf2image
-pillow
-latex2mathml
-opencv-python
-setuptools
-ndg-httpsclient
 
-# json-to-odt
+# for font existence checking
+matplotlib
+
+# for odf manipulation
 odfpy
 OOoPy
 
-# json-to-pdf
-
-# json-to-docx
+# for docx manipulation
 python-docx
 bayoo-docx
 
+# windows specific
 # pywin32
+
+
 
 # annotated-types==0.6.0
 # anyio==4.3.0

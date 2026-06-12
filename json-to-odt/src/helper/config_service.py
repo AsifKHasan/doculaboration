@@ -15,6 +15,7 @@ class ConfigService:
         if not cls._instance:
             cls._instance = super(ConfigService, cls).__new__(cls)
             cls._instance._initialized = False
+            
         return cls._instance
 
     def __init__(self, config_file=None, nesting_level=0):
@@ -45,26 +46,9 @@ class ConfigService:
         self._margin_specs = {}
         self._font_specs = {}
         self._style_specs = {}
-        if self.process_spec_ymls:
-            # page specs
-            page_spec_file = self._config_dir / 'page-specs.yml'
-            self._page_specs = yaml.safe_load(open(page_spec_file, 'r', encoding='utf-8'))
 
-            # font specs
-            font_spec_file = self._config_dir / 'font-specs.yml'
-            if Path.exists(font_spec_file):
-                self._font_specs = yaml.safe_load(open(font_spec_file, 'r', encoding='utf-8'))
-            else:
-                warn(f"No font-spec [{font_spec_file}]' found .. no fonts to register", nesting_level=nesting_level)
-
-            # style specs
-            style_spec_file = self._config_dir / 'style-specs.yml'
-            if Path.exists(page_spec_file):
-                self._style_specs = yaml.safe_load(open(style_spec_file, 'r', encoding='utf-8'))
-            else:
-                warn(f"No style-spec [{style_spec_file}]' found .. will not override any style", nesting_level=nesting_level)
-
-        else:
-            debug(f"No spec ymls will be processed", nesting_level=nesting_level)
+        self._default_font = None
+        self._font_cache = {}
 
         self._initialized = True
+

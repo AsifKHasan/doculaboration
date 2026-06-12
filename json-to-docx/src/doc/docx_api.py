@@ -851,7 +851,7 @@ class Row(object):
     ''' generates the docx code
     '''
     def row_to_doc_table_row(self, table, table_row, field_list={}, nesting_level=0):
-        # trace(f"{self}")
+        trace(f"writing [{self}]", nesting_level=nesting_level+1)
         table_row.height = Inches(self.row_height)
 
         if self.fixed_row_height:

@@ -5,6 +5,7 @@
 
 import io
 import re
+import sys
 import types
 import random
 import string
@@ -15,6 +16,9 @@ import subprocess
 
 from pathlib import Path
 from PIL import Image
+
+import matplotlib
+from matplotlib import font_manager
 
 from googleapiclient import errors
 from googleapiclient.http import MediaIoBaseDownload
@@ -1140,11 +1144,9 @@ def get_style_from_name(class_name, nesting_level=0):
 
 ''' registers a font in the document
 '''
-def register_font(odt, font_name, font_spec, nesting_level=0):
-    font_family = font_spec.get('font', None)
-    fallback_font = font_spec.get('fallback-font', None)
-    trace(f"registering font [{font_name}] family [{font_family}] with fallback-font [{fallback_font}]", nesting_level=nesting_level)
-    the_font = FontFace(name=font_name, fontfamily=font_family, fontfamilygeneric=fallback_font)
+def register_font(odt, font_name, nesting_level=0):
+    debug(f"registering font [{font_name}]", nesting_level=nesting_level)
+    the_font = FontFace(name=font_name, fontfamily=font_name)
     odt.fontfacedecls.addElement(the_font)
 
 
@@ -1909,6 +1911,39 @@ def parse_page_directive(page_directive_string, nesting_level=0):
     return (directive, page_num_format)
 
 
+''' get the font to be used as fallback/replacement for a specified font
+'''
+def get_font_to_be_used(font_asked, nesting_level=0):
+    if font_asked in ConfigService()._font_cache:
+        # trace(f"font [{font_asked}] will be replaced by [{ConfigService()._font_cache[font_asked]}]", nesting_level=nesting_level)
+        return ConfigService()._font_cache[font_asked]
+    
+    else:
+        if is_font_installed(font_name=font_asked):
+            ConfigService()._font_cache[font_asked] = font_asked
+            return font_asked
+
+        else:
+            warn(f"font [{font_asked}] missing in system", nesting_level=nesting_level)
+            trace(f"font [{font_asked}] will be replaced by the default font [{ConfigService()._default_font}]", nesting_level=nesting_level)
+            ConfigService()._font_cache[font_asked] = ConfigService()._default_font
+            return ConfigService()._default_font
+
+
+''' check whether a font is installed or not
+'''
+def is_font_installed(font_name):
+    # Get a list of all available system fonts
+    available_fonts = font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    
+    # Extract the actual names of the fonts
+    font_names = [font_manager.FontProperties(fname=f).get_name() for f in available_fonts]
+    
+    # Check if your font is in the list (case-insensitive)
+    return font_name.lower() in [f.lower() for f in font_names]
+
+
+
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility data
 
@@ -1943,6 +1978,8 @@ CELL_WIDTH_RATIO_TO_FORCE_HALIGN_TRUE = 0.7
 
 # max height the footnote area can occupy in a page before spilling over to the next page
 FOOTNOTE_MAX_HEIGHT = '10cm'
+
+
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

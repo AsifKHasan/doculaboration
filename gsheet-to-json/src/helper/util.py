@@ -3,15 +3,21 @@
 '''
 
 import io
+import os
 import re
+import sys
 import yaml
+import shutil
 from pathlib import Path
 
 import requests
 import urllib3
 import pandas as pd
 import numpy as np
-from collections import defaultdict
+# from collections import defaultdict
+
+import matplotlib
+from matplotlib import font_manager
 
 from googleapiclient import errors
 from googleapiclient.http import MediaIoBaseDownload
@@ -584,6 +590,63 @@ def print_yml(data):
     print(yaml_output)
 
 
+''' get the font to use from a font-spec
+'''
+def get_the_font_to_use(font_spec, nesting_level=0):
+    # check for fonts
+    specified_font = font_spec['font']
+    # trace(f"checking font existence for [{specified_font}]", nesting_level=nesting_level)
+    if is_font_installed(font_name=specified_font):
+        trace(f"font [{specified_font}] installed in system", nesting_level=nesting_level)
+        return specified_font, specified_font
+
+    else:
+        platform = sys.platform
+        fallback_fonts = font_spec['fallback'].get(platform, 'windows')
+        warn(f"font [{specified_font}] missing in system, will try fallback from the list [{fallback_fonts}]", nesting_level=nesting_level)
+        fallback_font_list = fallback_fonts.split(',')
+        for fallback_font in fallback_font_list:
+            # trace(f"checking existence for fallback font [{fallback_font}]", nesting_level=nesting_level+1)
+            if is_font_installed(font_name=fallback_font):
+                trace(f"fallback font [{fallback_font}] installed in system, will use this instead of [{specified_font}]", nesting_level=nesting_level+1)
+                return specified_font, fallback_font
+
+            else:
+                warn(f"fallback font [{fallback_font}] too is missing in system", nesting_level=nesting_level+2)
+    
+    return specified_font, None
+
+
+''' check whether a font is installed or not
+'''
+def is_font_installed(font_name):
+    # Get a list of all available system fonts
+    available_fonts = font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    
+    # Extract the actual names of the fonts
+    font_names = [font_manager.FontProperties(fname=f).get_name() for f in available_fonts]
+    
+    # Check if your font is in the list (case-insensitive)
+    return font_name.lower() in [f.lower() for f in font_names]
+
+
+''' remove matplotlib cache
+'''
+def remove_matplotlib_cache(nesting_level=0):
+    # Find the cache directory
+    cache_dir = matplotlib.get_cachedir(nesting_level=nesting_level)
+    trace(f"Clearing cache at: {cache_dir}")
+
+    # Delete the cache folder
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir)
+
+
+''' get the default font
+'''
+def get_default_font(nesting_level=0):
+    return DEFAULT_FONT[sys.platform]['sans'][0]
+
 
 # -------------------------------------------------------------------------------------------------------
 # various specification utilities - pages, margins, fonts, styles 
@@ -697,11 +760,24 @@ def data_to_hierarchical_dict(data, header_row_start, header_row_end, key_column
 # data and globals 
 # -------------------------------------------------------------------------------------------------------
 
+# default font spec
+DEFAULT_FONT = {
+    'windows': {'serif': ['Times New Roman'], 
+                'sans' : ['Arial'], 
+                'mono' : ['Cascadia Mono, Cascadia Code, Consolas, Courier New']},
+    'linux'  : {'serif': ['FreeSerif'], 
+                'sans' : ['FreeSans'], 
+                'mono' : ['FreeMono']},
+    'darwin' : {'serif': ['Palatino'], 
+                'sans' : ['SF Pro'], 
+                'mono' : ['SF Mono']},
+}
+
 SPEC_DICT = {
     'zz-page-specs'   : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'D',  'print': False, 'spec-name': 'page-spec'}, 
     'zz-margin-specs' : {'mandatory': True,  'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'H',  'print': False, 'spec-name': 'margin-spec'}, 
-    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 2, 'start-col': 'A', 'end-col': 'C',  'print': False, 'spec-name': 'font-spec'}, 
-    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AU', 'print': False, 'spec-name': 'style-spec'}
+    'zz-font-specs'   : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 3, 'start-col': 'A', 'end-col': 'E',  'print': False, 'spec-name': 'font-spec'}, 
+    'zz-style-specs'  : {'mandatory': False, 'header-row-start': 2, 'header-row-end': 5, 'start-col': 'A', 'end-col': 'AZ', 'print': False, 'spec-name': 'style-spec'}
 }
 
 SPEC_KEY_TRANSFORMATIONS = {
