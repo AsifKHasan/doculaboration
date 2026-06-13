@@ -129,20 +129,30 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
 
-DOCX_PARAGRAPH_ATTRIBUTES_ALL = ['padding', 'borders', 'backgroundcolor', 'verticalalign', 'textalign', 'angle', ]
-
 ''' format container (paragraph or cell)
 	border, bgcolor, padding, valign, halign
 '''
-def format_container(container, attributes, custom_style_list=[], it_is_a_table_cell=True, nesting_level=0):
+def format_container(docx, container, attributes, custom_style_list=[], it_is_a_table_cell=True, nesting_level=0):
+	# determine where to apply styles - cell or paragraph
+	if it_is_a_table_cell:
+		paragraph = container.paragraphs[0]
+
+	else:
+		paragraph = container
+
+	# apply custom styles
 	for custom_style_name in custom_style_list:
+		# debug(f"will apply [{custom_style_name}]", nesting_level=nesting_level+1)
 		custom_style = ConfigService()._style_specs.get(custom_style_name, None)
 		if custom_style:
-			for attr_name in DOCX_PARAGRAPH_ATTRIBUTES_ALL:
-				if attr_name in custom_style:
-					attributes[attr_name] = custom_style[attr_name]
+			# debug(f"applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level+1)
+			apply_custom_style(docx=docx, style_spec=custom_style, style_name=None, paragraph=paragraph, nesting_level=nesting_level+1)
 
-	# borders
+	# for cell and paragraph both
+	if 'textalign' in attributes:
+		paragraph.alignment = attributes['textalign']
+
+	# for cell
 	if it_is_a_table_cell:
 		if 'padding' in attributes:
 			set_cell_padding(container, padding=attributes['padding'])
@@ -153,25 +163,21 @@ def format_container(container, attributes, custom_style_list=[], it_is_a_table_
 		if 'backgroundcolor' in attributes:
 			set_cell_bgcolor(container, color=attributes['backgroundcolor'])
 
-		if 'verticalalign' in attributes:
-			container.vertical_alignment = attributes['verticalalign']
-
-		if 'textalign' in attributes:
-			container.paragraphs[0].alignment = attributes['textalign']
-
 		# text rotation, only for table._cell
 		if 'angle' in attributes:
 			rotate_text(cell=container, direction=attributes['angle'])
 
+		# vertical-align is only for cell
+		if 'verticalalign' in attributes:
+			container.vertical_alignment = attributes['verticalalign']
+
+	# for paragraph
 	else:
 		if 'borders' in attributes:
 			set_paragraph_border(element=container._p, borders=attributes['borders'])
 
 		if 'backgroundcolor' in attributes:
 			set_paragraph_bgcolor(element=container._element, color=attributes['backgroundcolor'])
-
-		if 'textalign' in attributes:
-			container.alignment = attributes['textalign']
 
 
 ''' whether the container is a document or not

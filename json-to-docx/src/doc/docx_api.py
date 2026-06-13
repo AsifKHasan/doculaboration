@@ -361,7 +361,7 @@ class DocxPdfSection(DocxSectionBase):
                         paragraph_attributes = {}
                         paragraph = self._docx.add_paragraph()
                         apply_paragraph_attributes(docx=self._docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
-                        format_container(container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=nesting_level+1)
+                        format_container(docx=self._docx, container=paragraph, attributes=text_format_attributes, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
                         image_width_in_inches, image_height_in_inches = image['width'], image['height']
                         fit_within_width = self.section_width
@@ -1132,7 +1132,7 @@ class Cell(object):
 
                 # do not apply table-cell format here, it needs to be done after the merging is done
                 if not is_table_cell(container) and where is not None:
-                    format_container(container=where, attributes=table_cell_attributes, custom_style_list=self.note.style_list, it_is_a_table_cell=False, nesting_level=nesting_level+1)
+                    format_container(docx=self._docx, container=where, attributes=table_cell_attributes, custom_style_list=self.note.style_list, it_is_a_table_cell=False, nesting_level=nesting_level+1)
 
 
     ''' apply formatting for table cell
@@ -1149,7 +1149,7 @@ class Cell(object):
             custom_style_list = []
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
-        format_container(container=self.table_cell, attributes=table_cell_attributes, custom_style_list=custom_style_list, it_is_a_table_cell=True, nesting_level=nesting_level+1)
+        format_container(docx=self._docx, container=self.table_cell, attributes=table_cell_attributes, custom_style_list=custom_style_list, it_is_a_table_cell=True, nesting_level=nesting_level+1)
 
 
     ''' Copy format from the cell passed
