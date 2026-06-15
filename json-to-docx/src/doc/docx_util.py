@@ -1987,7 +1987,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 						continue
 
 					if hasattr(font, attr):
-						trace(f"applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
+						# trace(f"applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
 						setattr(font, attr, value)
 
 
@@ -2049,7 +2049,7 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 def parse_image_properties_from_custom_style(style_spec, parent_key=None, nesting_level=0):
 	if style_spec:
 		for style_key, this_style in style_spec.items():
-			trace(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
+			# trace(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
 
 			# check for *inline-image* and process
 			if 'inline-image' in this_style:

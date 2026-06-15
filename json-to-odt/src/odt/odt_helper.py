@@ -24,13 +24,19 @@ class OdtHelper(object):
         ConfigService()._font_specs = spec_list.get('font-spec', {})
         ConfigService()._style_specs = {}
         for style_key, style_spec in spec_list.get('style-spec', {}).items():
-            transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
-            ConfigService()._style_specs[style_key] = transfomed_style_spec
+            # from style-specs remove non-odt styles
+            if style_spec['active'] in ['odt', 'all']:
+                transfomed_style_spec = transform_nested_dict(data=style_spec, mapping_schema=STYLE_TRANSFORMATION_MAP, nesting_level=nesting_level+1)
+                ConfigService()._style_specs[style_key] = transfomed_style_spec
+
+            else:
+                debug(f"style [{style_key}] is not odt specific, it will be ignored", nesting_level=nesting_level+1)
 
         # font default and font-cache
         ConfigService()._default_font = spec_list.get('default-font', None)
         ConfigService()._font_cache = spec_list.get('font-cache', {})
 
+        
         # print(ConfigService()._default_font)
         # print(ConfigService()._font_cache)
         

@@ -115,18 +115,19 @@ class GsheetHelper(object):
                             print_yml(spec_data)
 
                         active_spec_data = {}
-                        # attach the data to the output json under 'specs' key and corresponding spec-name. check to see if it has a key named *active* and if it is True
+                        # attach the data to the output json under 'specs' key and corresponding spec-name. 
                         if spec_data:
                             for spec_item_key, spec_item_value in spec_data.items():
                                 if 'active' in spec_item_value:
-                                    if spec_item_value['active'] == True:
+                                    if spec_item_value['active'] != 'No':
                                         active_spec_data[spec_item_key] = spec_item_value
 
                                     else:
                                         trace(f"style-spec [{spec_item_key}] is inactive, so ignoring the spec", nesting_level=nesting_level+1)
 
-                                # by default it is active
+                                # by default it is 'all'
                                 else:
+                                    spec_item_value['active'] = 'all'
                                     active_spec_data[spec_item_key] = spec_item_value
 
                             specs_data['specs'][spec_name] = active_spec_data

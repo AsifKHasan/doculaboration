@@ -589,7 +589,6 @@ def print_yml(data):
 
     print(yaml_output)
 
-
 ''' get the font to use from a font-spec
 '''
 def get_the_font_to_use(font_spec, nesting_level=0):
@@ -781,7 +780,6 @@ SPEC_DICT = {
 }
 
 SPEC_KEY_TRANSFORMATIONS = {
-    ('active',): no_to_bool,
     ('text-properties', 'font', 'bold'): yes_to_bool,
     ('text-properties', 'font', 'italic'): yes_to_bool,
     ('text-properties', 'font', 'oblique'): yes_to_bool,
@@ -789,6 +787,10 @@ SPEC_KEY_TRANSFORMATIONS = {
     ('text-properties', 'font', 'smallcaps'): yes_to_bool,
     ('text-properties', 'font', 'allcaps'): yes_to_bool,
     ('text-properties', 'font', 'strikethrough'): yes_to_bool,
+
+    ('paragraph-properties', 'break', 'before'): yes_to_bool,
+    ('paragraph-properties', 'break', 'after'): yes_to_bool,
+
     ('inline-image', 'fit-height-to-container'): yes_to_bool,
     ('inline-image', 'fit-width-to-container'): yes_to_bool,
     ('inline-image', 'keep-aspect-ratio'): yes_to_bool,
