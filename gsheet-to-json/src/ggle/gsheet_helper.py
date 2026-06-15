@@ -93,7 +93,7 @@ class GsheetHelper(object):
                 # parse and process the specs - pages, margins, fonts, style
                 specs_data = {'specs': {}}
                 for ws_name, spec_def in SPEC_DICT.items():
-                    trace(f"check for [{ws_name}] worksheet", nesting_level=nesting_level+1)
+                    # trace(f"check for [{ws_name}] worksheet", nesting_level=nesting_level+1)
                     mandatory = spec_def.get('mandatory', False)
                     if ws_name in response:
                         trace(f"worksheet [{ws_name}] found", nesting_level=nesting_level+1)

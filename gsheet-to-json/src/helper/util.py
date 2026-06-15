@@ -601,7 +601,13 @@ def get_the_font_to_use(font_spec, nesting_level=0):
 
     else:
         platform = sys.platform
-        fallback_fonts = font_spec['fallback'].get(platform, 'windows')
+        if 'fallback' in font_spec:
+            fallback_fonts = font_spec['fallback'].get(platform, 'windows')
+
+        else:
+            warn(f"fallback font not defined for font [{specified_font}], will try default sans font from hardcoded defaults", nesting_level=nesting_level)
+            fallback_fonts = ', '.join(DEFAULT_FONT[platform]['sans'])
+
         warn(f"font [{specified_font}] missing in system, will try fallback from the list [{fallback_fonts}]", nesting_level=nesting_level)
         fallback_font_list = fallback_fonts.split(',')
         for fallback_font in fallback_font_list:

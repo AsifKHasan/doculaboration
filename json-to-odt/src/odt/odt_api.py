@@ -1279,7 +1279,7 @@ class LatexValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, filed_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
