@@ -1967,6 +1967,9 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 
 
 	elif paragraph is not None:
+		if len(paragraph.runs) == 0:
+			paragraph.add_run()
+
 		font = paragraph.runs[0].font
 		pf = paragraph.paragraph_format
 		element = paragraph._p
@@ -1975,7 +1978,6 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 	# now apply ParagraphStyle
 	if 'ParagraphStyle' in style_spec:
 		if 'font' in style_spec['ParagraphStyle']:
-			# ParagraphStyle - font
 			attr_dict = style_spec['ParagraphStyle']['font']
 
 			if font:
@@ -2446,7 +2448,7 @@ def force_picture_transform(inline_or_anchor, width_in: float, height_in: float,
 '''
 def str_to_size(text, nesting_level=0):
 	allowed_units = ['pt', 'in', 'cm', 'mm', '%']
-	match = re.match(r"([-]?\d*\.?\d+)\s*([a-zA-Z]+)", str(text).strip())
+	match = re.match(r"([-]?\d*\.?\d+)\s*([a-zA-Z%]+)", str(text).strip())
 
 	if match is None:
 		warn(f"[{text}] is not a size", nesting_level=nesting_level+1)
@@ -2538,6 +2540,17 @@ def rgb_from_hex(str, nesting_level=0):
     	warn(f"[{str}] is not a valid 6 digit hex color", nesting_level=nesting_level+1)
 
 
+''' if auto return False, if always return True
+	else return False
+'''
+def auto_always_to_bool(str, nesting_level=0):
+	if str == 'always':
+		return True
+	
+	else:
+		return False
+
+
 ''' is the string a valid hex-string
 '''
 def is_valid_hex(str, digits, nesting_level=0):
@@ -2554,7 +2567,7 @@ def str_to_docx_halign(align, nesting_level=0):
 ''' pretty print element xml
 '''
 def print_xml(element, nesting_level=0):
-	# Convert your element to a string first (using ET or lxml)
+	# convert your element to a string first (using ET or lxml)
 	xml_str = etree.tostring(element, encoding='unicode', pretty_print=True)
 
 
@@ -2718,7 +2731,7 @@ STYLE_TRANSFORMATION_MAP = {
     ("paragraph-properties", "textindent")    		: (("ParagraphStyle", "paragraph-format",), "first_line_indent", str_to_size),
 
     ("paragraph-properties", "line", "height")      : (("ParagraphStyle", "paragraph-format",), "line_spacing", str_to_size),
-    ("paragraph-properties", "keep", "together")    : (("ParagraphStyle", "paragraph-format",), "keep_together", None),
+    ("paragraph-properties", "keep", "together")    : (("ParagraphStyle", "paragraph-format",), "keep_together", auto_always_to_bool),
 
     ("paragraph-properties", "break", "before")     : (("ParagraphStyle", "paragraph-format",), "page_break_before", None),
     ("paragraph-properties", "break", "after")      : (("ParagraphStyle", "paragraph-format",), "page_break_after", None),
