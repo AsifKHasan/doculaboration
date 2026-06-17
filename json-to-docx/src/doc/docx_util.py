@@ -1586,7 +1586,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 
 		elif page_num_format == 'i':
 			# warn(f"pageref for [{bookmark_name}] is roman")
-			instrText.text = f"PAGEREF \\* roman {bookmark_name} \\h \\* roman"
+			instrText.text = f"PAGEREF {bookmark_name} \\h \\* roman"
 
 		elif page_num_format == 'I':
 			# warn(f"pageref for [{bookmark_name}] is ROMAN")
