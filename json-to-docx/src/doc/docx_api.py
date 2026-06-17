@@ -105,9 +105,7 @@ class DocxSectionBase(object):
     def get_heading(self, nesting_level=0):
         # identify what style the heading will be and its content
         if not self.hide_heading:
-            heading_title = self.heading
-            if self.label != '':
-                heading_title = f"{self.label} {heading_title}".strip()
+            heading_title = concat_with(texts=[self.label, self.heading], concatenator=' ', nesting_level=nesting_level+1)
 
             # headings are styles based on level
             outline_level = self.level + self.document_nesting_depth
@@ -156,9 +154,11 @@ class DocxSectionBase(object):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         heading_text, _, style_name = self.get_heading()
-        paragraph = None
-        if heading_text:
-            paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
+        # paragraph = None
+        # if heading_text:
+        paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
+
+          
 
         for heading_style in self.heading_style:
             if heading_style:

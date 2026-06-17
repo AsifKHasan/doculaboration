@@ -45,7 +45,7 @@ class OdtSectionBase(object):
             self.page_num_format = '1'
 
         self.reset_page_to = self.section_prop['reset-page-to']
-        self.bookmark = self.section_prop['bookmark']
+        self.bookmark_dict = self.section_prop['bookmark']
 
         self.autocrop = self.section_prop['autocrop']
         self.page_bg = self.section_prop['page-bg']
@@ -132,7 +132,7 @@ class OdtSectionBase(object):
 
         # identify what style the heading will be and its content
         if not self.hide_heading:
-            heading_text = concat_with(texts=[self.label, self.heading], concatenator=' : ')
+            heading_text = concat_with(texts=[self.label, self.heading], concatenator=' : ', nesting_level=nesting_level+1)
 
             outline_level = self.level + self.document_nesting_depth
             if outline_level == 0:
@@ -208,7 +208,7 @@ class OdtSectionBase(object):
         style_attributes['name'] = style_name
 
         style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
-        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark=self.bookmark, field_list=self.field_list, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
 
         for heading_style in self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
@@ -356,8 +356,8 @@ class OdtPdfSection(OdtSectionBase):
                 for i, image in enumerate(self._section_data['contents']['images']):
                     # we need to set bookmark for each pdf page if the section has a bookmark arrached with it, we just append page number
                     this_image_bookmark = None
-                    if self.bookmark:
-                        key = list(self.bookmark)[0]
+                    if self.bookmark_dict:
+                        key = list(self.bookmark_dict)[0]
                         this_image_bookmark = f"{key}.{str(i).zfill(3)}"
 
                     paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
@@ -1027,10 +1027,10 @@ class Cell(object):
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
+                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark=self.note.bookmark, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
+                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1140,7 +1140,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value:
-                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark=self.note.bookmark, field_list=field_list, nesting_level=nesting_level+1)
+                paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, nesting_level=nesting_level+1)
                 # place the image frame
                 if paragraph:
                     for image_frame in self.image_frames:
@@ -1217,7 +1217,7 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark={}, keep_line_breaks=True, directives=True, nesting_level=0):
+    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark_dict={}, keep_line_breaks=True, directives=True, nesting_level=0):
         super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value:
             self.value = formatted_value
@@ -1228,7 +1228,7 @@ class StringValue(CellValue):
                 self.value = ''
 
         self.keep_line_breaks = keep_line_breaks
-        self.bookmark = bookmark
+        self.bookmark_dict = bookmark_dict
         self.directives = directives
 
 
@@ -1241,12 +1241,12 @@ class StringValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark_dict, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
-        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, directives=self.directives, field_list=field_list, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=self.keep_line_breaks, directives=self.directives, field_list=field_list, nesting_level=nesting_level+1)
         container.addElement(paragraph)
 
         return paragraph
@@ -1279,7 +1279,7 @@ class LatexValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark_dict, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1311,7 +1311,7 @@ class TextRunValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark_dict, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1329,7 +1329,7 @@ class TextRunValue(CellValue):
             text_attributes=text_attributes,
             nesting_level=nesting_level+1
         )
-        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=self.keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, run_list=run_value_list, outline_level=self.outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=self.keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         container.addElement(paragraph)
 
         return paragraph
@@ -1356,7 +1356,7 @@ class ImageValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark_dict, field_list, nesting_level=0):
         if container is None:
             container = odt.text
 
@@ -1389,7 +1389,7 @@ class ImageValue(CellValue):
 
         text_attributes['fontsize'] = 2
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
-        paragraph = create_paragraph(odt, style_name, bookmark=bookmark, nesting_level=nesting_level+1)
+        paragraph = create_paragraph(odt, style_name, bookmark_dict=bookmark_dict, nesting_level=nesting_level+1)
 
         # we need to create an inline-image object
         picture_path = self.value['path']
@@ -1438,7 +1438,7 @@ class ContentValue(CellValue):
 
     ''' generates the odt code
     '''
-    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark, field_list, nesting_level=0):
+    def value_to_odt(self, odt, container, container_width, container_height, style_attributes, paragraph_attributes, text_attributes, footnote_list, bookmark_dict, field_list, nesting_level=0):
         self.contents = OdtContent(content_data=self.value, content_width=container_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         self.contents.content_to_odt(odt=odt, container=container, field_list=field_list, nesting_level=nesting_level+1)
 
@@ -1966,7 +1966,7 @@ class CellNote(object):
         self.angle = int(note_dict.get("angle", 0))
 
         self.footnotes = note_dict.get('footnote', {})
-        self.bookmark = note_dict.get('bookmark', {})
+        self.bookmark_dict = note_dict.get('bookmark', {})
 
         self.table_spacing = note_dict.get('table-spacing', True)
         self.script = note_dict.get('script')
@@ -2015,9 +2015,9 @@ class CellNote(object):
                 warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
         # bookmark
-        if self.bookmark:
-            if not isinstance(self.bookmark, dict):
-                self.bookmark = {}
+        if self.bookmark_dict:
+            if not isinstance(self.bookmark_dict, dict):
+                self.bookmark_dict = {}
                 warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
 

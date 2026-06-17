@@ -346,7 +346,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=True, directives=True, field_list={}, nesting_level=0):
+def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_level=0, footnote_list={}, bookmark_dict={}, keep_line_breaks=True, directives=True, field_list={}, nesting_level=0):
     style = odt.getStyleByName(style_name)
     if style is None:
         warn(f"style {style_name} not found")
@@ -363,15 +363,15 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
             paragraph.addElement(fragment)
 
     # P or H
     elif text_content is not None:
         if outline_level == 0:
-            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         else:
-            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark=bookmark, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -427,7 +427,7 @@ def create_text_a(anchor, target, nesting_level=0):
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, field_list={}, nesting_level=0):
+def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark_dict={}, keep_line_breaks=False, field_list={}, nesting_level=0):
     paragraph = None
 
     # process BK{..} first, we get a list of block dicts
@@ -505,10 +505,12 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
         paragraph = text.Span(stylename=style_name)
 
     # bookmark
-    if bookmark:
-        for k, v in bookmark.items():
-            # in odt bookmarks only has name, no text
-            paragraph.addElement(text.Bookmark(name=k))
+    if bookmark_dict:
+        for k, v in bookmark_dict.items():
+            if k is not None and k != '':
+                # in odt bookmarks only has name, no text
+                paragraph.addElement(text.Bookmark(name=k))
+                trace(f"bookmark [{k}] added to content [{text_content}]", nesting_level=nesting_level+1)
 
     # now fill the paragraph with texts and footnotes
     for inline_block in inline_blocks:
