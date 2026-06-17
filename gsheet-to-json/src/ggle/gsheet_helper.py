@@ -363,7 +363,7 @@ class GsheetHelper(object):
                 'heading-style'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading-style', nesting_level=nesting_level+1),
                 'page-num-format'       : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-num-format', nesting_level=nesting_level+1),
                 'reset-page-to'         : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='reset-page-to', nesting_level=nesting_level+1),
-                'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='bookmark', nesting_level=nesting_level+1): f"{str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1))} {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1)}".strip()},
+                'bookmark'           	: {translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='bookmark', nesting_level=nesting_level+1): concat_with(texts=[str(translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='section', nesting_level=nesting_level+1)), translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='heading', nesting_level=nesting_level+1).strip()], concatenator=' : ', nesting_level=nesting_level+1)},
 
                 'jpeg-quality'          : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='jpeg-quality', nesting_level=nesting_level+1),
                 'page-list'             : translate_dict_to_value(data_list=toc, dict_obj=TOC_COLUMNS, first_key='page-list', nesting_level=nesting_level+1),

@@ -760,6 +760,12 @@ def data_to_hierarchical_dict(data, header_row_start, header_row_end, key_column
     return result_dict
 
 
+''' concatenate a list of strings with a concatenator
+'''
+def concat_with(texts, concatenator, nesting_level=0):
+    cleaned_list = [s.strip() for s in texts if s and s.strip()]
+    return ' : '.join(cleaned_list)    
+
 
 # -------------------------------------------------------------------------------------------------------
 # data and globals 

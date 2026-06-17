@@ -216,12 +216,13 @@ def is_paragraph(container, nesting_level=0):
 
 ''' insert image into a container
 '''
-def insert_image(container, inline_image, container_width, container_height, bookmark={}, nesting_level=0):
+def insert_image(container, inline_image, container_width, container_height, bookmark_dict={}, nesting_level=0):
 	if is_table_cell(container):
 		# bookmark
-		if bookmark:
-			for k, v in bookmark.items():
-				add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v)
+		if bookmark_dict:
+			for k, v in bookmark_dict.items():
+				if k is not None and k != '':
+					add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 		insert_cell_image(cell=container, inline_image=inline_image, container_width=container_width, container_height=container_height, nesting_level=nesting_level+1)
 		# run.add_picture(inline_image.file_path, height=Inches(inline_image.image_height), width=Inches(inline_image.image_width))
@@ -237,9 +238,10 @@ def insert_image(container, inline_image, container_width, container_height, boo
 			paragraph = container
 
 		# bookmark
-		if bookmark:
-			for k, v in bookmark.items():
-				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v)
+		if bookmark_dict:
+			for k, v in bookmark_dict.items():
+				if k is not None and k != '':
+					add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 		run = paragraph.add_run()
 		if inline_image.image_width and inline_image.image_height:
@@ -829,7 +831,7 @@ def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line
 
 ''' write a paragraph in a given style
 '''
-def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark={}, field_list={}, directives=True, contains_inline_image=False, nesting_level=0):
+def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark_dict={}, field_list={}, directives=True, contains_inline_image=False, nesting_level=0):
 	# create or get the paragraph
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the container is a Header/Footer
@@ -867,10 +869,11 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 
 	# bookmark
-	if bookmark:
-		for k, v in bookmark.items():
-			# trace(f"creating bookmark {k} : {v}")
-			add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
+	if bookmark_dict:
+		for k, v in bookmark_dict.items():
+			if k is not None and k != '':
+				trace(f"creating bookmark {k} : {v}")
+				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 	# apply the style if any
 	apply_paragraph_attributes(docx=docx, paragraph=paragraph, paragraph_attributes=paragraph_attributes, nesting_level=nesting_level+1)
@@ -1039,7 +1042,7 @@ def zero_paragraph_spacing(paragraph, nesting_level=0):
 '''
 def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, field_list={}, nesting_level=0):
 	# process BK{..} first, we get a list of block dicts
-	inline_blocks = process_bookmark_blocks(text_content=text_content, nesting_level=nesting_level+1)
+	inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
 
 	# process FN{...} next, we get a list of block dicts
 	new_inline_blocks = []
@@ -1070,7 +1073,7 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 	for inline_block in inline_blocks:
 		# process only 'text'
 		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block["text"], nesting_level=nesting_level+1)
+			new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
 		else:
 			new_inline_blocks.append(inline_block)
@@ -1107,6 +1110,27 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			run = paragraph.add_run(inline_block["text"])
 			set_text_style(run=run, text_attributes=text_attributes)
 
+		elif 'bookmark' in inline_block:
+			# in odt bookmarks only has name, no text
+			bk_name = inline_block['bookmark']['name']
+			add_bookmark(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
+			trace(f"bookmark [{bk_name}] added", nesting_level=nesting_level+1)
+
+		elif 'bookmark-start' in inline_block:
+			# in odt bookmarks only has name, no text
+			bk_name = inline_block['bookmark-start']['name']
+			add_bookmark_start(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
+			trace(f"bookmark-start [{bk_name}] added", nesting_level=nesting_level+1)
+
+		elif 'bookmark-end' in inline_block:
+			# in odt bookmarks only has name, no text
+			bk_name = inline_block['bookmark-end']['name']
+			add_bookmark_end(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
+			trace(f"bookmark-end [{bk_name}] added", nesting_level=nesting_level+1)
+
+			# HACK: we need a dummy bookmark here so that we can identify the reference for this end
+			# paragraph.addElement(text.Bookmark(name=f"{bk_name}-end"))
+
 		elif "fn" in inline_block:
 			create_footnote_bayoo(paragraph=paragraph, footnote_tuple=inline_block["fn"], nesting_level=nesting_level+1)
 			# create_footnote(docx=docx, paragraph=paragraph, footnote_tuple=inline_block["fn"])
@@ -1117,17 +1141,25 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "page-num" in inline_block:
-			run = add_page_reference(paragraph=paragraph, bookmark_name='', nesting_level=nesting_level+1)
+			page_num_format = inline_block['page-num']
+			trace(f"found page-num, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+			run = add_page_reference(paragraph=paragraph, bookmark_name='', page_num_format=page_num_format, nesting_level=nesting_level+1)
 			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "page-count" in inline_block:
-			run = add_page_reference(paragraph=paragraph, bookmark_name='*', nesting_level=nesting_level+1)
+			page_num_format = inline_block['page-count']
+			trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+			run = add_page_reference(paragraph=paragraph, bookmark_name='*', page_num_format=page_num_format, nesting_level=nesting_level+1)
 			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "bookmark-page" in inline_block:
-			# add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
-			run = add_page_reference(paragraph=paragraph, bookmark_name=inline_block["bookmark-page"].strip(), nesting_level=nesting_level+1)
-			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
+			bookmark_name = inline_block['bookmark-page'][0].strip()
+			page_num_format = inline_block['bookmark-page'][1]
+			if bookmark_name != '':
+				trace(f"found BookmarkRef [{bookmark_name}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
+				# add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
+				run = add_page_reference(paragraph=paragraph, bookmark_name=bookmark_name, page_num_format=page_num_format, nesting_level=nesting_level+1)
+				set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif 'link' in inline_block:
 			target, anchor = inline_block['link'][0], inline_block['link'][1]
@@ -1146,8 +1178,8 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 
 ''' process bookmarks inside text
 '''
-def process_bookmark_blocks(text_content, nesting_level=0):
-# Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
+def process_bookmarks(text_content, nesting_level=0):
+	# Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
     # Pattern 2 matches: BK_E{bk_name}
     pattern = r"(BK\{([^}]*)\}\{(.*?)\})|(BK_E\{([^}]+)\})"
     
@@ -1279,7 +1311,7 @@ def process_latex_blocks(text_content, nesting_level=0):
 
 ''' process bookmark page ref inside text
 '''
-def process_bookmark_page_blocks(text_content, nesting_level=0):
+def process_page_and_bookmark_blocks(text_content, nesting_level=0):
 	# find out if there is any match with PAGE{...} inside the text_content
 	texts_and_bookmarks = []
 
@@ -1296,15 +1328,24 @@ def process_bookmark_page_blocks(text_content, nesting_level=0):
 
 			texts_and_bookmarks.append({'text': text})
 
-			# PAGE{} means current page, PAGE{*} means number of pages, PAGE{XYZ} means page number where bookmark XYZ is set
-			if bookmark_content == '':
-				texts_and_bookmarks.append({"page-num": None})
+			# PAGE{[iI1]} means current page, PAGE{*:[iI1]} means number of pages, PAGE{XYZ:[iI1]} means page number where bookmark XYZ is set
+			# :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman
+			page_directive, page_num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
 
-			elif bookmark_content == '*':
-				texts_and_bookmarks.append({'page-count': None})
+			if page_num_format == '১':
+				# page_num_format = '১, ২, ৩, ...'
+				page_num_format = 'Native Numbering'
+
+			if page_directive == '':
+				texts_and_bookmarks.append({"page-num": page_num_format})
+
+			elif page_directive == '*':
+				# trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+				texts_and_bookmarks.append({'page-count': page_num_format})
 
 			else:
-				texts_and_bookmarks.append({'bookmark-page': bookmark_content})
+				# trace(f"found BookmarkLink [{page_directive}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
+				texts_and_bookmarks.append({'bookmark-page': (page_directive, page_num_format)})
 
 			current_index = bookmark_end_index
 
@@ -1444,26 +1485,77 @@ def create_latex(container, latex_content, nesting_level=0):
 ''' create a bookmark
 '''
 def add_bookmark(paragraph, bookmark_name, bookmark_text='', nesting_level=0):
-	# trace(f"creating bookmark {bookmark_name} : {bookmark_text}")
-	start = OxmlElement('w:bookmarkStart')
-	start.set(qn('w:id'), '0')
-	start.set(qn('w:name'), bookmark_name)
+	bookmark_id = ConfigService().get_new_bookmark_id(bookmark_name=bookmark_name, nesting_level=nesting_level+1)
+	if bookmark_id is None:
+		warn(f"could not get a new bookmark-id for [{bookmark_name}]")
+		return
+
+	# trace(f"creating bookmark [{bookmark_id}:{bookmark_name}] : [{bookmark_text}]")
+	
+	# access the underlying paragraph XML element (<w:p>)
+	p_element = paragraph._p
+
+	bookmark_start = OxmlElement('w:bookmarkStart')
+	bookmark_start.set(qn('w:id'), str(bookmark_id))
+	bookmark_start.set(qn('w:name'), bookmark_name)
 
 	# text = OxmlElement('w:r')
 	# text.text = bookmark_text
 
-	end = OxmlElement('w:bookmarkEnd')
-	end.set(qn('w:id'), '0')
-	end.set(qn('w:name'), bookmark_name)
+	bookmark_end = OxmlElement('w:bookmarkEnd')
+	bookmark_end.set(qn('w:id'), str(bookmark_id))
+	bookmark_end.set(qn('w:name'), bookmark_name)
 
-	paragraph._p.insert(0, start)
-	# paragraph._p.append(text)
-	paragraph._p.append(end)
+	p_element.append(bookmark_start)
+	# p_element.append(text)
+	p_element.append(bookmark_end)
 
 
-''' add a PAGE refernce 
+''' create a bookmark start
 '''
-def add_page_reference(paragraph, bookmark_name, nesting_level=0):
+def add_bookmark_start(paragraph, bookmark_name, nesting_level=0):
+	# get the next id for a new bookmark
+	bookmark_id = ConfigService().get_new_bookmark_id(bookmark_name=bookmark_name, nesting_level=nesting_level+1)
+	if bookmark_id is None:
+		warn(f"could not get a new bookmark-id for [{bookmark_name}]")
+		return
+
+	# trace(f"creating bookmark-start [{bookmark_id}:{bookmark_name}]")
+	
+	# access the underlying paragraph XML element (<w:p>)
+	p_element = paragraph._p
+
+	bookmark_start = OxmlElement('w:bookmarkStart')
+	bookmark_start.set(qn('w:id'), str(bookmark_id))
+	bookmark_start.set(qn('w:name'), bookmark_name)
+
+	p_element.append(bookmark_start)
+
+
+''' create a bookmark end
+'''
+def add_bookmark_end(paragraph, bookmark_name, nesting_level=0):
+	# get the id stored against the bookmark_name
+	bookmark_id = ConfigService().get_bookmark_id(bookmark_name=bookmark_name, nesting_level=nesting_level+1)
+	if bookmark_id is None:
+		warn(f"no bookmark-start found for [{bookmark_name}]")
+		return
+
+	# trace(f"creating bookmark-end [{bookmark_id}:{bookmark_name}]")
+	
+	# access the underlying paragraph XML element (<w:p>)
+	p_element = paragraph._p
+
+	bookmark_end = OxmlElement('w:bookmarkEnd')
+	bookmark_end.set(qn('w:id'), str(bookmark_id))
+	bookmark_end.set(qn('w:name'), bookmark_name)
+
+	p_element.append(bookmark_end)
+
+
+''' add a PAGE reference 
+'''
+def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_level=0):
 	run = paragraph.add_run()
 
 	# create a new element and set attributes
@@ -1475,13 +1567,31 @@ def add_page_reference(paragraph, bookmark_name, nesting_level=0):
 	instrText.set(qn("xml:space"), "preserve")
 
 	if bookmark_name == '':
-		instrText.text = 'PAGE \\* MERGEFORMAT'
+		if page_num_format is None:
+			instrText.text = 'PAGE \\* MERGEFORMAT'
+
+		elif page_num_format == 'i':
+			instrText.text = 'PAGE \\* roman \\* MERGEFORMAT'
+
+		elif page_num_format == 'I':
+			instrText.text = 'PAGE \\* Roman \\* MERGEFORMAT'
+
 
 	elif bookmark_name == '*':
 		instrText.text = 'NUMPAGES \\* MERGEFORMAT'
 
 	else:
-		instrText.text = f"PAGEREF {bookmark_name} \\h"
+		if page_num_format is None:
+			instrText.text = f"PAGEREF {bookmark_name} \\h"
+
+		elif page_num_format == 'i':
+			# warn(f"pageref for [{bookmark_name}] is roman")
+			instrText.text = f"PAGEREF \\* roman {bookmark_name} \\* Roman \\h"
+
+		elif page_num_format == 'I':
+			# warn(f"pageref for [{bookmark_name}] is ROMAN")
+			instrText.text = f"PAGEREF {bookmark_name} \\* Roman \\h"
+
 
 	fldCharEnd = OxmlElement('w:fldChar')
 	fldCharEnd.set(qn('w:fldCharType'), 'end')
@@ -2216,6 +2326,31 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
+
+''' parse page directive string like
+    '' meaning it is current page number in Arabic
+    ':[iIi]' meaning it is current page number in roman/ROMAN/Arabic
+    '*' meaning it is page count in Arabic
+    '*:[iIi]' meaning it is epage count in roman/ROMAN/Arabic
+    'xyz' meaning it is a bookamrk (page number in Arabic)
+    'xyz:[iIi]' meaning it is a bookamrk (page number in roman/ROMAN/Arabic)
+'''
+def parse_page_directive(page_directive_string, nesting_level=0):
+    match = re.match(r"^([^:]*)(?::(i|I|1|১))?$", page_directive_string.strip())
+    
+    if not match:
+        # Fallback/Safety check for completely malformed strings
+        error(f"invalid page directive [{page_directive_string}]", nesting_level=nesting_level+1)
+        return (page_directive_string, "1")
+    
+    directive, page_num_format = match.groups()
+    
+    # If no number format was explicitly provided (e.g., '', '*', 'xyz'), default to '1'
+    if page_num_format is None:
+        page_num_format = "1"
+        
+    return (directive, page_num_format)
+
 
 ''' inches to emu
 '''

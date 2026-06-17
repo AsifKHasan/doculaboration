@@ -401,6 +401,30 @@ def add_text_to_paragraph(paragraph, text_string, nesting_level=0):
             paragraph.addText(text=text_string[start:end])
 
 
+''' create a text_a
+'''
+def create_text_a(anchor, target, nesting_level=0):
+    
+    # if the anchor is not an url, it is a bookmark
+    if not target.startswith('http'):
+        target_text = f"#{target.strip()}"
+        if anchor:
+            anchor_text = anchor
+        else:
+            # TODO: it should actually be the text associated with the target bookmark
+            anchor_text = target_text
+    else:
+        target_text = target.strip()
+        if anchor:
+            anchor_text = anchor
+        else:
+            anchor_text = target_text
+
+    link = text.A(text=anchor_text, type="simple", href=target_text)
+
+    return link
+
+
 ''' create a P or H or span
 '''
 def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark={}, keep_line_breaks=False, field_list={}, nesting_level=0):
@@ -439,7 +463,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     for inline_block in inline_blocks:
         # process only 'text'
         if 'text' in inline_block:
-            new_inline_blocks = new_inline_blocks + process_bookmark_page_blocks(inline_block['text'])
+            new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block['text'])
 
         else:
             new_inline_blocks.append(inline_block)
@@ -576,30 +600,6 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     return paragraph
 
 
-''' create a text_a
-'''
-def create_text_a(anchor, target, nesting_level=0):
-    
-    # if the anchor is not an url, it is a bookmark
-    if not target.startswith('http'):
-        target_text = f"#{target.strip()}"
-        if anchor:
-            anchor_text = anchor
-        else:
-            # TODO: it should actually be the text associated with the target bookmark
-            anchor_text = target_text
-    else:
-        target_text = target.strip()
-        if anchor:
-            anchor_text = anchor
-        else:
-            anchor_text = target_text
-
-    link = text.A(text=anchor_text, type="simple", href=target_text)
-
-    return link
-
-
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # footnotes, bookmarks, links, latex, mathml related
@@ -607,7 +607,7 @@ def create_text_a(anchor, target, nesting_level=0):
 ''' process bookmarks inside text
 '''
 def process_bookmarks(text_content, nesting_level=0):
-# Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
+    # Pattern 1 matches: BK{bk_name}{bk_text} OR BK{}{} (empty)
     # Pattern 2 matches: BK_E{bk_name}
     pattern = r"(BK\{([^}]*)\}\{(.*?)\})|(BK_E\{([^}]+)\})"
     
@@ -739,7 +739,7 @@ def process_latex_blocks(text_content, nesting_level=0):
 
 ''' process bookmark page ref inside text
 '''
-def process_bookmark_page_blocks(text_content, nesting_level=0):
+def process_page_and_bookmark_blocks(text_content, nesting_level=0):
     # find out if there is any match with PAGE{...} inside the text_content
     texts_and_bookmarks = []
 
@@ -748,10 +748,10 @@ def process_bookmark_page_blocks(text_content, nesting_level=0):
     for match in re.finditer(pattern, text_content):
         bookmark_content = match.group()[5:-1].strip()
 
-        # we have found a bookmark block, we add the preceding text and the bookmark block into the list
+        # we have found a PAGE block, we add the preceding text and the PAGE block into the list
         bookmark_start_index, bookmark_end_index = match.span()[0], match.span()[1]
         if bookmark_start_index >= current_index:
-            # there are preceding text before the bookmark
+            # there are preceding text before the PAGE
             text = text_content[current_index:bookmark_start_index]
 
             texts_and_bookmarks.append({'text': text})

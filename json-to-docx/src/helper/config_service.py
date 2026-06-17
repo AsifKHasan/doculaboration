@@ -72,6 +72,9 @@ class ConfigService:
         else:
             debug(f"No spec ymls will be processed", nesting_level=nesting_level)
 
+        self.bookmark_cache = {}
+        self.current_bookmark_id = 0
+
         self._initialized = True
 
 
@@ -182,3 +185,23 @@ class ConfigService:
 
 
         return style_specs
+    
+
+    ''' get a new bookmark_id
+        bookmark_id is an integer, we just maintain a sequance
+    '''
+    def get_new_bookmark_id(self, bookmark_name, nesting_level=0):
+        if bookmark_name in self.bookmark_cache:
+            warn(f"bookmark [{bookmark_name}] already exists in cache, possibly duplicate bookmark name", nesting_level=nesting_level)
+            return None
+        
+        self.current_bookmark_id = self.current_bookmark_id + 1
+        self.bookmark_cache[bookmark_name] = self.current_bookmark_id
+        debug(f"bookmark [{self.current_bookmark_id}]:[{bookmark_name}] added to cache", nesting_level=nesting_level)
+        return self.current_bookmark_id
+
+
+    ''' get bookmark_id for the bookmark_name
+    '''
+    def get_bookmark_id(self, bookmark_name, nesting_level=0):
+        return self.bookmark_cache.get(bookmark_name, None)
