@@ -1622,8 +1622,9 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 	r_element.append(fldCharBegin)
 	r_element.append(instrText)
 	if lang:
-		r_element.append(lang)
-		
+		rPr = run._r.get_or_add_rPr()
+		rPr.append(lang)
+
 	r_element.append(fldCharEnd)
 
 	# p_element = paragraph._p
