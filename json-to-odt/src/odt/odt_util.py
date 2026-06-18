@@ -53,14 +53,10 @@ def section_list_to_odt(odt, section_list, nesting_level=0):
         section_meta = section_data['section-meta']
         section_prop = section_data['section-prop']
 
-        if section_prop['label'] != '':
-            info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=nesting_level)
-        else:
-            info(f"writing : {section_prop['heading'].strip()}", nesting_level=nesting_level)
-
+        info(f"writing : {concat_with([section_prop['label'].strip(), section_prop['heading']], concatenator=' ', nesting_level=nesting_level)}", nesting_level=nesting_level)
 
         section_meta['first-section'] = first_section
-        if first_section:
+        if first_section == True:
             first_section = False
 
         # invoke processor based on content type
@@ -108,7 +104,7 @@ def create_background_image_style(odt, picture_path, opacity='100%', nesting_lev
 
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
-    if href:
+    if href is not None:
         background_image_style_attributes = {'href': href, 'opacity': '100%', 'position': 'center center', 'repeat': 'stretch', }
 
         # background_image_style_attributes = {'href': href}
@@ -149,7 +145,7 @@ def create_image_frame(odt, picture_path, graphic_properties_attributes, frame_a
 
     # first the image to be added into the document
     href = odt.addPicture(picture_path)
-    if href:
+    if href is not None:
         # next we need the Draw:Image object
         image_attributes = {'href': href}
         draw_image = draw.Image(attributes=image_attributes)
@@ -175,7 +171,7 @@ def add_background_image_to_master_page(odt, master_page, background_image_path,
     page_layout = get_page_layout(odt=odt, page_layout_name=page_layout_name, nesting_level=nesting_level)
 
     background_image_style = create_background_image_style(odt=odt, picture_path=background_image_path, opacity=opacity, nesting_level=nesting_level+1)
-    if background_image_style:
+    if background_image_style is not None:
         # background_image specific page-layout-properties
         page_layout_attrs = {'fill-image-width': '100%', 'fill-image-height': '100%', 'fill-image-ref-point-x': '0%', 'fill-image-ref-point-y': '0%', 'fill-image-ref-point': 'center', 'tile-repeat-offset': '0% vertical'}
 
@@ -268,7 +264,7 @@ def create_table_cell(odt, table_cell_style_attributes, table_cell_properties_at
     table_cell_style = style.Style(attributes=table_cell_style_attributes)
     table_cell_properties = style.TableCellProperties(attributes=table_cell_properties_attributes)
 
-    if background_image_style:
+    if background_image_style is not None:
         table_cell_properties.addElement(background_image_style)
 
     table_cell_style.addElement(table_cell_properties)
@@ -406,16 +402,16 @@ def add_text_to_paragraph(paragraph, text_string, nesting_level=0):
 def create_text_a(anchor, target, nesting_level=0):
     
     # if the anchor is not an url, it is a bookmark
-    if not target.startswith('http'):
+    if target.startswith('http') == False:
         target_text = f"#{target.strip()}"
-        if anchor:
+        if anchor is not None:
             anchor_text = anchor
         else:
             # TODO: it should actually be the text associated with the target bookmark
             anchor_text = target_text
     else:
         target_text = target.strip()
-        if anchor:
+        if anchor is not None:
             anchor_text = anchor
         else:
             anchor_text = target_text
@@ -505,7 +501,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
         paragraph = text.Span(stylename=style_name)
 
     # bookmark
-    if bookmark_dict:
+    if bookmark_dict is not None:
         for k, v in bookmark_dict.items():
             if k is not None and k != '':
                 # in odt bookmarks only has name, no text
@@ -515,7 +511,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
     # now fill the paragraph with texts and footnotes
     for inline_block in inline_blocks:
         if 'text' in inline_block:
-            if keep_line_breaks:
+            if keep_line_breaks == True:
                 splits = inline_block['text'].split('\n')
                 if len(splits) == 1:
                     add_text_to_paragraph(paragraph=paragraph, text_string=inline_block['text'])
@@ -556,7 +552,7 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
 
         elif 'latex' in inline_block:
             latex_df = create_latex(latex_content=inline_block['latex'])
-            if latex_df:
+            if latex_df is not None:
                 paragraph.addElement(latex_df)
 
         elif 'page-num' in inline_block:
@@ -628,7 +624,7 @@ def process_bookmarks(text_content, nesting_level=0):
             bookmarks_and_texts.append({'text': unmatched_text})
             
         # Check which pattern matched
-        if match.group(1):  # BK pattern matched
+        if match.group(1) is not None:  # BK pattern matched
             bk_name = match.group(2)
             bk_text = match.group(3)
             
@@ -642,10 +638,10 @@ def process_bookmarks(text_content, nesting_level=0):
             bookmarks_and_texts.append(bk_dict)
             
             # If it has a valid name, track its reference for a potential future BK_E
-            if bk_name:
+            if bk_name is not None:
                 active_bookmarks[bk_name] = bk_dict
                 
-        elif match.group(4):  # BK_E pattern matched
+        elif match.group(4) is not None:  # BK_E pattern matched
             bk_name = match.group(5)
             
             # Validation: Ensure it matches a preceding active BK name
@@ -849,7 +845,7 @@ def process_links(text_content, nesting_level=0):
             links.append({'text': text})
 
             # LINK patterns are like LINK{target}{text} or LINK{target}
-            if target:
+            if target is not None:
                 links.append({"link": [target, anchor]})
 
             current_index = link_end_index
@@ -943,7 +939,7 @@ def mathml_odf(mathml_content, nesting_level=0):
 '''
 def mathml_odf_(parent, nesting_level=0):
     elem = Element(qname = (MATHNS,parent.tagName))
-    if parent.attributes:
+    if parent.attributes is not None:
         for attr, value in parent.attributes.items():
             elem.setAttribute((MATHNS,attr), value, check_grammar=False)
 
@@ -965,7 +961,7 @@ def mathml_odf_(parent, nesting_level=0):
 '''
 def create_master_page(odt, first_section, document_index, master_page_name, page_spec, margin_spec, orientation, page_num_format='1', next_master_page_style=None, nesting_level=0):
     # if the very first section, it is already existing and named *Standarad* master-page. update page-layout for the existing *Standarad* master-page
-    if first_section and document_index == 0:
+    if first_section == True and document_index == 0:
         master_page = get_master_page(odt=odt, master_page_name='Standard')
         existing_page_layout_name = master_page.attributes[(master_page.qname[0], 'page-layout-name')]
         page_layout = create_page_layout(odt=odt, page_layout_name=existing_page_layout_name, page_spec=page_spec, margin_spec=margin_spec, orientation=orientation, page_num_format=page_num_format, nesting_level=nesting_level)
@@ -1082,7 +1078,7 @@ def create_header_footer(odt, master_page, header_or_footer, odd_or_even, header
         elif odd_or_even == 'first':
             header_footer = Footer()
 
-        if header_footer:
+        if header_footer is not None:
             # TODO: the height should come from actual header content height
             footer_style = style.FooterStyle()
             footer_style.addElement(style.HeaderFooterProperties(attributes=header_footer_properties_attributes))
@@ -1119,7 +1115,7 @@ def get_page_layout(odt, page_layout_name, nesting_level=0):
 def get_page_layout_properties(page_layout, nesting_level=0):
     # get or create PageLayoutProperties
     props_list = page_layout.getElementsByType(style.PageLayoutProperties)
-    if props_list:
+    if props_list is not None and len(props_list) > 0:
         page_layout_properties = props_list[0]
 
     else:
@@ -1402,7 +1398,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
 
     # --- PASS 1: Collection ---
     def collect_moves(obj, current_path):
-        if not isinstance(obj, dict):
+        if isinstance(obj, dict) == False:
             return
         
         for key, value in obj.items():
@@ -1421,7 +1417,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
 
     # --- PASS 2: Reconstruction & Injection ---
     def rebuild(obj, current_path):
-        if not isinstance(obj, dict):
+        if isinstance(obj, dict) == False:
             return obj
 
         new_obj = {}
@@ -1435,7 +1431,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
             if isinstance(value, dict):
                 processed_dict = rebuild(value, path)
                 # Only keep the dictionary if it's not empty after moves
-                if processed_dict:
+                if processed_dict is not None:
                     new_obj[key] = processed_dict
             else:
                 new_obj[key] = value
@@ -1459,7 +1455,7 @@ def parse_style_properties(style_spec, nesting_level=0):
         if isinstance(props_dict, dict):
             new_props = {}
             for key, value in props_dict.items():
-                if value and value != '':
+                if value is not None and value != '':
                     new_key = key.split('.')[-1]
 
                     # the value may need some processing
@@ -1625,10 +1621,10 @@ def create_lot(nesting_level=0):
 '''
 def download_image(drive_service, url, title, tmp_dir, opacity='100%', nesting_level=0):
     data = None
-    if url.startswith('https://drive.google.com/'):
+    if url.startswith('https://drive.google.com/') == True:
         data = download_file_from_drive(drive_service=drive_service, url=url, title=title, tmp_dir=tmp_dir, nesting_level=nesting_level)
 
-    elif url.startswith('http'):
+    elif url.startswith('http') == True:
         # the file url is a normal web url
         data = download_file_from_web(url=url, tmp_dir=tmp_dir, nesting_level=nesting_level)
 
@@ -1689,14 +1685,14 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
     
     # determine file extension
     expected_extension = MIME_TYPE_TO_FILE_EXT_MAP.get(file_type, None)
-    if expected_extension and not file_name.endswith(expected_extension):
+    if expected_extension is not None and file_name.endswith(expected_extension) == False:
         file_name = file_name + expected_extension
 
     local_path = f"{tmp_dir}/{file_name}"
     local_path = Path(local_path).resolve()
 
     # if the file is already in the local_path, we do not download it
-    if Path(local_path).exists():
+    if Path(local_path).exists() == True:
         trace(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
 
@@ -1721,7 +1717,7 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
     if len(file_parts) > 1:
         file_ext = '.' + file_parts[-1]
 
-    if not file_ext in SUPPORTED_FILE_FORMATS:
+    if file_ext not in SUPPORTED_FILE_FORMATS:
         error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_FILE_FORMATS)}] file", nesting_level=nesting_level)
         return None
 
@@ -1733,7 +1729,7 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
         local_path = f"{tmp_dir}/{file_name}"
         local_path = Path(local_path).resolve()
         # if the pdf is already in the local_path, we do not download it
-        if Path(local_path).exists():
+        if Path(local_path).exists() == True:
             trace(f"file existing   [{file_url}]", nesting_level=nesting_level)
             # pass
         else:
@@ -1830,7 +1826,7 @@ def sanitize_border(border_str, what, nesting_level=0):
 ''' process line-breaks
 '''
 def process_line_breaks(text, keep_line_breaks, nesting_level=0):
-    if keep_line_breaks:
+    if keep_line_breaks == True:
         new_text = text.replace('\n', '<text:line-break/>')
         return new_text
 
@@ -1899,7 +1895,7 @@ def concat_with(texts, concatenator, nesting_level=0):
 def parse_page_directive(page_directive_string, nesting_level=0):
     match = re.match(r"^([^:]*)(?::(i|I|1|১))?$", page_directive_string.strip())
     
-    if not match:
+    if match is None:
         # Fallback/Safety check for completely malformed strings
         error(f"invalid page directive [{page_directive_string}]", nesting_level=nesting_level+1)
         return (page_directive_string, "1")
@@ -1921,7 +1917,7 @@ def get_font_to_be_used(font_asked, nesting_level=0):
         return ConfigService()._font_cache[font_asked]
     
     else:
-        if is_font_installed(font_name=font_asked):
+        if is_font_installed(font_name=font_asked) == True:
             ConfigService()._font_cache[font_asked] = font_asked
             return font_asked
 

@@ -57,10 +57,7 @@ def section_list_to_docx(docx, section_list, nesting_level=0):
 		section_meta = section_data['section-meta']
 		section_prop = section_data['section-prop']
 
-		if section_prop['label'] != '':
-			info(f"writing : {section_prop['label'].strip()} {section_prop['heading'].strip()}", nesting_level=nesting_level)
-		else:
-			info(f"writing : {section_prop['heading'].strip()}", nesting_level=nesting_level)
+		info(f"writing : {concat_with([section_prop['label'].strip(), section_prop['heading']], concatenator=' ', nesting_level=nesting_level)}", nesting_level=nesting_level)
 
 		module = importlib.import_module("doc.docx_api")
 		func = getattr(module, f"process_{section_prop['content-type']}")
@@ -71,13 +68,13 @@ def section_list_to_docx(docx, section_list, nesting_level=0):
 '''
 def add_or_update_document_section(docx, page_spec, margin_spec, orientation, different_firstpage, section_break, page_break, first_section, different_odd_even_pages, link_to_previous=False, nesting_level=0):
 	#  if it is a section break, we isnert a new section
-	if section_break:
+	if section_break == True:
 		new_section = True
 		docx_section = docx.add_section(WD_SECTION.NEW_PAGE)
 
 	else:
 		# we are continuing the last section
-		if first_section:
+		if first_section == True:
 			new_section = True
 		else:
 			new_section = False
@@ -85,7 +82,7 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 		docx_section = docx.sections[-1]
 
 		#  we may have a page break
-		if page_break:
+		if page_break == True:
 			docx.add_page_break()
 
 
@@ -144,7 +141,7 @@ def format_container(docx, container, attributes, custom_style_list=[], it_is_a_
 	for custom_style_name in custom_style_list:
 		# debug(f"will apply [{custom_style_name}]", nesting_level=nesting_level+1)
 		custom_style = ConfigService()._style_specs.get(custom_style_name, None)
-		if custom_style:
+		if custom_style is not None:
 			# debug(f"applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level+1)
 			apply_custom_style(docx=docx, style_spec=custom_style, style_name=None, paragraph=paragraph, nesting_level=nesting_level+1)
 
@@ -153,7 +150,7 @@ def format_container(docx, container, attributes, custom_style_list=[], it_is_a_
 		paragraph.alignment = attributes['textalign']
 
 	# for cell
-	if it_is_a_table_cell:
+	if it_is_a_table_cell == True:
 		if 'padding' in attributes:
 			set_cell_padding(container, padding=attributes['padding'])
 
@@ -217,9 +214,9 @@ def is_paragraph(container, nesting_level=0):
 ''' insert image into a container
 '''
 def insert_image(container, inline_image, container_width, container_height, bookmark_dict={}, nesting_level=0):
-	if is_table_cell(container):
+	if is_table_cell(container) == True:
 		# bookmark
-		if bookmark_dict:
+		if bookmark_dict is not None:
 			for k, v in bookmark_dict.items():
 				if k is not None and k != '':
 					add_bookmark(paragraph=container.paragraphs[0], bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
@@ -231,14 +228,14 @@ def insert_image(container, inline_image, container_width, container_height, boo
 	
 	else:
 		# trace(f"non-cell insert_image [{inline_image.file_path}] position [{inline_image.position}]")
-		if is_document(container):
+		if is_document(container) == True:
 			paragraph = container.add_paragraph()
 
-		elif is_paragraph(container):
+		elif is_paragraph(container) == True:
 			paragraph = container
 
 		# bookmark
-		if bookmark_dict:
+		if bookmark_dict is not None:
 			for k, v in bookmark_dict.items():
 				if k is not None and k != '':
 					add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
@@ -525,7 +522,7 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
 	for header in [docx_section.header, docx_section.even_page_header]:
-		p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+		p = header.paragraphs[0] if header.paragraphs is not None else header.add_paragraph()
 		run = p.add_run()
 		inline = run.add_picture(image_path, width=width, height=height)
 		inline_to_anchored_behind(inline, width=width, height=height)
@@ -639,10 +636,10 @@ def create_table(container, num_rows, num_cols, container_width=None, nesting_le
 	if type(container) is section._Header or type(container) is section._Footer:
 		# if the conrainer is a Header/Footer
 		tbl = container.add_table(num_rows, num_cols, container_width)
-	elif is_table_cell(container):
+	elif is_table_cell(container) == True:
 		# if the conrainer is a Cell
 		tbl = container.add_table(num_rows, num_cols)
-	elif is_document(container):
+	elif is_document(container) == True:
 		# if the conrainer is a Document
 		tbl = container.add_table(num_rows, num_cols)
 
@@ -706,7 +703,7 @@ def set_cell_border(cell: table._Cell, borders, nesting_level=0):
 	# list over all available tags
 	for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
 		edge_data = borders.get(edge)
-		if edge_data:
+		if edge_data is not None:
 			tag = 'w:{}'.format(edge)
 
 			# check for tag existnace, if none found, then create one
@@ -837,19 +834,14 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 		# if the container is a Header/Footer
 		paragraph = container.add_paragraph()
 
-	elif is_table_cell(container):
-		# if the conrainer is a Cell, the Cell already has an empty paragraph or a paragraph with an inline image
-		# if contains_inline_image:
-		if False:
-			paragraph = container.add_paragraph()
-		else:
-			paragraph = container.paragraphs[0]
+	elif is_table_cell(container) == True:
+		paragraph = container.paragraphs[0]
 
-	elif is_document(container):
+	elif is_document(container) == True:
 		# if the conrainer is a Document
 		paragraph = container.add_paragraph()
 
-	elif is_paragraph(container):
+	elif is_paragraph(container) == True:
 		pass
 
 	else:
@@ -869,7 +861,7 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 
 	# bookmark
-	if bookmark_dict:
+	if bookmark_dict is not None:
 		for k, v in bookmark_dict.items():
 			if k is not None and k != '':
 				trace(f"creating bookmark {k} : {v}")
@@ -904,7 +896,7 @@ def set_paragraph_border(element, borders, nesting_level=0):
 	# list over all available tags
 	for edge in ('top', 'start', 'bottom', 'end'):
 		edge_data = borders.get(edge)
-		if edge_data:
+		if edge_data is not None:
 			edge_str = edge
 			if edge_str == 'start': edge_str = 'left'
 			if edge_str == 'end': edge_str = 'right'
@@ -938,7 +930,7 @@ def set_paragraph_bgcolor(element, color, nesting_level=0):
 '''
 def	apply_paragraph_attributes(docx, paragraph, paragraph_attributes, nesting_level=0):
 	# apply the style if any
-	if paragraph_attributes:
+	if paragraph_attributes is not None:
 		# apply paragraph attrubutes
 		if 'stylename' in paragraph_attributes:
 			style_name = paragraph_attributes['stylename']
@@ -1198,7 +1190,7 @@ def process_bookmarks(text_content, nesting_level=0):
             bookmarks_and_texts.append({'text': unmatched_text})
             
         # Check which pattern matched
-        if match.group(1):  # BK pattern matched
+        if match.group(1) is not None:  # BK pattern matched
             bk_name = match.group(2)
             bk_text = match.group(3)
             
@@ -1212,7 +1204,7 @@ def process_bookmarks(text_content, nesting_level=0):
             bookmarks_and_texts.append(bk_dict)
             
             # If it has a valid name, track its reference for a potential future BK_E
-            if bk_name:
+            if bk_name is not None:
                 active_bookmarks[bk_name] = bk_dict
                 
         elif match.group(4):  # BK_E pattern matched
@@ -1387,7 +1379,7 @@ def process_links(text_content, nesting_level=0):
 			links.append({'text': text})
 
 			# LINK patterns are like LINK{target}{text} or LINK{target}
-			if target:
+			if target is not None:
 				links.append({"link": [target, anchor]})
 
 			current_index = link_end_index
@@ -1621,7 +1613,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 	r_element = run._r
 	r_element.append(fldCharBegin)
 	r_element.append(instrText)
-	if lang:
+	if lang is not None:
 		rPr = run._r.get_or_add_rPr()
 		rPr.append(lang)
 
@@ -1719,14 +1711,14 @@ def create_hyperlink(attach_to, anchor, target, nesting_level=0):
 	# if the anchor is not an url, it is a bookmark
 	if not target.startswith('http'):
 		target_text = target.strip()
-		if anchor:
+		if anchor is not None:
 			anchor_text = anchor
 		else:
 			# TODO: it should actually be the text associated with the target bookmark
 			anchor_text = target_text
 	else:
 		target_text = target.strip()
-		if anchor:
+		if anchor is not None:
 			anchor_text = anchor
 		else:
 			anchor_text = target_text
@@ -1949,7 +1941,7 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
 
     # get file metadata
     file = drive_file_metadata(drive_service=drive_service, file_id=id, nesting_level=nesting_level+1)
-    if not file:
+    if file is None:
         error(f"drive file [{id}] could not be accessed", nesting_level=nesting_level)
         return None
     
@@ -1959,13 +1951,13 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
         file_name = file['name']
     
     file_type = file['mimeType']
-    if not file_type in ALLOWED_MIME_TYPES:
+    if file_type not in ALLOWED_MIME_TYPES:
         warn(f"drive url {url} is not a [{'/'.join(SUPPORTED_FILE_FORMATS)}], it is [{file_type}]", nesting_level=nesting_level)
         return None
     
     # determine file extension
     expected_extension = MIME_TYPE_TO_FILE_EXT_MAP.get(file_type, None)
-    if expected_extension and not file_name.endswith(expected_extension):
+    if expected_extension is not None and not file_name.endswith(expected_extension):
         file_name = file_name + expected_extension
 
     local_path = f"{tmp_dir}/{file_name}"
@@ -1997,7 +1989,7 @@ def download_file_from_web(url, tmp_dir, nesting_level=0):
     if len(file_parts) > 1:
         file_ext = '.' + file_parts[-1]
 
-    if not file_ext in SUPPORTED_FILE_FORMATS:
+    if file_ext not in SUPPORTED_FILE_FORMATS:
         error(f"url {file_url} is NOT a [{'/'.join(SUPPORTED_FILE_FORMATS)}] file", nesting_level=nesting_level)
         return None
 
@@ -2090,7 +2082,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 	# the following elemnts are to be updated
 	font, pf = None, None
 
-	if style_name:
+	if style_name is not None:
 		style = get_style_by_name(docx=docx, style_name=style_name)
 		if style is None:
 			error(f"style [{style_name}] not found .. ")
@@ -2116,7 +2108,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 		if 'font' in style_spec['ParagraphStyle']:
 			attr_dict = style_spec['ParagraphStyle']['font']
 
-			if font:
+			if font is not None:
 				for attr, value in attr_dict.items():
 					# color needs special treatment
 					if attr == "color":
@@ -2133,7 +2125,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 		if 'paragraph-format' in style_spec['ParagraphStyle']:
 			attr_dict = style_spec['ParagraphStyle']['paragraph-format']
 			
-			if pf:
+			if pf is not None:
 				for attr, value in attr_dict.items():
 					if hasattr(pf, attr):
 						setattr(pf, attr, value)
@@ -2156,7 +2148,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 '''
 def process_custom_styles(docx, style_spec, nesting_level=0):
 	custom_styles = {}
-	if style_spec:
+	if style_spec is not None:
 		trace(f"processing custom styles", nesting_level=nesting_level)
 	
 		# 1. process inline-images (along with page-backgrounds) which are not part of text/paragraph styling
@@ -2165,9 +2157,9 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 		# 2. process text/paragraph styles which are defined and may override existing styles
 		# iterate and apply or store
 		for key, value in style_spec.items():
-			if value:
+			if value is not None:
 				style_name = value.get('name', None)
-				if style_name:
+				if style_name is not None:
 					trace(f"customizing style [{style_name}]", nesting_level=nesting_level+1)
 					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
 					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
@@ -2185,7 +2177,7 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 	2. page-background
 '''
 def parse_image_properties_from_custom_style(style_spec, parent_key=None, nesting_level=0):
-	if style_spec:
+	if style_spec is not None:
 		for style_key, this_style in style_spec.items():
 			# trace(f"[{inspect.currentframe().f_code.co_name}] {style_key}", nesting_level=nesting_level)
 
@@ -2290,7 +2282,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
                 
                 # Apply the transformation function if it exists
                 # e.g., converting 'Yes' to True or adding 'pt'
-                transformed_val = func(value) if func else value
+                transformed_val = func(value) if func is not None else value
                 
                 # Store it for the Target Parent
                 if target_parent not in moved_values:
@@ -2330,7 +2322,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
             del moved_values[current_path]
 
         # Return None for empty dicts so parents can prune them
-        return new_obj if (new_obj or not isinstance(obj, dict)) else None
+        return new_obj if (new_obj is not None or not isinstance(obj, dict)) else None
 
     # Initial tree build
     result = rebuild(data, ()) or {}
@@ -2364,7 +2356,7 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
 def parse_page_directive(page_directive_string, nesting_level=0):
     match = re.match(r"^([^:]*)(?::(i|I|1|১))?$", page_directive_string.strip())
     
-    if not match:
+    if match is None:
         # Fallback/Safety check for completely malformed strings
         error(f"invalid page directive [{page_directive_string}]", nesting_level=nesting_level+1)
         return (page_directive_string, "1")
@@ -2683,7 +2675,7 @@ def str_to_border(str, nesting_level=0):
 
 	# space
 	space = str_to_size(str=space, nesting_level=nesting_level)
-	if space:
+	if space is not None:
 		space = space.pt
 	else:
 		return None
@@ -2735,7 +2727,7 @@ def print_xml(element, nesting_level=0):
 ''' concatenate a list of strings with a concatenator
 '''
 def concat_with(texts, concatenator, nesting_level=0):
-    cleaned_list = [s.strip() for s in texts if s and s.strip()]
+    cleaned_list = [s.strip() for s in texts if s is not None and s.strip()]
     return ' : '.join(cleaned_list)    
 
 

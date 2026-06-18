@@ -80,7 +80,7 @@ class OdtSectionBase(object):
         self.master_page_name = self.master_page.getAttribute('name')
 
         # handle if first-page is different
-        if self.different_firstpage:
+        if self.different_firstpage == True:
             self.first_master_page_name = f"mp-{self.section_id}-first"
             self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, next_master_page_style=self.master_page_name, nesting_level=nesting_level+1)
             self.first_master_page_name = self.first_master_page.getAttribute('name')
@@ -89,7 +89,7 @@ class OdtSectionBase(object):
             self.first_master_page = None
 
         # handle page orientation
-        if self.landscape:
+        if self.landscape == True:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
         else:
@@ -104,22 +104,22 @@ class OdtSectionBase(object):
         self.header_first = None
         self.footer_first = None
 
-        if self._section_data['header-odd']:
+        if self._section_data['header-odd'] is not None:
             self.header_odd   = OdtPageHeaderFooter(self._section_data['header-odd'],   self.section_width, self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
     
-        if self._section_data['footer-odd']:
+        if self._section_data['footer-odd'] is not None:
             self.footer_odd   = OdtPageHeaderFooter(self._section_data['footer-odd'],   self.section_width, self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
-        if self._section_data['header-even']:
+        if self._section_data['header-even'] is not None:
             self.header_even  = OdtPageHeaderFooter(self._section_data['header-even'],  self.section_width, self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
-        if self._section_data['footer-even']:
+        if self._section_data['footer-even'] is not None:
             self.footer_even  = OdtPageHeaderFooter(self._section_data['footer-even'],  self.section_width, self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
-        if self._section_data['header-first']:
+        if self._section_data['header-first'] is not None:
             self.header_first = OdtPageHeaderFooter(self._section_data['header-first'], self.section_width, self.section_index, header_footer='header', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
-        if self._section_data['footer-first']:
+        if self._section_data['footer-first'] is not None:
             self.footer_first = OdtPageHeaderFooter(self._section_data['footer-first'], self.section_width, self.section_index, header_footer='footer', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         self.section_contents = OdtContent(content_data=self._section_data.get('contents'), content_width=self.section_width, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
@@ -131,7 +131,7 @@ class OdtSectionBase(object):
         style_attributes = {}
 
         # identify what style the heading will be and its content
-        if not self.hide_heading:
+        if self.hide_heading == False:
             heading_text = concat_with(texts=[self.label, self.heading], concatenator=' : ', nesting_level=nesting_level+1)
 
             outline_level = self.level + self.document_nesting_depth
@@ -153,27 +153,27 @@ class OdtSectionBase(object):
     ''' Header/Footer processing
     '''
     def process_header_footer(self, nesting_level=0):
-        if self.different_firstpage:
+        if self.different_firstpage == True:
             master_page = self.first_master_page
 
-            if self.header_first:
+            if self.header_first is not None:
                 self.header_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
-            if self.footer_first:
+            if self.footer_first is not None:
                 self.footer_first.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
         master_page = self.master_page
 
-        if self.header_odd:
+        if self.header_odd is not None:
             self.header_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
-        if self.footer_odd:
+        if self.footer_odd is not None:
             self.footer_odd.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
-        if self.header_even:
+        if self.header_even is not None:
             self.header_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
-        if self.footer_even:
+        if self.footer_even is not None:
             self.footer_even.page_header_footer_to_odt(odt=self._odt, master_page=master_page, header_distance=self.header_distance, footer_distance=self.footer_distance, field_list=self.field_list, nesting_level=nesting_level+1)
 
 
@@ -187,18 +187,18 @@ class OdtSectionBase(object):
 
         paragraph_attributes = {}
         # handle section-break and page-break
-        if self.section_break:
+        if self.section_break == True:
             # if it is a new-section, we create a new paragraph-style based on parent_style_name with the master-page and apply it
             if self.reset_page_to != '':
                 paragraph_attributes['pagenumber'] = self.reset_page_to
 
             style_name = f"P{self.section_id}-P0-with-section-break"
-            if self.different_firstpage:
+            if self.different_firstpage == True:
                 style_attributes['masterpagename'] = self.first_master_page_name
             else:
                 style_attributes['masterpagename'] = self.master_page_name
         else:
-            if self.page_break:
+            if self.page_break == True:
                 # if it is a new-page, we create a new paragraph-style based on parent_style_name with the page-break and apply it
                 paragraph_attributes['breakbefore'] = 'page'
                 style_name = f"P{self.section_id}-P0-with-page-break"
@@ -212,7 +212,7 @@ class OdtSectionBase(object):
 
         for heading_style in self.heading_style:
             style = get_style_by_name(odt=self._odt, style_name=style_name)
-            if style:
+            if style is not None:
                 if heading_style not in ConfigService()._style_specs:
                     warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
 
@@ -288,7 +288,7 @@ class OdtToCSection(OdtSectionBase):
     def section_to_odt(self, nesting_level=0):
         super().section_to_odt(nesting_level=nesting_level+1)
         toc = create_toc(nesting_level=nesting_level+1)
-        if toc:
+        if toc is not None:
             self._odt.text.addElement(toc)
 
 
@@ -308,7 +308,7 @@ class OdtLoTSection(OdtSectionBase):
     def section_to_odt(self, nesting_level=0):
         super().section_to_odt(nesting_level=nesting_level+1)
         toc = create_lot(nesting_level=nesting_level+1)
-        if toc:
+        if toc is not None:
             self._odt.text.addElement(toc)
 
 
@@ -328,7 +328,7 @@ class OdtLoFSection(OdtSectionBase):
     def section_to_odt(self, nesting_level=0):
         super().section_to_odt(nesting_level=nesting_level+1)
         toc = create_lof(nesting_level=nesting_level+1)
-        if toc:
+        if toc is not None:
             self._odt.text.addElement(toc)
 
 
@@ -356,16 +356,16 @@ class OdtPdfSection(OdtSectionBase):
                 for i, image in enumerate(self._section_data['contents']['images']):
                     # we need to set bookmark for each pdf page if the section has a bookmark arrached with it, we just append page number
                     this_image_bookmark = None
-                    if self.bookmark_dict:
+                    if self.bookmark_dict is not None:
                         key = list(self.bookmark_dict)[0]
                         this_image_bookmark = f"{key}.{str(i).zfill(3)}"
 
                     paragraph_attributes = {'textalign': TEXT_HALIGN_MAP['CENTER']}
-                    if True:
-                        paragraph_attributes['breakbefore'] = 'page'
+                    # always a pagebreak before new image
+                    paragraph_attributes['breakbefore'] = 'page'
 
                     # if the image should be treated as page bg
-                    if self.page_bg:
+                    if self.page_bg == True:
                         master_page_name = f"{self.master_page_name}-page-{str(i).zfill(3)}"
                         self.master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, nesting_level=nesting_level+1)
                         master_page_name = self.master_page.getAttribute('name')
@@ -374,7 +374,7 @@ class OdtPdfSection(OdtSectionBase):
 
                         paragraph_style_name = f"{self.master_page_name}-P-{str(i).zfill(3)}"
                         paragraph = create_paragraph_with_masterpage(odt=self._odt, style_name=paragraph_style_name, master_page_name=master_page_name, nesting_level=nesting_level+1)
-                        if this_image_bookmark:
+                        if this_image_bookmark is not None:
                             paragraph.addElement(text.Bookmark(name=this_image_bookmark))
                         
                         self._odt.text.addElement(paragraph)
@@ -404,7 +404,7 @@ class OdtPdfSection(OdtSectionBase):
                         paragraph = create_paragraph(self._odt, style_name, nesting_level=nesting_level+1)
                         paragraph.addElement(draw_frame)
 
-                        if this_image_bookmark:
+                        if this_image_bookmark is not None:
                             paragraph.addElement(text.Bookmark(name=this_image_bookmark))
 
                         self._odt.text.addElement(paragraph)
@@ -438,7 +438,7 @@ class OdtContent(object):
         self.content_list = []
 
         # content_data must have 'properties' and 'data'
-        if content_data and 'properties' in content_data and 'data' in content_data:
+        if content_data is not None and 'properties' in content_data and 'data' in content_data:
             self.has_content = True
             sheet_properties = content_data.get('properties')
             self.title = sheet_properties.get('title')
@@ -551,7 +551,7 @@ class OdtContent(object):
                         next_cell_in_row = Cell(row_num=r+2, col_num=c, value=None, column_widths=first_cell.column_widths, row_height=row_height, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
                         next_row_object.insert_cell(c, next_cell_in_row, nesting_level=nesting_level+1)
 
-                    if next_cell_in_row.is_empty:
+                    if next_cell_in_row.is_empty == True:
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
                         next_cell_in_row.copy_format_from(first_cell, nesting_level=nesting_level+1)
 
@@ -612,7 +612,7 @@ class OdtContent(object):
             # do extra processing on rows
             # data_row.preprocess_row()
 
-            if data_row.is_free_content():
+            if data_row.is_free_content() == True:
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -624,7 +624,7 @@ class OdtContent(object):
                 next_table_starts_in_row = r + 1
 
             # the row may start with a note of repeat-rows which means that a new table is atarting
-            elif data_row.is_table_start():
+            elif data_row.is_table_start() == True:
                 # there may be a pending/running table
                 if r > next_table_starts_in_row:
                     table = OdtTable(self.cell_matrix, next_table_starts_in_row, r - 1, self.column_widths)
@@ -674,7 +674,7 @@ class OdtPageHeaderFooter(OdtContent):
             return
 
         header_footer = create_header_footer(odt=odt, master_page=master_page, header_or_footer=self.header_footer, odd_or_even=self.odd_even, header_distance=header_distance, footer_distance=footer_distance, nesting_level=nesting_level+1)
-        if header_footer:
+        if header_footer is not None:
             # iterate through tables and blocks contents
             for block in self.content_list:
                 block.block_to_odt(odt=odt, container=header_footer, field_list=field_list, nesting_level=nesting_level+1)
@@ -707,7 +707,7 @@ class OdtTable(OdtBlock):
 
         # header row if any
         first_cell = self.table_cell_matrix[0].get_cell(0)
-        if first_cell:
+        if first_cell is not None:
             self.header_row_count = self.table_cell_matrix[0].get_cell(0).note.header_rows
         else:
             self.header_row_count = 0
@@ -836,7 +836,7 @@ class Row(object):
         # if the row is a single cell row (only the first cell is empty) and the cell contains a style note, make it out-of-cell and make it keep-with-next
         if len(self.cells) > 0:
             first_cell = self.cells[0]
-            if not first_cell.is_empty and first_cell.note.style is not None:
+            if first_cell.is_empty == False and first_cell.note.style is not None:
                 # if the other cells all are empty, we mark it out-of-cell and keep-with-next
                 non_empty_cell_found = False
                 for cell in self.cells[1:]:
@@ -890,8 +890,8 @@ class Row(object):
     def is_free_content(self, nesting_level=0):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
-            if self.cells[0]:
-                if self.cells[0].note:
+            if self.cells[0] is not None:
+                if self.cells[0].note is not None:
                     return self.cells[0].note.free_content
                 else:
                     return False
@@ -906,8 +906,8 @@ class Row(object):
     def is_table_start(self, nesting_level=0):
         if len(self.cells) > 0:
             # the first cell is the relevant cell only
-            if self.cells[0]:
-                if self.cells[0].note:
+            if self.cells[0] is not None:
+                if self.cells[0].note is not None:
                     return (self.cells[0].note.header_rows > 0)
                 else:
                     return False
@@ -925,7 +925,7 @@ class Row(object):
         # create table-row
         table_row_style_attributes = {'name': f"{self.table_name}-{self.row_num}"}
         row_height = f"{self.row_height}in"
-        if self.fixed_row_height:
+        if self.fixed_row_height == True:
             table_row_properties_attributes = {'keeptogether': True, 'rowheight': row_height, 'useoptimalrowheight': False}
         else:
             table_row_properties_attributes = {'keeptogether': True, 'minrowheight': row_height, 'useoptimalrowheight': True}
@@ -939,7 +939,7 @@ class Row(object):
                 warn(f"{self.row_name} has a Null cell at {c}", nesting_level=nesting_level)
             else:
                 table_cell = cell.cell_to_odt_table_cell(odt, self.table_name, field_list=field_list, nesting_level=nesting_level+1)
-                if table_cell:
+                if table_cell is not None:
                     table_row.addElement(table_cell)
 
                 else:
@@ -979,7 +979,7 @@ class Cell(object):
         self.inline_images = []
         self.image_frames = []
 
-        if self.value:
+        if self.value is not None:
             if 'inline-image' in self.value:
                 for ii_dict in self.value.get('inline-image', []):
                     self.inline_images.append(InlineImage(ii_dict, nesting_level=nesting_level+1))
@@ -1023,7 +1023,7 @@ class Cell(object):
                         self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
                     else:
-                        if self.note.script and self.note.script == 'latex':
+                        if self.note.script is not None and self.note.script == 'latex':
                             self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
                         else:
@@ -1047,13 +1047,13 @@ class Cell(object):
         table_cell_style_attributes = {'name': f"{self.table_name}.{col_a1}{self.row_num+1}_style"}
 
         table_cell_properties_attributes = {}
-        if self.effective_format:
+        if self.effective_format is not None:
             table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec, nesting_level=nesting_level+1)
         else:
             table_cell_properties_attributes = {}
             warn(f"{self} : NO effective_format")
 
-        if not self.is_covered():
+        if self.is_covered() == False:
             # wrap this into a table-cell
             table_cell_attributes = self.merge_spec.table_cell_attributes(nesting_level=nesting_level+1)
 
@@ -1098,7 +1098,7 @@ class Cell(object):
 
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=nesting_level+1)
 
-            if table_cell:
+            if table_cell is not None:
                 # trace(f"[{self}] : {table_cell_properties_attributes}", nesting_level=nesting_level)
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True, field_list=field_list, nesting_level=nesting_level+1)
 
@@ -1113,7 +1113,7 @@ class Cell(object):
     '''
     def cell_to_odt(self, odt, container, is_table_cell=False, field_list={}, nesting_level=0):
         # trace(f"{self}", nesting_level=nesting_level)
-        if self.note:
+        if self.note is not None:
             paragraph_attributes_from_notes = self.note.paragraph_attributes(nesting_level=nesting_level+1)
             style_attributes = self.note.style_attributes(nesting_level=nesting_level+1)
             footnote_list = self.note.footnotes
@@ -1126,7 +1126,7 @@ class Cell(object):
             force_halign = False
             angle = 0
 
-        if self.effective_format:
+        if self.effective_format is not None:
             paragraph_attributes_from_effective_format = self.effective_format.paragraph_attributes(is_table_cell=is_table_cell, cell_merge_spec=self.merge_spec, force_halign=force_halign, nesting_level=nesting_level+1)
             text_attributes = self.effective_format.text_attributes(angle, nesting_level=nesting_level+1)
         else:
@@ -1139,10 +1139,10 @@ class Cell(object):
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.cell_value:
+            if self.cell_value is not None:
                 paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, nesting_level=nesting_level+1)
                 # place the image frame
-                if paragraph:
+                if paragraph is not None:
                     for image_frame in self.image_frames:
                         paragraph.addElement(image_frame)
 
@@ -1219,10 +1219,10 @@ class StringValue(CellValue):
     '''
     def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark_dict={}, keep_line_breaks=True, directives=True, nesting_level=0):
         super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
-        if formatted_value:
+        if formatted_value is not None:
             self.value = formatted_value
         else:
-            if string_value and 'stringValue' in string_value:
+            if string_value is not None and 'stringValue' in string_value:
                 self.value = string_value['stringValue']
             else:
                 self.value = ''
@@ -1261,10 +1261,10 @@ class LatexValue(CellValue):
     '''
     def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
         super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
-        if formatted_value:
+        if formatted_value is not None:
             self.value = formatted_value
         else:
-            if string_value and 'stringValue' in string_value:
+            if string_value is not None and 'stringValue' in string_value:
                 self.value = string_value['stringValue']
             else:
                 self.value = ''
@@ -1458,7 +1458,7 @@ class TextFormat(object):
     '''
     def __init__(self, text_format_dict=None, nesting_level=0):
         self.source = text_format_dict
-        if self.source:
+        if self.source is not None:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
                 self.font_family = get_font_to_be_used(font_asked=text_format_dict['fontFamily'], nesting_level=nesting_level+1)
@@ -1488,7 +1488,7 @@ class TextFormat(object):
         attributes = {}
 
         attributes['color'] = self.fgcolor.value()
-        if self.font_family:
+        if self.font_family is not None:
             attributes['fontname'] = self.font_family
             attributes['fontnameasian'] = self.font_family
             # attributes['fontnamecomplex'] = self.font_family
@@ -1497,22 +1497,22 @@ class TextFormat(object):
         attributes['fontsizeasian'] = self.font_size
         attributes['fontsizecomplex'] = self.font_size
 
-        if self.is_bold:
+        if self.is_bold == True:
             attributes['fontweight'] = "bold"
             attributes['fontweightasian'] = "bold"
             attributes['fontweightcomplex'] = "bold"
 
-        if self.is_italic:
+        if self.is_italic == True:
             attributes['fontstyle'] = "italic"
             attributes['fontstyleasian'] = "italic"
             attributes['fontstylecomplex'] = "italic"
 
-        if self.is_underline:
+        if self.is_underline == True:
             attributes['textunderlinestyle'] = "solid"
             attributes['textunderlinewidth'] = "auto"
             attributes['textunderlinecolor'] = "font-color"
 
-        if self.is_strikethrough:
+        if self.is_strikethrough == True:
             attributes['textlinethroughstyle'] = "solid"
             attributes['textlinethroughtype'] = "single"
 
@@ -1537,7 +1537,7 @@ class CellFormat(object):
         self.text_rotation = None
         self.bgcolor_style = None
 
-        if format_dict:
+        if format_dict is not None:
             self.bgcolor = RgbColor(format_dict.get('backgroundColor'))
             self.borders = Borders(format_dict.get('borders'))
             self.padding = Padding(format_dict.get('padding'))
@@ -1548,7 +1548,7 @@ class CellFormat(object):
             self.text_rotation = TextRotation(format_dict.get("textRotation"))
 
             bgcolor_style_dict = format_dict.get('backgroundColorStyle')
-            if bgcolor_style_dict:
+            if bgcolor_style_dict is not None:
                 self.bgcolor_style = RgbColor(bgcolor_style_dict.get('rgbColor'))
 
 
@@ -1556,10 +1556,10 @@ class CellFormat(object):
     '''
     def text_attributes(self, angle=0, nesting_level=0):
         attributes = {}
-        if self.text_format:
+        if self.text_format is not None:
             attributes = self.text_format.text_attributes()
 
-        if self.text_rotation and self.text_rotation.angle != 0:
+        if self.text_rotation is not None and self.text_rotation.angle != 0:
             attributes["textrotationangle"] = self.text_rotation.angle
 
         if angle != 0:
@@ -1573,25 +1573,25 @@ class CellFormat(object):
     def table_cell_attributes(self, cell_merge_spec, nesting_level=0):
         attributes = {}
 
-        if self.valign:
+        if self.valign is not None:
             attributes['verticalalign'] = self.valign.valign
 
-        if self.bgcolor:
-            if self.bgcolor_style:
-                if not self.bgcolor_style.is_white():
+        if self.bgcolor is not None:
+            if self.bgcolor_style is not None:
+                if self.bgcolor_style.is_white() == False:
                     attributes['backgroundcolor'] = self.bgcolor_style.value()
             else:
                 attributes['backgroundcolor'] = self.bgcolor.value()
 
-        if self.wrapping:
+        if self.wrapping is not None:
             attributes['wrapoption'] = self.wrapping.wrapping
 
         borders_attributes = {}
         padding_attributes = {}
-        if self.borders:
+        if self.borders is not None:
             borders_attributes = self.borders.table_cell_attributes(cell_merge_spec)
 
-        if self.padding:
+        if self.padding is not None:
             padding_attributes = self.padding.table_cell_attributes()
 
         return {**attributes, **borders_attributes, **padding_attributes}
@@ -1601,7 +1601,7 @@ class CellFormat(object):
     '''
     def paragraph_attributes(self, is_table_cell, cell_merge_spec, force_halign, nesting_level=0):
         # if the is left aligned, we do not set attribute to let the parent style determine what the alignment should be
-        if force_halign:
+        if force_halign == True:
             attributes = {'textalign': self.halign.halign}
 
         else:
@@ -1610,27 +1610,27 @@ class CellFormat(object):
             else:
                 attributes = {'textalign': self.halign.halign}
 
-        if self.bgcolor:
+        if self.bgcolor is not None:
             if self.bgcolor_style:
-                if not self.bgcolor_style.is_white():
+                if self.bgcolor_style.is_white() == False:
                     attributes['backgroundcolor'] = self.bgcolor_style.value()
             else:
                 attributes['backgroundcolor'] = self.bgcolor.value()
 
-        if self.valign:
+        if self.valign is not None:
             attributes['verticalalign'] = self.valign.valign
 
         borders_attributes = {}
         padding_attributes = {}
-        if is_table_cell:
+        if is_table_cell == True:
             pass
 
         else:
             # TODO: borders for out-of-cell-paragraphs
-            if self.borders:
+            if self.borders is not None:
                 borders_attributes = self.borders.paragraph_attributes()
 
-            if self.padding:
+            if self.padding is not None:
                 padding_attributes = self.padding.table_cell_attributes()
 
         return {**attributes, **borders_attributes, **padding_attributes}
@@ -1649,7 +1649,7 @@ class Borders(object):
         self.bottom = None
         self.left = None
 
-        if borders_dict:
+        if borders_dict is not None:
             if 'top' in borders_dict:
                 self.top = Border(borders_dict.get('top'))
 
@@ -1676,27 +1676,27 @@ class Borders(object):
 
         # top and bottom
         if cell_merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.top:
+            if self.top is not None:
                 attributes['bordertop'] = self.top.value()
 
-            if self.bottom:
+            if self.bottom is not None:
                 attributes['borderbottom'] = self.bottom.value()
 
         if cell_merge_spec.multi_row in [MultiSpan.LastCell]:
-            if self.bottom:
+            if self.bottom is not None:
                 attributes['borderbottom'] = self.bottom.value()
 
 
         # left and right
         if cell_merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
-            if self.left:
+            if self.left is not None:
                 attributes['borderleft'] = self.left.value()
 
-            if self.right:
+            if self.right is not None:
                 attributes['borderright'] = self.right.value()
 
         if cell_merge_spec.multi_col in [MultiSpan.LastCell]:
-            if self.right:
+            if self.right is not None:
                 attributes['borderright'] = self.right.value()
 
 
@@ -1710,16 +1710,16 @@ class Borders(object):
         attributes = {}
 
         # top and bottom
-        if self.top:
+        if self.top is not None:
             attributes['bordertop'] = self.top.value()
 
-        if self.bottom:
+        if self.bottom is not None:
             attributes['borderbottom'] = self.bottom.value()
 
-        if self.left:
+        if self.left is not None:
             attributes['borderleft'] = self.left.value()
 
-        if self.right:
+        if self.right is not None:
             attributes['borderright'] = self.right.value()
 
         return attributes
@@ -1737,7 +1737,7 @@ class Border(object):
         self.width = None
         self.color = None
 
-        if border_dict:
+        if border_dict is not None:
             self.width = border_dict.get('width') / ODT_BORDER_WIDTH_FACTOR
             self.color = RgbColor(border_dict.get('color'))
 
@@ -1783,7 +1783,7 @@ class CellMergeSpec(object):
         if self.col_span > 1:
             attributes['numbercolumnsspanned'] = self.col_span
 
-        if self.row_span:
+        if self.row_span > 0:
             attributes['numberrowsspanned'] = self.row_span
 
         return attributes
@@ -1847,7 +1847,7 @@ class RgbColor(object):
         self.green = 0
         self.blue = 0
 
-        if rgb_dict:
+        if rgb_dict is not None:
             self.red = int(float(rgb_dict.get('red', 0)) * 255)
             self.green = int(float(rgb_dict.get('green', 0)) * 255)
             self.blue = int(float(rgb_dict.get('blue', 0)) * 255)
@@ -1889,7 +1889,7 @@ class Padding(object):
     '''
     def __init__(self, padding_dict=None, nesting_level=0):
         # HACK: paddings are hard-coded
-        if padding_dict:
+        if padding_dict is not None:
             # self.top = int(padding_dict.get('top', 0))
             # self.right = int(padding_dict.get('right', 0))
             # self.bottom = int(padding_dict.get('bottom', 0))
@@ -1926,7 +1926,7 @@ class TextFormatRun(object):
     ''' constructor
     '''
     def __init__(self, run_dict=None, default_format=None, nesting_level=0):
-        if run_dict:
+        if run_dict is not None:
             self.start_index = int(run_dict.get('startIndex', 0))
             format = run_dict.get('format')
             new_format = {**default_format, **format}
@@ -1994,7 +1994,7 @@ class CellNote(object):
         style_replace_list = []
         for style in self.style_list:
             outline_level_object = HEADING_TO_LEVEL.get(style, None)
-            if outline_level_object:
+            if outline_level_object is not None:
                 self.outline_level = outline_level_object['outline-level'] + document_nesting_depth
                 style_replace_list.append({'style-to-replace': style, 'new-style': LEVEL_TO_HEADING[self.outline_level]})
 
@@ -2009,13 +2009,13 @@ class CellNote(object):
                 self.style_list[self.style_list.index(style_to_replace)] = new_style
 
         # footnotes
-        if self.footnotes:
+        if self.footnotes is not None:
             if not isinstance(self.footnotes, dict):
                 self.footnotes = {}
                 warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
 
         # bookmark
-        if self.bookmark_dict:
+        if self.bookmark_dict is not None:
             if not isinstance(self.bookmark_dict, dict):
                 self.bookmark_dict = {}
                 warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
@@ -2043,10 +2043,10 @@ class CellNote(object):
     def paragraph_attributes(self, nesting_level=0):
         attributes = {}
 
-        if self.new_page:
+        if self.new_page == True:
             attributes['breakbefore'] = 'page'
 
-        if self.keep_with_next:
+        if self.keep_with_next == True:
             attributes['keepwithnext'] = 'always'
 
         return attributes
@@ -2099,20 +2099,20 @@ class InlineImage(object):
     '''
     def frame_attributes(self, container_width=None, container_height=None, preserve=None, nesting_level=0):
         width_in_inches, height_in_inches = self.image_width, self.image_height
-        if self.fit_height_to_container or self.fit_width_to_container:
-            if container_width and container_height:
+        if self.fit_height_to_container == True or self.fit_width_to_container == True:
+            if container_width is not None and container_height is not None:
                 width_in_inches, height_in_inches, scale = fit_width_height(fit_within_width=container_width, fit_within_height=container_height, width_to_fit=self.image_width, height_to_fit=self.image_height)
 
         attributes = {'anchortype': self.anchor_type, 'width': f"{width_in_inches}in", 'height': f"{height_in_inches}in"}
-        if self.fit_height_to_container:
-            if self.keep_aspect_ratio:
+        if self.fit_height_to_container == True:
+            if self.keep_aspect_ratio == True:
                 attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale'}}
             else:
                 attributes = {**attributes, **{'relheight': '100%', 'relwidth': 'scale-min'}}
 
 
-        if self.fit_width_to_container:
-            if self.keep_aspect_ratio:
+        if self.fit_width_to_container == True:
+            if self.keep_aspect_ratio == True:
                 attributes = {**attributes, **{'relwidth': '100%', 'relheight': 'scale'}}
             else:
                 attributes = {**attributes, **{'relwidth': '100%', 'relheight': 'scale-min'}}
@@ -2134,7 +2134,7 @@ class VerticalAlignment(object):
     ''' constructor
     '''
     def __init__(self, valign=None, nesting_level=0):
-        if valign:
+        if valign is not None:
             self.valign = TEXT_VALIGN_MAP.get(valign, 'top')
         else:
             self.valign = TEXT_VALIGN_MAP.get('TOP')
@@ -2148,7 +2148,7 @@ class HorizontalAlignment(object):
     ''' constructor
     '''
     def __init__(self, halign=None, nesting_level=0):
-        if halign:
+        if halign is not None:
             self.halign = TEXT_HALIGN_MAP.get(halign, 'left')
         else:
             self.halign = TEXT_HALIGN_MAP.get('LEFT')
@@ -2162,7 +2162,7 @@ class Wrapping(object):
     ''' constructor
     '''
     def __init__(self, wrap=None, nesting_level=0):
-        if wrap:
+        if wrap is not None:
             self.wrapping = WRAP_STRATEGY_MAP.get(wrap, 'WRAP')
         else:
             self.wrapping = WRAP_STRATEGY_MAP.get('WRAP')
@@ -2178,7 +2178,7 @@ class TextRotation(object):
     def __init__(self, text_rotation=None, nesting_level=0):
         self.angle = None
 
-        if text_rotation:
+        if text_rotation is not None:
             if 'vertical' in text_rotation and text_rotation['vertical'] == False:
                 self.angle = 90
 
