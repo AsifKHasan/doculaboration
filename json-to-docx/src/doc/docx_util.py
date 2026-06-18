@@ -1328,13 +1328,13 @@ def process_page_and_bookmark_blocks(text_content, nesting_level=0):
 
 			texts_and_bookmarks.append({'text': text})
 
-			# PAGE{[iI1]} means current page, PAGE{*:[iI1]} means number of pages, PAGE{XYZ:[iI1]} means page number where bookmark XYZ is set
-			# :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman
+			# PAGE{[iI1১]} means current page, PAGE{*:[iI1১]} means number of pages, PAGE{XYZ:[iI1১]} means page number where bookmark XYZ is set
+			# :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman, ১ means Bangla page number
 			page_directive, page_num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
 
 			if page_num_format == '১':
 				# page_num_format = '১, ২, ৩, ...'
-				page_num_format = 'Native Numbering'
+				pass
 
 			if page_directive == '':
 				texts_and_bookmarks.append({"page-num": page_num_format})
@@ -1576,6 +1576,8 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 		elif page_num_format == 'I':
 			instrText.text = 'PAGE \\* Roman \\* MERGEFORMAT'
 
+		elif page_num_format == '১':
+			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
 
 	elif bookmark_name == '*':
 		instrText.text = 'NUMPAGES \\* MERGEFORMAT'
@@ -1591,6 +1593,9 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 		elif page_num_format == 'I':
 			# warn(f"pageref for [{bookmark_name}] is ROMAN")
 			instrText.text = f" PAGEREF {bookmark_name} \\h \\* Roman "
+
+		elif page_num_format == '১':
+			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
 
 
 	fldCharEnd = OxmlElement('w:fldChar')

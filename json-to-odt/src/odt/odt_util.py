@@ -758,8 +758,8 @@ def process_page_and_bookmark_blocks(text_content, nesting_level=0):
 
             texts_and_bookmarks.append({'text': text})
 
-            # PAGE{[iI1]} means current page, PAGE{*:[iI1]} means number of pages, PAGE{XYZ:[iI1]} means page number where bookmark XYZ is set
-            # :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman
+			# PAGE{[iI1১]} means current page, PAGE{*:[iI1১]} means number of pages, PAGE{XYZ:[iI1১]} means page number where bookmark XYZ is set
+			# :[iI1] is for num format. defaults to '1'. 'i' or 'I' means Roman, ১ means Bangla page number
             page_directive, page_num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
 
             if page_num_format == '১':
