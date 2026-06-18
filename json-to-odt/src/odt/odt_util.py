@@ -299,6 +299,26 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
+def get_bangla_paragraph_style(odt, style_name='BanglaParagraphStyle', nesting_level=0):
+    bangla_style = get_style_by_name(odt, style_name=style_name, nesting_level=nesting_level+1)
+    if bangla_style is None:
+        # 1. Create a strict Complex Text Layout (CTL) style for Bengali
+        bangla_style = Style(name=style_name, family="paragraph")
+
+        # We add explicit CTL (Complex Text Layout) properties so the layout engine 
+        # knows it must use localized South Asian digit rendering rules.
+        bangla_style.addElement(TextProperties(
+            language="bn", 
+            country="BD",
+            languagecomplex="bn", 
+            countrycomplex="BD"
+        ))
+        
+        odt.styles.addElement(bangla_style)
+
+    return bangla_style
+
+
 ''' create a Paragraph Style that forces a switch to this Master Page
     This is how we change backgrounds mid-document
 '''
@@ -359,15 +379,15 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         for run in run_list:
             style_attributes = {'family': 'text'}
             text_style_name = create_paragraph_style(odt, style_attributes=style_attributes, text_attributes=run['text-attributes'])
-            fragment = create_text(text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            fragment = create_text(odt=odt, text_type='span', style_name=text_style_name, text_content=run['text'], footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
             paragraph.addElement(fragment)
 
     # P or H
     elif text_content is not None:
         if outline_level == 0:
-            paragraph = create_text(text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            paragraph = create_text(odt=odt, text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         else:
-            paragraph = create_text(text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            paragraph = create_text(odt=odt, text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -423,7 +443,7 @@ def create_text_a(anchor, target, nesting_level=0):
 
 ''' create a P or H or span
 '''
-def create_text(text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark_dict={}, keep_line_breaks=False, field_list={}, nesting_level=0):
+def create_text(odt, text_type, style_name, text_content=None, outline_level=0, footnote_list={}, bookmark_dict={}, keep_line_breaks=False, field_list={}, nesting_level=0):
     paragraph = None
 
     # process BK{..} first, we get a list of block dicts
@@ -558,7 +578,15 @@ def create_text(text_type, style_name, text_content=None, outline_level=0, footn
         elif 'page-num' in inline_block:
             page_num_format = inline_block['page-num']
             page_num = text.PageNumber(selectpage='current', numformat=page_num_format)
-            paragraph.addElement(page_num)
+            if page_num_format == '১':
+                bangla_style = get_bangla_paragraph_style(odt=odt, style_name='BanglaParagraphStyle', nesting_level=nesting_level+1)
+                bangla_span = text.Span(stylename=bangla_style.getAttribute('name'))
+                # warn(f"bangla page numbering found, applying style [{bangla_style.getAttribute('name')}]")
+                bangla_span.addElement(page_num)
+                paragraph.addElement(bangla_span)
+
+            else:
+                paragraph.addElement(page_num)
 
         elif 'page-count' in inline_block:
             page_num_format = inline_block['page-count']
@@ -759,7 +787,8 @@ def process_page_and_bookmark_blocks(text_content, nesting_level=0):
             page_directive, page_num_format = parse_page_directive(page_directive_string=bookmark_content, nesting_level=nesting_level+1)
 
             if page_num_format == '১':
-                # page_num_format = '১, ২, ৩, ...'
+                # page_num_format = '১'
+                # HACK: for this to work [Options->Languages and Locale->General->Locale Settings] should be Bengali (Bangladesh)
                 page_num_format = 'Native Numbering'
 
             if page_directive == '':
