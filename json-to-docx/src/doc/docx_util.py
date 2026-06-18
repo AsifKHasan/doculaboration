@@ -1566,6 +1566,8 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 	instrText = OxmlElement("w:instrText")
 	instrText.set(qn("xml:space"), "preserve")
 
+	lang = None
+
 	if bookmark_name == '':
 		if page_num_format is None:
 			instrText.text = 'PAGE \\* MERGEFORMAT'
@@ -1578,6 +1580,13 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 
 		elif page_num_format == '১':
 			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
+
+			lang = OxmlElement('w:lang')
+			# Western/Latin text default
+			lang.set(qn('w:val'), 'bn-BD')
+			# Complex script / BiDi default
+			lang.set(qn('w:bidi'), 'bn-BD')
+			lang.set(qn('w:eastAsia'), 'bn-BD')
 
 	elif bookmark_name == '*':
 		instrText.text = 'NUMPAGES \\* MERGEFORMAT'
@@ -1597,6 +1606,14 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 		elif page_num_format == '১':
 			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
 
+			lang = OxmlElement('w:lang')
+			# Western/Latin text default
+			lang.set(qn('w:val'), 'bn-BD')
+			# Complex script / BiDi default
+			lang.set(qn('w:bidi'), 'bn-BD')
+			lang.set(qn('w:eastAsia'), 'bn-BD')
+
+
 
 	fldCharEnd = OxmlElement('w:fldChar')
 	fldCharEnd.set(qn('w:fldCharType'), 'end')
@@ -1604,6 +1621,9 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 	r_element = run._r
 	r_element.append(fldCharBegin)
 	r_element.append(instrText)
+	if lang:
+		r_element.append(lang)
+		
 	r_element.append(fldCharEnd)
 
 	# p_element = paragraph._p
