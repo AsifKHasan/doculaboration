@@ -1571,7 +1571,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 			instrText.text = 'PAGE \\* Roman \\* MERGEFORMAT'
 
 		elif page_num_format == '১':
-			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
+			instrText.text = 'PAGE \\* MERGEFORMAT'
 
 			lang = OxmlElement('w:lang')
 			# Western/Latin text default
@@ -1596,7 +1596,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 			instrText.text = f" PAGEREF {bookmark_name} \\h \\* Roman "
 
 		elif page_num_format == '১':
-			instrText.text = 'PAGE \\* Native \\* MERGEFORMAT'
+			instrText.text = 'PAGE \\* MERGEFORMAT'
 
 			lang = OxmlElement('w:lang')
 			# Western/Latin text default
