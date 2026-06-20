@@ -835,6 +835,7 @@ def estimate_cell_height_in_inches(text, column_width_pts, font_size_pt=11, line
 # paragraphs and texts
 
 ''' write a paragraph in a given style
+	if text content is blank there will be nothing in the blocks, treat it as a blank text so that it is not ignored
 '''
 def create_paragraph(docx, container, text_content=None, run_list=None, paragraph_attributes=None, text_attributes=None, footnote_list={}, bookmark_dict={}, field_list={}, directives=True, contains_inline_image=False, nesting_level=0):
 	# create or get the paragraph
@@ -1065,77 +1066,70 @@ def remove_empty_first_paragraph_from_header_footer(header_footer, nesting_level
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, field_list={}, nesting_level=0):
-	# if text content is blank, treat it as a blank text so that it is not ignored
-	print(text_attributes)
-	if text_content == '':
-		inline_blocks = [{'text': ' '}]
+	# process BK{..} first, we get a list of block dicts
+	inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
 
-	else:
-		# process BK{..} first, we get a list of block dicts
-		inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
+	# process FN{...} next, we get a list of block dicts
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block["text"], footnote_list=footnote_list, nesting_level=nesting_level+1)
 
-		# process FN{...} next, we get a list of block dicts
-		new_inline_blocks = []
-		for inline_block in inline_blocks:
-			# process only 'text'
-			if "text" in inline_block:
-				new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block["text"], footnote_list=footnote_list, nesting_level=nesting_level+1)
+		else:
+			new_inline_blocks.append(inline_block)
 
-			else:
-				new_inline_blocks.append(inline_block)
+	inline_blocks = new_inline_blocks
 
-		inline_blocks = new_inline_blocks
+	# process LATEX{...} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
-		# process LATEX{...} for each text item
-		new_inline_blocks = []
-		for inline_block in inline_blocks:
-			# process only 'text'
-			if "text" in inline_block:
-				new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"], nesting_level=nesting_level+1)
+		else:
+			new_inline_blocks.append(inline_block)
 
-			else:
-				new_inline_blocks.append(inline_block)
+	inline_blocks = new_inline_blocks
 
-		inline_blocks = new_inline_blocks
+	# process PAGE{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
-		# process PAGE{..} for each text item
-		new_inline_blocks = []
-		for inline_block in inline_blocks:
-			# process only 'text'
-			if "text" in inline_block:
-				new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block["text"], nesting_level=nesting_level+1)
+		else:
+			new_inline_blocks.append(inline_block)
 
-			else:
-				new_inline_blocks.append(inline_block)
+	inline_blocks = new_inline_blocks
 
-		inline_blocks = new_inline_blocks
+	# process LINK{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if "text" in inline_block:
+			new_inline_blocks = new_inline_blocks + process_links(inline_block["text"], nesting_level=nesting_level+1)
 
-		# process LINK{..} for each text item
-		new_inline_blocks = []
-		for inline_block in inline_blocks:
-			# process only 'text'
-			if "text" in inline_block:
-				new_inline_blocks = new_inline_blocks + process_links(inline_block["text"], nesting_level=nesting_level+1)
+		else:
+			new_inline_blocks.append(inline_block)
 
-			else:
-				new_inline_blocks.append(inline_block)
+	inline_blocks = new_inline_blocks
 
-		inline_blocks = new_inline_blocks
+	# process FIELD{..} for each text item
+	new_inline_blocks = []
+	for inline_block in inline_blocks:
+		# process only 'text'
+		if 'text' in inline_block:
+			new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'], nesting_level=nesting_level+1)
 
-		# process FIELD{..} for each text item
-		new_inline_blocks = []
-		for inline_block in inline_blocks:
-			# process only 'text'
-			if 'text' in inline_block:
-				new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'], nesting_level=nesting_level+1)
+		else:
+			new_inline_blocks.append(inline_block)
 
-			else:
-				new_inline_blocks.append(inline_block)
-
-		inline_blocks = new_inline_blocks
+	inline_blocks = new_inline_blocks
 
 	# we are ready to prepare the content
-	# print(inline_blocks)
 	for inline_block in inline_blocks:
 		if "text" in inline_block:
 			run = paragraph.add_run(inline_block["text"])
