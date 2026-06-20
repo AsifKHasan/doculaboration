@@ -40,6 +40,14 @@ class DocxSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
+        self.header_distance = self.margin_spec['distance']['header']
+        self.footer_distance = self.margin_spec['distance']['footer']
+
+        self.page_num_format = self.section_prop.get('page-num-format', '1')
+        if self.page_num_format == '':
+            self.page_num_format = '1'
+
+        self.reset_page_to = self.section_prop['reset-page-to']
         self.bookmark_dict = self.section_prop['bookmark']
 
         self.autocrop = self.section_prop['autocrop']

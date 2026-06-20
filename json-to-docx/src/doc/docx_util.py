@@ -1163,7 +1163,10 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			# TODO: identify the field, extract the field value
 			if field in field_list:
 				field_value = field_list[field]
-				# trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+				trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+				run = paragraph.add_run(field_value)
+				set_text_style(run=run, text_attributes=text_attributes)
+				
 			else:
 				warn(f"unknown field [{field}]", nesting_level=nesting_level+1)
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import inspect
+
 from helper.config_service import ConfigService
 from odt.odt_util import *
 from helper.logger import *
@@ -15,6 +17,7 @@ class OdtSectionBase(object):
     ''' constructor
     '''
     def __init__(self, odt, section_data, nesting_level=0):
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         self._odt = odt
         self._section_data = section_data
 
