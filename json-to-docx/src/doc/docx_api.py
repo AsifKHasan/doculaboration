@@ -138,22 +138,22 @@ class DocxSectionBase(object):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         if self.header_first is not None:
-            self.header_first.content_to_docx(container=self.docx_section.first_page_header, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.header_first.content_to_docx(container=self.docx_section.first_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if self.header_odd is not None:
-            self.header_odd.content_to_docx(container=self.docx_section.header, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.header_odd.content_to_docx(container=self.docx_section.header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if self.header_even is not None:
-            self.header_even.content_to_docx(container=self.docx_section.even_page_header, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.header_even.content_to_docx(container=self.docx_section.even_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if self.footer_first is not None:
-            self.footer_first.content_to_docx(container=self.docx_section.first_page_footer, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.footer_first.content_to_docx(container=self.docx_section.first_page_footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if self.footer_odd is not None:
-            self.footer_odd.content_to_docx(container=self.docx_section.footer, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.footer_odd.content_to_docx(container=self.docx_section.footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if self.footer_even is not None:
-            self.footer_even.content_to_docx(container=self.docx_section.even_page_footer, field_list=self.field_list, nesting_level=nesting_level+1)
+            self.footer_even.content_to_docx(container=self.docx_section.even_page_footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
 
     ''' generates the docx code
@@ -326,16 +326,16 @@ class DocxPdfSection(DocxSectionBase):
 
 
         if docx_section.header_odd is not None:
-            docx_section.header_odd.content_to_docx(container=docx_section.header, field_list=self.field_list, nesting_level=nesting_level+1)
+            docx_section.header_odd.content_to_docx(container=docx_section.header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if docx_section.header_even is not None:
-            docx_section.header_even.content_to_docx(container=docx_section.even_page_header, field_list=self.field_list, nesting_level=nesting_level+1)
+            docx_section.header_even.content_to_docx(container=docx_section.even_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if docx_section.footer_odd is not None:
-            docx_section.footer_odd.content_to_docx(container=docx_section.footer, field_list=self.field_list, nesting_level=nesting_level+1)
+            docx_section.footer_odd.content_to_docx(container=docx_section.footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
         if docx_section.footer_even is not None:
-            docx_section.footer_even.content_to_docx(container=docx_section.even_page_footer, field_list=self.field_list, nesting_level=nesting_level+1)
+            docx_section.footer_even.content_to_docx(container=docx_section.even_page_footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
 
 
     ''' generates the docx code
@@ -635,12 +635,16 @@ class DocxContent(object):
     ''' generates the docx code
         container may be docx, header/footer or a Cell
     '''
-    def content_to_docx(self, container, field_list={}, nesting_level=0):
+    def content_to_docx(self, container, field_list={}, remove_empty_first_paragraph=False, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_docx(container=container, container_width=self.content_width, field_list=field_list, nesting_level=0)
+
+    	# remove empty first paragraph from all header/footer
+        if remove_empty_first_paragraph == True:
+            remove_empty_first_paragraph_from_header_footer(header_footer=container, nesting_level=nesting_level+1)
 
 
 
@@ -1064,7 +1068,7 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"{self.cell_name}"
+        s = f"[{self.cell_name}] [{self.formatted_value[0:50]}]"
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
@@ -1136,6 +1140,7 @@ class Cell(object):
                     footnote_list = {}
 
                 contains_inline_image = self.contains_inline_image(nesting_level=nesting_level+1)
+                trace(f"{self}")
                 where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
 
                 # do not apply table-cell format here, it needs to be done after the merging is done

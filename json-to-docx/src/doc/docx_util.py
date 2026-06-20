@@ -85,6 +85,9 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 		if page_break == True:
 			docx.add_page_break()
 
+	# remove empty first paragraph from all header/footer
+	# for header_footer in [docx_section.header, docx_section.even_page_header, docx_section.first_page_header]:
+	# 	remove_empty_first_paragraph_from_header_footer(header_footer=header_footer, nesting_level=nesting_level+1)
 
 	docx_section.first_page_header.is_linked_to_previous = link_to_previous
 	docx_section.header.is_linked_to_previous = link_to_previous
@@ -110,8 +113,13 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 
 	docx_section.gutter = Inches(margin_spec['gutter'])
 
-	docx_section.header_distance = Inches(margin_spec['distance']['header'])
-	docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
+	# in docx header.header_distance is the distance from top edge of page to top edge of header
+	docx_section.header_distance = Inches(margin_spec['top'])
+	# docx_section.header_distance = Inches(margin_spec['distance']['header'])
+
+	# in docx header.footer_distance is the distance from bottom edge of page to bottom edge of the footer
+	docx_section.footer_distance = Inches(margin_spec['bottom'])
+	# docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
 
 	docx_section.different_first_page_header_footer = different_firstpage
 	docx.settings.odd_and_even_pages_header_footer = different_odd_even_pages
@@ -864,7 +872,7 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	if bookmark_dict is not None:
 		for k, v in bookmark_dict.items():
 			if k is not None and k != '':
-				trace(f"creating bookmark {k} : {v}")
+				# trace(f"creating bookmark {k} : {v}")
 				add_bookmark(paragraph=paragraph, bookmark_name=k, bookmark_text=v, nesting_level=nesting_level+1)
 
 	# apply the style if any
@@ -999,6 +1007,8 @@ def set_text_style(run, text_attributes, nesting_level=0):
 		fgcolor = text_attributes.get('color')
 		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
 
+		# debug(text_attributes)
+
 
 ''' inside a paragraph move a run from anywhere to start as the 0th run
 '''
@@ -1026,6 +1036,28 @@ def zero_paragraph_spacing(paragraph, nesting_level=0):
     pf.space_after = 0
 
 
+''' The empty paragraph in the beginning of a section is a known behavior in Microsoft Word's layout engine. By default, when we access a section's header in python-docx, Word automatically initializes it with a single, blank paragraph (<w:p>).
+	When we use header.add_table(), python-docx appends the table after that existing blank paragraph.
+	To fix this, we need to remove that default paragraph from the header's XML tree after (or before) adding the table.
+'''
+def remove_empty_first_paragraph_from_header_footer(header_footer, nesting_level=0):
+	# 2. Safely inspect the first paragraph
+	if len(header_footer.paragraphs) > 0:
+		first_p = header_footer.paragraphs[0]
+		
+		# Check if text is empty and there are no XML text elements hidden inside it
+		is_text_empty = first_p.text.strip() == ""
+		has_no_xml_runs = len(first_p._p.xpath('.//w:t')) == 0
+
+		if is_text_empty and has_no_xml_runs:
+			# It is safe to remove
+			p_element = first_p._p
+			p_element.getparent().remove(p_element)
+			# trace("verified empty paragraph and removed it", nesting_level=nesting_level+1)
+		else:
+			warn("first Paragraph is not empty. Skipping deletion to prevent data loss", nesting_level=nesting_level+1)
+
+
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # footnotes, bookmarks, links, latex, mathml related
@@ -1033,70 +1065,77 @@ def zero_paragraph_spacing(paragraph, nesting_level=0):
 ''' process inline blocks inside a text and add to a paragraph
 '''
 def process_inline_blocks(docx, paragraph, text_content, text_attributes, footnote_list, field_list={}, nesting_level=0):
-	# process BK{..} first, we get a list of block dicts
-	inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
+	# if text content is blank, treat it as a blank text so that it is not ignored
+	print(text_attributes)
+	if text_content == '':
+		inline_blocks = [{'text': ' '}]
 
-	# process FN{...} next, we get a list of block dicts
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block["text"], footnote_list=footnote_list, nesting_level=nesting_level+1)
+	else:
+		# process BK{..} first, we get a list of block dicts
+		inline_blocks = process_bookmarks(text_content=text_content, nesting_level=nesting_level+1)
 
-		else:
-			new_inline_blocks.append(inline_block)
+		# process FN{...} next, we get a list of block dicts
+		new_inline_blocks = []
+		for inline_block in inline_blocks:
+			# process only 'text'
+			if "text" in inline_block:
+				new_inline_blocks = new_inline_blocks + process_footnotes(text_content=inline_block["text"], footnote_list=footnote_list, nesting_level=nesting_level+1)
 
-	inline_blocks = new_inline_blocks
+			else:
+				new_inline_blocks.append(inline_block)
 
-	# process LATEX{...} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"], nesting_level=nesting_level+1)
+		inline_blocks = new_inline_blocks
 
-		else:
-			new_inline_blocks.append(inline_block)
+		# process LATEX{...} for each text item
+		new_inline_blocks = []
+		for inline_block in inline_blocks:
+			# process only 'text'
+			if "text" in inline_block:
+				new_inline_blocks = new_inline_blocks + process_latex_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
-	inline_blocks = new_inline_blocks
+			else:
+				new_inline_blocks.append(inline_block)
 
-	# process PAGE{..} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block["text"], nesting_level=nesting_level+1)
+		inline_blocks = new_inline_blocks
 
-		else:
-			new_inline_blocks.append(inline_block)
+		# process PAGE{..} for each text item
+		new_inline_blocks = []
+		for inline_block in inline_blocks:
+			# process only 'text'
+			if "text" in inline_block:
+				new_inline_blocks = new_inline_blocks + process_page_and_bookmark_blocks(inline_block["text"], nesting_level=nesting_level+1)
 
-	inline_blocks = new_inline_blocks
+			else:
+				new_inline_blocks.append(inline_block)
 
-	# process LINK{..} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if "text" in inline_block:
-			new_inline_blocks = new_inline_blocks + process_links(inline_block["text"], nesting_level=nesting_level+1)
+		inline_blocks = new_inline_blocks
 
-		else:
-			new_inline_blocks.append(inline_block)
+		# process LINK{..} for each text item
+		new_inline_blocks = []
+		for inline_block in inline_blocks:
+			# process only 'text'
+			if "text" in inline_block:
+				new_inline_blocks = new_inline_blocks + process_links(inline_block["text"], nesting_level=nesting_level+1)
 
-	inline_blocks = new_inline_blocks
+			else:
+				new_inline_blocks.append(inline_block)
 
-	# process FIELD{..} for each text item
-	new_inline_blocks = []
-	for inline_block in inline_blocks:
-		# process only 'text'
-		if 'text' in inline_block:
-			new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'], nesting_level=nesting_level+1)
+		inline_blocks = new_inline_blocks
 
-		else:
-			new_inline_blocks.append(inline_block)
+		# process FIELD{..} for each text item
+		new_inline_blocks = []
+		for inline_block in inline_blocks:
+			# process only 'text'
+			if 'text' in inline_block:
+				new_inline_blocks = new_inline_blocks + process_field_blocks(inline_block['text'], nesting_level=nesting_level+1)
 
-	inline_blocks = new_inline_blocks
+			else:
+				new_inline_blocks.append(inline_block)
+
+		inline_blocks = new_inline_blocks
 
 	# we are ready to prepare the content
+	# print(inline_blocks)
 	for inline_block in inline_blocks:
 		if "text" in inline_block:
 			run = paragraph.add_run(inline_block["text"])
@@ -1106,19 +1145,19 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			# in odt bookmarks only has name, no text
 			bk_name = inline_block['bookmark']['name']
 			add_bookmark(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
-			trace(f"bookmark [{bk_name}] added", nesting_level=nesting_level+1)
+			# trace(f"bookmark [{bk_name}] added", nesting_level=nesting_level+1)
 
 		elif 'bookmark-start' in inline_block:
 			# in odt bookmarks only has name, no text
 			bk_name = inline_block['bookmark-start']['name']
 			add_bookmark_start(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
-			trace(f"bookmark-start [{bk_name}] added", nesting_level=nesting_level+1)
+			# trace(f"bookmark-start [{bk_name}] added", nesting_level=nesting_level+1)
 
 		elif 'bookmark-end' in inline_block:
 			# in odt bookmarks only has name, no text
 			bk_name = inline_block['bookmark-end']['name']
 			add_bookmark_end(paragraph=paragraph, bookmark_name=bk_name, nesting_level=nesting_level+1)
-			trace(f"bookmark-end [{bk_name}] added", nesting_level=nesting_level+1)
+			# trace(f"bookmark-end [{bk_name}] added", nesting_level=nesting_level+1)
 
 			# HACK: we need a dummy bookmark here so that we can identify the reference for this end
 			# paragraph.addElement(text.Bookmark(name=f"{bk_name}-end"))
@@ -1134,13 +1173,13 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 
 		elif "page-num" in inline_block:
 			page_num_format = inline_block['page-num']
-			trace(f"found page-num, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+			# trace(f"found page-num, num-format [{page_num_format}]", nesting_level=nesting_level+1)
 			run = add_page_reference(paragraph=paragraph, bookmark_name='', page_num_format=page_num_format, nesting_level=nesting_level+1)
 			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
 		elif "page-count" in inline_block:
 			page_num_format = inline_block['page-count']
-			trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
+			# trace(f"found page-count, num-format [{page_num_format}]", nesting_level=nesting_level+1)
 			run = add_page_reference(paragraph=paragraph, bookmark_name='*', page_num_format=page_num_format, nesting_level=nesting_level+1)
 			set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
@@ -1148,7 +1187,7 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			bookmark_name = inline_block['bookmark-page'][0].strip()
 			page_num_format = inline_block['bookmark-page'][1]
 			if bookmark_name != '':
-				trace(f"found BookmarkRef [{bookmark_name}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
+				# trace(f"found BookmarkRef [{bookmark_name}], num-format [{page_num_format}]", nesting_level=nesting_level+1)
 				# add_link(paragraph=paragraph, link_to=inline_block["page"].strip(), text=inline_block["page"].strip(), tool_tip=None)
 				run = add_page_reference(paragraph=paragraph, bookmark_name=bookmark_name, page_num_format=page_num_format, nesting_level=nesting_level+1)
 				set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
@@ -1163,10 +1202,10 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			# TODO: identify the field, extract the field value
 			if field in field_list:
 				field_value = field_list[field]
-				trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+				# trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
 				run = paragraph.add_run(field_value)
-				set_text_style(run=run, text_attributes=text_attributes)
-				
+				set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
+
 			else:
 				warn(f"unknown field [{field}]", nesting_level=nesting_level+1)
 

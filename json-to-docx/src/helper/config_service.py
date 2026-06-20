@@ -197,7 +197,7 @@ class ConfigService:
         
         self.current_bookmark_id = self.current_bookmark_id + 1
         self.bookmark_cache[bookmark_name] = self.current_bookmark_id
-        debug(f"bookmark [{self.current_bookmark_id}]:[{bookmark_name}] added to cache", nesting_level=nesting_level)
+        # debug(f"bookmark [{self.current_bookmark_id}]:[{bookmark_name}] added to cache", nesting_level=nesting_level)
         return self.current_bookmark_id
 
 

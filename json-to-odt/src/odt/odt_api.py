@@ -40,7 +40,9 @@ class OdtSectionBase(object):
         self.margin_spec_name = self.section_prop['margin-spec']
         self.margin_spec = ConfigService()._margin_specs[self.margin_spec_name]
 
+        # in odt this is the distance between the bottom of header and top of page text area
         self.header_distance = self.margin_spec['distance']['header']
+        # in odt this is the distance between the top of footer and bottom of page text area
         self.footer_distance = self.margin_spec['distance']['footer']
 
         self.page_num_format = self.section_prop.get('page-num-format', '1')
