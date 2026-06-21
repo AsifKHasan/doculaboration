@@ -1140,7 +1140,7 @@ class Cell(object):
                     footnote_list = {}
 
                 contains_inline_image = self.contains_inline_image(nesting_level=nesting_level+1)
-                trace(f"{self}")
+                # trace(f"{self}")
                 where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
 
                 # do not apply table-cell format here, it needs to be done after the merging is done

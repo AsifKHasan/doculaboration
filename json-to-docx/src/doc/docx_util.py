@@ -865,8 +865,16 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 		for text_run in run_list:
 			process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_run['text'], text_attributes=text_run['text-attributes'], footnote_list=footnote_list, field_list=field_list, nesting_level=nesting_level+1)
 
-	elif text_content is not None:
-		process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list, field_list=field_list, nesting_level=nesting_level+1)
+	else:
+		if text_content is not None and text_content != '':
+			process_inline_blocks(docx=docx, paragraph=paragraph, text_content=text_content, text_attributes=text_attributes, footnote_list=footnote_list, field_list=field_list, nesting_level=nesting_level+1)
+
+		else:
+			# if text content is blank there will be nothing in the blocks, treat it as a blank text so that it is not ignored
+			run = paragraph.add_run()
+			set_text_style(run=run, text_attributes=text_attributes)
+			if text_attributes is not None and 'fontsize' in text_attributes:
+				empty_paragraph_with_fixed_fontsize(paragraph=paragraph, font_size=text_attributes['fontsize'], nesting_level=nesting_level+1)
 
 
 	# bookmark
@@ -1009,6 +1017,26 @@ def set_text_style(run, text_attributes, nesting_level=0):
 		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
 
 		# debug(text_attributes)
+
+
+''' make a paragraph empty and force a fixed font size for that paragraph
+	this is required as a hack as Word does not render empty cell paragraphs at all
+'''
+def empty_paragraph_with_fixed_fontsize(paragraph, font_size, nesting_level=0):
+	# Ensure the cell is completely text-free
+	paragraph.text = "" 
+
+	# ---- THE FIX: Force the paragraph level property to be 16pt ----
+	pPr = paragraph._p.get_or_add_pPr()
+	rPr = OxmlElement('w:rPr')
+	sz = OxmlElement('w:sz')
+
+	# Word XML calculates font size in half-points. 
+	font_size_text = f"{font_size * 2}"
+	sz.set(qn('w:val'), font_size_text)  
+
+	rPr.append(sz)
+	pPr.append(rPr)
 
 
 ''' inside a paragraph move a run from anywhere to start as the 0th run
