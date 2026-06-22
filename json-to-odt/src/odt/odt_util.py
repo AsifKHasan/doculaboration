@@ -1052,6 +1052,10 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
         except:
             warn(f"[{attr_name}] is not a valid page-layout-property", nesting_level=nesting_level+1)
 
+    if margin_spec['gutter'] != '':
+        loext_namespace_url = "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0"
+        page_layout_properties.setAttrNS(loext_namespace_url, "margin-gutter", f"{margin_spec['gutter']}in")
+
     # HACK: Set the footnote max-height constraint.
     # To allow it to split across pages dynamically without an artificial ceiling,
     # we set the maximum footnote height to 0 (which ODF interprets as "no maximum limit",
