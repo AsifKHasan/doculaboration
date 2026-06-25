@@ -1083,7 +1083,7 @@ class Cell(object):
                                     self.inline_images.append(inline_image)
                         
                     else:
-                        warn(f"custom style [{style_name}] not defined", nesting_level=nesting_level)
+                        warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level)
 
 
             # and/or there might me inline images in notes
@@ -1160,7 +1160,7 @@ class Cell(object):
                                 apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[style_name], nesting_level=nesting_level+1)
                             
                             else:
-                                warn(f"custom style [{style_name}] not defined", nesting_level=nesting_level)
+                                warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level)
 
 
                 else:
