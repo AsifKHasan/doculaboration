@@ -735,6 +735,7 @@ def set_cell_bgcolor(cell: table._Cell, color, nesting_level=0):
 
 
 ''' set table-cell padding - space between border and text
+	assume that padding values are in pt, need to convert them to twips (1 pt = 20 twips)
 '''
 def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	tc = cell._tc
@@ -744,7 +745,9 @@ def set_cell_padding(cell: table._Cell, padding, nesting_level=0):
 	for m in ["top", "start", "bottom", "end", ]:
 		if m in padding:
 			node = OxmlElement("w:{}".format(m))
-			node.set(qn('w:w'), str(padding.get(m)))
+			pt = float(padding.get(m, 0))
+			twips = pt * 20
+			node.set(qn('w:w'), str(twips))
 			node.set(qn('w:type'), 'dxa')
 			tcMar.append(node)
 
