@@ -1501,10 +1501,15 @@ class CellFormat(object):
     def table_cell_attributes(self, cell_merge_spec, force_halign=False, angle=0):
         attributes = {}
 
+        # if the cell is left aligned, we do not set attribute to let the parent style determine what the alignment should be
         if force_halign == True:
             attributes['textalign'] = self.halign.halign
+
         else:
-            if self.halign is not None:
+            if self.halign is None or self.halign.halign in ['left']:
+                pass
+
+            else:
                 attributes['textalign'] = self.halign.halign
 
         if self.valign is not None:
