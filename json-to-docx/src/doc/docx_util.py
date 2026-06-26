@@ -2227,14 +2227,14 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 			if value is not None:
 				style_name = value.get('name', None)
 				if style_name is not None:
-					trace(f"customizing style [{style_name}]", nesting_level=nesting_level+1)
+					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level+1)
 					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
-					trace(f"customized  style [{style_name}]", nesting_level=nesting_level+1)
+					trace(f"style [{style_name}] customized", nesting_level=nesting_level+1)
 
 				else:
-					trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level+1)
+					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level+1)
 					custom_styles[key] = value
-					trace(f"added  custom style [{key}] to style cache", nesting_level=nesting_level+1)
+					trace(f"custom style [{key}] added to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
 

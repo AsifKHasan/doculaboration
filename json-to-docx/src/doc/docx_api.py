@@ -175,7 +175,7 @@ class DocxSectionBase(object):
 
                 else:
                     if paragraph is not None:
-                        trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                        # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
                         apply_custom_style(docx=self._docx, style_spec=ConfigService()._style_specs[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
                     # handle background image
