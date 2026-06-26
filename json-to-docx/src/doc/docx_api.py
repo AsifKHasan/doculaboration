@@ -1510,7 +1510,7 @@ class CellFormat(object):
             attributes['textalign'] = self.halign.halign
 
         else:
-            if self.halign is None or self.halign.halign in ['left']:
+            if self.halign is None or self.halign.halign in [WD_PARAGRAPH_ALIGNMENT.LEFT]:
                 pass
 
             else:
