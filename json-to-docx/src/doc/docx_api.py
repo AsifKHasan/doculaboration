@@ -1412,7 +1412,7 @@ class TextFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, text_format_dict=None):
+    def __init__(self, text_format_dict=None, nesting_level=0):
         self.source = text_format_dict
         if self.source is not None:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
