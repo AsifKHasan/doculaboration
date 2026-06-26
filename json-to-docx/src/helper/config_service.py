@@ -75,6 +75,9 @@ class ConfigService:
         self.bookmark_cache = {}
         self.current_bookmark_id = 0
 
+        self._default_font = None
+        self._font_cache = {}
+
         self._initialized = True
 
 

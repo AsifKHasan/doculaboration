@@ -19,6 +19,9 @@ from pathlib import Path
 from PIL import Image
 from lxml import etree
 
+import matplotlib
+from matplotlib import font_manager
+
 from docx import Document, section, document, table
 from docx.oxml import OxmlElement, parse_xml, ns
 from docx.oxml.ns import qn, nsdecls
@@ -2411,6 +2414,38 @@ def transform_nested_dict(data, mapping_schema, nesting_level=0):
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # various utility functions
+
+''' get the font to be used as fallback/replacement for a specified font
+'''
+def get_font_to_be_used(font_asked, nesting_level=0):
+    if font_asked in ConfigService()._font_cache:
+        # trace(f"font [{font_asked}] will be replaced by [{ConfigService()._font_cache[font_asked]}]", nesting_level=nesting_level)
+        return ConfigService()._font_cache[font_asked]
+    
+    else:
+        if is_font_installed(font_name=font_asked) == True:
+            ConfigService()._font_cache[font_asked] = font_asked
+            return font_asked
+
+        else:
+            warn(f"font [{font_asked}] missing in system", nesting_level=nesting_level)
+            trace(f"font [{font_asked}] will be replaced by the default font [{ConfigService()._default_font}]", nesting_level=nesting_level)
+            ConfigService()._font_cache[font_asked] = ConfigService()._default_font
+            return ConfigService()._default_font
+
+
+''' check whether a font is installed or not
+'''
+def is_font_installed(font_name):
+    # Get a list of all available system fonts
+    available_fonts = font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    
+    # Extract the actual names of the fonts
+    font_names = [font_manager.FontProperties(fname=f).get_name() for f in available_fonts]
+    
+    # Check if your font is in the list (case-insensitive)
+    return font_name.lower() in [f.lower() for f in font_names]
+
 
 ''' parse page directive string like
     '' meaning it is current page number in Arabic

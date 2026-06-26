@@ -1417,7 +1417,11 @@ class TextFormat(object):
         if self.source is not None:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
-                self.font_family = text_format_dict['fontFamily']
+                self.font_family = get_font_to_be_used(font_asked=text_format_dict['fontFamily'], nesting_level=nesting_level+1)
+
+            else:
+                self.font_family = ConfigService()._default_font
+
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
             self.is_bold = text_format_dict.get('bold')
