@@ -85,7 +85,6 @@ def add_transparency_to_image(image_path, opacity, nesting_level=0):
     return None
 
 
-
 ''' background-image style
     <style:background-image
         xlink:href="Pictures/10000001000007D0000007D0EF304D419C6347C7.png"
@@ -567,11 +566,11 @@ def create_text(odt, text_type, style_name, text_content=None, outline_level=0, 
             trace(f"bookmark-end [{bk_name}] added", nesting_level=nesting_level+1)
 
         elif 'fn' in inline_block:
-            footnote_object = create_footnote(inline_block['fn'])
+            footnote_object = create_footnote(odt=odt, footnote_tuple=inline_block['fn'], nesting_level=nesting_level+1)
             paragraph.addElement(footnote_object)
 
         elif 'latex' in inline_block:
-            latex_df = create_latex(latex_content=inline_block['latex'])
+            latex_df = create_latex(latex_content=inline_block['latex'], nesting_level=nesting_level+1)
             if latex_df is not None:
                 paragraph.addElement(latex_df)
 
@@ -889,27 +888,29 @@ def process_links(text_content, nesting_level=0):
 
 ''' create a footnote
 '''
-def create_footnote(footnote_tuple, nesting_level=0):
+def create_footnote(odt, footnote_tuple, nesting_level=0):
     citation, footnote = footnote_tuple[0], footnote_tuple[1]
     note = text.Note(noteclass='footnote')
     note_citation = text.NoteCitation(label=citation)
     note_body = text.NoteBody()
 
     # footnote may contain multiple lines/paragraphs
-    paragraph = text.P()
     lines = footnote.split('\n')
-    if len(lines) == 1:
-        add_text_to_paragraph(paragraph=paragraph, text_string=footnote)
-
-    else:
-        add_text_to_paragraph(paragraph=paragraph, text_string=lines[0])
-        for part in lines[1:]:
-            paragraph.addElement(text.LineBreak())
+    for i, part in enumerate(lines):
+        if i == 0:
+            paragraph = text.P(stylename="Footnote")
             add_text_to_paragraph(paragraph=paragraph, text_string=part)
 
-    # patagraph = text.P(text=footnote)
-    note_body.addElement(paragraph)
-    
+        else:
+            style_attributes = {'parentstylename': 'Footnote'}
+            style_name = create_paragraph_style(odt=odt, style_attributes=style_attributes, nesting_level=nesting_level+1)
+            style = get_style_by_name(odt=odt, style_name=style_name, nesting_level=nesting_level+1)
+            paragraph = text.P(stylename=style_name)
+            add_text_to_paragraph(paragraph=paragraph, text_string=part)
+            apply_custom_style(style=style, custom_properties=ConfigService()._style_specs['first-line-flush-none'], nesting_level=nesting_level+1)
+
+        note_body.addElement(paragraph)
+
     note.addElement(note_citation)
     note.addElement(note_body)
 
