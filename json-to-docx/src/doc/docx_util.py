@@ -903,7 +903,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
 	spacing_in_pt = spacing_in_emu / EMU_PER_PT
 	# print(f"spacing is {spacing_in_pt}pt")
-	spacing_in_twips = spacing_in_pt * 20
+	spacing_in_twips = int(spacing_in_pt * 20)
+	print(f"spacing is {spacing_in_twips}twips")
 	for run in paragraph.runs:
 		rPr = run._r.get_or_add_rPr()
 
