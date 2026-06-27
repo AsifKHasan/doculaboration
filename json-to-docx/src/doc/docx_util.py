@@ -896,6 +896,22 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	return paragraph
 
 
+''' set paragraph spacing
+	spacing is assumed to be in pt which is 20 twips
+'''
+def set_paragraph_spacing(docx, paragraph, spacing_in_pt, nesting_level=0):
+	spacing_in_twips = spacing_in_pt * 20
+	for run in paragraph.runs:
+		rPr = run._r.get_or_add_rPr()
+
+		spacing_el = rPr.find(qn('w:spacing'))
+		if spacing_el is None:
+			spacing_el = OxmlElement('w:spacing')
+			rPr.append(spacing_el)
+
+		spacing_el.set(qn('w:val'), str(spacing_in_twips))		
+
+
 ''' set paragraph borders
 	{
 		"top":		{"sz": , "val": , "color": , "space": , "shadow": },
@@ -2210,6 +2226,12 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 			if element is not None:
 				set_paragraph_bgcolor(element=element, color=style_spec['ParagraphStyle']['backgroundcolor'])
 
+		# letter-spacing
+		if 'letter-spacing' in style_spec['ParagraphStyle']:
+			if element is not None:
+				set_paragraph_spacing(docx=docx, paragraph=paragraph, spacing_in_pt=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+
+
 
 ''' process custom styles
 	there are two steps
@@ -2966,6 +2988,7 @@ FILE_EXT_TO_MIME_TYPE_MAP = {
 
 # style paths to move up and what they become - Format: (Parent, Child, SubChild): "NewName"
 STYLE_TRANSFORMATION_MAP = {
+    ("text-properties", "letter", "spacing")        : (("ParagraphStyle", ), "letter-spacing", str_to_size),
     ("text-properties", "color")           	        : (("ParagraphStyle", "font",), "color", rgb_from_hex),
     ("text-properties", "font", "family")           : (("ParagraphStyle", "font",), "name", None),
     ("text-properties", "font", "size")             : (("ParagraphStyle", "font",), "size", str_to_size),

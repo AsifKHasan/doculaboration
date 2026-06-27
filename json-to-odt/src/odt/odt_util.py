@@ -298,6 +298,8 @@ def create_covered_table_cell(odt, table_cell_style_attributes, table_cell_prope
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # paragraphs and styles
 
+''' get or create a Bangla CTL style
+'''
 def get_bangla_paragraph_style(odt, style_name='BanglaParagraphStyle', nesting_level=0):
     bangla_style = get_style_by_name(odt, style_name=style_name, nesting_level=nesting_level+1)
     if bangla_style is None:
