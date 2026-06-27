@@ -897,7 +897,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 
 ''' set paragraph spacing
-	spacing is assumed to be in pt which is 20 twips
+	spacing is assumed to be in emu which
+	i pt is 20 twips
 '''
 def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
 	spacing_in_pt = spacing_in_emu / EMU_PER_PT
@@ -2231,7 +2232,7 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 		# letter-spacing
 		if 'letter-spacing' in style_spec['ParagraphStyle']:
 			if element is not None:
-				set_paragraph_spacing(docx=docx, paragraph=paragraph, spacing_in_pt=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+				set_paragraph_spacing(docx=docx, paragraph=paragraph, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
 
 
 
