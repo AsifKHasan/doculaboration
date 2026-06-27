@@ -899,7 +899,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 ''' set paragraph spacing
 	spacing is assumed to be in pt which is 20 twips
 '''
-def set_paragraph_spacing(docx, paragraph, spacing_in_pt, nesting_level=0):
+def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
+	spacing_in_pt = spacing_in_emu / EMU_PER_PT
 	print(f"spacing is {spacing_in_pt}pt")
 	spacing_in_twips = spacing_in_pt * 20
 	for run in paragraph.runs:
