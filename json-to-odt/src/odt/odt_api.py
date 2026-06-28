@@ -89,6 +89,7 @@ class OdtSectionBase(object):
             self.first_master_page_name = f"mp-{self.section_id}-first"
             self.first_master_page = create_master_page(self._odt, first_section=self.first_section, document_index=self.document_index, master_page_name=self.first_master_page_name, page_spec=self.page_spec, margin_spec=self.margin_spec, orientation=self.orientation, page_num_format=self.page_num_format, next_master_page_style=self.master_page_name, nesting_level=nesting_level+1)
             self.first_master_page_name = self.first_master_page.getAttribute('name')
+
         else:
             self.first_master_page_name = None
             self.first_master_page = None
@@ -97,6 +98,7 @@ class OdtSectionBase(object):
         if self.landscape == True:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
+            
         else:
             self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])

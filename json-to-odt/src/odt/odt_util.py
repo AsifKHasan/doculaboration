@@ -1038,14 +1038,17 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
 
     page_layout_attrs['margintop'] = f"{margin_spec['top']}in"
     page_layout_attrs['marginbottom'] = f"{margin_spec['bottom']}in"
+
     page_layout_attrs['marginleft'] = f"{margin_spec['left']}in"
     page_layout_attrs['marginright'] = f"{margin_spec['right']}in"
+
     page_layout_attrs['printorientation'] = orientation
     page_layout_attrs['numformat'] = page_num_format
 
     if margin_spec['gutter'] != '':
-        outer_margin = margin_spec['left'] + margin_spec['gutter']
+        outer_margin = margin_spec['right'] + margin_spec['gutter']
         page_layout_attrs['marginleft'] = f"{outer_margin}in"
+        page_layout_attrs['marginright'] = f"{margin_spec['left']}in"
 
     # set attributes
     for attr_name, attr_value in page_layout_attrs.items():
@@ -1057,7 +1060,7 @@ def create_page_layout(odt, page_layout_name, page_spec, margin_spec, orientatio
 
     if margin_spec['gutter'] != '':
         loext_namespace_url = "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0"
-        page_layout_properties.setAttrNS(loext_namespace_url, "margin-gutter", f"{margin_spec['gutter']}in")
+        # page_layout_properties.setAttrNS(loext_namespace_url, "margin-gutter", f"{margin_spec['gutter']}in")
 
     # HACK: Set the footnote max-height constraint.
     # To allow it to split across pages dynamically without an artificial ceiling,
