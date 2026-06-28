@@ -112,17 +112,18 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 
 	docx_section.left_margin = Inches(margin_spec['left'])
 	docx_section.right_margin = Inches(margin_spec['right'])
-	docx_section.top_margin = Inches(margin_spec['top'])
-	docx_section.bottom_margin = Inches(margin_spec['bottom'])
+
+	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header'])
+	docx_section.bottom_margin = Inches(margin_spec['bottom']) + Inches(margin_spec['distance']['footer'])
 
 	docx_section.gutter = Inches(margin_spec['gutter'])
 
 	# in docx header.header_distance is the distance from top edge of page to top edge of header
-	docx_section.header_distance = Inches(margin_spec['top'])
+	# docx_section.header_distance = Inches(margin_spec['top'])
 	# docx_section.header_distance = Inches(margin_spec['distance']['header'])
 
 	# in docx header.footer_distance is the distance from bottom edge of page to bottom edge of the footer
-	docx_section.footer_distance = Inches(margin_spec['bottom'])
+	# docx_section.footer_distance = Inches(margin_spec['bottom'])
 	# docx_section.footer_distance = Inches(margin_spec['distance']['footer'])
 
 	docx_section.different_first_page_header_footer = different_firstpage

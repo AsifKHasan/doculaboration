@@ -65,6 +65,9 @@ class DocxSectionBase(object):
         self.document_nesting_depth = self.section_meta['document-nesting-depth']
         self.page_layout_name = self.section_meta['page-layout']
 
+        self.estimated_header_height_in_inches = 0
+        self.estimated_footer_height_in_inches = 0
+
         # prepare field_list for values for FIELD{} directive
         self.field_list = {
             'SECTION': self.label,
@@ -165,8 +168,6 @@ class DocxSectionBase(object):
         # paragraph = None
         # if heading_text is not None:
         paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
-
-          
 
         for heading_style in self.heading_style:
             if heading_style is not None:
@@ -662,6 +663,7 @@ class DocxPageHeaderFooter(DocxContent):
         super().__init__(docx=docx, content_data=content_data, content_width=section_width, document_nesting_depth=document_nesting_depth, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
+        self.estimated_header_footer_height_in_inches = 0
 
 
 
@@ -691,6 +693,7 @@ class DocxTable(DocxBlock):
         self.row_count = len(self.table_cell_matrix)
         self.col_count = len(column_widths)
         self.table_name = f"Table_{random_string()}"
+        self.estimated_table_height_in_inches = 0
 
         # header row if any
         first_cell = self.table_cell_matrix[0].get_cell(0)
@@ -707,6 +710,7 @@ class DocxTable(DocxBlock):
     def calculate_row_heights(self, nesting_level=0):
         # TODO: calculate row heights - consider text content and merges
         # trace(f"table starts ...", nesting_level=nesting_level)
+        self.estimated_table_height_in_inches = 0
         for row in self.table_cell_matrix:
             this_row_max_estimated_height = 0
             # trace(f"row {row}", nesting_level=nesting_level+1)
@@ -723,6 +727,9 @@ class DocxTable(DocxBlock):
 
             # set max estimated height for this row
             row.estimated_row_height_in_inches = this_row_max_estimated_height
+
+            # calculate the estimated table height too
+            self.estimated_table_height_in_inches = self.estimated_table_height_in_inches + this_row_max_estimated_height
 
         # now we iterate over rows and get the max estimated height for the cells in the row which is the estimated height of the row
         for row in self.table_cell_matrix:
