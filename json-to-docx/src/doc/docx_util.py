@@ -899,7 +899,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 ''' set paragraph spacing
 	spacing is assumed to be in emu which
-	i pt is 20 twips
+	1 pt is 20 twips
+	so anything below 0.05pt is actually 0.05pt
 '''
 def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
 	spacing_in_twips = math.ceil((spacing_in_emu * 20) / EMU_PER_PT)
