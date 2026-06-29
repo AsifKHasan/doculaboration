@@ -2892,7 +2892,7 @@ CELL_MARGIN_FOR_IMAGE_IN_PT = 0
 PDF_PAGE_HEIGHT_OFFSET = 0.5
 
 # default header height to fallback to when header height can not be calculated
-DEFAULT_HEADER_HEIGHT_IN_INCHES = 0.22
+DEFAULT_HEADER_HEIGHT_IN_INCHES = 0.27
 
 
 # 0-based gsheet column number to column letter map
