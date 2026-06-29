@@ -114,17 +114,17 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 	docx_section.right_margin = Inches(margin_spec['right'])
 
 	# add distance:header with top margin so that there is a gap between header and body
-	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header'])
+	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header']) + DEFAULT_HEADER_HEIGHT_IN_INCHES
 	# add distance:footer with bottom margin so that there is a gap between body and footer
 	docx_section.bottom_margin = Inches(margin_spec['bottom']) + Inches(margin_spec['distance']['footer'])
 
 	docx_section.gutter = Inches(margin_spec['gutter'])
 
-	# in docx header.header_distance is the distance from top edge of page to top edge of header
-	# docx_section.header_distance = CALCULATION REQUIRED
+	# in docx header.header_distance is the distance from top edge of page to top edge of header, CALCULATION REQUIRED
+	docx_section.header_distance = Inches(margin_spec['top'])
 
-	# in docx header.footer_distance is the distance from bottom edge of page to bottom edge of the footer
-	# docx_section.footer_distance = CALCULATION REQUIRED
+	# in docx header.footer_distance is the distance from bottom edge of page to bottom edge of the footer, CALCULATION REQUIRED
+	docx_section.footer_distance = Inches(margin_spec['bottom'])
 
 	docx_section.different_first_page_header_footer = different_firstpage
 	docx.settings.odd_and_even_pages_header_footer = different_odd_even_pages
@@ -2890,6 +2890,10 @@ CELL_MARGIN_FOR_IMAGE_IN_PT = 0
 
 # height offset for full page image extracted from pdf
 PDF_PAGE_HEIGHT_OFFSET = 0.5
+
+# default header height to fallback to when header height can not be calculated
+DEFAULT_HEADER_HEIGHT_IN_INCHES = 0.22
+
 
 # 0-based gsheet column number to column letter map
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
