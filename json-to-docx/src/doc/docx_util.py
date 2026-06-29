@@ -114,7 +114,7 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 	docx_section.right_margin = Inches(margin_spec['right'])
 
 	# add distance:header with top margin so that there is a gap between header and body
-	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header']) + DEFAULT_HEADER_HEIGHT_IN_INCHES
+	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header']) + Inches(DEFAULT_HEADER_HEIGHT_IN_INCHES)
 	# add distance:footer with bottom margin so that there is a gap between body and footer
 	docx_section.bottom_margin = Inches(margin_spec['bottom']) + Inches(margin_spec['distance']['footer'])
 
