@@ -142,15 +142,15 @@ class DocxSectionBase(object):
 
         if self.header_first is not None:
             self.header_first.content_to_docx(container=self.docx_section.first_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-first height is {self.header_first.self.estimated_header_footer_height_in_inches}in")
+            print(f"header-first height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.header_odd is not None:
             self.header_odd.content_to_docx(container=self.docx_section.header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-odd   height is {self.header_first.self.estimated_header_footer_height_in_inches}in")
+            print(f"header-odd   height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.header_even is not None:
             self.header_even.content_to_docx(container=self.docx_section.even_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-even  height is {self.header_first.self.estimated_header_footer_height_in_inches}in")
+            print(f"header-even  height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.footer_first is not None:
             self.footer_first.content_to_docx(container=self.docx_section.first_page_footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
