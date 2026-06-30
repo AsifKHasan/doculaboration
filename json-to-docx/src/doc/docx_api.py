@@ -687,16 +687,31 @@ class DocxPageHeaderFooter(DocxContent):
         if self.distance_to_body > 0:
             if self.header_footer == 'footer':
                 if self.odd_even == 'first':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this.")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap before this.")
+                        pass
             
                 elif self.odd_even == 'odd':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this. [{len(self.content_list)}] content items")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap before this.")
+                        pass
 
                 elif self.odd_even == 'even':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this. [{len(self.content_list)}] content items")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap before this.")
+                        pass
 
 
         # call the super method
@@ -706,16 +721,32 @@ class DocxPageHeaderFooter(DocxContent):
         if self.distance_to_body > 0:
             if self.header_footer == 'header':
                 if self.odd_even == 'first':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this. [{len(self.content_list)}] content items")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap after this.")
+                        pass
             
                 elif self.odd_even == 'odd':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this. [{len(self.content_list)}] content items")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap after this.")
+                        pass
 
                 elif self.odd_even == 'even':
-                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
-                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+                    if len(self.content_list) > 0:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this. [{len(self.content_list)}] content items")
+                        add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                    else:
+                        # print(f"this is [{self.odd_even}] page [{self.header_footer}], No content, so no gap after this.")
+                        pass
+
 
 
 ''' Docx Block object wrapper base class (plain docx, table, header etc.)
