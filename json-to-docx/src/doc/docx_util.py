@@ -114,9 +114,12 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 	docx_section.right_margin = Inches(margin_spec['right'])
 
 	# add distance:header with top margin so that there is a gap between header and body
-	docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header']) + Inches(DEFAULT_HEADER_HEIGHT_IN_INCHES)
+	docx_section.top_margin = Inches(margin_spec['top'])
+	# docx_section.top_margin = Inches(margin_spec['top']) + Inches(margin_spec['distance']['header']) + Inches(DEFAULT_HEADER_HEIGHT_IN_INCHES)
+
 	# add distance:footer with bottom margin so that there is a gap between body and footer
-	docx_section.bottom_margin = Inches(margin_spec['bottom']) + Inches(margin_spec['distance']['footer'])
+	docx_section.bottom_margin = Inches(margin_spec['bottom'])
+	# docx_section.bottom_margin = Inches(margin_spec['bottom']) + Inches(margin_spec['distance']['footer'])
 
 	docx_section.gutter = Inches(margin_spec['gutter'])
 
@@ -1112,6 +1115,21 @@ def remove_empty_first_paragraph_from_header_footer(header_footer, nesting_level
 			# trace("verified empty paragraph and removed it", nesting_level=nesting_level+1)
 		else:
 			warn("first Paragraph is not empty. Skipping deletion to prevent data loss", nesting_level=nesting_level+1)
+
+
+''' add a fixed height space
+	HACK: we need a small paragraph with spacing
+'''
+def add_space_with_exact_height(container, space_height_in_inches, nesting_level=0):
+	# 1. Add an empty paragraph at the very top
+	gap_p = container.add_paragraph()
+
+	# 2. Shrink its line height and font to 1pt so it doesn't create massive blank space
+	gap_p.paragraph_format.line_spacing = Pt(1)
+	gap_p.paragraph_format.space_before = Pt(0)
+
+	# 3. Add the exact space after value (0.1 Inches)
+	gap_p.paragraph_format.space_after = Inches(space_height_in_inches)
 
 
 

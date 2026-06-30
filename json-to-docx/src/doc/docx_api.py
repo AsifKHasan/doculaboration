@@ -93,12 +93,12 @@ class DocxSectionBase(object):
 
         # handle headers and footers
         if new_section == True:
-            self.header_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
-            self.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
-            self.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
-            self.footer_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
-            self.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
-            self.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.header_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-first'], section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='first', distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_first = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-first'], section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='first', distance_to_body=self.margin_spec['distance']['footer'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   distance_to_body=self.margin_spec['distance']['footer'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
+            self.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  distance_to_body=self.margin_spec['distance']['footer'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level)
 
         else:
             self.header_first = None
@@ -142,15 +142,15 @@ class DocxSectionBase(object):
 
         if self.header_first is not None:
             self.header_first.content_to_docx(container=self.docx_section.first_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-first height is {self.header_first.estimated_header_footer_height_in_inches}in")
+            # print(f"header-first height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.header_odd is not None:
             self.header_odd.content_to_docx(container=self.docx_section.header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-odd   height is {self.header_first.estimated_header_footer_height_in_inches}in")
+            # print(f"header-odd   height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.header_even is not None:
             self.header_even.content_to_docx(container=self.docx_section.even_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
-            print(f"header-even  height is {self.header_first.estimated_header_footer_height_in_inches}in")
+            # print(f"header-even  height is {self.header_first.estimated_header_footer_height_in_inches}in")
 
         if self.footer_first is not None:
             self.footer_first.content_to_docx(container=self.docx_section.first_page_footer, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
@@ -309,22 +309,22 @@ class DocxPdfSection(DocxSectionBase):
     def process_pdf_page_header_footer(self, docx_section, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
         if self._section_data['header-odd'] is not None:
-            docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+            docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.header_odd = None
 
         if self._section_data['header-even'] is not None:
-            docx_section.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+            docx_section.header_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='even',  distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.header_even = None
 
         if self._section_data['footer-odd'] is not None:
-            docx_section.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+            docx_section.footer_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='odd',   distance_to_body=self.margin_spec['distance']['footer'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.footer_odd = None
 
         if self._section_data['footer-even'] is not None:
-            docx_section.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+            docx_section.footer_even  = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['footer-even'],  section_width=self.section_width, section_index=self.section_index, header_footer='footer', odd_even='even',  distance_to_body=self.margin_spec['distance']['footer'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
             docx_section.footer_even = None
 
@@ -416,6 +416,8 @@ class DocxContent(object):
         self.row_count, self.column_count = 0, 0
         self.start_row, self.start_column = 0, 0
 
+        self.estimated_height_in_inches = 0
+
         # we need a list to hold the tables and block for the cells
         self.cell_matrix, self.content_list, self.row_metadata_list, self.column_metadata_list, self.merge_list,  = [], [], [], [], []
 
@@ -475,6 +477,12 @@ class DocxContent(object):
 
         else:
             self.has_content = False
+
+        # calculate estimated height
+        for block in self.content_list:
+            self.estimated_height_in_inches = self.estimated_height_in_inches + block.estimated_height_in_inches
+
+        # print(f"content height is {self.estimated_height_in_inches}in")
 
 
     ''' processes the cells to
@@ -645,6 +653,7 @@ class DocxContent(object):
         # iterate through tables and blocks contents
         for block in self.content_list:
             block.block_to_docx(container=container, container_width=self.content_width, field_list=field_list, nesting_level=0)
+            self.estimated_height_in_inches = self.estimated_height_in_inches + block.estimated_height_in_inches
 
     	# remove empty first paragraph from all header/footer
         if remove_empty_first_paragraph == True:
@@ -660,14 +669,53 @@ class DocxPageHeaderFooter(DocxContent):
         header_footer : header/footer
         odd_even      : first/odd/even(left)
     '''
-    def __init__(self, docx, content_data, section_width, section_index, header_footer, odd_even, document_nesting_depth, nesting_level=0):
+    def __init__(self, docx, content_data, section_width, section_index, header_footer, odd_even, distance_to_body, document_nesting_depth, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
 
         super().__init__(docx=docx, content_data=content_data, content_width=section_width, document_nesting_depth=document_nesting_depth, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
+        self.distance_to_body = distance_to_body
         self.page_header_footer_id = f"{self.header_footer}-{self.odd_even}-{section_index}"
         self.estimated_header_footer_height_in_inches = 0
 
+
+    ''' generates the docx code
+        container may be docx, header/footer or a Cell
+    '''
+    def content_to_docx(self, container, field_list={}, remove_empty_first_paragraph=False, nesting_level=0):
+        # for header we need distance_to_body after the header
+        if self.distance_to_body > 0:
+            if self.header_footer == 'footer':
+                if self.odd_even == 'first':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+            
+                elif self.odd_even == 'odd':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                elif self.odd_even == 'even':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap before this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+
+        # call the super method
+        super().content_to_docx(container=container, field_list=field_list, remove_empty_first_paragraph=remove_empty_first_paragraph, nesting_level=nesting_level)
+
+        # for header we need distance_to_body after the header
+        if self.distance_to_body > 0:
+            if self.header_footer == 'header':
+                if self.odd_even == 'first':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+            
+                elif self.odd_even == 'odd':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
+
+                elif self.odd_even == 'even':
+                    print(f"this is [{self.odd_even}] page [{self.header_footer}], we need a {self.distance_to_body}in gap after this")
+                    add_space_with_exact_height(container=container, space_height_in_inches=self.distance_to_body, nesting_level=nesting_level+1)
 
 
 ''' Docx Block object wrapper base class (plain docx, table, header etc.)
@@ -678,7 +726,7 @@ class DocxBlock(object):
     '''
     def __init__(self, nesting_level=0):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
-        pass
+        self.estimated_height_in_inches = 0
 
 
 
@@ -696,7 +744,7 @@ class DocxTable(DocxBlock):
         self.row_count = len(self.table_cell_matrix)
         self.col_count = len(column_widths)
         self.table_name = f"Table_{random_string()}"
-        self.estimated_table_height_in_inches = 0
+        self.estimated_height_in_inches = 0
 
         # header row if any
         first_cell = self.table_cell_matrix[0].get_cell(0)
@@ -713,7 +761,7 @@ class DocxTable(DocxBlock):
     def calculate_row_heights(self, nesting_level=0):
         # TODO: calculate row heights - consider text content and merges
         # trace(f"table starts ...", nesting_level=nesting_level)
-        self.estimated_table_height_in_inches = 0
+        self.estimated_height_in_inches = 0
         for row in self.table_cell_matrix:
             this_row_max_estimated_height = 0
             # trace(f"row {row}", nesting_level=nesting_level+1)
@@ -732,7 +780,7 @@ class DocxTable(DocxBlock):
             row.estimated_row_height_in_inches = this_row_max_estimated_height
 
             # calculate the estimated table height too
-            self.estimated_table_height_in_inches = self.estimated_table_height_in_inches + this_row_max_estimated_height
+            self.estimated_height_in_inches = self.estimated_height_in_inches + this_row_max_estimated_height
 
         # now we iterate over rows and get the max estimated height for the cells in the row which is the estimated height of the row
         for row in self.table_cell_matrix:
@@ -820,6 +868,7 @@ class DocxParagraph(DocxBlock):
 
         self.data_row = data_row
         self.row_number = row_number
+        self.estimated_height_in_inches = 0
 
 
     ''' string representation
