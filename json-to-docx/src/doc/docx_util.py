@@ -125,13 +125,17 @@ def add_or_update_document_section(docx, page_spec, margin_spec, orientation, di
 
 	# in docx header.header_distance is the distance from top edge of page to top edge of header, CALCULATION REQUIRED
 	if DEFAULT_HEADER_HEIGHT_IN_INCHES < margin_spec['top']:
-		docx_section.header_distance = Inches(margin_spec['top'] - DEFAULT_HEADER_HEIGHT_IN_INCHES)
+		# docx_section.header_distance = Inches(margin_spec['top'] - DEFAULT_HEADER_HEIGHT_IN_INCHES)
+		docx_section.header_distance = Inches(margin_spec['top'])
+
 	else:
 		docx_section.header_distance = Inches(0)
 
 	# in docx header.footer_distance is the distance from bottom edge of page to bottom edge of the footer, CALCULATION REQUIRED
 	if DEFAULT_HEADER_HEIGHT_IN_INCHES < margin_spec['bottom']:
-		docx_section.footer_distance = Inches(margin_spec['bottom'] - DEFAULT_HEADER_HEIGHT_IN_INCHES)
+		# docx_section.footer_distance = Inches(margin_spec['bottom'] - DEFAULT_HEADER_HEIGHT_IN_INCHES)
+		docx_section.footer_distance = Inches(margin_spec['bottom'])
+
 	else:
 		docx_section.footer_distance = Inches(0)
 
