@@ -893,7 +893,6 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 		else:
 			# if text content is blank there will be nothing in the blocks, treat it as a blank text so that it is not ignored
 			if text_attributes is not None and 'fontsize' in text_attributes:
-				print(f"[empty_paragraph_with_fixed_fontsize] font_name=[{text_attributes.get('fontname')}]")
 				empty_paragraph_with_fixed_fontsize(paragraph=paragraph, font_size=text_attributes['fontsize'], font_name=text_attributes.get('fontname', ConfigService()._default_font), nesting_level=nesting_level+1)
 
 
