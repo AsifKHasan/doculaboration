@@ -892,10 +892,9 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 
 		else:
 			# if text content is blank there will be nothing in the blocks, treat it as a blank text so that it is not ignored
-			run = paragraph.add_run()
-			set_text_style(run=run, text_attributes=text_attributes)
 			if text_attributes is not None and 'fontsize' in text_attributes:
-				empty_paragraph_with_fixed_fontsize(paragraph=paragraph, font_size=text_attributes['fontsize'], nesting_level=nesting_level+1)
+				print(f"[empty_paragraph_with_fixed_fontsize] font_name=[{text_attributes.get('fontname')}]")
+				empty_paragraph_with_fixed_fontsize(paragraph=paragraph, font_size=text_attributes['fontsize'], font_name=text_attributes.get('fontname', ConfigService()._default_font), nesting_level=nesting_level+1)
 
 
 	# bookmark
@@ -918,7 +917,7 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 '''
 def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
 	spacing_in_twips = math.ceil((spacing_in_emu * 20) / EMU_PER_PT)
-	print(f"spacing is {spacing_in_twips}twips")
+	# print(f"spacing is {spacing_in_twips}twips")
 	for run in paragraph.runs:
 		rPr = run._r.get_or_add_rPr()
 
@@ -1062,7 +1061,7 @@ def set_text_style(run, text_attributes, nesting_level=0):
 ''' make a paragraph empty and force a fixed font size for that paragraph
 	this is required as a hack as Word does not render empty cell paragraphs at all
 '''
-def empty_paragraph_with_fixed_fontsize(paragraph, font_size, nesting_level=0):
+def empty_paragraph_with_fixed_fontsize(paragraph, font_size, font_name, nesting_level=0):
 	# Ensure the cell is completely text-free
 	paragraph.text = "" 
 
@@ -1077,6 +1076,16 @@ def empty_paragraph_with_fixed_fontsize(paragraph, font_size, nesting_level=0):
 
 	rPr.append(sz)
 	pPr.append(rPr)
+
+	if font_name is not None:
+		run = paragraph.add_run()
+		run.font.name = font_name
+
+		# Force Word to recognize the font name override
+		rPr = run._r.get_or_add_rPr()
+		rFonts = rPr.get_or_add_rFonts()
+		rFonts.set(qn('w:ascii'), font_name)
+		rFonts.set(qn('w:hAnsi'), font_name)
 
 
 ''' inside a paragraph move a run from anywhere to start as the 0th run

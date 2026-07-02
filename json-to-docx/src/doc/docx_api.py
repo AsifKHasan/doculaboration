@@ -17,7 +17,7 @@ class DocxSectionBase(object):
     ''' constructor
     '''
     def __init__(self, docx, section_data, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
         self._docx = docx
         self._section_data = section_data
 
@@ -138,7 +138,7 @@ class DocxSectionBase(object):
     ''' Header/Footer processing
     '''
     def process_header_footer(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         if self.header_first is not None:
             self.header_first.content_to_docx(container=self.docx_section.first_page_header, field_list=self.field_list, remove_empty_first_paragraph=True, nesting_level=nesting_level+1)
@@ -165,7 +165,7 @@ class DocxSectionBase(object):
     ''' generates the docx code
     '''
     def section_to_docx(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         heading_text, _, style_name = self.get_heading()
         # paragraph = None
@@ -175,11 +175,11 @@ class DocxSectionBase(object):
         for heading_style in self.heading_style:
             if heading_style is not None:
                 if heading_style not in ConfigService()._style_specs:
-                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
+                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level+1)
 
                 else:
                     if paragraph is not None:
-                        # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                        # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level+1)
                         apply_custom_style(docx=self._docx, style_spec=ConfigService()._style_specs[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
                     # handle background image
@@ -198,7 +198,7 @@ class DocxTableSection(DocxSectionBase):
     ''' constructor
     '''
     def __init__(self, docx, section_data, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         super().__init__(docx=docx, section_data=section_data, nesting_level=nesting_level)
 
@@ -206,7 +206,7 @@ class DocxTableSection(DocxSectionBase):
     ''' generates the docx code
     '''
     def section_to_docx(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         super().process_header_footer(nesting_level=nesting_level)
         super().section_to_docx(nesting_level=nesting_level)
@@ -307,7 +307,7 @@ class DocxPdfSection(DocxSectionBase):
     ''' Pdf Page specific Header/Footer processing
     '''
     def process_pdf_page_header_footer(self, docx_section, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
         if self._section_data['header-odd'] is not None:
             docx_section.header_odd   = DocxPageHeaderFooter(docx=self._docx, content_data=self._section_data['header-odd'],   section_width=self.section_width, section_index=self.section_index, header_footer='header', odd_even='odd',   distance_to_body=self.margin_spec['distance']['header'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
         else:
@@ -406,7 +406,7 @@ class DocxContent(object):
     ''' constructor
     '''
     def __init__(self, docx, content_data, content_width, document_nesting_depth, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
         self._docx = docx
         self.document_nesting_depth = document_nesting_depth
         self.content_data = content_data
@@ -490,10 +490,10 @@ class DocxContent(object):
         2. generate the proper order of tables and blocks
     '''
     def process(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # first we identify the missing cells or blank cells for merged spans
-        # warn(f"processing merges", nesting_level=nesting_level+1)
+        # warn(f"processing merges", nesting_level=nesting_level)
         for merge in self.merge_list:
             first_row = merge.start_row
             first_col = merge.start_col
@@ -511,7 +511,7 @@ class DocxContent(object):
                 continue
 
             if first_cell is None:
-                warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there")
+                warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there", nesting_level=nesting_level+1)
                 continue
 
             if col_span > 1:
@@ -555,7 +555,7 @@ class DocxContent(object):
 
                     if next_cell_in_row.is_empty:
                         # the cell is a newly inserted one, its format should be the same (for borders, colors) as the first cell so that we can draw borders properly
-                        # debug(f"cell [{next_cell_in_row.cell_id}] is empty")
+                        # debug(f"cell [{next_cell_in_row.cell_id}] is empty", nesting_level=nesting_level+1)
                         next_cell_in_row.copy_format_from(first_cell)
 
                         # mark cells for multicol only if it is multicol
@@ -593,13 +593,13 @@ class DocxContent(object):
                             next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
-                        warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
+                        warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue", nesting_level=nesting_level+1)
 
 
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # we have a concept of in-cell content and out-of-cell (free) content
         # in-cell contents are treated as part of a table, while out-of-cell (free) contents are treated as independent paragraphs, images etc. (blocks)
@@ -648,7 +648,7 @@ class DocxContent(object):
         container may be docx, header/footer or a Cell
     '''
     def content_to_docx(self, container, field_list={}, remove_empty_first_paragraph=False, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # iterate through tables and blocks contents
         for block in self.content_list:
@@ -670,7 +670,7 @@ class DocxPageHeaderFooter(DocxContent):
         odd_even      : first/odd/even(left)
     '''
     def __init__(self, docx, content_data, section_width, section_index, header_footer, odd_even, distance_to_body, document_nesting_depth, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         super().__init__(docx=docx, content_data=content_data, content_width=section_width, document_nesting_depth=document_nesting_depth, nesting_level=nesting_level)
         self.header_footer, self.odd_even = header_footer, odd_even
@@ -756,7 +756,7 @@ class DocxBlock(object):
     ''' constructor
     '''
     def __init__(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
         self.estimated_height_in_inches = 0
 
 
@@ -768,7 +768,7 @@ class DocxTable(DocxBlock):
     ''' constructor
     '''
     def __init__(self, cell_matrix, start_row, end_row, column_widths, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         self.start_row, self.end_row, self.column_widths = start_row, end_row, column_widths
         self.table_cell_matrix = cell_matrix[start_row:end_row+1]
@@ -824,7 +824,7 @@ class DocxTable(DocxBlock):
     ''' generates the docx code
     '''
     def block_to_docx(self, container, container_width, field_list={}, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         num_cols = len(self.column_widths)
         num_rows = len(self.table_cell_matrix)
@@ -846,7 +846,7 @@ class DocxTable(DocxBlock):
 
             # header rows
             for r in range(0, self.header_row_count):
-                # trace(f"repeating row : {r}")
+                # trace(f"repeating row : {r}", nesting_level=nesting_level+1)
                 set_repeat_table_header(tbl.rows[r], nesting_level=nesting_level+1)
 
             # merge cells
@@ -861,7 +861,7 @@ class DocxTable(DocxBlock):
                             end_table_cell = tbl.cell(row_index + cell.merge_spec.row_span-1, col_index + cell.merge_spec.col_span-1)
                             start_table_cell.merge(end_table_cell)
                     else:
-                        warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be")
+                        warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be", nesting_level=nesting_level+1)
 
 
             #  decorate cells
@@ -872,7 +872,7 @@ class DocxTable(DocxBlock):
                     if cell is not None:
                         cell.decorate_cell(nesting_level=nesting_level+1)
                     else:
-                        # warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be")
+                        # warn(f"[{self.__class__.__name__} : {inspect.stack()[0][3]}] - row [{row_index}], cell [{col_index}] is None, that should not be", nesting_level=nesting_level+1)
                         pass
 
 
@@ -895,7 +895,7 @@ class DocxParagraph(DocxBlock):
     ''' constructor
     '''
     def __init__(self, data_row, row_number, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         self.data_row = data_row
         self.row_number = row_number
@@ -911,7 +911,7 @@ class DocxParagraph(DocxBlock):
     ''' generates the docx code
     '''
     def block_to_docx(self, container, container_width, field_list={}, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # generate the block, only the first cell of the data_row to be produced
         if len(self.data_row.cells) > 0:
@@ -953,7 +953,7 @@ class Row(object):
     ''' generates the docx code
     '''
     def row_to_doc_table_row(self, table, table_row, field_list={}, nesting_level=0):
-        # trace(f"writing [{self}]", nesting_level=nesting_level+1)
+        # trace(f"writing [{self}]", nesting_level=nesting_level)
         table_row.height = Inches(self.row_height)
 
         if self.fixed_row_height == True:
@@ -1086,8 +1086,8 @@ class Cell(object):
 
         self.merge_spec = CellMergeSpec()
         self.note = None
-        self.effective_format = CellFormat(format_dict=None)
-        self.user_entered_format = CellFormat(format_dict=None)
+        self.effective_format = CellFormat(cell_repr=self, format_dict=None, nesting_level=nesting_level+1)
+        self.user_entered_format = CellFormat(cell_repr=self, format_dict=None, nesting_level=nesting_level+1)
 
         # considering merges, we have effective cell width and height
         self.effective_cell_width = self.cell_width
@@ -1103,18 +1103,18 @@ class Cell(object):
                     self.inline_images.append(InlineImage(ii_dict, nesting_level=nesting_level+1))
 
             note_dict = self.value.get('notes', {})
-            self.note = CellNote(document_nesting_depth=self.document_nesting_depth, note_dict=note_dict, nesting_level=nesting_level)
+            self.note = CellNote(document_nesting_depth=self.document_nesting_depth, note_dict=note_dict, nesting_level=nesting_level+1)
 
             self.formatted_value = self.value.get('formattedValue', '')
 
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'))
+            self.effective_format = CellFormat(cell_repr=self, format_dict=self.value.get('effectiveFormat'), nesting_level=nesting_level+1)
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source))
+                self.text_format_runs.append(TextFormatRun(cell_repr=self, run_dict=text_format_run, default_format=self.effective_format.text_format.source), nesting_level=nesting_level+1)
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
-                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'))
+                self.user_entered_format = CellFormat(cell_repr=self, format_dict=self.value.get('userEnteredFormat'), nesting_level=nesting_level+1)
                 self.is_empty = False
 
                 # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
@@ -1128,25 +1128,25 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(docx=self._docx, effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+                self.cell_value = ContentValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(docx=self._docx, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+                    self.cell_value = ImageValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
 
                 else:
                     if len(self.text_format_runs) > 0:
-                        self.cell_value = TextRunValue(docx=self._docx, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+                        self.cell_value = TextRunValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
 
                     else:
                         if self.note.script  is not None and self.note.script == 'latex':
-                            self.cell_value = LatexValue(docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
+                            self.cell_value = LatexValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
                         else:
-                            self.cell_value = StringValue(docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
+                            self.cell_value = StringValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
             else:
-                self.cell_value = StringValue(docx=self._docx, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
+                self.cell_value = StringValue(cell_repr=self, docx=self._docx, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
         else:
             # value can have a special case it can be an empty dictionary when the cell is an inner cell of a merge
@@ -1158,7 +1158,8 @@ class Cell(object):
     ''' string representation
     '''
     def __repr__(self):
-        s = f"[{self.cell_name}] [{self.formatted_value[0:50]}]"
+        s = f"{self.cell_name}"
+        # s = f"[{self.cell_name}] [{self.formatted_value[0:50]}]"
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.formatted_value[0:50]}]"
         # s = f".... {self.cell_name:>4}, value: {not self.is_empty:<1}, mr: {self.merge_spec.multi_row:<9}, mc: {self.merge_spec.multi_col:<9} [{self.effective_format.borders}]"
         return s
@@ -1167,7 +1168,7 @@ class Cell(object):
     ''' docx code for cell content
     '''
     def cell_to_doc_table_cell(self, table, table_cell, field_list={}, nesting_level=0):
-        # trace(f"{self}")
+        # trace(f"{self} [Cell::cell_to_doc_table_cell]", nesting_level=nesting_level)
         self.table_cell = table_cell
         table_cell.width = Inches(self.cell_width)
 
@@ -1188,13 +1189,14 @@ class Cell(object):
                                 self.inline_images.append(inline_image)
 
         if self.effective_format is not None:
+            # trace(f"[{self}] [Cell::cell_to_doc_table_cell] executing cell_to_docx", nesting_level=nesting_level)
             self.cell_to_docx(container=table_cell, field_list=field_list, nesting_level=nesting_level+1)
 
 
     ''' docx code for cell content
     '''
     def cell_to_docx(self, container, field_list={}, nesting_level=0):
-        # trace(f"{self}")
+        # trace(f"{self} [Cell::cell_to_docx]", nesting_level=nesting_level)
 
         # for string and image it returns a paragraph, for embedded content a list
         # the content is not valid for multirow LastCell and InnerCell
@@ -1203,12 +1205,12 @@ class Cell(object):
                 # if the cell has a background image, process it first
                 for inline_image in self.inline_images:
                     if inline_image.type == 'background':
-                        # warn(f"[{self}] create_cell_background [{inline_image.file_path}]")
+                        # warn(f"[{self}] create_cell_background [{inline_image.file_path}]", nesting_level=nesting_level+1)
                         container_height = self.cell_height_to_use_for_image_placement(nesting_level=nesting_level+1)
                         create_cell_background(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=container_height, nesting_level=nesting_level+1)
 
                     elif inline_image.type == 'inline':
-                        # warn(f"[{self}] insert_cell_image [{inline_image.file_path}]")
+                        # warn(f"[{self}] insert_cell_image [{inline_image.file_path}]", nesting_level=nesting_level+1)
                         container_height = self.cell_height_to_use_for_image_placement(nesting_level=nesting_level+1)
                         insert_cell_image(cell=container, inline_image=inline_image, container_width=self.effective_cell_width, container_height=container_height, nesting_level=nesting_level+1)
 
@@ -1230,7 +1232,7 @@ class Cell(object):
                     footnote_list = {}
 
                 contains_inline_image = self.contains_inline_image(nesting_level=nesting_level+1)
-                # trace(f"{self}")
+                # trace(f"{self} [Cell::cell_to_docx]", nesting_level=nesting_level)
                 where = self.cell_value.value_to_docx(container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
 
                 # do not apply table-cell format here, it needs to be done after the merging is done
@@ -1283,7 +1285,8 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, document_nesting_depth, outline_level=0):
+    def __init__(self, cell_repr, docx, effective_format, document_nesting_depth, outline_level=0):
+        self.cell_repr = cell_repr
         self._docx = docx
         self.effective_format = effective_format
         self.outline_level = outline_level
@@ -1297,8 +1300,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, directives=True, nesting_level=0):
-        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, directives=True, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
 
         if formatted_value is not None:
             self.value = formatted_value
@@ -1322,6 +1325,17 @@ class StringValue(CellValue):
     ''' generates the docx code
     '''
     def value_to_docx(self, container, container_width, container_height, paragraph_attributes, text_attributes, footnote_list={}, bookmark_dict={}, field_list={}, contains_inline_image=False, nesting_level=0):
+        if text_attributes is not None:
+            if 'fontname' in text_attributes:
+                # trace(f"[{self.cell_repr}] [StringValue::value_to_docx] text font is [{text_attributes['fontname']}]", nesting_level=nesting_level)
+                pass
+
+            else:
+                warn(f"[{self.cell_repr}] [StringValue::value_to_docx] text font not provided", nesting_level=nesting_level)
+
+        else:
+            warn(f"[{self.cell_repr}] [StringValue::value_to_docx] text attribute is None", nesting_level=nesting_level)
+
         paragraph = create_paragraph(docx=self._docx, container=container, text_content=self.value, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=bookmark_dict, field_list=field_list, directives=self.directives, contains_inline_image=contains_inline_image, nesting_level=nesting_level+1)
         return paragraph
 
@@ -1333,8 +1347,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, docx, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value is not None:
             self.value = formatted_value
 
@@ -1368,8 +1382,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, docx, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
 
@@ -1402,8 +1416,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, docx, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1445,7 +1459,7 @@ class ImageValue(CellValue):
                 fit_width_to_container = True
 
         else:
-            warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]")
+            warn(f"unknown mode [{self.value['mode']}] for image [{picture_path}]", nesting_level=nesting_level)
 
         ii_dict = {
             'file-path': picture_path,
@@ -1471,8 +1485,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, docx, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, docx, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, docx=docx, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1502,15 +1516,20 @@ class TextFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, text_format_dict=None, nesting_level=0):
+    def __init__(self, cell_repr, text_format_dict=None, nesting_level=0):
+        self.cell_repr = cell_repr
         self.source = text_format_dict
         if self.source is not None:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
+                # trace(f"[{self.cell_repr}] specified font is [{text_format_dict['fontFamily']}]", nesting_level=nesting_level)
                 self.font_family = get_font_to_be_used(font_asked=text_format_dict['fontFamily'], nesting_level=nesting_level+1)
+                if self.font_family != text_format_dict['fontFamily']:
+                    warn(f"[{self.cell_repr}] font substituted by [{self.font_family}]", nesting_level=nesting_level)
 
             else:
                 self.font_family = ConfigService()._default_font
+                warn(f"[{self.cell_repr}] font not specified, defaulted to [{self.font_family}]", nesting_level=nesting_level)
 
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
@@ -1521,6 +1540,7 @@ class TextFormat(object):
         else:
             self.fgcolor = RgbColor()
             self.font_family = None
+            warn(f"[{self.cell_repr}] font not specified at all", nesting_level=nesting_level)
             self.font_size = 0
             self.is_bold = False
             self.is_italic = False
@@ -1564,7 +1584,8 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict):
+    def __init__(self, cell_repr, format_dict, nesting_level=0):
+        self.cell_repr = cell_repr
         self.bgcolor = None
         self.borders = None
         self.padding = None
@@ -1581,7 +1602,8 @@ class CellFormat(object):
             self.padding = Padding(format_dict.get('padding'))
             self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
-            self.text_format = TextFormat(format_dict.get('textFormat'))
+            # trace(f"[{self.cell_repr}] CellFormat constructor", nesting_level=nesting_level)
+            self.text_format = TextFormat(cell_repr=self.cell_repr, text_format_dict=format_dict.get('textFormat'), nesting_level=nesting_level+1)
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
             self.text_rotation = TextRotation(format_dict.get('textRotation'))
 
@@ -1904,12 +1926,14 @@ class TextFormatRun(object):
 
     ''' constructor
     '''
-    def __init__(self, run_dict=None, default_format=None):
+    def __init__(self, cell_repr, run_dict=None, default_format=None, nesting_level=0):
+        self.cell_repr = cell_repr
         if run_dict is not None:
             self.start_index = int(run_dict.get('startIndex', 0))
             format = run_dict.get('format')
             new_format = {**default_format, **format}
-            self.format = TextFormat(new_format)
+            # trace(f"[{self.cell_repr}] TextFormatRun constructor", nesting_level=nesting_level)
+            self.format = TextFormat(cell_repr=self.cell_repr, text_format_dict=new_format, nesting_level=nesting_level+1)
         else:
             self.start_index = None
             self.format = None
@@ -1989,13 +2013,13 @@ class CellNote(object):
         if self.footnotes is not None:
             if not isinstance(self.footnotes, dict):
                 self.footnotes = {}
-                warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level+1)
+                warn(f"found footnotes, but it is not a valid dictionary", nesting_level=nesting_level)
 
         # bookmark
         if self.bookmark_dict is not None:
             if not isinstance(self.bookmark_dict, dict):
                 self.bookmark_dict = {}
-                warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level+1)
+                warn(f"found bookmark, but it is not a valid dictionary", nesting_level=nesting_level)
 
 
     ''' paragraph attributes dict
@@ -2207,11 +2231,11 @@ def process_pdf(docx, section_data, nesting_level=0):
 ''' odt processor
 '''
 def process_odt(docx, section_data, nesting_level=0):
-    warn(f"content type [odt] not supported")
+    warn(f"content type [odt] not supported", nesting_level=nesting_level)
 
 
 
 ''' docx processor
 '''
 def process_doc(docx, section_data, nesting_level=0):
-    warn(f"content type [docx] not supported")
+    warn(f"content type [docx] not supported", nesting_level=nesting_level)

@@ -17,7 +17,7 @@ class OdtSectionBase(object):
     ''' constructor
     '''
     def __init__(self, odt, section_data, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
         self._odt = odt
         self._section_data = section_data
 
@@ -98,7 +98,7 @@ class OdtSectionBase(object):
         if self.landscape == True:
             self.section_width = float(self.page_spec['height']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['width']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
-            
+
         else:
             self.section_width = float(self.page_spec['width']) - float(self.margin_spec['left']) - float(self.margin_spec['right']) - float(self.margin_spec['gutter'])
             self.section_height = float(self.page_spec['height']) - float(self.margin_spec['top']) - float(self.margin_spec['bottom'])
@@ -221,10 +221,10 @@ class OdtSectionBase(object):
             style = get_style_by_name(odt=self._odt, style_name=style_name)
             if style is not None:
                 if heading_style not in ConfigService()._style_specs:
-                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level)
+                    warn(f"custom style [{heading_style}] not defined in style-specs", nesting_level=nesting_level+1)
 
                 else:
-                    # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level)
+                    # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level+1)
                     apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[heading_style], nesting_level=nesting_level+1)
 
                     # handle background image
@@ -516,7 +516,7 @@ class OdtContent(object):
                 continue
 
             if first_cell is None:
-                warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there")
+                warn(f"cell [{first_cell.cell_name}] starts a span, but it is not there", nesting_level=nesting_level+1)
                 continue
 
             if col_span > 1:
@@ -597,13 +597,13 @@ class OdtContent(object):
                             next_cell_in_row.merge_spec.multi_row = MultiSpan.No
 
                     else:
-                        warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue")
+                        warn(f"..cell [{next_cell_in_row.cell_name}] is not empty, it must be part of another column/row merge which is an issue", nesting_level=nesting_level+1)
 
 
     ''' processes the cells to split the cells into tables and blocks and orders the tables and blocks properly
     '''
     def split(self, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # we have a concept of in-cell content and out-of-cell (free) content
         # in-cell contents are treated as part of a table, while out-of-cell (free) contents are treated as independent paragraphs, images etc. (blocks)
@@ -652,7 +652,7 @@ class OdtContent(object):
         container may be odt.text or a table-cell
     '''
     def content_to_odt(self, odt, container, field_list={}, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # iterate through tables and blocks contents
         for block in self.content_list:
@@ -733,7 +733,7 @@ class OdtTable(OdtBlock):
     ''' generates the odt code
     '''
     def block_to_odt(self, odt, container, field_list={}, nesting_level=0):
-        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}")
+        # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         # create the table with styles
         table_style_attributes = {'name': f"{self.table_name}_style"}
@@ -792,6 +792,7 @@ class OdtParagraph(OdtBlock):
             # We take the first cell, the cell will take the whole row width
             cell_to_produce = self.data_row.get_cell(0)
             cell_to_produce.cell_width = sum(cell_to_produce.column_widths)
+            # trace(f"[{self.row_number}] [OdtParagraph::block_to_odt] executing cell_to_odt", nesting_level=nesting_level)
             cell_to_produce.cell_to_odt(odt=odt, container=container, field_list=field_list, nesting_level=nesting_level+1)
 
 
@@ -943,14 +944,14 @@ class Row(object):
         c = 0
         for cell in self.cells:
             if cell is None:
-                warn(f"{self.row_name} has a Null cell at {c}", nesting_level=nesting_level)
+                warn(f"{self.row_name} has a Null cell at {c}", nesting_level=nesting_level+1)
             else:
                 table_cell = cell.cell_to_odt_table_cell(odt, self.table_name, field_list=field_list, nesting_level=nesting_level+1)
                 if table_cell is not None:
                     table_row.addElement(table_cell)
 
                 else:
-                    warn(f"Invalid table-cell : [{cell.cell_id}]", nesting_level=nesting_level)
+                    warn(f"Invalid table-cell : [{cell.cell_id}]", nesting_level=nesting_level+1)
 
             c = c + 1
 
@@ -975,8 +976,8 @@ class Cell(object):
 
         self.merge_spec = CellMergeSpec()
         self.note = None
-        self.effective_format = CellFormat(format_dict=None)
-        self.user_entered_format = CellFormat(format_dict=None)
+        self.effective_format = CellFormat(cell_repr=self, format_dict=None, nesting_level=nesting_level+1)
+        self.user_entered_format = CellFormat(cell_repr=self, format_dict=None, nesting_level=nesting_level+1)
 
         # considering merges, we have effective cell width and height
         self.effective_cell_width = self.cell_width
@@ -999,14 +1000,14 @@ class Cell(object):
 
             self.formatted_value = self.value.get('formattedValue', '')
 
-            self.effective_format = CellFormat(self.value.get('effectiveFormat'), nesting_level=nesting_level+1)
+            self.effective_format = CellFormat(cell_repr=self, format_dict=self.value.get('effectiveFormat'), nesting_level=nesting_level+1)
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(run_dict=text_format_run, default_format=self.effective_format.text_format.source, nesting_level=nesting_level+1))
+                self.text_format_runs.append(TextFormatRun(cell_repr=self.cell_repr, run_dict=text_format_run, default_format=self.effective_format.text_format.source, nesting_level=nesting_level+1))
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
-                self.user_entered_format = CellFormat(format_dict=self.value.get('userEnteredFormat'), nesting_level=nesting_level+1)
+                self.user_entered_format = CellFormat(cell_repr=self, format_dict=self.value.get('userEnteredFormat'), nesting_level=nesting_level+1)
                 self.is_empty = False
 
                 # HACK: handle background-color - if user_entered_format does not have backgroundColor, omit backgroundColor from effective_format
@@ -1019,25 +1020,25 @@ class Cell(object):
 
             # we need to identify exactly what kind of value the cell contains
             if 'contents' in self.value:
-                self.cell_value = ContentValue(effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+                self.cell_value = ContentValue(cell_repr=self, effective_format=self.effective_format, content_value=self.value['contents'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
 
             elif 'userEnteredValue' in self.value:
                 if 'image' in self.value['userEnteredValue']:
-                    self.cell_value = ImageValue(effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
+                    self.cell_value = ImageValue(cell_repr=self, effective_format=self.effective_format, image_value=self.value['userEnteredValue']['image'], document_nesting_depth=self.document_nesting_depth, nesting_level=nesting_level+1)
 
                 else:
                     if len(self.text_format_runs):
-                        self.cell_value = TextRunValue(effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
+                        self.cell_value = TextRunValue(cell_repr=self, effective_format=self.effective_format, text_format_runs=self.text_format_runs, formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
                     else:
                         if self.note.script is not None and self.note.script == 'latex':
-                            self.cell_value = LatexValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
+                            self.cell_value = LatexValue(cell_repr=self, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, nesting_level=nesting_level+1)
 
                         else:
-                            self.cell_value = StringValue(effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
+                            self.cell_value = StringValue(cell_repr=self, effective_format=self.effective_format, string_value=self.value['userEnteredValue'], formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
             else:
-                self.cell_value = StringValue(effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
+                self.cell_value = StringValue(cell_repr=self, effective_format=self.effective_format, string_value='', formatted_value=self.formatted_value, document_nesting_depth=self.document_nesting_depth, outline_level=self.note.outline_level, bookmark_dict=self.note.bookmark_dict, keep_line_breaks=self.note.keep_line_breaks, nesting_level=nesting_level+1)
 
         else:
             # value can have a special case it can be an empty ditionary when the cell is an inner cell of a column merge
@@ -1058,7 +1059,7 @@ class Cell(object):
             table_cell_properties_attributes = self.effective_format.table_cell_attributes(self.merge_spec, nesting_level=nesting_level+1)
         else:
             table_cell_properties_attributes = {}
-            warn(f"{self} : NO effective_format")
+            warn(f"{self} : NO effective_format", nesting_level=nesting_level)
 
         if self.is_covered() == False:
             # wrap this into a table-cell
@@ -1085,7 +1086,7 @@ class Cell(object):
                                     self.inline_images.append(inline_image)
                         
                     else:
-                        warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level)
+                        warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level+1)
 
 
             # and/or there might me inline images in notes
@@ -1101,12 +1102,13 @@ class Cell(object):
                     self.image_frames.append(create_image_frame(odt=odt, picture_path=inline_image.file_path, frame_attributes=frame_attributes, graphic_properties_attributes=graphic_properties_attributes, nesting_level=nesting_level+1))
 
                 else:
-                    warn(f"invalid inline-image type [{inline_image.type}]", nesting_level=nesting_level)
+                    warn(f"invalid inline-image type [{inline_image.type}]", nesting_level=nesting_level+1)
 
             table_cell = create_table_cell(odt, table_cell_style_attributes, table_cell_properties_attributes, table_cell_attributes, background_image_style=background_image_style, nesting_level=nesting_level+1)
 
             if table_cell is not None:
                 # trace(f"[{self}] : {table_cell_properties_attributes}", nesting_level=nesting_level)
+                # trace(f"[{self}] [Cell::cell_to_odt_table_cell] executing cell_to_odt", nesting_level=nesting_level)
                 self.cell_to_odt(odt=odt, container=table_cell, is_table_cell=True, field_list=field_list, nesting_level=nesting_level+1)
 
         else:
@@ -1147,6 +1149,7 @@ class Cell(object):
         # the content is not valid for multirow LastCell and InnerCell
         if self.merge_spec.multi_row in [MultiSpan.No, MultiSpan.FirstCell] and self.merge_spec.multi_col in [MultiSpan.No, MultiSpan.FirstCell]:
             if self.cell_value is not None:
+                # trace(f"[{self}] [Cell::cell_to_odt] executing value_to_odt", nesting_level=nesting_level)
                 paragraph = self.cell_value.value_to_odt(odt, container=container, container_width=self.effective_cell_width, container_height=self.effective_cell_height, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, footnote_list=footnote_list, bookmark_dict=self.note.bookmark_dict, field_list=field_list, nesting_level=nesting_level+1)
                 # place the image frame
                 if paragraph is not None:
@@ -1157,12 +1160,12 @@ class Cell(object):
                     if self.note is not None and self.note.style_list is not None:
                         for style_name in self.note.style_list:
                             if style_name in ConfigService()._style_specs:
-                                # trace(f"applying custom style [{style_name}] to {self}", nesting_level=nesting_level)
+                                # trace(f"applying custom style [{style_name}] to {self}", nesting_level=nesting_level+1)
                                 style = get_style_by_name(odt=odt, style_name=paragraph.getAttribute("stylename"), nesting_level=nesting_level+1)
                                 apply_custom_style(style=style, custom_properties=ConfigService()._style_specs[style_name], nesting_level=nesting_level+1)
                             
                             else:
-                                warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level)
+                                warn(f"[{self}] custom style [{style_name}] not defined", nesting_level=nesting_level+1)
 
 
                 else:
@@ -1211,7 +1214,8 @@ class CellValue(object):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, document_nesting_depth, outline_level=0):
+    def __init__(self, cell_repr, effective_format, document_nesting_depth, outline_level=0):
+        self.cell_repr = cell_repr
         self.effective_format = effective_format
         self.document_nesting_depth = document_nesting_depth
         self.outline_level = outline_level
@@ -1224,8 +1228,8 @@ class StringValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark_dict={}, keep_line_breaks=True, directives=True, nesting_level=0):
-        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, bookmark_dict={}, keep_line_breaks=True, directives=True, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value is not None:
             self.value = formatted_value
         else:
@@ -1252,6 +1256,18 @@ class StringValue(CellValue):
         if container is None:
             container = odt.text
 
+        if text_attributes is not None:
+            if 'fontname' in text_attributes:
+                # trace(f"[{self.cell_repr}] [StringValue::value_to_odt] text font is [{text_attributes['fontname']}]", nesting_level=nesting_level)
+                pass
+
+            else:
+                warn(f"[{self.cell_repr}] [StringValue::value_to_odt] text font not provided", nesting_level=nesting_level)
+
+        else:
+            warn(f"[{self.cell_repr}] [StringValue::value_to_odt] text attribute is None", nesting_level=nesting_level)
+
+
         style_name = create_paragraph_style(odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
         paragraph = create_paragraph(odt, style_name, text_content=self.value, outline_level=self.outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=self.keep_line_breaks, directives=self.directives, field_list=field_list, nesting_level=nesting_level+1)
         container.addElement(paragraph)
@@ -1266,8 +1282,8 @@ class LatexValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, effective_format, string_value, formatted_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         if formatted_value is not None:
             self.value = formatted_value
         else:
@@ -1304,8 +1320,8 @@ class TextRunValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, keep_line_breaks=True, nesting_level=0):
-        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, effective_format, text_format_runs, formatted_value, document_nesting_depth, outline_level=0, keep_line_breaks=True, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.text_format_runs = text_format_runs
         self.formatted_value = formatted_value
         self.keep_line_breaks = keep_line_breaks
@@ -1349,8 +1365,8 @@ class ImageValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, effective_format, image_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = image_value
 
 
@@ -1431,8 +1447,8 @@ class ContentValue(CellValue):
 
     ''' constructor
     '''
-    def __init__(self, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
-        super().__init__(effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
+    def __init__(self, cell_repr, effective_format, content_value, document_nesting_depth, outline_level=0, nesting_level=0):
+        super().__init__(cell_repr=cell_repr, effective_format=effective_format, document_nesting_depth=document_nesting_depth, outline_level=outline_level)
         self.value = content_value
 
 
@@ -1463,15 +1479,20 @@ class TextFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, text_format_dict=None, nesting_level=0):
+    def __init__(self, cell_repr, text_format_dict=None, nesting_level=0):
+        self.cell_repr = cell_repr
         self.source = text_format_dict
         if self.source is not None:
             self.fgcolor = RgbColor(text_format_dict.get('foregroundColor'))
             if 'fontFamily' in text_format_dict:
+                # trace(f"[{self.cell_repr}] specified font is [{text_format_dict['fontFamily']}]", nesting_level=nesting_level)
                 self.font_family = get_font_to_be_used(font_asked=text_format_dict['fontFamily'], nesting_level=nesting_level+1)
+                if self.font_family != text_format_dict['fontFamily']:
+                    warn(f"[{self.cell_repr}] font substituted by [{self.font_family}]", nesting_level=nesting_level)
 
             else:
                 self.font_family = ConfigService()._default_font
+                warn(f"[{self.cell_repr}] font not specified, defaulted to [{self.font_family}]", nesting_level=nesting_level)
 
 
             self.font_size = int(text_format_dict.get('fontSize', 0))
@@ -1482,6 +1503,7 @@ class TextFormat(object):
         else:
             self.fgcolor = RgbColor()
             self.font_family = None
+            warn(f"[{self.cell_repr}] font not specified at all", nesting_level=nesting_level)
             self.font_size = 0
             self.is_bold = False
             self.is_italic = False
@@ -1533,7 +1555,8 @@ class CellFormat(object):
 
     ''' constructor
     '''
-    def __init__(self, format_dict, nesting_level=0):
+    def __init__(self, cell_repr, format_dict, nesting_level=0):
+        self.cell_repr = cell_repr
         self.bgcolor = None
         self.borders = None
         self.padding = None
@@ -1550,7 +1573,8 @@ class CellFormat(object):
             self.padding = Padding(format_dict.get('padding'))
             self.halign = HorizontalAlignment(format_dict.get('horizontalAlignment'))
             self.valign = VerticalAlignment(format_dict.get('verticalAlignment'))
-            self.text_format = TextFormat(format_dict.get('textFormat'))
+            # trace(f"[{self.cell_repr}] CellFormat constructor", nesting_level=nesting_level)
+            self.text_format = TextFormat(cell_repr=self.cell_repr, text_format_dict=format_dict.get('textFormat'), nesting_level=nesting_level+1)
             self.wrapping = Wrapping(format_dict.get('wrapStrategy'))
             self.text_rotation = TextRotation(format_dict.get("textRotation"))
 
@@ -1935,12 +1959,14 @@ class TextFormatRun(object):
 
     ''' constructor
     '''
-    def __init__(self, run_dict=None, default_format=None, nesting_level=0):
+    def __init__(self, cell_repr, run_dict=None, default_format=None, nesting_level=0):
+        self.cell_repr = cell_repr
         if run_dict is not None:
             self.start_index = int(run_dict.get('startIndex', 0))
             format = run_dict.get('format')
             new_format = {**default_format, **format}
-            self.format = TextFormat(new_format)
+            # trace(f"[{self.cell_repr}] TextFormatRun constructor", nesting_level=nesting_level)
+            self.format = TextFormat(cell_repr=self.cell_repr, text_format_dict=new_format, nesting_level=nesting_level+1)
         else:
             self.start_index = None
             self.format = None
@@ -2262,11 +2288,11 @@ def process_pdf(odt, section_data, nesting_level=0):
 ''' odt processor
 '''
 def process_odt(odt, section_data, nesting_level=0):
-    warn(f"content type [odt] not supported")
+    warn(f"content type [odt] not supported", nesting_level=nesting_level)
 
 
 
 ''' docx processor
 '''
 def process_docx(odt, section_data, nesting_level=0):
-    warn(f"content type [docx] not supported")
+    warn(f"content type [docx] not supported", nesting_level=nesting_level)

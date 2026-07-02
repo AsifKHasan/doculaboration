@@ -168,7 +168,7 @@ class GsheetHelper(object):
                 info(f"font [{specified_font}] will be replaced by [{font_to_use}]", nesting_level=nesting_level+1)
             
             font_cache[specified_font] = font_to_use
-            print()
+            # print()
 
         # set the default font
         if 'default' in specs_data['specs']['font-spec']:

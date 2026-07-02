@@ -357,6 +357,8 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
         paragraph_style.addElement(style.TextProperties(attributes=text_attributes))
 
     odt.automaticstyles.addElement(paragraph_style)
+    # trace(f"[create_paragraph_style] style [{style_attributes['name']}] created", nesting_level=nesting_level+1)
+    # trace(f"[text_attributes] {text_attributes}", nesting_level=nesting_level+1)
 
     return style_attributes['name']
 
@@ -388,7 +390,7 @@ def create_paragraph(odt, style_name, text_content=None, run_list=None, outline_
         if outline_level == 0:
             paragraph = create_text(odt=odt, text_type='P', style_name=style_name, text_content=text_content, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
         else:
-            paragraph = create_text(odt=odt, text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, footnote_list=footnote_list, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, nesting_level=nesting_level+1)
+            paragraph = create_text(odt=odt, text_type='H', style_name=style_name, text_content=text_content, outline_level=outline_level, bookmark_dict=bookmark_dict, keep_line_breaks=keep_line_breaks, field_list=field_list, footnote_list=footnote_list, nesting_level=nesting_level+1)
 
     else:
         paragraph = text.P(stylename=style_name)
@@ -1732,14 +1734,14 @@ def download_file_from_drive(drive_service, url, title, tmp_dir, nesting_level=0
 
     # if the file is already in the local_path, we do not download it
     if Path(local_path).exists() == True:
-        trace(f"drive file existing   at: [{local_path}]", nesting_level=nesting_level)
+        trace(f"drive file [{file_name}] existing   at: [{local_path}]", nesting_level=nesting_level)
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
 
     # finally download the file
-    trace(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
+    # trace(f"downloading drive file id = [{id}]", nesting_level=nesting_level)
     try:
         download_media_from_dive(drive_service=drive_service, file_id=id, local_path=local_path, nesting_level=nesting_level+1)
-        trace(f"drive file downloaded at: [{local_path}]", nesting_level=nesting_level)
+        trace(f"drive file [{id}:{file_name}] downloaded at: [{local_path}]", nesting_level=nesting_level)
         return {'file-name': file_name, 'file-type': file_type, 'file-path': str(local_path)}
 
     except:
@@ -1962,7 +1964,7 @@ def get_font_to_be_used(font_asked, nesting_level=0):
 
         else:
             warn(f"font [{font_asked}] missing in system", nesting_level=nesting_level)
-            trace(f"font [{font_asked}] will be replaced by the default font [{ConfigService()._default_font}]", nesting_level=nesting_level)
+            trace(f"font [{font_asked}] will be substituted by the default font [{ConfigService()._default_font}]", nesting_level=nesting_level)
             ConfigService()._font_cache[font_asked] = ConfigService()._default_font
             return ConfigService()._default_font
 
