@@ -1063,29 +1063,50 @@ def set_text_style(run, text_attributes, nesting_level=0):
 '''
 def empty_paragraph_with_fixed_fontsize(paragraph, font_size, font_name, nesting_level=0):
 	# Ensure the cell is completely text-free
-	paragraph.text = "" 
+	# paragraph.text = "" 
 
 	# ---- THE FIX: Force the paragraph level property to be 16pt ----
 	pPr = paragraph._p.get_or_add_pPr()
-	rPr = OxmlElement('w:rPr')
-	sz = OxmlElement('w:sz')
+	rPr = pPr.find(qn('w:rPr'))
+	if rPr is None:
+		rPr = OxmlElement('w:rPr')
+		pPr.append(rPr)
+
+	# font
+	if font_name is not None:
+		rFonts = rPr.find(qn('w:rFonts'))
+		if rFonts is None:
+			rFonts = OxmlElement('w:rFonts')
+			rPr.append(rFonts)
+
+		# Force Word to recognize the font name override
+		rFonts.set(qn('w:ascii'), font_name)
+		rFonts.set(qn('w:hAnsi'), font_name)
+		rFonts.set(qn('w:eastAsia'), font_name)
+		rFonts.set(qn('w:cs'), font_name)
+
 
 	# Word XML calculates font size in half-points. 
 	font_size_text = f"{font_size * 2}"
-	sz.set(qn('w:val'), font_size_text)  
+	# sz.set(qn('w:val'), font_size_text)  
 
-	rPr.append(sz)
-	pPr.append(rPr)
+	sz = rPr.find(qn('w:sz'))
+	if sz is None:
+		sz = OxmlElement('w:sz')
+		rPr.append(sz)
+	
+	sz.set(qn('w:val'), font_size_text)
 
-	if font_name is not None:
-		run = paragraph.add_run()
-		run.font.name = font_name
+	szCs = rPr.find(qn('w:szCs'))
+	if szCs is None:
+		szCs = OxmlElement('w:szCs')
+		rPr.append(szCs)
+	
+	szCs.set(qn('w:val'), font_size_text)
 
-		# Force Word to recognize the font name override
-		rPr = run._r.get_or_add_rPr()
-		rFonts = rPr.get_or_add_rFonts()
-		rFonts.set(qn('w:ascii'), font_name)
-		rFonts.set(qn('w:hAnsi'), font_name)
+	# rPr.append(sz)
+	# pPr.append(rPr)
+
 
 
 ''' inside a paragraph move a run from anywhere to start as the 0th run
