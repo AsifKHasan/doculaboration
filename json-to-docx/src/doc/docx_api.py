@@ -1117,7 +1117,7 @@ class Cell(object):
             self.effective_format = CellFormat(cell_repr=self, format_dict=self.value.get('effectiveFormat'), nesting_level=nesting_level+1)
 
             for text_format_run in self.value.get('textFormatRuns', []):
-                self.text_format_runs.append(TextFormatRun(cell_repr=self, run_dict=text_format_run, default_format=self.effective_format.text_format.source), nesting_level=nesting_level+1)
+                self.text_format_runs.append(TextFormatRun(cell_repr=self, run_dict=text_format_run, default_format=self.effective_format.text_format.source, nesting_level=nesting_level+1))
 
             # presence of userEnteredFormat makes the cell non-empty
             if 'userEnteredFormat' in self.value:
