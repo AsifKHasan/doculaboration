@@ -2951,6 +2951,9 @@ PDF_PAGE_HEIGHT_OFFSET = 0.5
 # default header height to fallback to when header height can not be calculated
 DEFAULT_HEADER_HEIGHT_IN_INCHES = 0.27
 
+# default paragraph style
+DEFAULT_PARAGRAPH_STYLE = 'Normal'
+
 
 # 0-based gsheet column number to column letter map
 COLUMNS = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',

@@ -148,8 +148,9 @@ class OdtSectionBase(object):
                 parent_style_name = f"Heading_20_{outline_level}"
 
         else:
+            # as we are not showing the heading, the empty paragraph should be small enough just to apply the styles if there is any
             heading_text = ''
-            parent_style_name = 'Text_20_body'
+            parent_style_name = DEFAULT_PARAGRAPH_STYLE
             outline_level = 0
 
         style_attributes['parentstylename'] = parent_style_name
@@ -214,7 +215,13 @@ class OdtSectionBase(object):
 
         style_attributes['name'] = style_name
 
-        style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes)
+        # QUIRK: if heading is hidden, font-size mhould be very small
+        if self.hide_heading == True:
+            text_attributes = {'fontsize': 1}
+        else:
+            text_attributes = None
+
+        style_name = create_paragraph_style(self._odt, style_attributes=style_attributes, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, nesting_level=nesting_level+1)
         paragraph = create_paragraph(self._odt, style_name, text_content=heading_text, outline_level=outline_level, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
 
         for heading_style in self.heading_style:

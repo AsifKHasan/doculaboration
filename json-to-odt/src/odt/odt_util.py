@@ -345,7 +345,7 @@ def create_paragraph_style(odt, style_attributes=None, paragraph_attributes=None
         style_attributes['name'] = random_string()
 
     if 'parentstylename' not in style_attributes:
-        style_attributes['parentstylename'] = 'Text_20_body'
+        style_attributes['parentstylename'] = DEFAULT_PARAGRAPH_STYLE
 
     # create the style
     paragraph_style = style.Style(name=style_attributes['name'], attributes=style_attributes)
@@ -2018,8 +2018,8 @@ CELL_WIDTH_RATIO_TO_FORCE_HALIGN_TRUE = 0.7
 # max height the footnote area can occupy in a page before spilling over to the next page
 FOOTNOTE_MAX_HEIGHT = '10cm'
 
-
-
+# default paragraph style
+DEFAULT_PARAGRAPH_STYLE = 'Text_20_body'
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # gsheet to odt constants and type mapping

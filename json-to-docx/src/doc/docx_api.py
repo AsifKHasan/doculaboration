@@ -127,8 +127,9 @@ class DocxSectionBase(object):
                 style_name = f"Heading{outline_level}"
 
         else:
+            # as we are not showing the heading, the empty paragraph should be small enough just to apply the styles if there is any
             heading_title = None
-            style_name = 'Normal'
+            style_name = DEFAULT_PARAGRAPH_STYLE
             outline_level = 0
 
 
@@ -168,9 +169,15 @@ class DocxSectionBase(object):
         # debug(f". {self.__class__.__name__} : {inspect.stack()[0][3]}", nesting_level=nesting_level)
 
         heading_text, _, style_name = self.get_heading()
-        # paragraph = None
-        # if heading_text is not None:
-        paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes={'stylename': style_name}, text_content=heading_text, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
+        paragraph_attributes = {'stylename': style_name}
+
+        # QUIRK: if heading is hidden, font-size mhould be very small
+        if self.hide_heading == True:
+            text_attributes = {'fontsize': 1}
+        else:
+            text_attributes = None
+
+        paragraph = create_paragraph(docx=self._docx, container=self._docx, paragraph_attributes=paragraph_attributes, text_attributes=text_attributes, text_content=heading_text, bookmark_dict=self.bookmark_dict, field_list=self.field_list, nesting_level=nesting_level+1)
 
         for heading_style in self.heading_style:
             if heading_style is not None:
