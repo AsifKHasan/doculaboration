@@ -168,7 +168,7 @@ def format_container(docx, container, attributes, custom_style_list=[], it_is_a_
 		# debug(f"will apply [{custom_style_name}]", nesting_level=nesting_level+1)
 		custom_style = ConfigService()._style_specs.get(custom_style_name, None)
 		if custom_style is not None:
-			trace(f"[apply_custom_style_to_paragrah] applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level)
+			# trace(f"[apply_custom_style_to_paragrah] applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level)
 			apply_custom_style_to_paragrah(docx=docx, style_spec=custom_style, paragraph=paragraph, nesting_level=nesting_level+1)
 
 	# for cell and paragraph both
@@ -914,9 +914,28 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	1 pt is 20 twips
 	so anything below 0.05pt is actually 0.05pt
 '''
-def set_paragraph_spacing(docx, element, spacing_in_emu, nesting_level=0):
-	# get the parent paragraph 
-	# paragraph = element.paragraph
+def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
+	# emu to twips
+	spacing_in_twips = math.ceil((spacing_in_emu * 20) / EMU_PER_PT)
+	# print(f"spacing is {spacing_in_twips}twips")
+	for run in paragraph.runs:
+		rPr = run._r.get_or_add_rPr()
+
+		spacing_el = rPr.find(qn('w:spacing'))
+		if spacing_el is None:
+			spacing_el = OxmlElement('w:spacing')
+			rPr.append(spacing_el)
+
+		spacing_el.set(qn('w:val'), str(spacing_in_twips))		
+
+
+''' set element spacing
+	spacing is assumed to be in emu which
+	1 pt is 20 twips
+	so anything below 0.05pt is actually 0.05pt
+'''
+def set_element_spacing(docx, element, spacing_in_emu, nesting_level=0):
+	# get the parent paragraph
 	paragraph = Paragraph(element, docx)
 
 	# emu to twips
@@ -1313,7 +1332,7 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			# TODO: identify the field, extract the field value
 			if field in field_list:
 				field_value = field_list[field]
-				trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+				# trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
 				run = paragraph.add_run(field_value)
 				set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
@@ -2260,7 +2279,7 @@ def apply_custom_style_to_style(docx, style_spec, style_name, nesting_level=0):
 						continue
 
 					if hasattr(font, attr):
-						trace(f"[apply_custom_style_to_style] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
+						# trace(f"[apply_custom_style_to_style] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
 						setattr(font, attr, value)
 
 					else:
@@ -2289,7 +2308,7 @@ def apply_custom_style_to_style(docx, style_spec, style_name, nesting_level=0):
 
 			# letter-spacing
 			if 'letter-spacing' in style_spec['ParagraphStyle']:
-				set_paragraph_spacing(docx=docx, element=element, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+				set_element_spacing(docx=docx, element=element, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
 
 
 
@@ -2332,7 +2351,7 @@ def apply_custom_style_to_paragrah(docx, style_spec, paragraph, nesting_level=0)
 							continue
 
 						if hasattr(font, attr):
-							trace(f"[apply_custom_style_to_paragrah] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
+							# trace(f"[apply_custom_style_to_paragrah] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
 							setattr(font, attr, value)
 
 						else:
@@ -2361,7 +2380,7 @@ def apply_custom_style_to_paragrah(docx, style_spec, paragraph, nesting_level=0)
 
 			# letter-spacing
 			if 'letter-spacing' in style_spec['ParagraphStyle']:
-				set_paragraph_spacing(docx=docx, element=element, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+				set_paragraph_spacing(docx=docx, paragraph=paragraph, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
 
 
 

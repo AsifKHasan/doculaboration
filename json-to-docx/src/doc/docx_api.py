@@ -1261,7 +1261,7 @@ class Cell(object):
             custom_style_list = []
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
-        trace(f"{self} [Cell::decorate_cell]", nesting_level=nesting_level)
+        # trace(f"{self} [Cell::decorate_cell]", nesting_level=nesting_level)
         format_container(docx=self._docx, container=self.table_cell, attributes=table_cell_attributes, custom_style_list=custom_style_list, it_is_a_table_cell=True, nesting_level=nesting_level+1)
 
 
