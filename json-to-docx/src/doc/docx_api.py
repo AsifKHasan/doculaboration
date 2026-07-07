@@ -186,8 +186,8 @@ class DocxSectionBase(object):
 
                 else:
                     if paragraph is not None:
-                        # trace(f"applying custom style [{heading_style}] to heading", nesting_level=nesting_level+1)
-                        apply_custom_style(docx=self._docx, style_spec=ConfigService()._style_specs[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
+                        # trace(f"[DocxSectionBase::section_to_docx] applying custom style [{heading_style}] to heading", nesting_level=nesting_level+1)
+                        apply_custom_style_to_paragrah(docx=self._docx, style_spec=ConfigService()._style_specs[heading_style], paragraph=paragraph, nesting_level=nesting_level+1)
 
                     # handle background image
                     if 'page-background' in ConfigService()._style_specs[heading_style]:
@@ -1261,6 +1261,7 @@ class Cell(object):
             custom_style_list = []
 
         table_cell_attributes = self.effective_format.table_cell_attributes(cell_merge_spec=self.merge_spec, force_halign=force_halign, angle=angle)
+        trace(f"{self} [Cell::decorate_cell]", nesting_level=nesting_level)
         format_container(docx=self._docx, container=self.table_cell, attributes=table_cell_attributes, custom_style_list=custom_style_list, it_is_a_table_cell=True, nesting_level=nesting_level+1)
 
 

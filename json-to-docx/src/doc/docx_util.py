@@ -168,8 +168,8 @@ def format_container(docx, container, attributes, custom_style_list=[], it_is_a_
 		# debug(f"will apply [{custom_style_name}]", nesting_level=nesting_level+1)
 		custom_style = ConfigService()._style_specs.get(custom_style_name, None)
 		if custom_style is not None:
-			# debug(f"applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level+1)
-			apply_custom_style(docx=docx, style_spec=custom_style, style_name=None, paragraph=paragraph, nesting_level=nesting_level+1)
+			trace(f"[apply_custom_style_to_paragrah] applying [{custom_style_name}] = {custom_style}", nesting_level=nesting_level)
+			apply_custom_style_to_paragrah(docx=docx, style_spec=custom_style, paragraph=paragraph, nesting_level=nesting_level+1)
 
 	# for cell and paragraph both
 	if 'textalign' in attributes:
@@ -197,10 +197,10 @@ def format_container(docx, container, attributes, custom_style_list=[], it_is_a_
 	# for paragraph
 	else:
 		if 'borders' in attributes:
-			set_paragraph_border(element=container._p, borders=attributes['borders'])
+			set_paragraph_border(docx=docx, element=container._p, borders=attributes['borders'])
 
 		if 'backgroundcolor' in attributes:
-			set_paragraph_bgcolor(element=container._element, color=attributes['backgroundcolor'])
+			set_paragraph_bgcolor(docx=docx, element=container._element, color=attributes['backgroundcolor'])
 
 
 ''' whether the container is a document or not
@@ -914,7 +914,11 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 	1 pt is 20 twips
 	so anything below 0.05pt is actually 0.05pt
 '''
-def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
+def set_paragraph_spacing(docx, element, spacing_in_emu, nesting_level=0):
+	# get the parent paragraph 
+	paragraph = element.paragraph
+
+	# emu to twips
 	spacing_in_twips = math.ceil((spacing_in_emu * 20) / EMU_PER_PT)
 	# print(f"spacing is {spacing_in_twips}twips")
 	for run in paragraph.runs:
@@ -939,7 +943,7 @@ def set_paragraph_spacing(docx, paragraph, spacing_in_emu, nesting_level=0):
 	val is any of dotted/dashed/single/thick/triple/double/none
 	space is space/padding between text and border in pt
 '''
-def set_paragraph_border(element, borders, nesting_level=0):
+def set_paragraph_border(docx, element, borders, nesting_level=0):
 	pPr = element.get_or_add_pPr()
 
 	# check for tag existnace, if none found, then create one
@@ -968,7 +972,7 @@ def set_paragraph_border(element, borders, nesting_level=0):
 
 ''' set paragraph bgcolor
 '''
-def set_paragraph_bgcolor(element, color, nesting_level=0):
+def set_paragraph_bgcolor(docx, element, color, nesting_level=0):
 	shading = OxmlElement('w:shd')
 
 	# required
@@ -1308,7 +1312,7 @@ def process_inline_blocks(docx, paragraph, text_content, text_attributes, footno
 			# TODO: identify the field, extract the field value
 			if field in field_list:
 				field_value = field_list[field]
-				# trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
+				trace(f"found field [{field}], value [{field_value}]", nesting_level=nesting_level+1)
 				run = paragraph.add_run(field_value)
 				set_text_style(run=run, text_attributes=text_attributes, nesting_level=nesting_level+1)
 
@@ -2219,37 +2223,27 @@ def get_style_by_name(docx, style_name, nesting_level=0):
 	return None
 
 
-''' apply a custom style to a Style/paragraph
+''' apply a custom style to an existing Style
 	1. ParagraphStyle (*font* and *paragraph-format*)
 	2. borders
 	3. backgroundcolor
 	TODO: check carefully
 '''
-def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nesting_level=0):
+def apply_custom_style_to_style(docx, style_spec, style_name, nesting_level=0):
 
 	# the following elemnts are to be updated
 	font, pf = None, None
 
 	if style_name is not None:
-		style = get_style_by_name(docx=docx, style_name=style_name)
+		style = get_style_by_name(docx=docx, style_name=style_name, nesting_level=nesting_level+1)
 		if style is None:
-			error(f"style [{style_name}] not found .. ")
+			error(f"[apply_custom_style_to_style] style [{style_name}] not found .. ")
 			return
 
 		# style exists, update with spec
 		font = style.font
 		pf = style.paragraph_format
 		element = style._element
-
-
-	elif paragraph is not None:
-		if len(paragraph.runs) == 0:
-			paragraph.add_run()
-
-		font = paragraph.runs[0].font
-		pf = paragraph.paragraph_format
-		element = paragraph._p
-
 
 	# now apply ParagraphStyle
 	if 'ParagraphStyle' in style_spec:
@@ -2265,8 +2259,11 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 						continue
 
 					if hasattr(font, attr):
-						# trace(f"applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level+1)
+						trace(f"[apply_custom_style_to_style] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
 						setattr(font, attr, value)
+
+					else:
+						warn(f"[apply_custom_style_to_style] ParagraphStyle::font does not support attribute [{attr}]", nesting_level=nesting_level)
 
 
 		# ParagraphStyle - paragraph_format
@@ -2278,20 +2275,92 @@ def apply_custom_style(docx, style_spec, style_name=None, paragraph=None, nestin
 					if hasattr(pf, attr):
 						setattr(pf, attr, value)
 
-		# borders
-		if 'borders' in style_spec['ParagraphStyle']:
-			if element is not None:
-				set_paragraph_border(element=element, borders=style_spec['ParagraphStyle']['borders'])
 
-		# backgroundcolor
-		if 'backgroundcolor' in style_spec['ParagraphStyle']:
-			if element is not None:
-				set_paragraph_bgcolor(element=element, color=style_spec['ParagraphStyle']['backgroundcolor'])
+		# borders, bgcolor, letter-spacing
+		if element is not None:
+			# borders
+			if 'borders' in style_spec['ParagraphStyle']:
+				set_paragraph_border(docx=docx, element=element, borders=style_spec['ParagraphStyle']['borders'], nesting_level=nesting_level+1)
 
-		# letter-spacing
-		if 'letter-spacing' in style_spec['ParagraphStyle']:
-			if element is not None:
-				set_paragraph_spacing(docx=docx, paragraph=paragraph, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+			# backgroundcolor
+			if 'backgroundcolor' in style_spec['ParagraphStyle']:
+				set_paragraph_bgcolor(docx=docx, element=element, color=style_spec['ParagraphStyle']['backgroundcolor'], nesting_level=nesting_level+1)
+
+			# letter-spacing
+			if 'letter-spacing' in style_spec['ParagraphStyle']:
+				set_paragraph_spacing(docx=docx, element=element, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
+
+
+
+''' apply a custom style to a paragraph
+	1. ParagraphStyle (*font* and *paragraph-format*)
+	2. borders
+	3. backgroundcolor
+	TODO: check carefully
+'''
+def apply_custom_style_to_paragrah(docx, style_spec, paragraph, nesting_level=0):
+
+	# the following elemnts are to be updated
+	font, pf = None, None
+
+	if paragraph is not None:
+		if len(paragraph.runs) == 0:
+			paragraph.add_run()
+
+		pf = paragraph.paragraph_format
+		element = paragraph._p
+
+	else:
+		warn(f"[apply_custom_style_to_paragrah] pargraph is None", nesting_level=nesting_level)
+		return
+
+
+	# now apply ParagraphStyle
+	if 'ParagraphStyle' in style_spec:
+		if 'font' in style_spec['ParagraphStyle']:
+			attr_dict = style_spec['ParagraphStyle']['font']
+
+			for run in paragraph.runs:
+				font = run.font
+				if font is not None:
+					for attr, value in attr_dict.items():
+						# color needs special treatment
+						if attr == "color":
+							# value should be RGBColor or None
+							font.color.rgb = value
+							continue
+
+						if hasattr(font, attr):
+							trace(f"[apply_custom_style_to_paragrah] applying font attribute [{attr}] to [{value}]", nesting_level=nesting_level)
+							setattr(font, attr, value)
+
+						else:
+							warn(f"[apply_custom_style_to_paragrah] ParagraphStyle::font does not support attribute [{attr}]", nesting_level=nesting_level)
+
+
+		# ParagraphStyle - paragraph_format
+		if 'paragraph-format' in style_spec['ParagraphStyle']:
+			attr_dict = style_spec['ParagraphStyle']['paragraph-format']
+			
+			if pf is not None:
+				for attr, value in attr_dict.items():
+					if hasattr(pf, attr):
+						setattr(pf, attr, value)
+
+
+		# borders, bgcolor, letter-spacing
+		if element is not None:
+			# borders
+			if 'borders' in style_spec['ParagraphStyle']:
+				set_paragraph_border(docx=docx, element=element, borders=style_spec['ParagraphStyle']['borders'], nesting_level=nesting_level+1)
+
+			# backgroundcolor
+			if 'backgroundcolor' in style_spec['ParagraphStyle']:
+				set_paragraph_bgcolor(docx=docx, element=element, color=style_spec['ParagraphStyle']['backgroundcolor'], nesting_level=nesting_level+1)
+
+			# letter-spacing
+			if 'letter-spacing' in style_spec['ParagraphStyle']:
+				set_paragraph_spacing(docx=docx, element=element, spacing_in_emu=style_spec['ParagraphStyle']['letter-spacing'], nesting_level=nesting_level+1)
 
 
 
@@ -2315,13 +2384,13 @@ def process_custom_styles(docx, style_spec, nesting_level=0):
 				style_name = value.get('name', None)
 				if style_name is not None:
 					# trace(f"customizing style [{style_name}]", nesting_level=nesting_level+1)
-					apply_custom_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
-					trace(f"style [{style_name}] customized", nesting_level=nesting_level+1)
+					apply_custom_style_to_style(docx=docx, style_spec=value, style_name=style_name, nesting_level=nesting_level+1)
+					trace(f"[apply_custom_style_to_style] style [{style_name}] customized", nesting_level=nesting_level+1)
 
 				else:
 					# trace(f"adding custom style [{key}] to style cache", nesting_level=nesting_level+1)
 					custom_styles[key] = value
-					trace(f"custom style [{key}] added to style cache", nesting_level=nesting_level+1)
+					trace(f"[apply_custom_style_to_style] custom style [{key}] added to style cache", nesting_level=nesting_level+1)
 	
 	return custom_styles
 
