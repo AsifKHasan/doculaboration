@@ -916,7 +916,8 @@ def create_paragraph(docx, container, text_content=None, run_list=None, paragrap
 '''
 def set_paragraph_spacing(docx, element, spacing_in_emu, nesting_level=0):
 	# get the parent paragraph 
-	paragraph = element.paragraph
+	# paragraph = element.paragraph
+	paragraph = Paragraph(element, docx)
 
 	# emu to twips
 	spacing_in_twips = math.ceil((spacing_in_emu * 20) / EMU_PER_PT)
