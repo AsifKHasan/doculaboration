@@ -1501,6 +1501,7 @@ def process_page_and_bookmark_blocks(text_content, nesting_level=0):
 				pass
 
 			if page_directive == '':
+				# trace(f"[page-num] [{bookmark_content}] found with no directives and page_num_format [{page_num_format}] from ", nesting_level=nesting_level+1)
 				texts_and_bookmarks.append({"page-num": page_num_format})
 
 			elif page_directive == '*':
@@ -1719,7 +1720,7 @@ def add_bookmark_end(paragraph, bookmark_name, nesting_level=0):
 
 ''' add a PAGE reference 
 '''
-def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_level=0):
+def add_page_reference(paragraph, bookmark_name, page_num_format='1', nesting_level=0):
 	run = paragraph.add_run()
 
 	# create a new element and set attributes
@@ -1733,7 +1734,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 	lang = None
 
 	if bookmark_name == '':
-		if page_num_format is None:
+		if page_num_format == '1':
 			instrText.text = 'PAGE \\* MERGEFORMAT'
 
 		elif page_num_format == 'i':
@@ -1759,7 +1760,7 @@ def add_page_reference(paragraph, bookmark_name, page_num_format=None, nesting_l
 		if page_num_format is None:
 			instrText.text = f" PAGEREF {bookmark_name} \\h "
 
-		elif page_num_format == 'i':
+		elif page_num_format == '1':
 			# warn(f"pageref for [{bookmark_name}] is roman")
 			instrText.text = f" PAGEREF {bookmark_name} \\h \\* roman "
 
