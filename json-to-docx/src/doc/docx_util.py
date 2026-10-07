@@ -548,7 +548,11 @@ def create_page_background(docx, header, background_image_path, page_width_inche
 def add_background_image_to_header(docx_section, image_path, width, height, nesting_level=0):
     # Put it in its own paragraph at start
 	for header in [docx_section.header, docx_section.even_page_header]:
-		p = header.paragraphs[0] if header.paragraphs is not None else header.add_paragraph()
+		if header.paragraphs is not None and len(header.paragraphs) > 0:
+			p = header.paragraphs[0]
+		else: 
+			p = header.add_paragraph()
+
 		run = p.add_run()
 		inline = run.add_picture(image_path, width=width, height=height)
 		inline_to_anchored_behind(inline, width=width, height=height)
@@ -1072,11 +1076,15 @@ def set_text_style(run, text_attributes, nesting_level=0):
 		else:
 			run.underline = False
 
-		run.font.name = text_attributes['fontname']
-		run.font.size = Pt(text_attributes['fontsize'])
+		if 'fontname' in text_attributes:
+			run.font.name = text_attributes['fontname']
 
-		fgcolor = text_attributes.get('color')
-		run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
+		if 'fontsize' in text_attributes:
+			run.font.size = Pt(text_attributes['fontsize'])
+
+		if 'color' in text_attributes:
+			fgcolor = text_attributes.get('color')
+			run.font.color.rgb = RGBColor(fgcolor.red, fgcolor.green, fgcolor.blue)
 
 		# debug(text_attributes)
 
@@ -2931,7 +2939,7 @@ def str_to_border(str, nesting_level=0):
 		return None
 
 	# sz
-	sz = str_to_size(str=sz, nesting_level=nesting_level)
+	sz = str_to_size(text=sz, nesting_level=nesting_level)
 	if sz is not None:
 		sz = sz.pt * 8
 	else:
@@ -2950,7 +2958,7 @@ def str_to_border(str, nesting_level=0):
 		return None
 
 	# space
-	space = str_to_size(str=space, nesting_level=nesting_level)
+	space = str_to_size(text=space, nesting_level=nesting_level)
 	if space is not None:
 		space = space.pt
 	else:
